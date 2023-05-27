@@ -241,9 +241,9 @@ def nlW1(theta, meas_exp):
         [0,1,2,3,0,3]]
     w1 = 0.125 * (ZI + ZZ + II + IZ + 2*a*b*(ZI + ZZ + II + IZ))
     w2 = 0.125 * (II - IZ - ZI + ZZ + 2*a*b*(IZ - II + ZI - ZZ))
-    w3 = 0.25 * (a^2 - b^2) * (XX + YY)
-    nl_exp_values = [w1,w2,w3]
-    return nl_exp_values
+    w3 = 0.25 * (a**2 - b**2) * (XX + YY)
+    val = w1*w2 - 0.25 * (abs(w3)**2)
+    return val
 
 def nlW2(theta, meas_exp):
     """
@@ -255,9 +255,9 @@ def nlW2(theta, meas_exp):
         [0,1,2,3,0,3]]
     w1 = 0.125 * (ZI - ZZ + II - IZ + 2*a*b*(ZI - ZZ + II - IZ))
     w2 = 0.125 * (II + IZ - ZI - ZZ + 2*a*b*(ZI - II - IZ + ZZ))
-    w3 = 0.25 * (a^2 - b^2) * (XX - YY)
-    nl_exp_values = [w1,w2,w3]
-    return nl_exp_values
+    w3 = 0.25 * (a**2 - b**2) * (XX - YY)
+    val = w1*w2 - 0.25 * (abs(w3)**2)
+    return val
 
 def nlW3(theta, meas_exp):
     """
@@ -267,11 +267,11 @@ def nlW3(theta, meas_exp):
     II, XX, YY, ZZ, ZI, IZ, IX, ZX, XI = meas_exp[
         [0,1,2,3,3,0,0,3,1],
         [0,1,2,3,0,3,1,1,0]]
-    w1 = 0.125 * (II + (a^2 - b^2)*IZ + 2*a*b*IX + ZI + (a^2 - b^2)*ZZ + 2*a*b*ZX)
-    w2 = 0.125 * (II - (a^2 - b^2)*IZ + 2*a*b*IX - ZI + (a^2 - b^2)*ZZ - 2*a*b*ZX)
-    w3 = 0.25 * (XX + 2*a*b*XI - (a^2 - b^2)*YY)
-    nl_exp_values = [w1,w2,w3]
-    return nl_exp_values
+    w1 = 0.125 * (II + (a**2 - b**2)*IZ + 2*a*b*IX + ZI + (a**2 - b**2)*ZZ + 2*a*b*ZX)
+    w2 = 0.125 * (II - (a**2 - b**2)*IZ + 2*a*b*IX - ZI + (a**2 - b**2)*ZZ - 2*a*b*ZX)
+    w3 = 0.25 * (XX + 2*a*b*XI - (a**2 - b**2)*YY)
+    val = w1*w2 - 0.25 * (abs(w3)**2)
+    return val
 
 def nlW4(theta, meas_exp):
     """
@@ -281,11 +281,11 @@ def nlW4(theta, meas_exp):
     II, XX, YY, ZZ, ZI, IZ, IX, ZX, XI = meas_exp[
         [0,1,2,3,3,0,0,3,1],
         [0,1,2,3,0,3,1,1,0]]
-    w1 = 0.125 * (II + (a^2 - b^2)*IZ + 2*a*b*IX + ZI + (a^2 - b^2)*ZZ + 2*a*b*ZX)
-    w2 = 0.125 * (II - (a^2 - b^2)*IZ + 2*a*b*IX - ZI + (a^2 - b^2)*ZZ - 2*a*b*ZX)
-    w3 = 0.25 * (-XX - 2*a*b*XI + (a^2 - b^2)*YY)
-    nl_exp_values = [w1,w2,w3]
-    return nl_exp_values
+    w1 = 0.125 * (II + (a**2 - b**2)*IZ + 2*a*b*IX + ZI + (a**2 - b**2)*ZZ + 2*a*b*ZX)
+    w2 = 0.125 * (II - (a**2 - b**2)*IZ + 2*a*b*IX - ZI + (a**2 - b**2)*ZZ - 2*a*b*ZX)
+    w3 = 0.25 * (-XX - 2*a*b*XI + (a**2 - b**2)*YY)
+    val = w1*w2 - 0.25 * (abs(w3)**2)
+    return val
 
 def nlW5(theta, meas_exp):
     """
@@ -295,27 +295,41 @@ def nlW5(theta, meas_exp):
     II, XX, YY, ZZ, ZI, IZ, IY, ZY, YI = meas_exp[
         [0,1,2,3,3,0,0,3,2],
         [0,1,2,3,0,3,2,2,0]]
-    w1 = 0.125 * (II + (a^2 - b^2)*IZ + 2*a*b*IY + ZI + (a^2 - b^2)*ZZ + 2*a*b*ZY)
-    w2 = 0.125 * (II - (a^2 - b^2)*IZ + 2*a*b*IY - ZI + (a^2 - b^2)*ZZ - 2*a*b*ZY)
-    w3 = 0.25 * ((a^2 - b^2)*XX + YY + 2*a*b*YI)
-    nl_exp_values = [w1,w2,w3]
-    return nl_exp_values
+    w1 = 0.125 * (II + (a**2 - b**2)*IZ + 2*a*b*IY + ZI + (a**2 - b**2)*ZZ + 2*a*b*ZY)
+    w2 = 0.125 * (II - (a**2 - b**2)*IZ + 2*a*b*IY - ZI + (a**2 - b**2)*ZZ - 2*a*b*ZY)
+    w3 = 0.25 * ((a**2 - b**2)*XX + YY + 2*a*b*YI)
+    val = w1*w2 - 0.25 * (abs(w3)**2)
+    return val
 
 def nlW6(theta, meas_exp):
     """
-    Turns W6 from Riccardi's 6 and returns the expectation values of the nonlinear components W1, W2, and W3.
+    Turns W6 from Riccardi's 6 and returns the inequality value resulting from the expectation values of the nonlinear components W1, W2, and W3.
     """
     a, b = np.cos(theta), np.sin(theta)
     II, XX, YY, ZZ, ZI, IZ, IY, ZY, YI = meas_exp[
         [0,1,2,3,3,0,0,3,2],
         [0,1,2,3,0,3,2,2,0]]
-    w1 = 0.125 * (II + (a^2 - b^2)*IZ + 2*a*b*IY + ZI + (a^2 - b^2)*ZZ + 2*a*b*ZY)
-    w2 = 0.125 * (II - (a^2 - b^2)*IZ + 2*a*b*IY - ZI + (a^2 - b^2)*ZZ - 2*a*b*ZY)
-    w3 = 0.25 * (-(a^2 - b^2)*XX - YY - 2*a*b*YI)
-    nl_exp_values = [w1,w2,w3]
-    return nl_exp_values
+    w1 = 0.125 * (II + (a**2 - b**2)*IZ + 2*a*b*IY + ZI + (a**2 - b**2)*ZZ + 2*a*b*ZY)
+    w2 = 0.125 * (II - (a**2 - b**2)*IZ + 2*a*b*IY - ZI + (a**2 - b**2)*ZZ - 2*a*b*ZY)
+    w3 = 0.25 * (-(a**2 - b**2)*XX - YY - 2*a*b*YI)
+    val = w1*w2 - 0.25 * (abs(w3)**2)
+    return val
 
+# outputs < 0 indicate entangled states
 
+def get_nlEW_expectations(rho):
+    meas_exp = get_meas_expectations(rho)
+    witness_expectations = []
+    for w in [nlW1,nlW2,nlW3,nlW4,nlW5,nlW6]:
+        witness_expectations.append(opt.minimize(w, x0=np.pi, args=(meas_exp,), bounds=[(0,2*np.pi)])['fun'])
+    
+    return witness_expectations
+
+# function for returning nonlinear expectation values
+
+rho = werner_state(0.9, PSI_P)
+nlew_exp = get_nlEW_expectations(rho)
+ew_exp = get_EW_expectations(rho)
 
 # # random density matrix
 # rho_rand = np.eye(4)/4
@@ -341,13 +355,22 @@ def nlW6(theta, meas_exp):
 #     exp_values.append(min(ew_exp))
 # exp_values = np.array(exp_values)
 
-# plot the results
-# plt.plot(ps, C)
-# plt.xlabel('p')
-# plt.ylabel('Concurrence')
-# plt.show()
+# nlexp_values = []
+# for p in ps:
+#     rho = werner_state(p, PSI_P)
+#     ew_exp = get_nlEW_expectations(rho)
+#     nlexp_values.append(min(ew_exp))
+# nlexp_values = np.array(nlexp_values)
+
+# # plot the results
+# # plt.plot(ps, C)
+# # plt.xlabel('p')
+# # plt.ylabel('Concurrence')
+# # plt.show()
 
 # plt.plot(ps, exp_values)
+# plt.plot(ps, nlexp_values)
+# plt.plot(ps, [0 for i in range(10000)])
 # plt.xlabel('p')
 # plt.ylabel('Minimum Witness value')
 # plt.show()
