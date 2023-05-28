@@ -15,7 +15,7 @@ def prepare_data(df_path_ls): # do target prep is binary
         df_ls.append(pd.read_csv(join(DATA_PATH, df_path)))
     
     df = pd.concat(df_i for df_i in df_ls)
-    # df = df.sample(frac=1, random_state=4).reset_index() # randomize rows
+    df = df.sample(frac=1, random_state=0).reset_index() # randomize rows
 
     # define inputs and outputs for model
     inputs = ['HH probability', 'HV probability', 'VH probability', 'VV probability',
