@@ -26,27 +26,7 @@ def prepare_data(df_path_ls, random_seed): # do target prep is binary
 
     # function to simplify the outputs by replacing the most negative value with 1 and setting others to 0
     def simplify_targ(df):
-        df_t = df.T # transpose original to get argmin on each column
-        # df_out = pd.DataFrame(columns=[i for i in range(len(df_t))])
-
-        def get_out_vec(values):
-            # set sensitivity for how close 2 witness values need to be
-            
-            # targ = values.argmin() # assign value based on minimum
-            # out_vec = np.zeros(len(outputs))
-            # out_vec[targ]=1
-
-            out_vec = np.zeros(len(values))
-            out_vec[values < 0] = 1 # get all negatives
-            return out_vec
-
-        # for _, values in df_t.iteritems():
-        #     df_out.loc[len(df_out)] = get_out_vec(values)
-        #     # print(df_out)
-        # df_out = df_t[df_t]
-
         df_out = df.applymap(lambda x: 1 if x < 0 else 0)
-
         return df_out
 
     # function to build the dataset: p is proportion in training vs test; inputs is list of strings of input states, same for outputs
@@ -74,7 +54,6 @@ def prepare_data(df_path_ls, random_seed): # do target prep is binary
     np.save(join(DATA_PATH,'y_train'), Y_train)
     np.save(join(DATA_PATH,'x_test'), X_test)
     np.save(join(DATA_PATH,'y_test'), Y_test)
-
 
 # read in data
 def read_data():
