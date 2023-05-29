@@ -11,7 +11,7 @@ import keras # for neural nets
 # read in and prepare data
 DATA_PATH = 'S22_data'
 
-def prepare_data(df_path_ls, random_seed): # do target prep is binary
+def prepare_data(df_path_ls, random_seed, p): # do target prep is binary. p is what fraction is used for training
     print('preparing data.....')
     df_ls = []
     for df_path in df_path_ls:
@@ -47,9 +47,9 @@ def prepare_data(df_path_ls, random_seed): # do target prep is binary
         return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
 
     # functions to build and train the network
-    split_frac = 0.8 # split some portion to be train vs test
+    # split_frac = 0.8 # split some portion to be train vs test
    
-    X_train, Y_train, X_test, Y_test = prep_data_targ(df, split_frac, inputs, outputs)
+    X_train, Y_train, X_test, Y_test = prep_data_targ(df, p, inputs, outputs)
 
     # save!
     np.save(join(DATA_PATH, 'x_train'), X_train)
@@ -73,7 +73,7 @@ for path in os.listdir(DATA_PATH):
         df_path_ls.append(path)
 
 ## code for neural network ##
-# def do_nn(X_train, Y_train, X_test, Y_test):
+def do_nn(X_train, Y_train, X_test, Y_test):
 
     import tensorflow as tf
     from keras import layers
@@ -81,9 +81,8 @@ for path in os.listdir(DATA_PATH):
     from keras.optimizers import Adam
 
     ## model creation ##
-    output_len = 3
     def build_model_test(size=50, dropout=0.1, learning_rate=0.001):
-
+        output_len = 3
         def witness_loss_fn(y_true, y_pred):
             # y_pred is a 1 by batch size tensor with all the predicted values for each state
             # y_true is a 3 by batch size tensor, with the three ground truth outputs per state
@@ -174,58 +173,102 @@ def evaluate_perf(model):
 # X_train, Y_train, X_test, Y_test = read_data()
 
 ## initialize data ##
-# pick 100 random states; test performance
-random_arr = np.random.randint(1,100, size=(1,100))
-train_perf =[]
-test_perf = []
-for i, rand in enumerate(random_arr[0]):
-    prepare_data(df_path_ls, rand)
-    X_train, Y_train, X_test, Y_test = read_data()
+p_ls = [0.8 - 0.15*x for x in range(5)]
+p_df = pd.DataFrame({'xgb_test_mean':[], 'xgb_test_sem': [],'xgb_train_mean':[], 'xgb_train_sem': [], 
+'bl_test_mean':[], 'bl_test_sem': [],'bl_train_mean':[], 'bl_train_sem': []})
+for j, p in enumerate(p_ls):
+    # pick random states; test performance
+    random_arr = np.random.randint(1,25, size=(1,100))
+    xgb_test =[]
+    xgb_train =[]
+    bl_test = []
+    bl_train = []
 
-    # stats for xgboost
-    model_xgb = do_xgboost(X_train, Y_train, X_test, Y_test)
-    frac_xgb = evaluate_perf(model_xgb)
-    print('fraction correct of xgb for seed '+str(rand)+', '+ str(i / len(random_arr[0]))+'%', frac_xgb[0], frac_xgb[1])
-    test_perf.append(frac_xgb[0])
-    train_perf.append(frac_xgb[1])
+    ## load trained bl model ##
+    json_file = open('models/model_qual_v2.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model_bl = keras.models.model_from_json(loaded_model_json)
+    # load weights into new model
+    model_bl.load_weights("models/model_qual_v2.h5")
+    for i, rand in enumerate(random_arr[0]):
+        prepare_data(df_path_ls, rand, p)
+        X_train, Y_train, X_test, Y_test = read_data()
 
-# visualize performance
-test_mean = np.mean(test_perf)
-test_sem = sem(test_perf)
-print('mean for test:', test_mean, 'sem for test:', test_sem)
-train_mean = np.mean(train_perf)
-train_sem = sem(train_perf)
-print('mean for train:', train_mean, 'sem for train:', train_sem)
+        model_xgb = do_xgboost(X_train, Y_train, X_test, Y_test)
 
-plt.plot(random_arr[0], test_perf, label='Test')
-plt.plot(random_arr[0], train_perf, label='Train')
-plt.xlabel('Random integer', fontsize=14)
+        # stats for xgboost
+        frac_xgb = evaluate_perf(model_xgb)
+        frac_bl = evaluate_perf(model_bl)
+        print('fraction correct of xgb for seed '+str(rand)+', '+ str(i / len(random_arr[0])*100)+'%', frac_xgb[0], frac_xgb[1])
+        xgb_test.append(frac_xgb[0])
+        xgb_test.append(frac_xgb[1])
+        bl_test.append(frac_bl[0])
+        bl_train.append(frac_bl[1])
+
+    # visualize performance
+    xgb_test_mean = np.mean(xgb_test)
+    xgb_test_sem = sem(xgb_test)
+    xgb_train_mean = np.mean(xgb_train)
+    xgb_train_sem = sem(xgb_train)
+    print('mean for xgb:', xgb_test_mean, 'sem:', xgb_test_sem)
+    bl_test_mean = np.mean(bl_test)
+    bl_test_sem = sem(bl_test)
+    bl_train_mean = np.mean(bl_train)
+    bl_train_sem = sem(bl_train)
+    print('mean for bl:', bl_test_mean, 'sem for bl:', bl_test_sem)
+
+    plt.figure(figsize=(10,7))
+    plt.scatter(random_arr[0], xgb_test, label='XGB Test')
+    plt.scatter(random_arr[0], xgb_train, label='XGB Test')
+    plt.scatter(random_arr[0], bl_test, label='BLTest')
+    plt.scatter(random_arr[0], bl_train, label='BL Train')
+    plt.xlabel('Random Seed', fontsize=14)
+    plt.ylabel('Accuracy', fontsize=14)
+    plt.title('Comparative Performance of XGB vs BL, p=%.3g'%p, fontsize=16)
+    plt.legend()
+    plt.savefig(join(DATA_PATH, 'accuracy','xgb_bl_compare_%i.pdf'%j))
+
+    xgb_test =np.array(xgb_test)
+    xgb_train = np.array(xgb_train)
+    bl_test =  np.array(bl_test)
+    bl_train =  np.array(bl_train)
+
+    np.save(join(DATA_PATH, 'accuracy', 'xgb_test_%i.npy'%j), xgb_test)
+    np.save(join(DATA_PATH, 'accuracy', 'xgb_train_%i.npy'%j), xgb_train)
+    np.save(join(DATA_PATH, 'accuracy', 'bl_test_%i.npy'%j), bl_test)
+    np.save(join(DATA_PATH, 'accuracy', 'bl_train_%i.npy'%j), bl_train)
+
+    p_df = p_df.append({'xgb_test_mean':xgb_test_mean, 'xgb_test_sem': xgb_test_sem,'xgb_train_mean':xgb_train_mean, 'xgb_train_sem': xgb_train_sem, 
+'bl_test_mean':bl_test_mean, 'bl_test_sem': bl_test_sem,'bl_train_mean':bl_train_mean, 'bl_train_sem': bl_train_sem})
+
+    print(str( j / len(p_ls) * 100)+' complete')
+
+# plot overall performance as p varies
+plt.figure(figsize=(10,7))
+plt.errorbar(p_ls, p_df['xgb_test_mean'].values, yerr=xgb_test_sem, label='XGB Test')
+plt.errorbar(p_ls, p_df['xgb_train_mean'].values, yerr=xgb_train_sem, label='XGB Train')
+plt.errorbar(p_ls, p_df['bl_test_mean'].values, yerr=bl_test_sem, label='BL Test')
+plt.errorbar(p_ls, p_df['bl_train_mean'].values, yerr=bl_train_sem, label='BL Train')
+plt.xlabel('Proportion of Data $p$ for Training', fontsize=14)
 plt.ylabel('Accuracy', fontsize=14)
-plt.title('Performance of XGB model', fontsize=16)
-plt.legend()
-plt.savefig('100random_xgb.pdf')
-plt.show()
+plt.title('Performance of XGB vs BL For Various $p$', fontsize=16)
+p_df.to_csv(join(DATA_PATH, 'accuracy', 'summary.csv'))
+
+np.save(join(DATA_PATH, 'accuracy', 'random_arr.np'), random_arr)
+
 
 # to save model; this saves the last one
-print('saving model using seed = %i with test accuracy %.3g'%(rand, frac_xgb[0]))
-model_xgb.save_model("models/model_xgb_%i_0.json"%rand) # first int is the seed; second is what version
+# print('saving model using seed = %i with test accuracy %.3g'%(rand, frac_xgb[0]))
+# model_xgb.save_model("models/model_xgb_%i_0.json"%rand) # first int is the seed; second is what version
 
-# to load model
-model_xgb_load = XGBRegressor() # create xgb object
-model_xgb_load.load_model("models/model_xgb_%i_0.json"%rand)
+# # to load model
+# model_xgb = XGBRegressor() # create xgb object
+# model_xgb.load_model("models/model_xgb_47_0.json")
 
 
-
-## load trained bl model ##
-json_file = open('models/model_qual_v2.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-bl_model = keras.models.model_from_json(loaded_model_json)
-# load weights into new model
-bl_model.load_weights("models/model_qual_v2.h5")
-
-frac_bl = evaluate_perf(bl_model)
-print('fraction correct of bl model', frac_bl[0], frac_bl[1])
+# frac_bl = evaluate_perf(bl_model)
+# print('fraction correct of bl model', frac_bl[0], frac_bl[1])
 
 ## print stats for neural net ##
 # model = do_nn(X_train, Y_train, X_test, Y_test)
