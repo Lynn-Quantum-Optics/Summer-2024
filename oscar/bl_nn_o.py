@@ -1,10 +1,12 @@
 # file to revamp becca and laney's neural net from last semester
-import os
+import os # for managing paths
 from os.path import join
-import matplotlib.pyplot as plt
-from scipy.stats import sem
-import numpy as np
+import matplotlib.pyplot as plt # for plots
+from scipy.stats import sem # to compute standard error of mean
+import numpy as np # for formatting data
 import pandas as pd
+from xgboost import XGBRegressor # the ml algorithm we're using
+import keras # for neural nets
 
 # read in and prepare data
 DATA_PATH = 'S22_data'
@@ -71,7 +73,7 @@ for path in os.listdir(DATA_PATH):
         df_path_ls.append(path)
 
 ## code for neural network ##
-def do_nn(X_train, Y_train, X_test, Y_test):
+# def do_nn(X_train, Y_train, X_test, Y_test):
 
     import tensorflow as tf
     from keras import layers
@@ -137,10 +139,8 @@ def do_nn(X_train, Y_train, X_test, Y_test):
     model = train_manual(X_train, Y_train, X_test, Y_test)
     return model
 
+## code for implementing xgboost model ##
 def do_xgboost(X_train, Y_train, X_test, Y_test):
-    from xgboost import XGBRegressor
-    from sklearn.metrics import mean_absolute_error
-
     # define the model
     model = XGBRegressor(n_estimators = 1000, random_state=0) 
 
@@ -153,28 +153,23 @@ def do_xgboost(X_train, Y_train, X_test, Y_test):
     # print('mae',mae)
     return model
 
-# returns accuracy as defined by becca and laney in the spring write up
+## returns accuracy as defined by becca and laney in the spring write up ##
 def evaluate_perf(model):
     Y_pred_test = model.predict(X_test)
     Y_pred_train = model.predict(X_train)
     N_correct_test = 0
     N_correct_train = 0
     for i, y_pred in enumerate(Y_pred_test):
-        # min_guess = np.argmin(y_pred)
-        # min_actual = np.argmax(Y_test[i])
-        # if min_guess == min_actual:
-        #     N_correct+=1
         if Y_test[i][np.argmax(y_pred)]==1: # if the witness is negative, i.e. detects entanglement
             N_correct_test+=1
     
     for i, y_pred in enumerate(Y_pred_train):
         if Y_train[i][np.argmax(y_pred)]==1: # if the witness is negative, i.e. detects entanglement
             N_correct_train+=1
-    # return N_correct / len(X_test)
     Ud = Y_test.sum(axis=1) # undetectables: count the number of states w negative witness value
     return [N_correct_test / (len(Y_pred_test) - len(Ud[Ud==0])), N_correct_train / (len(Y_pred_train) - len(Ud[Ud==0]))] # return both the test and train results
 
-# for testing single state
+## for testing single state ##
 # prepare_data(df_path_ls, 0)
 # X_train, Y_train, X_test, Y_test = read_data()
 
@@ -183,18 +178,18 @@ def evaluate_perf(model):
 random_arr = np.random.randint(1,100, size=(1,100))
 train_perf =[]
 test_perf = []
-for rand in random_arr:
+for i, rand in enumerate(random_arr[0]):
     prepare_data(df_path_ls, rand)
     X_train, Y_train, X_test, Y_test = read_data()
 
     # stats for xgboost
     model_xgb = do_xgboost(X_train, Y_train, X_test, Y_test)
     frac_xgb = evaluate_perf(model_xgb)
-    print('fraction correct of xgb for seed '+str(rand), frac_xgb[0], frac_xgb[1])
+    print('fraction correct of xgb for seed '+str(rand)+', '+ str(i / len(random_arr[0]))+'%', frac_xgb[0], frac_xgb[1])
     test_perf.append(frac_xgb[0])
     train_perf.append(frac_xgb[1])
 
-# visualize perf
+# visualize performance
 test_mean = np.mean(test_perf)
 test_sem = sem(test_perf)
 print('mean for test:', test_mean, 'sem for test:', test_sem)
@@ -202,8 +197,8 @@ train_mean = np.mean(train_perf)
 train_sem = sem(train_perf)
 print('mean for train:', train_mean, 'sem for train:', train_sem)
 
-plt.plot(random_arr, test_perf, label='test')
-plt.plot(random_arr, train_perf, label='train')
+plt.plot(random_arr[0], test_perf, label='Test')
+plt.plot(random_arr[0], train_perf, label='Train')
 plt.xlabel('Random integer', fontsize=14)
 plt.ylabel('Accuracy', fontsize=14)
 plt.title('Performance of XGB model', fontsize=16)
@@ -211,19 +206,29 @@ plt.legend()
 plt.savefig('100random_xgb.pdf')
 plt.show()
 
-# print stats for neural net
+# to save model; this saves the last one
+print('saving model using seed = %i with test accuracy %.3g'%(rand, frac_xgb[0]))
+model_xgb.save_model("models/model_xgb_%i_0.json"%rand) # first int is the seed; second is what version
+
+# to load model
+model_xgb_load = XGBRegressor() # create xgb object
+model_xgb_load.load_model("models/model_xgb_%i_0.json"%rand)
+
+
+
+## load trained bl model ##
+json_file = open('models/model_qual_v2.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+bl_model = keras.models.model_from_json(loaded_model_json)
+# load weights into new model
+bl_model.load_weights("models/model_qual_v2.h5")
+
+frac_bl = evaluate_perf(bl_model)
+print('fraction correct of bl model', frac_bl[0], frac_bl[1])
+
+## print stats for neural net ##
 # model = do_nn(X_train, Y_train, X_test, Y_test)
 # frac_me = evaluate_perf(model)
 # print('fraction correct of o nn', frac_me[0], frac_me[1])
-
-## load trained bl model ##
-# json_file = open('models/model_qual_v2.json', 'r')
-# loaded_model_json = json_file.read()
-# json_file.close()
-# bl_model = keras.models.model_from_json(loaded_model_json)
-# # load weights into new model
-# bl_model.load_weights("models/model_qual_v2.h5")
-
-# frac_bl = evaluate_perf(bl_model)
-# print('fraction correct of bl model', frac_bl[0], frac_bl[1])
 
