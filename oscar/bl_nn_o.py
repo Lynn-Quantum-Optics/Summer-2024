@@ -1,21 +1,22 @@
 # file to revamp becca and laney's neural net from last semester
-import os, keras
+import os
 from os.path import join
 import matplotlib.pyplot as plt
+from scipy.stats import sem
 import numpy as np
 import pandas as pd
 
 # read in and prepare data
 DATA_PATH = 'S22_data'
 
-def prepare_data(df_path_ls): # do target prep is binary
+def prepare_data(df_path_ls, random_seed): # do target prep is binary
     print('preparing data.....')
     df_ls = []
     for df_path in df_path_ls:
         df_ls.append(pd.read_csv(join(DATA_PATH, df_path)))
     
     df = pd.concat(df_i for df_i in df_ls)
-    df = df.sample(frac=1, random_state=0).reset_index() # randomize rows
+    df = df.sample(frac=1, random_state=random_seed).reset_index() # randomize rows
 
     # define inputs and outputs for model
     inputs = ['HH probability', 'HV probability', 'VH probability', 'VV probability',
@@ -26,7 +27,7 @@ def prepare_data(df_path_ls): # do target prep is binary
     # function to simplify the outputs by replacing the most negative value with 1 and setting others to 0
     def simplify_targ(df):
         df_t = df.T # transpose original to get argmin on each column
-        df_out = pd.DataFrame(columns=[i for i in range(len(df_t))])
+        # df_out = pd.DataFrame(columns=[i for i in range(len(df_t))])
 
         def get_out_vec(values):
             # set sensitivity for how close 2 witness values need to be
@@ -39,9 +40,12 @@ def prepare_data(df_path_ls): # do target prep is binary
             out_vec[values < 0] = 1 # get all negatives
             return out_vec
 
-        for _, values in df_t.iteritems():
-            df_out.loc[len(df_out)] = get_out_vec(values)
-            # print(df_out)
+        # for _, values in df_t.iteritems():
+        #     df_out.loc[len(df_out)] = get_out_vec(values)
+        #     # print(df_out)
+        # df_out = df_t[df_t]
+
+        df_out = df.applymap(lambda x: 1 if x < 0 else 0)
 
         return df_out
 
@@ -86,9 +90,6 @@ df_path_ls = []
 for path in os.listdir(DATA_PATH):
     if path.endswith('.csv'):
         df_path_ls.append(path)
-
-prepare_data(df_path_ls)
-X_train, Y_train, X_test, Y_test = read_data()
 
 ## code for neural network ##
 def do_nn(X_train, Y_train, X_test, Y_test):
@@ -194,24 +195,56 @@ def evaluate_perf(model):
     Ud = Y_test.sum(axis=1) # undetectables: count the number of states w negative witness value
     return [N_correct_test / (len(Y_pred_test) - len(Ud[Ud==0])), N_correct_train / (len(Y_pred_train) - len(Ud[Ud==0]))] # return both the test and train results
 
+# for testing single state
+# prepare_data(df_path_ls, 0)
+# X_train, Y_train, X_test, Y_test = read_data()
+
+## initialize data ##
+# pick 100 random states; test performance
+random_arr = np.random.randint(1,100, size=(1,100))
+train_perf =[]
+test_perf = []
+for rand in random_arr:
+    prepare_data(df_path_ls, rand)
+    X_train, Y_train, X_test, Y_test = read_data()
+
+    # stats for xgboost
+    model_xgb = do_xgboost(X_train, Y_train, X_test, Y_test)
+    frac_xgb = evaluate_perf(model_xgb)
+    print('fraction correct of xgb for seed '+str(rand), frac_xgb[0], frac_xgb[1])
+    test_perf.append(frac_xgb[0])
+    train_perf.append(frac_xgb[1])
+
+# visualize perf
+test_mean = np.mean(test_perf)
+test_sem = sem(test_perf)
+print('mean for test:', test_mean, 'sem for test:', test_sem)
+train_mean = np.mean(train_perf)
+train_sem = sem(train_perf)
+print('mean for train:', train_mean, 'sem for train:', train_sem)
+
+plt.plot(random_arr, test_perf, label='test')
+plt.plot(random_arr, train_perf, label='train')
+plt.xlabel('Random integer', fontsize=14)
+plt.ylabel('Accuracy', fontsize=14)
+plt.title('Performance of XGB model', fontsize=16)
+plt.legend()
+plt.savefig('100random_xgb.pdf')
+plt.show()
+
 # print stats for neural net
 # model = do_nn(X_train, Y_train, X_test, Y_test)
 # frac_me = evaluate_perf(model)
 # print('fraction correct of o nn', frac_me[0], frac_me[1])
 
-# stats for xgboost
-model_xgb = do_xgboost(X_train, Y_train, X_test, Y_test)
-frac_xgb = evaluate_perf(model_xgb)
-print('fraction correct of xgb', frac_xgb[0], frac_xgb[1])
+## load trained bl model ##
+# json_file = open('models/model_qual_v2.json', 'r')
+# loaded_model_json = json_file.read()
+# json_file.close()
+# bl_model = keras.models.model_from_json(loaded_model_json)
+# # load weights into new model
+# bl_model.load_weights("models/model_qual_v2.h5")
 
-# load trained bl model
-json_file = open('models/model_qual_v2.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-bl_model = keras.models.model_from_json(loaded_model_json)
-# load weights into new model
-bl_model.load_weights("models/model_qual_v2.h5")
-
-frac_bl = evaluate_perf(bl_model)
-print('fraction correct of bl model', frac_bl[0], frac_bl[1])
+# frac_bl = evaluate_perf(bl_model)
+# print('fraction correct of bl model', frac_bl[0], frac_bl[1])
 
