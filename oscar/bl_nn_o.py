@@ -144,7 +144,7 @@ def do_xgboost(X_train, Y_train, X_test, Y_test):
     model = XGBRegressor(n_estimators = 1000, random_state=0) 
 
     # fit the model
-    model.fit(X_train, Y_train, early_stopping_rounds = 10, eval_set = [(X_test, Y_test)]) 
+    model.fit(X_train, Y_train, early_stopping_rounds = 10, eval_set = [(X_test, Y_test)], verbose=False) 
 
     # make prediction
     # predictions = model.predict(X_test)
@@ -178,7 +178,7 @@ p_df = pd.DataFrame({'xgb_test_mean':[], 'xgb_test_sem': [],'xgb_train_mean':[],
 'bl_test_mean':[], 'bl_test_sem': [],'bl_train_mean':[], 'bl_train_sem': []})
 for j, p in enumerate(p_ls):
     # pick random states; test performance
-    random_arr = np.random.randint(1,25, size=(1,100))
+    random_arr = np.random.randint(1,100, size=(1,50))
     xgb_test =[]
     xgb_train =[]
     bl_test = []
@@ -202,7 +202,7 @@ for j, p in enumerate(p_ls):
         frac_bl = evaluate_perf(model_bl)
         print('fraction correct of xgb for seed '+str(rand)+', '+ str(i / len(random_arr[0])*100)+'%', frac_xgb[0], frac_xgb[1])
         xgb_test.append(frac_xgb[0])
-        xgb_test.append(frac_xgb[1])
+        xgb_train.append(frac_xgb[1])
         bl_test.append(frac_bl[0])
         bl_train.append(frac_bl[1])
 
@@ -218,17 +218,6 @@ for j, p in enumerate(p_ls):
     bl_train_sem = sem(bl_train)
     print('mean for bl:', bl_test_mean, 'sem for bl:', bl_test_sem)
 
-    plt.figure(figsize=(10,7))
-    plt.scatter(random_arr[0], xgb_test, label='XGB Test')
-    plt.scatter(random_arr[0], xgb_train, label='XGB Test')
-    plt.scatter(random_arr[0], bl_test, label='BLTest')
-    plt.scatter(random_arr[0], bl_train, label='BL Train')
-    plt.xlabel('Random Seed', fontsize=14)
-    plt.ylabel('Accuracy', fontsize=14)
-    plt.title('Comparative Performance of XGB vs BL, p=%.3g'%p, fontsize=16)
-    plt.legend()
-    plt.savefig(join(DATA_PATH, 'accuracy','xgb_bl_compare_%i.pdf'%j))
-
     xgb_test =np.array(xgb_test)
     xgb_train = np.array(xgb_train)
     bl_test =  np.array(bl_test)
@@ -239,8 +228,19 @@ for j, p in enumerate(p_ls):
     np.save(join(DATA_PATH, 'accuracy', 'bl_test_%i.npy'%j), bl_test)
     np.save(join(DATA_PATH, 'accuracy', 'bl_train_%i.npy'%j), bl_train)
 
+    plt.figure(figsize=(10,7))
+    plt.scatter(random_arr[0], xgb_test, label='XGB Test')
+    plt.scatter(random_arr[0], xgb_train, label='XGB Train')
+    plt.scatter(random_arr[0], bl_test, label='BL Test')
+    plt.scatter(random_arr[0], bl_train, label='BL Train')
+    plt.xlabel('Random Seed', fontsize=14)
+    plt.ylabel('Accuracy', fontsize=14)
+    plt.title('Comparative Performance of XGB vs BL, p=%.3g'%p, fontsize=16)
+    plt.legend()
+    plt.savefig(join(DATA_PATH, 'accuracy','xgb_bl_compare_%i.pdf'%j))
+
     p_df = p_df.append({'xgb_test_mean':xgb_test_mean, 'xgb_test_sem': xgb_test_sem,'xgb_train_mean':xgb_train_mean, 'xgb_train_sem': xgb_train_sem, 
-'bl_test_mean':bl_test_mean, 'bl_test_sem': bl_test_sem,'bl_train_mean':bl_train_mean, 'bl_train_sem': bl_train_sem})
+'bl_test_mean':bl_test_mean, 'bl_test_sem': bl_test_sem,'bl_train_mean':bl_train_mean, 'bl_train_sem': bl_train_sem}, ignore_index=True)
 
     print(str( j / len(p_ls) * 100)+' complete')
 
