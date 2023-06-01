@@ -1,3 +1,20 @@
+## 5/31/23 eve/night sesh
+MP: A
+Debugged parsing of positions from Elliptec motors. Only tested code with the UVHWP. B_C_HWP offset pre-testing: 0x500.
+
+My code can now
+- encode and decode negative numbers (yay!)
+- read the motor position
+- all move commands now readout the actual motor position now -- so we don't have to rely on target positions we can use the actual positions
+- wait for the motor to finish moving, instead of waiting an arbitrary amount of time
+- recieve and warn the user about error codes such as out of range errors
+
+Things learned
+- Range of motor is +- 360º from home
+- Home brings motor to ~5e-5 radians from home
+
+B_C_HWP home offset post-testing: 0x500 (no change)
+
 ## 5/31/23
 MP: A, O, R
 We noticed that the N2 tank has 2250psi, whereas last night it had 2300. We will continue to monitor over the week and see if we have a leak.
