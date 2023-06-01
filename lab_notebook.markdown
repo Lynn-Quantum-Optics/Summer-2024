@@ -1,3 +1,9 @@
+## 6/1/23
+MP: A, O, R
+N2 tank looks nominal. Fitted $sin^2$ to B_C_HWP data and found a min of 2.202 radians. We set the home offset by loading elliptec.py, creating an ellipetic motor object for the B_C_HWP and called ._set_home_offset() when it was at a location of 2.202 radians. However, we are now getting a Serial Port Failed to Open error. We did unplug the main USB so this may have reset the port labeling? We opened Ello and now cannot see either COM5 or COM7. We also checked device manager and cannot see either COM5 or COM7.
+
+For reference: to move a component, call resposition.optical_component(Orientation(Theta, Phi), component_name). 
+
 ## 5/31/23 eve/night sesh
 MP: A
 Debugged parsing of positions from Elliptec motors. Only tested code with the UVHWP. B_C_HWP offset pre-testing: 0x500.
