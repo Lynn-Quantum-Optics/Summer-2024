@@ -35,27 +35,27 @@ def concurrence_2(rho):
     return np.max([0, np.sqrt(evs[0]) - np.sqrt(evs[1]) - np.sqrt(evs[2]) - np.sqrt(evs[3])])
 
 # random density matrix
-rho_rand = np.eye(4)/4
+# rho_rand = np.eye(4)/4
 
-# define the state that we are messing with
-pure_state = np.array([0,1,-1,0]).reshape(4,1)/np.sqrt(2) # psi_minus
-pure_rho = pure_state @ pure_state.conj().T
+# # define the state that we are messing with
+# pure_state = np.array([0,1,-1,0]).reshape(4,1)/np.sqrt(2) # psi_minus
+# pure_rho = pure_state @ pure_state.conj().T
 
 # calculate the concurrence of the mixed state
-C = []
-ps = np.linspace(0,1,10000)
-for p in ps:
-    rho = p * pure_rho + (1-p) * rho_rand
-    C.append(concurrence(rho))
-    if C[-1] > 0 and C[-2] <= 0:
-        print('Concurrence is positive for p =', p)
-C = np.array(C)
+# C = []
+# ps = np.linspace(0,1,10000)
+# for p in ps:
+#     rho = p * pure_rho + (1-p) * rho_rand
+#     C.append(concurrence(rho))
+#     if C[-1] > 0 and C[-2] <= 0:
+#         print('Concurrence is positive for p =', p)
+# C = np.array(C)
 
-# plot the results
-plt.plot(ps, C)
-plt.xlabel('p')
-plt.ylabel('Concurrence')
-plt.show()
+# # plot the results
+# plt.plot(ps, C)
+# plt.xlabel('p')
+# plt.ylabel('Concurrence')
+# plt.show()
 
 
 
