@@ -95,9 +95,9 @@ def plot_fit_C4(loadpath, filename, title_text, figname):
     stats = pd.DataFrame({'meas':[], 'A': [], 'Aerr':[], 'c':[],'cerr':[],'d':[],'derr':[], 'chi2red':[], 'e_val':[], 'e_sem':[], 'frac_1s':[]})
 
 
-    fig, axes=plt.subplots(2, 1, figsize=(7, 9), sharex=True)
-    axes[0].errorbar(Theta, HH, yerr=HH_unc, fmt='o', label='HH')
-    axes[0].errorbar(Theta, VV, yerr=VV_unc, fmt='o', label='HH')
+    fig, axes=plt.subplots(2, 1, figsize=(7, 8), sharex=True)
+    axes[0].errorbar(Theta, HH, yerr=HH_unc, fmt='o', label='HH counts')
+    axes[0].errorbar(Theta, VV, yerr=VV_unc, fmt='o', label='VV counts')
     axes[0].legend()
     angles = np.linspace(min(df['Theta'].values), max(df['Theta'].values), 1000)
     def fit_func(x, A, c, d):
@@ -130,21 +130,19 @@ def plot_fit_C4(loadpath, filename, title_text, figname):
     # find angle where they equal
     HH_fit = fit_func(angles, *poptHH)
     VV_fit = fit_func(angles, *poptVV)
-    equal= angles[(HH_fit - VV_fit) < .001]
+    equal= angles[abs(HH_fit - VV_fit) < .01]
     print(equal)
-
-
 
     stats = stats.append(info_HH, ignore_index=True)
     stats = stats.append(info_VV, ignore_index=True)
     stats.to_csv(join(loadpath, figname+'.csv'))
 
-    axes[0].plot(angles,fit_func(angles, *poptHH), label='HH')
-    axes[0].plot(angles,fit_func(angles, *poptVV), label='VV')
+    axes[0].plot(angles,fit_func(angles, *poptHH), label='HH fit')
+    axes[0].plot(angles,fit_func(angles, *poptVV), label='VV fit')
     axes[0].legend()
 
-    axes[1].errorbar(Theta, norm_resid_HH, yerr=np.ones(len(norm_resid_HH)), fmt='o',label='HH resid')
-    axes[1].errorbar(Theta, norm_resid_VV, yerr=np.ones(len(norm_resid_VV)), fmt='o',label='VV resid')
+    axes[1].errorbar(Theta, norm_resid_HH, yerr=np.ones(len(norm_resid_HH)), fmt='o',label='HH norm resid')
+    axes[1].errorbar(Theta, norm_resid_VV, yerr=np.ones(len(norm_resid_VV)), fmt='o',label='VV norm resid')
     axes[1].legend()
 
     plt.xlabel('$\\theta$', fontsize=14)
@@ -155,4 +153,4 @@ def plot_fit_C4(loadpath, filename, title_text, figname):
 
 # plot_fit(fi_ls=[1,2], do=[0,1], loadpath=join(DATA_PATH, '5-31', '05-31-2023_17-10-14__5__frthet120_ph0__tothet131_ph0__n20', '05-31-2023_17-10-14__SUMMARY.csv'), figname='5_31_trial1', savepath=join(DATA_PATH, '5-31'))
 # plot_fit_all(fi_ls=np.arange(1, 6, 1), do=np.ones(5), title_text='6/01/23 HH Counts', loadpath=join(DATA_PATH, '6-01', '06-01-2023_13-06-55__1__frthet0_ph0__tothet3
-plot_fit_C4(loadpath=join(DATA_PATH, '6-01'), filename='uv_hwp_0.csv', title_text='UV HWP Callibration', figname='UV_HWP_fit_0')
+plot_fit_C4(loadpath=join(DATA_PATH, '6-01'), filename='uv_hwp_0.csv', title_text='UV HWP Callibration, using C4', figname='UV_HWP_fit_0')
