@@ -1,8 +1,50 @@
 ## 6/1/23
 MP: A, O, R
-N2 tank looks nominal. Fitted $\sin^2$ to B_C_HWP data and found a min of 2.202 radians. We set the home offset by loading elliptec.py, creating an ellipetic motor object for the B_C_HWP and called ._set_home_offset() when it was at a location of 2.202 radians. However, we are now getting a Serial Port Failed to Open error. We did unplug the main USB so this may have reset the port labeling? We opened Ello and now cannot see either COM5 or COM7. We also checked device manager and cannot see either COM5 or COM7.
+N2 tank looks nominal. Fitted $sin^2$ to B_C_HWP data and found a min of 2.202 radians. We set the home offset by loading elliptec.py, creating an ellipetic motor object for the B_C_HWP and called ._set_home_offset() when it was at a location of 2.202 radians. However, we are now getting a Serial Port Failed to Open error. We did unplug the main USB so this may have reset the port labeling? We opened Ello and now cannot see either COM5 or COM7. We also checked device manager and cannot see either COM5 or COM7. We realized that COM8 has the 3 preparation; COM9 is the old COM7. For reference: to move a component, call resposition.optical_component(Orientation(Theta, Phi), component_name).
 
-For reference: to move a component, call resposition.optical_component(Orientation(Theta, Phi), component_name). 
+Alec wrote a streamlined code: motordrivers.py replaces elliptec.py. B_C_HWP moves now, but was not set to home using the method (before, Alec had set these manually). Home offset appears to be 0.05 radians. Alec thinks there may be a range of pi/4 radians for where you can set the home offset (which is where it thinks 0 is?). We managed to reset the home manuualy as follows:
+- compute position as byte encoded hex: h = hex(int(current in hex, 16) + int(home in hex), 16)
+- .com_port.write([port identity]so0000[h bits])
+The error was in the number of bits sent in the function: it was sending 4, but needs to be 8. ome for B_C_HWP has been set to 2.202 radians. 
+
+
+Now performing sweep for UV_HWP. full 360 degrees: first do steps = 36, samples per measurement = 5. Confirmed that creation plate works and everything works. Fitted plots for UV.
+
+Over lunch, A testing and debugging custom control scripts.
+
+confirmed (nonzero) ccu data is being collected
+noticing descrepencies in FPGA CCU behavior. documentation says the module should update every 100ms but in reality it seems to update more on the order of < 1ms
+i was forgetting to flush the buffer, now things look nominal (~100±10ms). now CCU interfacing code performs perfectly. now debugging manager class
+have not run into any major issues, just a ton of tiny bugs so far
+
+
+After lunch: We tried unplugging the motors from the BUS and the BUS from the USB. When we cut the USB connection, the COm port changed but the address remained the same. Also, the home remained set! Which suggests that disconnecting the USB will keep the homes.
+
+UV: pi.
+QP: 0
+PCC: 0
+BC: 0
+TEST: -0.4
+
+We are unpluggling the USB hub from computer and power. COM9 is now BC and TEST; addresses unchanged. COM5 are creation. The positions are as follows:
+
+UV: pi
+QP: 0
+PCC: 0
+BC: 0
+TEST:-0.4
+
+Thus disconnecting the USB hub had no effect on the motors other than reassigning the serial ports. So powering off the computer should in theory not be too terrible! However, if the BUSes lose power, then the home is reset. But if you know where it was before AND the home is unchanged, then we should be fine. However, when we unplugged the TEST motor it seemed like its home was reset to no seeming pattern. It seems like the mysteries of the Elliptec motors exceed those of quantum mechanics. The measurement HWP/QWPs will not move if their power supplies lose power, so in this event as long as they are at known locations the calibration should be recoverable.
+
+Results from HWP:
+max HH: 1.374
+max VV: 0.588
+equal: 0.201
+ampltiude: 16858 vs 21619 for HH vs VV, which is a factor of 1.282.
+
+Configuring QP: -40 to 40, 20 steps, 5 samples per step in DA basis. We ran into an error: one of the terminal windowsfor the ccu is just saying waiting for ccu log, so we are using Alec's method to run the sweep instead. We suspect it's some kind of code incompatibility. Data is collected but we do not have a thumb drive so will fit it tomorrow.
+
+
 
 Over lunch, A testing and debugging custom control scripts.
 - confirmed (nonzero) ccu data is being collected
