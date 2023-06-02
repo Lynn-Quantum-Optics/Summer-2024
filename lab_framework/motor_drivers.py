@@ -35,10 +35,11 @@ class ElliptecMotor:
         self.com_port = self._get_com_port(com_port) # sets self.com_port to serial port
         self.address = address
         self._get_info() # sets a ton of stuff like model number and such as well as ppmu and travel
+        self._position = None # the current position of the motor, in radians
 
     # status codes
     ELLIPTEC_STATUS_CODES = {
-        b'00': 'ok',
+        b'00': 0,
         b'01': 'communication time out',
         b'02': 'mechanical time out',
         b'03': 'invalid command',
@@ -241,55 +242,63 @@ class ElliptecMotor:
             return f'UNKNOWN STATUS CODE {resp[3:5]}'
     
     def home(self) -> None:
-        ''' Send motor to home (0 absolute position). '''
+        ''' Send motor to home (0 absolute position).
+        
+        Returns
+        -------
+        float
+            The absolute position of the motor after the move, in radians.
+        '''
         resp = self._send_instruction(b'ho0', resp_len=11, require_resp_code=b'po')
+        self._position = None
         return self._return_resp(resp)
 
-    def rotate_absolute(self, angle_radians:float, blocking:bool=True) -> float:
+    def rotate_absolute(self, angle_radians:float) -> float:
         ''' Rotate the motor to an absolute position relative to home.
 
         Parameters
         ----------
         angle_radians : float
             The absolute angle to rotate to, in radians.
-        blocking : bool, optional
-            Whether to block until the move is complete. Default is True.
         
         Returns
         -------
         float
-            The absolute angle in radians that the motor was moved to. Likely will not be the same as the angle requested.
+            The absolute position of the motor after the move, in radians.
         '''
         # request the move
         resp = self._send_instruction(b'ma', self._radians_to_bytes(angle_radians, num_bytes=8), resp_len=11)
+        self._position = None
         # block
-        if blocking:
-            while self.is_active():
-                sleep(0.1)
+        while self.is_active():
+            sleep(0.1)
         # check response
         return self._return_resp(resp)
 
-    def rotate_relative(self, angle_radians:float, blocking:bool=True) -> float:
+    def rotate_relative(self, angle_radians:float) -> float:
         ''' Rotate the motor to a position relative to the current one.
 
         Parameters
         ----------
         angle_radians : float
             The angle to rotate, in radians.
-        blocking : bool, optional
-            Whether to block until the move is complete. Default is True.
         
         Returns
         -------
         float
             The ABSOLUTE angle in radians that the motor was moved to. Likely will not be the same as the angle requested.
+        
+        Returns
+        -------
+        float
+            The absolute position of the motor after the move, in radians.
         '''
         # request the move
         resp = self._send_instruction(b'mr', self._radians_to_bytes(angle_radians, num_bytes=8))
+        self._position = None
         # block
-        if blocking:
-            while self.is_active():
-                sleep(0.1)
+        while self.is_active():
+            sleep(0.1)
         return self._return_resp(resp)
 
     def is_active(self) -> bool:
@@ -310,7 +319,10 @@ class ElliptecMotor:
         float
             The absolute position of the motor, in radians.
         '''
-        # get the position
+        # if we already know the position, just return it
+        if self._position is not None:
+            return self._position
+        # if no response is provided, query the device
         if resp is None:
             resp = self._send_instruction(b'gp', resp_len=11, require_resp_code=b'po')
         pos = resp[3:11]
@@ -320,7 +332,8 @@ class ElliptecMotor:
             # negative number, take the two's compliment
             pos = -((pos ^ 0xffffffff) + 1)
         # convert to radians
-        return np.deg2rad(pos / self.ppmu)
+        self._position = np.deg2rad(pos / self.ppmu)
+        return self._position
 
 class ThorLabsMotor:
     ''' ThorLabs Motor class.
@@ -339,7 +352,8 @@ class ThorLabsMotor:
         # set attributes
         self.serial_num = serial_num
         self.motor_apt = apt.Motor(serial_num)
-    
+        self._position = None # the current position of the motor, in radians
+
     def __repr__(self) -> str:
         return f'ThorLabsMotor-{self.name}'
 
@@ -353,53 +367,59 @@ class ThorLabsMotor:
         ''' Returns true if the motor is actively moving, false otherwise. '''
         return self.motor_apt.is_in_motion
 
-    def rotate_relative(self, angle_radians:float, blocking:bool=True) -> float:
+    def rotate_relative(self, angle_radians:float) -> float:
         ''' Rotates the motor by a relative angle.
 
         Parameters
         ----------
         angle_radians : float
             The angle to rotate by, in radians.
-        blocking : bool, optional
-            Whether to block until the motor has finished rotating. Default is True.
+        
+        Returns
+        -------
+        float
+            The absolute position of the motor after the move, in radians.
         '''
         # convert to degrees and send instruction
         angle = np.rad2deg(angle_radians)
         self.motor_apt.move_relative(angle)
+        self._position = None
         # (maybe) wait for move to finish
-        if blocking:
-            while self.is_active():
-                sleep(0.1)
+        while self.is_active():
+            sleep(0.1)
         # return the position reached
         return self.get_position()
 
-    def rotate_absolute(self, angle_radians:float, blocking:bool=True) -> float:
+    def rotate_absolute(self, angle_radians:float,) -> float:
         ''' Rotates the motor to an absolute angle.
 
         Parameters
         ----------
         angle_radians : float
             The angle to rotate by, in radians.
-        blocking : bool, optional
-            Whether to block until the motor has finished rotating. Default is True.
+        
+        Returns
+        -------
+        float
+            The absolute position of the motor after the move, in radians.
         '''
         # convert to degrees and send instruction
         angle = np.rad2deg(angle_radians)
         self.motor_apt.move_to(angle)
+        self._position = None
         # (maybe) wait for move to finish
-        if blocking:
-            while self.is_active():
-                sleep(0.1)
+        while self.is_active():
+            sleep(0.1)
         # return the current position
         return self.get_position()
 
-    def home(self, blocking:bool=True) -> float:
-        ''' Bring the motor to its home position. 
+    def home(self) -> float:
+        ''' Bring the motor to its home position.
         
-        Parameters
-        ----------
-        blocking : bool, optional
-            Whether to block until the motor has finished rotating. Default is True.
+        Returns
+        -------
+        float
+            The absolute position of the motor after the move, in radians.
         '''
         # self.motor_apt.move_home() # this sent the motor spinning forever
         # instead, just go to zero
@@ -413,8 +433,12 @@ class ThorLabsMotor:
         float
             The position of the motor, in radians.
         '''
-        return np.deg2rad(self.motor_apt.position)
-
+        # if we already know the position, just return it
+        if self._position is not None:
+            return self._position
+        else:
+            self._position = np.deg2rad(self.motor_apt.position)
+            return self._position
     
 # UVHWP = ElliptecMotor('UVHWP', 'COM5', b'A')
 # QP = ElliptecMotor('QP', 'COM5', b'B')
