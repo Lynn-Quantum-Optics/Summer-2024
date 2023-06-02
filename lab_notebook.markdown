@@ -62,6 +62,8 @@ Over lunch, A testing and debugging custom control scripts.
 - ~~noticing descrepencies in FPGA CCU behavior. documentation says the module should update every 100ms but in reality it seems to update more on the order of < 1ms~~ 
 - i was forgetting to flush the buffer, now things look nominal (~100±10ms). now CCU interfacing code performs perfectly. now debugging manager class
 - have not run into any major issues, just a ton of tiny bugs so far
+- was able to achieve a basic sweep measurement of the UVHWP ! :)
+- using `take_data(5,1)` should take 5s per iteration and it actually ended up taking around 
 
 ## 5/31/23 eve/night sesh
 MP: A
