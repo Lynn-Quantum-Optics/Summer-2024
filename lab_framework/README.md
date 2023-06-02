@@ -1,5 +1,6 @@
 # Basic Usage
 
+TODO
 ```py
 import manager
 
@@ -22,11 +23,48 @@ m.UV_PCC.rotate_absolute(3.14)
 # take more data
 m.take_data(5,3)
 
-# write out
+# writes out to CSV, homes all motors, then closes all connections
 m.close()
 ```
 
-The manager handles all data collection by writing it out to a CSV file as you are performing the experiment, so as to save partial data even when an experiment goes awry.
+
+# Data Collection
+
+While the raw data collection is done through the `FPGACCUController` class, you should never have to interface with that class directly. In writing code to run your expirements, the only command you should really be using is `Manager.take_data(num_samp, samp_period)` to take `num_samp` samples with period `samp_period` to obtain a mean count rate and SEM uncertainty. Each time this function is called a **single row** will be written to the output table immediately (so you should be able to salvage partial data if your code hits an error later on).
+
+# Motor Interfacing
+
+The motors all have unique names which you assign in the config file. You can interface directly with the motor drivers, as they are all created as objects (with their given names) in the manager:
+```py
+m.UV_HWP.rotate_absolute(np.pi/2)
+m.B_C_HWP.home()
+```
+Or you can use the configure motors method to move many motors at once:
+```py
+m.configure_motors(UV_HWP=np.pi/2, B_C_HWP=0)
+```
+
+Both motor drivers (for Elliptec and ThorLabs motors) provide the methods
+- `get_status` - returns 0 if okay, something else otherwise
+- `home` - return the device to home (0) position
+- `rotate_absolute` - rotate to an absolute position (relative to home)
+- `rotate_relative` - rotate to a position relative to where you are now
+- `is_active` - tells if the motor is active
+- `get_position` - returns the current position of the motor (in radians)
+
+Any method that moves the motor will return the actual position reached (which may differ from the target position!) and are _blocking_ (the code will wait for the motor to finish moving before continuing), and they must be in order to get a response back from the motors about the position reached.
+
+## Common Setups
+
+The `Manager` class will provide some methods for configuring motors to some common setups, but we will need to calibrate those setups first.
+
+## Elliptec Motor Homing
+
+Definitely read [this documentation](https://www.thorlabs.com/Software/Elliptec/Communications_Protocol/ELLx%20modules%20protocol%20manual.pdf) before messing with anything, but from our experience, it seems as though the Elliptec motors lose their calibrated home position when power is suspended. For this reason, I have provided some methods that can assist with this in the `ElliptecMotor` driver. The methods are
+- `ElliptecMotor._get_home_offset()` which returns the current home offset as an integer, in units of pulses.
+- `ElliptecMotor._set_home_offset()` sets the home (absolute position 0) of the motor to be whatever the current position is.
+
+You'll notice these methods start with underscores, that's a clue that **you really shouldn't touch these unless you know what you're doing**.
 
 # Specifics About Data Collection
 

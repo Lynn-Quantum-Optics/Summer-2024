@@ -39,7 +39,7 @@ class FPGACCUController:
         # open connection
         self.connection = ser.Serial(self.port, self.baud)
     
-    def __del__(self) -> None:
+    def close(self) -> None:
         # automatically close connection on cleanup
         self.connection.close()
 
