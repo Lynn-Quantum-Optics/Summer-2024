@@ -46,6 +46,12 @@ Configuring QP: -40 to 40, 20 steps, 5 samples per step in DA basis. We ran into
 
 
 
+Over lunch, A testing and debugging custom control scripts.
+- confirmed (nonzero) ccu data is being collected
+- ~~noticing descrepencies in FPGA CCU behavior. documentation says the module should update every 100ms but in reality it seems to update more on the order of < 1ms~~ 
+- i was forgetting to flush the buffer, now things look nominal (~100±10ms). now CCU interfacing code performs perfectly. now debugging manager class
+- have not run into any major issues, just a ton of tiny bugs so far
+
 ## 5/31/23 eve/night sesh
 MP: A
 Debugged parsing of positions from Elliptec motors. Only tested code with the UVHWP. B_C_HWP offset pre-testing: 0x500.

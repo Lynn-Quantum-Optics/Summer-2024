@@ -1,0 +1,7 @@
+[x] implement a system to check if a motor even moved, so that we don't have to ping each motor for each measurement (which can take >20s)
+[x] gracefully close down the COM_PORTS when exiting
+[ ] *** make some live plots of the data appear when running
+[ ] finish documentation on basic usage
+[ ] consider adding code to read termination bytes b'\r\n' for the ElliptecMotor to keep the ports clear
+[x] add a configure_setup method to manager to configure many motors at a time
+[ ] add columns to the output table to record number of samples and period per sample

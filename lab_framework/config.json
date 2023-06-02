@@ -1,0 +1,44 @@
+{
+    "ccu": {
+        "port": "COM4",
+        "baudrate": 19200
+    },
+    "motors": {
+        "C_HWP": {
+            "type": "Elliptec",
+            "port": "COM8",
+            "address": "A"
+        },
+        "C_QWP": {
+            "type": "Elliptec",
+            "port": "COM8",
+            "address": "B"
+        },
+        "C_PCC": {
+            "type": "Elliptec",
+            "port": "COM8",
+            "address": "C"
+        },
+        "B_C_HWP": {
+            "type": "Elliptec",
+            "port": "COM9",
+            "address": "A"
+        },
+        "B_HWP": {
+            "type": "ThorLabs",
+            "sn": 83811901
+        },
+        "B_QWP": {
+            "type": "ThorLabs",
+            "sn": 83811646
+        },
+        "A_HWP": {
+            "type": "ThorLabs",
+            "sn": 83811667
+        },
+        "A_QWP": {
+            "type": "ThorLabs",
+            "sn": 83811904
+        }
+    }
+}
