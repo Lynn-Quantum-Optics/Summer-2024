@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import csv
 import datetime
-import scipy.stats as stats
 
 class CCU:
     ''' Interface for the Altera DE2 FPGA CCU.
@@ -67,6 +66,24 @@ class CCU:
     # this is done in a seperate process, so all static methods
 
     @staticmethod
+    def _flush(conn, one=False) -> None:
+        ''' Flushes the input buffer from the CCU. 
+        
+        Parameters
+        ----------
+        conn : serial.Serial
+            Serial connection to the FPGA CCU.
+        one : bool, optional
+            If True, flushes current data until the next termination byte. Defaults to false, flushing all data.
+        '''
+        if not one:
+            conn.reset_input_buffer()
+
+        # skip all data until next termination
+        while conn.read()[0] != CCU.TERMINATION_BYTE:
+            pass
+    
+    @staticmethod
     def _read_packet(conn) -> np.ndarray:
         ''' Reads a packet of data from the FPGA CCU.
 
@@ -93,30 +110,12 @@ class CCU:
                                   reversed(packet))
 
         # read the termination character
-        if conn.read()[0] == CCU.TERMINATION_BYTE:
+        if conn.read()[0] != CCU.TERMINATION_BYTE:
             print('Misplaced termination byte! Skipping to next packet.')
             return None
 
         return out
     
-    @staticmethod
-    def _flush(conn, one=False) -> None:
-        ''' Flushes the input buffer from the CCU. 
-        
-        Parameters
-        ----------
-        conn : serial.Serial
-            Serial connection to the FPGA CCU.
-        one : bool, optional
-            If True, flushes current data until the next termination byte. Defaults to false, flushing all data.
-        '''
-        if not one:
-            conn.reset_input_buffer()
-
-        # skip all data until next termination
-        while conn.read()[0] != CCU.TERMINATION_BYTE:
-            pass
-
     @staticmethod
     def _grab_data(conn:serial.Serial, current_index:int, writer:csv.writer=None) -> 'tuple[list[np.ndarray], int]':
         ''' Collects all data packets waiting in the buffer from connection.
@@ -207,6 +206,16 @@ class CCU:
         ''' Listens to the CCU and plots the data in real time.
         This method is intended to be run once in a seperate process.
         
+        Parameters
+        ----------
+        p : mp.Pipe
+            Pipe for communication with the main process.
+        port : str
+            The serial port to connect to.
+        baud : int
+            The baud rate to use.
+        csv_out : str, optional
+            If specified, writes the data to a csv file. Defaults to None.
         '''
         # create output csv if specified
         if csv_out is not None:
@@ -223,20 +232,40 @@ class CCU:
         data_packets = []
         current_index = 0
 
-        # initialize lists for plotting and data collection and such
+        # initialize the plot
+        fig = plt.figure()
+        count_ax = fig.add_subplot(121)
+        coin_ax = fig.add_subplot(122)
+
+        # set labels
+        count_ax.set_xlabel('Data Index')
+        count_ax.set_ylabel('Counts per Second')
+        coin_ax.set_xlabel('Data Index')
+        coin_ax.set_ylabel('Counts per Second')
+
+        # initialize the line we're plotting
+        lines = []
+        xdata = np.arange(-CCU.PLOT_XLIM, 0)
+        ydata = np.zeros((CCU.PLOT_XLIM,))
+
+        # count lines
+        for k in CCU.CHANNEL_KEYS[:4]:
+            line, = count_ax.plot(xdata, ydata, label=k)
+            lines.append(line)
         
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111)
-        # ax.set_xlabel('Data Index')
-        # ax.set_ylabel('Counts')
-        # plt.ion()
-        # plt.show()
+        # coin lines
+        for k in CCU.CHANNEL_KEYS[4:]:
+            line, = coin_ax.plot(xdata, ydata, label=k)
+            lines.append(line)
+
+        count_ax.legend()
+        coin_ax.legend()
+        plt.ion()
+        plt.show()
 
         # initialize requests
         request = 0 # number of data points to send
         next_to_send = 0 # index of next valid packet to send
-        # TODO: implement check for request samp_period
-        
 
         # flush the buffer once before beginning
         CCU._flush(conn)
@@ -270,8 +299,24 @@ class CCU:
                 # use the method for sending data
                 next_to_send, request = CCU._send_data(conn, data_packets, current_index, next_to_send, request)
 
-            # plot the data
-            # TODO: plot the datas
+            # +++ PLOTTING THE DATA +++
+            xdata = np.arange(current_index - CCU.PLOT_XLIM, current_index)
+            # loop to update lines
+            for i, line in enumerate(lines):
+                # get the ydata for this line
+                ydata = np.array([packet[i] for packet in data_packets]) / CCU.UPDATE_PERIOD
+                # make sure that ydata has enough values
+                if len(ydata) < CCU.PLOT_XLIM:
+                    # pack zeros if not
+                    ydata = np.concatenate((np.zeros((CCU.PLOT_XLIM - len(data_packets),)), ydata))
+                # updata line data
+                line.set_xdata(xdata)
+                line.set_ydata(ydata)
+            # sex axis limits
+            count_ax.autoscale()
+            coin_ax.autoscale()
+            # update the plot
+            plt.pause(0.01)
 
         # outside of the loop, close the connection to CCU
         conn.close()
