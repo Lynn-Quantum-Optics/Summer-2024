@@ -8,7 +8,7 @@ Alec Roberson (aroberson@hmc.edu)
 Kye W. Shi (kwshi@hmc.edu)
 '''
 import functools as ft
-import serial as ser
+import serial
 import multiprocessing as mp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -45,6 +45,7 @@ class CCU:
         self.baud = baud
 
     # +++ ALL INTERFACING WITH CCU +++
+
     # this is done in a seperate process, so all static methods
 
     @staticmethod
@@ -99,6 +100,94 @@ class CCU:
             pass
 
     @staticmethod
+    def _grab_data(conn:serial.Serial, current_index:int, writer:csv.writer=None) -> 'tuple[list[np.ndarray], int]':
+        ''' Collects all data packets waiting in the buffer from connection.
+
+        Parameters
+        ----------
+        conn : serial.Serial
+            Serial connection to the FPGA CCU.
+        current_index : int
+            The index of the next packet to be collected.
+        writer : csv.writer, optional
+            If specified, writes the data to a csv file. Defaults to None.
+
+        Returns
+        -------
+        list[np.ndarray]
+            List of all packets collected.
+        int
+            The index of the next packet to be collected.
+        '''
+        # get the collection time for all these packets
+        collection_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        
+        # initialize list for output packets
+        out_packets = []
+
+        # loop through all packets waiting in the buffer
+        while conn.in_waiting:
+                # read a packet
+                packet = CCU._read_packet(conn)
+                # if the packet is valid, add it to the buffer
+                if packet is not None: # valid packet
+                    out_packets.append(packet)
+                    # write to csv if specified
+                    if writer:
+                        writer.writerow([current_index, collection_time] + packet.tolist())
+                    current_index += 1
+                else: # invalid packet, flush to next termination
+                    CCU._flush(conn, one=True)
+                    if writer:
+                        writer.writerow(['invalid packet encountered, buffer flushed', collection_time] + [0]*8)
+
+    @staticmethod
+    def _get_samples(data_packets:'list[np.ndarray]', current_index:int, next_to_send:int, samp_period:int):
+        ''' Retrieves all available samples from the data packets.
+        
+        Parameters
+        ----------
+        data_packets : list[np.ndarray]
+            List of the most recent packets collected.
+        current_index : int
+            The data index of the next data packet that will be collected.
+        next_to_send : int
+            The data index of the next data packet that will be sent.
+
+        Returns
+        -------
+        list[np.ndarray]
+            List of all samples collected.
+        int
+            The data index of the next data packet that will be sent.
+        '''
+        # number of data packets
+        data_len = len(data_packets)
+        # number of packets that could be send (haven't been sent yet)
+        num_valid_packets = current_index - max(next_to_send, current_index - data_len)
+        # actual start index of the next valid packet to send
+        start_i = data_len - num_valid_packets
+        
+        # initialize sample output
+        out_samps = []
+
+        # loop to collect samples
+        for i in range(start_i, len(data_packets), samp_period):
+            # get data indicies for start and in
+            data_start_i = current_index - data_len + i
+            data_end_i = data_start_i + samp_period - 1
+            # get sample data
+            samp = data_packets[i:i+samp_period]
+            # calculate sample stats
+            means = np.mean(samp, axis=0)
+            sems = stats.sem(samp, axis=0)
+            # add to output list
+            out_samps.append(np.concatenate([[data_start_i, data_end_i], means, sems], axis=0))
+
+        # return output
+        return out_samps, current_index
+    
+    @staticmethod
     def _listen_and_plot(p:mp.Pipe, port:str, baud:int, csv_out:str=None) -> None:
         ''' Listens to the CCU and plots the data in real time.
         This method is intended to be run once in a seperate process.
@@ -109,12 +198,11 @@ class CCU:
             csvfile = open(csv_out, 'w+', newline='')
             writer = csv.writer(csvfile)
             writer.writerow(['idx', 'collection time'] + CCU.CHANNEL_KEYS)
-
-        # this is a static method because it will be it's own process
+        else:
+            writer = None
         
         # open the serial connection
-        conn = ser.Serial(port, baud)
-        
+        conn = serial.Serial(port, baud)
 
         # initialize data buffer
         data_packets = []
@@ -122,11 +210,17 @@ class CCU:
 
         # initialize lists for plotting and data collection and such
         
-        fig = plt.figure()
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
+        # ax.set_xlabel('Data Index')
+        # ax.set_ylabel('Counts')
+        # plt.ion()
+        # plt.show()
 
         # initialize requests
         request = None # (num_samp, samp_period IN DECISECONDS)
-        last_sent = -1 # index of last packet sent
+        samples_sent = None # number of samples sent
+        next_to_send = 0 # index of next valid packet to send
         # TODO: implement check for request samp_period
         
 
@@ -136,26 +230,13 @@ class CCU:
         # main loop!
         while True:
             # get the current time for this collection period
-            collection_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            # collect all data waiting in the connection buffer
-            while conn.in_waiting:
-                # read a packet
-                packet = CCU._read_packet(conn)
-                # if the packet is valid, add it to the buffer
-                if packet is not None: # valid packet
-                    data_packets.append(packet)
-                    # write to csv if specified
-                    if csv_out is not None:
-                        writer.writerow([current_index, collection_time] + packet.tolist())
-                    current_index += 1
-                else: # invalid packet, flush to next termination
-                    CCU._flush(conn, one=True)
-                    writer.writerow(['invalid packet encountered, buffer flushed', collection_time] + [0]*8)
-
-            # trim the lists
+            new_packets, current_index = CCU._grab_data(conn, current_index, writer)
+            
+            # update and trim the data buffer
+            data_packets += new_packets
             if len(data_packets) > CCU.PLOT_XLIM:
                 data_packets = data_packets[-CCU.PLOT_XLIM:]
-            
+
             # take any requests
             if request is None and p.poll():
                 # get request
@@ -168,11 +249,27 @@ class CCU:
                 else:
                     # reset the last sent index
                     # this ensures we only send data collected AFTER the request came in
-                    last_sent = current_index - 1
+                    next_to_send = current_index - 1
             
             # plot the data
-            ax.plot(data_packets)
+            # ax.plot(data_packets)
             # TODO: plot the datas
+
+            # attempt to fulfull requests
+            if request is not None:
+                new_samples = CCU._get_samples(data_packets, current_index, next_to_send, request[1])
+                # send the samples
+                while len(new_samples) > 0 and samples_sent < request[0]:
+                    # send the sample
+                    p.send(new_samples.pop(0))
+                    # update the number of samples sent
+                    samples_sent += 1
+                # check if the request was fulfilled
+                if samples_sent == request[0]:
+                    # reset the request
+                    request = None
+                    samples_sent = None
+
             '''
             # attempt to fulfill requests
             if request is not None:
