@@ -1,6 +1,6 @@
-﻿component,angle (rad),description,date callibrated
-B_C_HWP,2.202,minimizes HH,5/31/23
-UV_HWP,0.575,maximizes HH,6/1/23
-UV_HWP,1.368,maximizes VV,6/1/23
-UV_HWP,0.213,HH = VV,6/1/23
-QP,,,
+﻿component,angle (rad),angle rel to home,description,date callibrated
+B_C_HWP,2.202,0,maximize HH: writing on HWP is oriented roughly vertical,5/31/23
+UV_HWP,0.575,-0.793,maximizes HH,6/1/23
+UV_HWP,1.368,0,maximizes VV —> this is home,6/1/23
+UV_HWP,0.213,-1.155,HH = VV,6/1/23
+QP,,,,

@@ -1,5 +1,16 @@
+## 6/2/23
+MP: A, O, R, L
+Main room was a bit warm initially but not feels like 64 which matches what we want. The teperature in the experiment room seems pretty constant; was 17.9C when I (O) arrived and is 18.0C about 40 mins later.
+
+For reference: bottom left knob of BBO affects a vertica translation, so this will change the HH pair production; likewise adjusting the upper right will rotate horizontally, affecting the VV pair production.
+
+C0: alice
+C1: bob, H
+C2: dne (would be opposite for A)
+C3: bob, V
+
 ## 6/1/23
-MP: A, O, R
+MP: A, O, R, L
 N2 tank looks nominal. Fitted $sin^2$ to B_C_HWP data and found a min of 2.202 radians. We set the home offset by loading elliptec.py, creating an ellipetic motor object for the B_C_HWP and called ._set_home_offset() when it was at a location of 2.202 radians. However, we are now getting a Serial Port Failed to Open error. We did unplug the main USB so this may have reset the port labeling? We opened Ello and now cannot see either COM5 or COM7. We also checked device manager and cannot see either COM5 or COM7. We realized that COM8 has the 3 preparation; COM9 is the old COM7. For reference: to move a component, call resposition.optical_component(Orientation(Theta, Phi), component_name).
 
 Alec wrote a streamlined code: motordrivers.py replaces elliptec.py. B_C_HWP moves now, but was not set to home using the method (before, Alec had set these manually). Home offset appears to be 0.05 radians. Alec thinks there may be a range of pi/4 radians for where you can set the home offset (which is where it thinks 0 is?). We managed to reset the home manuualy as follows:
