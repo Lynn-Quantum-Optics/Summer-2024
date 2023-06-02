@@ -1,0 +1,6 @@
+﻿component,angle (rad),description,date callibrated
+B_C_HWP,2.202,minimizes HH,5/31/23
+UV_HWP,1.374,maximizes HH,6/1/23
+UV_HWP,0.588,maximizes VV,6/2/23
+UV_HWP,0.201,HH = VV,6/3/23
+QP,,,
