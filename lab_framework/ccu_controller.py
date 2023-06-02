@@ -7,12 +7,18 @@ authors:
 Alec Roberson (aroberson@hmc.edu)
 Kye W. Shi (kwshi@hmc.edu)
 '''
-import serial as ser
 import functools as ft
+import serial as ser
+import multiprocessing as mp
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import csv
+import datetime
+import scipy.stats as stats
 
-class FPGACCUController:
-    ''' Main controller for the Altera DE2 FPGA CCU.
+class CCU:
+    ''' Interface for the Altera DE2 FPGA CCU.
 
     Parameters
     ----------
@@ -29,6 +35,7 @@ class FPGACCUController:
     # CHANNEL_KEYS = ['C0 (A)', 'C1 (B)', "C2 (A')", "C3 (B')", 'C4', 'C5', 'C6', 'C7'] # for our setup
     CHANNEL_KEYS = ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] # for our setup
     TERMINATION_BYTE = 0xff # from device documentation
+    PLOT_XLIM = 100 # number of samples on running plots
     
     # +++ BASIC METHODS +++
 
@@ -36,21 +43,18 @@ class FPGACCUController:
         # set local vars
         self.port = port
         self.baud = baud
-        # open connection
-        self.connection = ser.Serial(self.port, self.baud)
-    
-    def close(self) -> None:
-        # automatically close connection on cleanup
-        self.connection.close()
 
-    def __next__(self) -> np.ndarray:
-        ''' Reads the next data packet in the CCU buffer. '''
-        return self._read_packet()
+    # +++ ALL INTERFACING WITH CCU +++
+    # this is done in a seperate process, so all static methods
 
-    # +++ INTERNAL METHODS +++
-
-    def _read_packet(self) -> np.ndarray:
+    @staticmethod
+    def _read_packet(conn) -> np.ndarray:
         ''' Reads a packet of data from the FPGA CCU.
+
+        Parameters
+        ----------
+        conn : serial.Serial
+            Serial connection to the FPGA CCU.
 
         Returns
         -------
@@ -63,46 +67,149 @@ class FPGACCUController:
         # read 8-counter measurements
         for i in range(8):
             # read in 5 bytes from the port
-            packet = self.connection.read(size=5)
+            packet = conn.read(size=5)
             # reduce to single unsigned integer
             # only bitshift by 7 to cut off the zero bit in each byte
             out[i] = ft.reduce(lambda v, b: (v << 7) + b,
                                   reversed(packet))
 
         # read the termination character
-        assert self.connection.read()[0] == self.TERMINATION_BYTE, 'misplaced termination character'
+        if conn.read()[0] == CCU.TERMINATION_BYTE:
+            print('Misplaced termination byte! Skipping to next packet.')
+            return None
 
         return out
     
-    def _flush(self) -> None:
-        ''' Flushes the input buffer from the CCU. '''
-        # TODO: is this the right way to do this?
-
-        self.connection.reset_input_buffer()
-
-        # skip leftover data, in case the buffer is flushed mid-read,
-        # until next termination
-        while self.connection.read()[0] != self.TERMINATION_BYTE:
-            pass
-    
-    def _read(self, size=1):
-        ''' Read the next size packets from the CCU.
+    @staticmethod
+    def _flush(conn, one=False) -> None:
+        ''' Flushes the input buffer from the CCU. 
         
         Parameters
         ----------
-        size : int
-            Number of packets to read.
-        
-        Returns
-        -------
-        np.ndarray
-            Array of packets from the CCU.
+        conn : serial.Serial
+            Serial connection to the FPGA CCU.
+        one : bool, optional
+            If True, flushes current data until the next termination byte. Defaults to false, flushing all data.
         '''
-        # clear the buffer
-        self._flush()
-        # start reading
-        return np.row_stack(next(self) for _ in range(size))
+        if not one:
+            conn.reset_input_buffer()
 
+        # skip all data until next termination
+        while conn.read()[0] != CCU.TERMINATION_BYTE:
+            pass
+
+    @staticmethod
+    def _listen_and_plot(p:mp.Pipe, port:str, baud:int, csv_out:str=None) -> None:
+        ''' Listens to the CCU and plots the data in real time.
+        This method is intended to be run once in a seperate process.
+        
+        '''
+        # create output csv if specified
+        if csv_out is not None:
+            csvfile = open(csv_out, 'w+', newline='')
+            writer = csv.writer(csvfile)
+            writer.writerow(['idx', 'collection time'] + CCU.CHANNEL_KEYS)
+
+        # this is a static method because it will be it's own process
+        
+        # open the serial connection
+        conn = ser.Serial(port, baud)
+        
+
+        # initialize data buffer
+        data_packets = []
+        current_index = 0
+
+        # initialize lists for plotting and data collection and such
+        
+        fig = plt.figure()
+
+        # initialize requests
+        request = None # (num_samp, samp_period IN DECISECONDS)
+        last_sent = -1 # index of last packet sent
+        # TODO: implement check for request samp_period
+        
+
+        # flush the buffer once before beginning
+        CCU._flush(conn)
+
+        # main loop!
+        while True:
+            # get the current time for this collection period
+            collection_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            # collect all data waiting in the connection buffer
+            while conn.in_waiting:
+                # read a packet
+                packet = CCU._read_packet(conn)
+                # if the packet is valid, add it to the buffer
+                if packet is not None: # valid packet
+                    data_packets.append(packet)
+                    # write to csv if specified
+                    if csv_out is not None:
+                        writer.writerow([current_index, collection_time] + packet.tolist())
+                    current_index += 1
+                else: # invalid packet, flush to next termination
+                    CCU._flush(conn, one=True)
+                    writer.writerow(['invalid packet encountered, buffer flushed', collection_time] + [0]*8)
+
+            # trim the lists
+            if len(data_packets) > CCU.PLOT_XLIM:
+                data_packets = data_packets[-CCU.PLOT_XLIM:]
+            
+            # take any requests
+            if request is None and p.poll():
+                # get request
+                request = p.recv()
+                
+                # check if it's a close request
+                if request == 'close':
+                    # break out of the loop
+                    break
+                else:
+                    # reset the last sent index
+                    # this ensures we only send data collected AFTER the request came in
+                    last_sent = current_index - 1
+            
+            # plot the data
+            ax.plot(data_packets)
+            # TODO: plot the datas
+            '''
+            # attempt to fulfill requests
+            if request is not None:
+                # calculate the number of samples that we can take with the data we haven't seen yet
+                samp_to_take = (current_index - 1 - max(last_sent, current_index - CCU.PLOT_XLIM - 1)) % request[0]
+
+                # take and send the samples
+                for s in range(samp_to_take):
+                    # get the sample from the data list
+                    sample = np.array(data_packets[CCU.PLOT_XLIM-(s+1)*request[1]:CCU.PLOT_XLIM-s*request[1]])
+                    # get the sample indices in the running data list
+                    sample_start_idx = current_index - (s+1)*request[1]
+                    sample_end_index = current_index - s*request[1]
+                    # calculate summary stats
+                    sample_mean = np.mean(sample, axis=0)
+                    sample_sem = stats.sem(sample, axis=0)
+                    # send the sample
+                    p.send([sample_start_idx, sample_end_index, sample_mean, sample_sem])
+                
+                # update the last seen index
+                if samp_to_take > 0:
+                    last_sent = current_index - 1
+            '''
+        # outside of the loop
+        conn.close()
+        
+        # close csv file
+        if csv_out is not None:
+            csvfile.close()
+
+
+    def close(self) -> None:
+        # automatically close connection on cleanup
+        self.connection.close()
+
+    # +++ INTERNAL METHODS +++
+    
     # +++ PUBLIC METHODS +++
 
     def get_count_rates(self, period:float) -> np.ndarray:
