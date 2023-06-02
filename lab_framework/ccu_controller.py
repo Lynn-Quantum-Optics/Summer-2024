@@ -39,10 +39,28 @@ class CCU:
     
     # +++ BASIC METHODS +++
 
-    def __init__(self, port:str, baud:int) -> None:
+    def __init__(self, port:str, baud:int, raw_data_csv=None) -> None:
         # set local vars
         self.port = port
         self.baud = baud
+
+        # open pipeline
+        self._pipe, conn_to_self = mp.Pipe()
+
+        # start listening process
+        self._listening_process = mp.Process(target=CCU._listen_and_plot, args=(conn_to_self, self.port, self.baud, raw_data_csv))
+        self._listening_process.start()
+
+    # +++ CLEANUP +++
+    
+    def __del__(self) -> None:
+        ''' Closes the connection to the CCU and terminates the listening process. '''
+        # send close request
+        self._pipe.send('close')
+        # wait for the process to close
+        self._listening_process.join()
+        # close the pipe
+        self._pipe.close()
 
     # +++ ALL INTERFACING WITH CCU +++
 
@@ -142,50 +160,47 @@ class CCU:
                         writer.writerow(['invalid packet encountered, buffer flushed', collection_time] + [0]*8)
 
     @staticmethod
-    def _get_samples(data_packets:'list[np.ndarray]', current_index:int, next_to_send:int, samp_period:int):
-        ''' Retrieves all available samples from the data packets.
+    def _send_data(conn:serial.Serial, data_packets:'list[np.ndarray]', current_index:int, next_to_send:int, request:int) -> 'tuple[int, int]':
+        ''' Retrieves all data from from the data packets.
         
         Parameters
         ----------
+        conn : serial.Serial
+            Serial connection to the FPGA CCU.
         data_packets : list[np.ndarray]
             List of the most recent packets collected.
         current_index : int
             The data index of the next data packet that will be collected.
         next_to_send : int
             The data index of the next data packet that will be sent.
+        request : int
+            The number of packet requests that are still outstanding.
 
         Returns
         -------
-        list[np.ndarray]
-            List of all samples collected.
-        int
-            The data index of the next data packet that will be sent.
+        int : next_to_send
+            The data index of the next data packet that has not been sent.
+        int : request
+            The number of packet requests that are still outstanding after this method.
+
         '''
         # number of data packets
         data_len = len(data_packets)
         # number of packets that could be send (haven't been sent yet)
         num_valid_packets = current_index - max(next_to_send, current_index - data_len)
         # actual start index of the next valid packet to send
-        start_i = data_len - num_valid_packets
+        i = data_len - num_valid_packets
+
+        # start sending until we fulfill the request or run out of packets
+        while i < data_len and request > 0:
+            conn.write(data_packets[i])
+            # increment counters
+            next_to_send += 1
+            i += 1
+            request -= 1
         
-        # initialize sample output
-        out_samps = []
-
-        # loop to collect samples
-        for i in range(start_i, len(data_packets), samp_period):
-            # get data indicies for start and in
-            data_start_i = current_index - data_len + i
-            data_end_i = data_start_i + samp_period - 1
-            # get sample data
-            samp = data_packets[i:i+samp_period]
-            # calculate sample stats
-            means = np.mean(samp, axis=0)
-            sems = stats.sem(samp, axis=0)
-            # add to output list
-            out_samps.append(np.concatenate([[data_start_i, data_end_i], means, sems], axis=0))
-
-        # return output
-        return out_samps, current_index
+        # return the updated counters
+        return next_to_send, request
     
     @staticmethod
     def _listen_and_plot(p:mp.Pipe, port:str, baud:int, csv_out:str=None) -> None:
@@ -218,8 +233,7 @@ class CCU:
         # plt.show()
 
         # initialize requests
-        request = None # (num_samp, samp_period IN DECISECONDS)
-        samples_sent = None # number of samples sent
+        request = 0 # number of data points to send
         next_to_send = 0 # index of next valid packet to send
         # TODO: implement check for request samp_period
         
@@ -238,7 +252,7 @@ class CCU:
                 data_packets = data_packets[-CCU.PLOT_XLIM:]
 
             # take any requests
-            if request is None and p.poll():
+            if request == 0 and p.poll():
                 # get request
                 request = p.recv()
                 
@@ -251,62 +265,21 @@ class CCU:
                     # this ensures we only send data collected AFTER the request came in
                     next_to_send = current_index - 1
             
+            # attempt to fulfull requests
+            if request:
+                # use the method for sending data
+                next_to_send, request = CCU._send_data(conn, data_packets, current_index, next_to_send, request)
+
             # plot the data
-            # ax.plot(data_packets)
             # TODO: plot the datas
 
-            # attempt to fulfull requests
-            if request is not None:
-                new_samples = CCU._get_samples(data_packets, current_index, next_to_send, request[1])
-                # send the samples
-                while len(new_samples) > 0 and samples_sent < request[0]:
-                    # send the sample
-                    p.send(new_samples.pop(0))
-                    # update the number of samples sent
-                    samples_sent += 1
-                # check if the request was fulfilled
-                if samples_sent == request[0]:
-                    # reset the request
-                    request = None
-                    samples_sent = None
-
-            '''
-            # attempt to fulfill requests
-            if request is not None:
-                # calculate the number of samples that we can take with the data we haven't seen yet
-                samp_to_take = (current_index - 1 - max(last_sent, current_index - CCU.PLOT_XLIM - 1)) % request[0]
-
-                # take and send the samples
-                for s in range(samp_to_take):
-                    # get the sample from the data list
-                    sample = np.array(data_packets[CCU.PLOT_XLIM-(s+1)*request[1]:CCU.PLOT_XLIM-s*request[1]])
-                    # get the sample indices in the running data list
-                    sample_start_idx = current_index - (s+1)*request[1]
-                    sample_end_index = current_index - s*request[1]
-                    # calculate summary stats
-                    sample_mean = np.mean(sample, axis=0)
-                    sample_sem = stats.sem(sample, axis=0)
-                    # send the sample
-                    p.send([sample_start_idx, sample_end_index, sample_mean, sample_sem])
-                
-                # update the last seen index
-                if samp_to_take > 0:
-                    last_sent = current_index - 1
-            '''
-        # outside of the loop
+        # outside of the loop, close the connection to CCU
         conn.close()
         
         # close csv file
         if csv_out is not None:
             csvfile.close()
 
-
-    def close(self) -> None:
-        # automatically close connection on cleanup
-        self.connection.close()
-
-    # +++ INTERNAL METHODS +++
-    
     # +++ PUBLIC METHODS +++
 
     def get_count_rates(self, period:float) -> np.ndarray:
@@ -322,13 +295,16 @@ class CCU:
         np.ndarray of size (8,)
             Coincidence count RATES from the CCU. Each element corresponds to a detector/coincidence ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] (in order).
         '''
-        # calculate number of samples to collect
-        samples = max(int(period / self.UPDATE_PERIOD), 1)
-        # flush the buffer
-        self._flush()
-        # read data and calculate rate
-        data = self._read(samples)
+        # calculate number of data points to collect
+        num_data = max(int(period / self.UPDATE_PERIOD), 1)
+        # request data
+        self._pipe.send(num_data)
+        # wait for data
+        data_out = []
+        while len(data_out) < num_data:
+            data_out.append(self._pipe.recv())
         # accumulate data and convert to rate
-        return np.sum(data, axis=0) / period
+        actual_period = num_data * self.UPDATE_PERIOD # may be different from period
+        return np.sum(data_out, axis=0) / actual_period
 
 # cont = FPGACCUController('COM4', 19200)
