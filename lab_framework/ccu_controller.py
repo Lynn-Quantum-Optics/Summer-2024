@@ -34,7 +34,8 @@ class CCU:
     # CHANNEL_KEYS = ['C0 (A)', 'C1 (B)', "C2 (A')", "C3 (B')", 'C4', 'C5', 'C6', 'C7'] # for our setup
     CHANNEL_KEYS = ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] # for our setup
     TERMINATION_BYTE = 0xff # from device documentation
-    PLOT_XLIM = 100 # number of samples on running plots
+    PLOT_XLIM = 600 # number of samples on running plots
+    PLOT_SMOOTHING = 5
     
     # +++ BASIC METHODS +++
 
@@ -52,9 +53,11 @@ class CCU:
 
     # +++ CLEANUP +++
     
-    def __del__(self) -> None:
+    def close(self) -> None:
         ''' Closes the connection to the CCU and terminates the listening process. '''
-        # send close request
+        # close the plot
+        plt.close()
+        # send close notice
         self._pipe.send('close')
         # wait for the process to close
         self._listening_process.join()
@@ -157,15 +160,17 @@ class CCU:
                     CCU._flush(conn, one=True)
                     if writer:
                         writer.writerow(['invalid packet encountered, buffer flushed', collection_time] + [0]*8)
+        # return the packets and the next data index
+        return out_packets, current_index
 
     @staticmethod
-    def _send_data(conn:serial.Serial, data_packets:'list[np.ndarray]', current_index:int, next_to_send:int, request:int) -> 'tuple[int, int]':
+    def _send_data(pipe:mp.Pipe, data_packets:'list[np.ndarray]', current_index:int, next_to_send:int, request:int) -> 'tuple[int, int]':
         ''' Retrieves all data from from the data packets.
         
         Parameters
         ----------
-        conn : serial.Serial
-            Serial connection to the FPGA CCU.
+        pipe : mp.Pipe
+            Serial connection to the main process.
         data_packets : list[np.ndarray]
             List of the most recent packets collected.
         current_index : int
@@ -191,8 +196,8 @@ class CCU:
         i = data_len - num_valid_packets
 
         # start sending until we fulfill the request or run out of packets
-        while i < data_len and request > 0:
-            conn.write(data_packets[i])
+        while (i < data_len) and request > 0:
+            pipe.send(data_packets[i])
             # increment counters
             next_to_send += 1
             i += 1
@@ -233,9 +238,13 @@ class CCU:
         current_index = 0
 
         # initialize the plot
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10,10))
         count_ax = fig.add_subplot(121)
         coin_ax = fig.add_subplot(122)
+
+        # autoscaling
+        count_ax.autoscale(enable=True, axis='both')
+        coin_ax.autoscale(enable=True, axis='both')
 
         # set labels
         count_ax.set_xlabel('Data Index')
@@ -245,14 +254,16 @@ class CCU:
 
         # initialize the line we're plotting
         lines = []
-        xdata = np.arange(-CCU.PLOT_XLIM, 0)
-        ydata = np.zeros((CCU.PLOT_XLIM,))
+        # xdata = np.arange(-(CCU.PLOT_XLIM // CCU.PLOT_SMOOTHING), 0)
+        # ydata = np.zeros((CCU.PLOT_XLIM // CCU.PLOT_SMOOTHING,))
+        xdata = np.arange(-(CCU.PLOT_XLIM), 0)# // CCU.PLOT_SMOOTHING), 0)
+        ydata = np.zeros((CCU.PLOT_XLIM,)) #) // CCU.PLOT_SMOOTHING,))
 
         # count lines
         for k in CCU.CHANNEL_KEYS[:4]:
             line, = count_ax.plot(xdata, ydata, label=k)
             # don't show C2
-            if k == 'C2':
+            if k == 'A\'':
                 line.set_visible(False)
             lines.append(line)
         
@@ -303,29 +314,40 @@ class CCU:
             # attempt to fulfull requests
             if request:
                 # use the method for sending data
-                next_to_send, request = CCU._send_data(conn, data_packets, current_index, next_to_send, request)
+                next_to_send, request = CCU._send_data(p, data_packets, current_index, next_to_send, request)
 
             # +++ PLOTTING THE DATA +++
-            xdata = np.arange(current_index - CCU.PLOT_XLIM, current_index)
+            xdata = np.arange(current_index - CCU.PLOT_XLIM, current_index) #, CCU.PLOT_SMOOTHING)
             # loop to update lines
             for i, line in enumerate(lines):
                 # get the ydata for this line
                 ydata = np.array([packet[i] for packet in data_packets]) / CCU.UPDATE_PERIOD
+                # smooth the data maybe?
+                # ydata = ydata[:(len(ydata) // CCU.PLOT_SMOOTHING) * CCU.PLOT_SMOOTHING]
+                # ydata = np.mean(ydata.reshape(-1, CCU.PLOT_SMOOTHING), axis=1).reshape(-1)
                 # make sure that ydata has enough values
                 if len(ydata) < CCU.PLOT_XLIM:
                     # pack zeros if not
                     ydata = np.concatenate((np.zeros((CCU.PLOT_XLIM - len(data_packets),)), ydata))
                 # updata line data
-                line.set_xdata(xdata)
-                line.set_ydata(ydata)
+                line.set_data(xdata, ydata)
             # sex axis limits
-            count_ax.autoscale()
-            coin_ax.autoscale()
+            count_ax.relim()
+            count_ax.autoscale_view()
+            coin_ax.relim()
+            coin_ax.autoscale_view()
+            
+            # count_ax.set_xlim(current_index - CCU.PLOT_XLIM, current_index)
+            # coin_ax.set_xlim(current_index - CCU.PLOT_XLIM, current_index)
+            
             # update the plot
+            # count_ax.draw()
+            # coin_ax.draw()
             plt.pause(0.01)
 
-        # outside of the loop, close the connection to CCU
+        # outside of the loop, close the connection to CCU and pipe
         conn.close()
+        p.close()
         
         # close csv file
         if csv_out is not None:
@@ -357,5 +379,3 @@ class CCU:
         # accumulate data and convert to rate
         actual_period = num_data * self.UPDATE_PERIOD # may be different from period
         return np.sum(data_out, axis=0) / actual_period
-
-# cont = FPGACCUController('COM4', 19200)

@@ -4,19 +4,19 @@
         "baudrate": 19200
     },
     "motors": {
-        "C_HWP": {
+        "C_UV_HWP": {
             "type": "Elliptec",
-            "port": "COM8",
+            "port": "COM5",
             "address": "A"
         },
-        "C_QWP": {
+        "C_QP": {
             "type": "Elliptec",
-            "port": "COM8",
+            "port": "COM5",
             "address": "B"
         },
         "C_PCC": {
             "type": "Elliptec",
-            "port": "COM8",
+            "port": "COM5",
             "address": "C"
         },
         "B_C_HWP": {
