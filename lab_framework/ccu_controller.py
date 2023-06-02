@@ -251,11 +251,17 @@ class CCU:
         # count lines
         for k in CCU.CHANNEL_KEYS[:4]:
             line, = count_ax.plot(xdata, ydata, label=k)
+            # don't show C2
+            if k == 'C2':
+                line.set_visible(False)
             lines.append(line)
         
         # coin lines
         for k in CCU.CHANNEL_KEYS[4:]:
             line, = coin_ax.plot(xdata, ydata, label=k)
+            # don't show C5 or C7
+            if k == 'C5' or k == 'C7':
+                line.set_visible(False)
             lines.append(line)
 
         count_ax.legend()
