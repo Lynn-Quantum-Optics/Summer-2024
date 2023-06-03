@@ -5,7 +5,7 @@ import os
 import datetime
 import numpy as np
 import scipy.stats as stats
-from ccu_controller import FPGACCUController
+from ccu_controller import CCU
 from motor_drivers import ElliptecMotor, ThorLabsMotor, COM_PORTS
 
 class Manager:
@@ -37,7 +37,7 @@ class Manager:
         self.motors = list(self._config['motors'].keys())
         
         # initialize the CCU
-        self._ccu = FPGACCUController(
+        self._ccu = CCU(
             self._config['ccu']['port'],
             self._config['ccu']['baudrate'])
 
@@ -98,10 +98,6 @@ class Manager:
             self.__dict__[motor_name].rotate_absolute(position)
 
     def close(self, home_motors=True) -> None:
-        # home all of the motors
-        if home_motors:
-            for m in self.motors:
-                self.__dict__[m].home()
         # close the output file (writes lines)
         self.out_file.close()
         # close all of the COM_PORT connections

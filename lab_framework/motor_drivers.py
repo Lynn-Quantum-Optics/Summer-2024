@@ -57,7 +57,7 @@ class ElliptecMotor:
     # built in methods
 
     def __repr__(self) -> str:
-        return f'ElliptecMotor-{self.name}'
+        return f'ElliptecMotor-{__name__}'
     
     # helper functions
 
@@ -219,13 +219,13 @@ class ElliptecMotor:
             if s == 'ok': 
                 return 0
             # otherwise, warn the user
-            print(f'WARNING: {self.name} raised status ({self.get_status(resp)})')
+            print(f'WARNING: {__name__} raised status ({self.get_status(resp)})')
         elif resp[1:3] == b'PO':
             # return position
             return self.get_position(resp)
         else:
             # print a warning
-            print(f'WARNING: unexpected response from {self.name} ({resp})')
+            print(f'WARNING: unexpected response from {__name__} ({resp})')
             return None
 
     # public methods
@@ -355,7 +355,7 @@ class ThorLabsMotor:
         self._position = None # the current position of the motor, in radians
 
     def __repr__(self) -> str:
-        return f'ThorLabsMotor-{self.name}'
+        return f'ThorLabsMotor-{__name__}'
 
     # public methods
 
