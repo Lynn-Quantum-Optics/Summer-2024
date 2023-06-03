@@ -97,7 +97,23 @@ class Manager:
                 raise ValueError(f'Attempted to reference unknown motor \"{motor_name}\".')
             self.__dict__[motor_name].rotate_absolute(position)
 
-    def close(self, home_motors=True) -> None:
+    def set_meas_basis(self, basis:str) -> None:
+        ''' Set the measurement basis for Alice and Bob's half and quarter wave plates. 
+        
+        Parameters
+        ----------
+        basis : str
+            The measurement basis to set, should have length two. All options are listed in the config.
+        '''
+        # setup the basis
+        A, B = basis
+        self.configure_motors(
+            A_HWP=self._config['basis_presets']['A_HWP'][A],
+            A_QWP=self._config['basis_presets']['A_QWP'][A],
+            B_HWP=self._config['basis_presets']['B_HWP'][B],
+            B_QWP=self._config['basis_presets']['B_QWP'][B])
+
+    def close(self) -> None:
         # close the output file (writes lines)
         self.out_file.close()
         # close all of the COM_PORT connections
