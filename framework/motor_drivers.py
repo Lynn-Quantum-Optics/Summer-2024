@@ -41,10 +41,16 @@ class Motor:
         self._name = name
         self._typ = typ
         self._offset = offset
+        
+        # check name
+        if self._name in LIVE_MOTORS:
+            raise RuntimeError(f'Motor with name "{self._name}" already exists.')
+        else:
+            LIVE_MOTORS[self._name] = self
 
         # keeping the position of the motor in local memory
         # this is the virtual position, after offset is applied
-        self._pos = 0
+        self._pos = self._get_position() - self._offset
 
         # add to motors dictionary
         LIVE_MOTORS[self._name] = self
@@ -548,13 +554,13 @@ class ThorLabsMotor:
     offset : float
         The offset of the motor, in radians. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
     '''
-    def __init__(self, name:str, serial_num:int, offset:float=0):
+    def __init__(self, name:str, sn:int, offset:float=0):
         # call super constructor
         super().__init__(name, 'ThorLabs', offset)
 
         # set attributes
-        self.serial_num = serial_num
-        self.motor_apt = apt.Motor(serial_num)
+        self.serial_num = sn
+        self.motor_apt = apt.Motor(sn)
 
     # +++ overridden private methods +++
 
@@ -622,7 +628,7 @@ class ThorLabsMotor:
         return np.deg2rad(self.motor_apt.position)
 
 # +++ motor types dictionary +++
-MOTOR_TYPES = {
+MOTOR_CLASSES = {
     'ThorLabs': ThorLabsMotor,
     'Elliptec': ElliptecMotor
 }

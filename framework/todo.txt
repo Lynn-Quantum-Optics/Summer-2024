@@ -8,9 +8,10 @@
 [x] smooth plots? or just not update so much?
 [x] add bar plots
 [x] add presets for measurement basis
-[ ] implement plot parameters from config
+[x] implement plot parameters from config
 [x] add motor base class back (ach)
     [x] add motor offsets
     [x] add motor naming back (oops)
 [ ] handle connections better
 [ ] handle shutdown better
+[x] update manager to work with updates to motor motor_drivers

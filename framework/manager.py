@@ -3,10 +3,11 @@ import time
 import csv
 import os
 import datetime
+import copy
 import numpy as np
 import scipy.stats as stats
 from ccu_controller import CCU
-from motor_drivers import ElliptecMotor, ThorLabsMotor, COM_PORTS
+from motor_drivers import ElliptecMotor, ThorLabsMotor, COM_PORTS, MOTOR_CLASSES
 
 class Manager:
     ''' Class for managing the automated laboratory equiptment.
@@ -20,6 +21,27 @@ class Manager:
         with open(config, 'r') as f:
             self._config = json.load(f)
         
+        # +++ CCU +++
+        
+        self._ccu = CCU(
+            self._config['ccu']['port'],
+            self._config['ccu']['baudrate'],
+            **self._config['ccu']['plot_settings'])
+        
+        # +++ motors +++
+        
+        self.motors = list(self._config['motors'].keys())
+        
+        # loop to initialize all motors
+        for motor_name in self.motors:
+            # get the motor arguments
+            motor_dict = copy.deepcopy(self._config['motors'][motor_name])
+            typ = motor_dict.pop('type')
+            # initialize motor
+            self.__dict__[motor_name] = MOTOR_CLASSES[typ](name=motor_name, **motor_dict)
+        
+        # +++ getting the output file ready +++
+
         # check for duplicate output file
         if out_file is not None and os.path.isfile(out_file):
             print(f'File {out_file} already exists. A timestamped csv will be saved instead.')
@@ -33,14 +55,6 @@ class Manager:
         self.out_file = open(out_file, 'w+', newline='')
         self.out_writer = csv.writer(self.out_file)
         
-        # get motor names
-        self.motors = list(self._config['motors'].keys())
-        
-        # initialize the CCU
-        self._ccu = CCU(
-            self._config['ccu']['port'],
-            self._config['ccu']['baudrate'])
-
         # write the column headers
         self.out_writer.writerow(\
             [f'start time (s)', 'stop time (s)'] + \
@@ -48,16 +62,6 @@ class Manager:
             [f'{m} position (rad)' for m in self.motors] + \
             [f'{k} rate (#/s)' for k in self._ccu.CHANNEL_KEYS] + \
             [f'{k} rate unc (#/s)' for k in self._ccu.CHANNEL_KEYS])
-        
-        # initialize all of the motors as objects in the manager
-        for motor_name in self.motors:
-            if self._config['motors'][motor_name]['type'] == 'Elliptec':
-                self.__dict__[motor_name] = ElliptecMotor(
-                    self._config['motors'][motor_name]['port'],
-                    self._config['motors'][motor_name]['address'].encode('utf-8'))
-            elif self._config['motors'][motor_name]['type'] == 'ThorLabs':
-                self.__dict__[motor_name] = ThorLabsMotor(
-                    self._config['motors'][motor_name]['sn'])
 
     def take_data(self, num_samp:int, samp_period:float) -> None:
         # record all motor positions
