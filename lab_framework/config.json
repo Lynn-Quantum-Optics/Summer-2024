@@ -99,5 +99,17 @@
             "S": 97.08,
             "0": 0
         }
+    },
+    "state_presets": {
+        "phi plus": {
+            "C_UV_HWP": 0,
+            "C_QP": 0,
+            "C_PCC": 0
+        },
+        "phi minus": {
+            "C_UV_HWP": 0,
+            "C_QP": 0,
+            "C_PCC": 0
+        }
     }
 }

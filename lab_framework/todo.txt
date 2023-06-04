@@ -4,6 +4,8 @@
 [ ] finish documentation on basic usage
 [ ] consider adding code to read termination bytes b'\r\n' for the ElliptecMotor to keep the ports clear
 [x] add a configure_setup method to manager to configure many motors at a time
-[ ] add columns to the output table to record number of samples and period per sample
-[ ] smooth plots? or just not update so much?
-[ ] add bar plots
+[x] add columns to the output table to record number of samples and period per sample
+[x] smooth plots? or just not update so much?
+[x] add bar plots
+[x] add presets for measurement basis
+[ ] implement plot parameters from config
