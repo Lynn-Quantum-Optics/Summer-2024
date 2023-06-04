@@ -139,10 +139,12 @@ def plot_fit_C4(loadpath, filename, title_text, figname):
 
     axes[0].plot(angles,fit_func(angles, *poptHH), label='HH fit')
     axes[0].plot(angles,fit_func(angles, *poptVV), label='VV fit')
+    axes[0].set_ylabel('Counts', fontsize=14)
     axes[0].legend()
 
-    axes[1].errorbar(Theta, norm_resid_HH, yerr=np.ones(len(norm_resid_HH)), fmt='o',label='HH norm resid')
-    axes[1].errorbar(Theta, norm_resid_VV, yerr=np.ones(len(norm_resid_VV)), fmt='o',label='VV norm resid')
+    axes[1].errorbar(Theta, norm_resid_HH, yerr=np.ones(len(norm_resid_HH)), fmt='o',label='HH')
+    axes[1].errorbar(Theta, norm_resid_VV, yerr=np.ones(len(norm_resid_VV)), fmt='o',label='VV')
+    axes[1].set_ylabel('Normalized Residuals', fontsize=14)
     axes[1].legend()
 
     plt.xlabel('$\\theta$', fontsize=14)

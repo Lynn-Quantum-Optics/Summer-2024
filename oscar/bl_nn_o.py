@@ -260,46 +260,66 @@ def evaluate_perf(model):
 
 # M_lr_df.to_csv(join(DATA_PATH, 'accuracy', 'M_lr.csv'))
 
-M_lr_df = pd.read_csv(join(DATA_PATH, 'accuracy', 'M_lr.csv'))
+# M_lr_df = pd.read_csv(join(DATA_PATH, 'accuracy', 'M_lr.csv'))
 
-fig = plt.figure(figsize=(12,10))
-# fig, axes = plt.subplots(2, 2, subplot_kw={'projection': '3d'}, figsize=(10,7))
-cmap = cm.jet
-ax = fig.add_subplot(221, projection='3d')
-ax.set_title('XGBR Test', fontsize=14)
-ax.set_xlabel('$M$', fontsize=12)
-ax.set_ylabel('$\\eta$', fontsize=12)
-ax.set_zlabel('Accuracy', fontsize=12)
-ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbr_test_mean'].values, cmap = cmap,label='XGBR Test')
+# fig = plt.figure(figsize=(12,10))
+# # fig, axes = plt.subplots(2, 2, subplot_kw={'projection': '3d'}, figsize=(10,7))
+# cmap = cm.jet
+# ax = fig.add_subplot(221, projection='3d')
+# ax.set_title('XGBR Test', fontsize=14)
+# ax.set_xlabel('$M$', fontsize=12)
+# ax.set_ylabel('$\\eta$', fontsize=12)
+# ax.set_zlabel('Accuracy', fontsize=12)
+# ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbr_test_mean'].values, cmap = cmap,label='XGBR Test')
 
-ax = fig.add_subplot(222, projection='3d')
-ax.set_ylabel('$\\eta$', fontsize=12)
-ax.set_xlabel('$M$', fontsize=12)
-ax.set_zlabel('Accuracy', fontsize=12)
-ax.set_title('XGBR Train', fontsize=14)
-ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbr_train_mean'].values, cmap = cmap,label='XGBR Train')
+# ax = fig.add_subplot(222, projection='3d')
+# ax.set_ylabel('$\\eta$', fontsize=12)
+# ax.set_xlabel('$M$', fontsize=12)
+# ax.set_zlabel('Accuracy', fontsize=12)
+# ax.set_title('XGBR Train', fontsize=14)
+# ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbr_train_mean'].values, cmap = cmap,label='XGBR Train')
 
-ax= fig.add_subplot(223, projection='3d')
-ax.set_title('XGBC Test', fontsize=14)
-ax.set_xlabel('$M$', fontsize=12)
-ax.set_ylabel('$\\eta$', fontsize=12)
-ax.set_zlabel('Accuracy', fontsize=12)
-ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbc_test_mean'].values, cmap = cmap,label='XGBC Test')
+# ax= fig.add_subplot(223, projection='3d')
+# ax.set_title('XGBC Test', fontsize=14)
+# ax.set_xlabel('$M$', fontsize=12)
+# ax.set_ylabel('$\\eta$', fontsize=12)
+# ax.set_zlabel('Accuracy', fontsize=12)
+# ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbc_test_mean'].values, cmap = cmap,label='XGBC Test')
 
-ax = fig.add_subplot(224, projection='3d')
-ax.set_title('XGBC Train', fontsize=14)
-ax.set_xlabel('$M$', fontsize=12)
-ax.set_ylabel('$\\eta$', fontsize=12)
-ax.set_zlabel('Accuracy', fontsize=12)
-ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbc_train_mean'].values, cmap = cmap,label='XGBC Train')
+# ax = fig.add_subplot(224, projection='3d')
+# ax.set_title('XGBC Train', fontsize=14)
+# ax.set_xlabel('$M$', fontsize=12)
+# ax.set_ylabel('$\\eta$', fontsize=12)
+# ax.set_zlabel('Accuracy', fontsize=12)
+# ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbc_train_mean'].values, cmap = cmap,label='XGBC Train')
 
-fig.tight_layout()
-fig.colorbar(plt.cm.ScalarMappable(cmap=cmap), ax=[])
+# fig.tight_layout()
+# # fig.colorbar(plt.cm.ScalarMappable(cmap=cmap), ax=)
 
-plt.savefig(join(DATA_PATH, 'accuracy', 'M_lr.pdf'))
-plt.show()
+# plt.savefig(join(DATA_PATH, 'accuracy', 'M_lr.pdf'))
+# plt.show()
 
 
+# fig = plt.figure(figsize=(12,10))
+# cmap = cm.jet
+# plt.title('XGBR Test', fontsize=14)
+
+# ax = fig.add_subplot(121, projection='3d')
+# ax.view_init(1, 1)
+# ax.set_xlabel('$M$', fontsize=12)
+# ax.set_ylabel('$\\eta$', fontsize=12)
+# ax.set_zlabel('Accuracy', fontsize=12)
+# ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbr_test_mean'].values, cmap = cmap,label='XGBR Test')
+
+# ax = fig.add_subplot(122, projection='3d')
+# ax.view_init(1, 1)
+# ax.set_xlabel('$M$', fontsize=12)
+# ax.set_ylabel('$\\eta$', fontsize=12)
+# ax.set_zlabel('Accuracy', fontsize=12)
+# ax.plot_trisurf(M_lr_df['M'].values, M_lr_df['lr'].values, M_lr_df['xgbr_test_mean'].values, cmap = cmap,label='XGBR Test')
+
+
+# plt.show()
 
 
 
