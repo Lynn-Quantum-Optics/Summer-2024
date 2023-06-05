@@ -29,3 +29,4 @@
 [x] make time columns in output table legible
 [x] remove all plot arguments (except ignore)
 [ ] inform everyone about faceid
+[ ] add method to change output file without shutting down!
