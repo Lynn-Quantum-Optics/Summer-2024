@@ -2,10 +2,30 @@
 [x] gracefully close down the COM_PORTS when exiting
 [x] make some live plots of the data appear when running
 [ ] finish documentation on basic usage
-[ ] consider adding code to read termination bytes b'\r\n' for the ElliptecMotor to keep the ports clear
+[ ] consider adding code to read termination bytes b'\r\n' for the ElliptecMotor to keep the ports clear (but, it still works though...)
 [x] add a configure_setup method to manager to configure many motors at a time
 [x] add columns to the output table to record number of samples and period per sample
 [x] smooth plots? or just not update so much?
 [x] add bar plots
 [x] add presets for measurement basis
-[ ] implement plot parameters from config
+[x] implement plot parameters from config
+[x] add motor base class back (ach)
+    [x] add motor offsets
+    [x] add motor naming back (oops)
+[x] handle connections better
+[x] handle shutdown better
+[x] update manager to work with updates to motor motor_drivers
+[x] add raw data output option to manager
+[x] make manager data management better
+[ ] CHECK A_HWP PRESETS FOR "D": 66.4 ???
+[x] update documentation.md with ElliptecMotor constructor
+[x] print warnings when no output file is specified
+[x] breakup manager initialization into safe sub-methods
+[x] add debug initialization option to manager
+[ ] go to lab to debug current code! wee
+[x] add time method to manager
+[x] add motors property to manager
+[x] make manager non-init methods SAFER
+[x] make time columns in output table legible
+[x] remove all plot arguments (except ignore)
+[ ] inform everyone about faceid

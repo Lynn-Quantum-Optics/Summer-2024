@@ -1,6 +1,9 @@
 # Basic Usage
 
-TODO
+The aim of this framework is to allow for fast, direct, and convenient access to the experimental apparatus and measurement devices. With this in mind, this README will cover the basics of how to use this framework, and the high-level implementation details. For details about specific methods, you can check the code documentation, which for convenience has also been supplied in an easy-to-scroll-through markdown file `core/docs.md`.
+
+## Getting Started
+
 ```py
 import manager
 
