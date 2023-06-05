@@ -12,7 +12,6 @@ import serial
 import multiprocessing as mp
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import csv
 import datetime
 
@@ -378,7 +377,7 @@ class CCU:
 
     # +++ PUBLIC METHODS +++
 
-    def get_count_rates(self, period:float) -> np.ndarray:
+    def count_rates(self, period:float) -> np.ndarray:
         ''' Acquires the coincidence count rates from the CCU over the specified period.
 
         Parameters

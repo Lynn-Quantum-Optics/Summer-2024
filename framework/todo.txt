@@ -15,3 +15,7 @@
 [ ] handle connections better
 [ ] handle shutdown better
 [x] update manager to work with updates to motor motor_drivers
+[x] add raw data output option to manager
+[ ] make manager data management better
+[ ] CHECK A_HWP PRESETS FOR "D": 66.4 ???
+[ ] update documentation.md with ElliptecMotor constructor

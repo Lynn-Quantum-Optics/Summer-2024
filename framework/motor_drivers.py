@@ -13,14 +13,6 @@ from typing import Union
 import numpy as np
 import thorlabs_apt as apt
 
-# +++ variables +++
-
-# com ports dictionary to keep track of connections
-COM_PORTS = dict()
-
-# active motors dictionary to keep track of motors that are going offline (when connections are closed)
-LIVE_MOTORS = dict()
-
 # +++ base class +++
 
 class Motor:
@@ -161,13 +153,18 @@ class Motor:
 
     # +++ public methods +++
 
-    def goto(self, angle_radians:float):
+    def goto(self, angle_radians:float) -> float:
         ''' Sets the angle of the motor in radians
 
         Parameters
         ----------
         angle_radians : float
             The angle to set the motor to, in radians.
+        
+        Returns
+        -------
+        float
+            The position of the motor in radians.
         '''
         # calculate the set point
         set_point = (angle_radians + self._offset) % (2*np.pi)
@@ -176,19 +173,24 @@ class Motor:
         self._pos = self._set_position(set_point) - self._offset
         return self._pos
 
-    def move(self, angle_radians:float):
+    def move(self, angle_radians:float) -> float:
         ''' Moves the motor by an angle RELATIVE to it's current position
 
         Parameters
         ----------
         angle_radians : float
             The angle to move the motor by, in radians.
+        
+        Returns
+        -------
+        float
+            The position of the motor in radians.
         '''
         # use the sub method
         self._pos = self._move_relative(angle_radians) - self._offset
         return self._pos
 
-    def zero(self):
+    def zero(self) -> float:
         ''' Returns this motor to it's zero position.
         
         Returns
@@ -198,8 +200,8 @@ class Motor:
         '''
         return self.goto(0)
     
-    def home(self):
-        ''' Returns this motor to it's home position.
+    def hardware_home(self) -> float:
+        ''' Returns this motor to it's home position as saved in the hardware's memory.
         
         Returns
         -------
@@ -227,19 +229,19 @@ class ElliptecMotor:
     ----------
     name : str
         The unique name for the motor.
-    com_port : str
-        The COM port the motor is connected to.
+    com_port : serial.Serial
+        The serial port the motor is connected to.
     address : Union[str,bytes]
         The address of the motor, a single charachter.
-    offset : float
+    offset : float, optional
         The offset of the motor, in radians. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
     '''
-    def __init__(self, name:str, com_port:str, address:Union[str,bytes], offset:float=0):
+    def __init__(self, name:str, com_port:serial.Serial, address:Union[str,bytes], offset:float=0):
         # call super constructor
         super().__init__(name, 'Elliptec', offset)
 
         # self.com_port to serial port
-        self.com_port = self._get_com_port(com_port)
+        self.com_port = com_port
         # self._addr to bytes
         self._addr = address is isinstance(address, bytes) and address or address.encode('utf-8')
         # a ton of stuff like model number and such as well as ppmu and travel
@@ -271,20 +273,6 @@ class ElliptecMotor:
         return self._info
 
     # +++ helper functions +++
-
-    def _get_com_port(self, com_port:str) -> serial.Serial:
-        ''' Retrieves the COM port Serial object. Opens a connection if necessary. '''
-        # check if COM port is already open
-        if com_port in COM_PORTS:
-            return COM_PORTS[com_port]
-        # otherwise open COM port
-        else:
-            try:
-                s = serial.Serial(com_port, timeout=2)
-                COM_PORTS[com_port] = s
-                return s
-            except:
-                raise RuntimeError(f'Failed to connect to serial port {com_port} for motor {self.__repr__()}.')
 
     def _send_instruction(self, inst:bytes, data:bytes=b'', resp_len:int=None, require_resp_code:bytes=None) -> Union[bytes,None]:
         ''' Sends an instruction to the motor and gets a response if applicable.
@@ -392,7 +380,7 @@ class ElliptecMotor:
             pos = -((pos ^ 0xffffffff) + 1)
         return pos
 
-    def _set_hardware_home(self) -> float:
+    def _set_hardware_home_offset(self) -> float:
         ''' Sets the hardware home to be the current position.
         [WARNING: THIS WILL RESET HOME ON THE PHYSICAL HARDWARE. THIS CANNOT BE UNDONE, UNLESS YOU KNOW THE ORIGINAL HOME OFFSET.]
 
@@ -628,7 +616,7 @@ class ThorLabsMotor:
         return np.deg2rad(self.motor_apt.position)
 
 # +++ motor types dictionary +++
-MOTOR_CLASSES = {
+MOTOR_DRIVERS = {
     'ThorLabs': ThorLabsMotor,
     'Elliptec': ElliptecMotor
 }
