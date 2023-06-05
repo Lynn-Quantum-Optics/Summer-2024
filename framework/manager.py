@@ -23,6 +23,8 @@ class Manager:
         The name of the output file to save the raw data to. If not specified or false, no raw data will be saved. If True, a timestamped csv will be saved.
     config : str, optional
         The name of the configuration file to load. Defaults to 'config.json'.
+    debug : bool, optional
+        If True, the CCU and motors will not be initialized with the class, and will have to be initialized later with the init_ccu and init_motors methods. Defaults to False.
     '''
     def __init__(self, out_file:str=None, raw_data_out_file:Union[str,bool]=None, config:str='config.json', debug:bool=False):
         # get the time of initialization for file naming
@@ -112,6 +114,13 @@ class Manager:
             self.__dict__[motor_name] = MOTOR_DRIVERS[typ](name=motor_name, **motor_dict)
 
     def init_output_file(self) -> None:
+        ''' Initialize the output file. Note that this CAN ONLY BE DONE AFTER initializing the motors and the CCU. '''
+        # check if motors and ccu have been initialized
+        if self._ccu is None:
+            raise RuntimeError('Cannot initialize output file; CCU has not been initialized.')
+        if len(self._motors) == 0:
+            raise RuntimeError('Cannot initialize output file; No motors have been initialized.')
+        
         # check output file for collisions
         if self._out_file is not None:
             raise RuntimeError('Output file has already been initialized.')
@@ -139,6 +148,17 @@ class Manager:
     # +++ methods +++
 
     def take_data(self, num_samp:int, samp_period:float) -> None:
+        ''' Take detector data
+
+        The data is written to the csv output table.
+
+        Parameters
+        ----------
+        num_samp : int
+            Number of samples to take.
+        samp_period : float
+            Collection time for each sample, in seconds. Note that this will be rounded to the nearest 0.1 seconds (minimum 0.1 seconds).
+        '''
         # record all motor positions
         motor_positions = [self.__dict__[m].pos for m in self._motors]
 
@@ -168,7 +188,7 @@ class Manager:
 
         Parameters
         ----------
-        kwargs : <NAME OF MOTOR> = <SET POSITION IN RADIANS>
+        **kwargs : <NAME OF MOTOR> = <GOTO POSITION RADIANS>
             Assign each motor name that you wish to move the absolute angle to which you want it to move, in radians.
         '''
         for motor_name, position in kwargs.items():
@@ -194,18 +214,43 @@ class Manager:
 
     # +++ shutdown methods +++
 
-    def shutdown(self) -> None:
-        ''' Shutsdown all the motors and closes the output files. '''
-        # close the output file (writes lines)
-        self._out_file.close()
-        # delete all motor objects and close all com ports
-        for motor_name in self._motors:
-            del self.__dict__[motor_name]
-        for port in self._active_ports.values():
-            port.close()
-        # shutdown CCU connection
+    def shutdown(self, get_data:bool=False) -> Union[pd.DataFrame, None]:
+        ''' Shutsdown all the motors and closes the output files. 
+        
+        Parameters
+        ----------
+        get_data : bool
+            If True, returns the data as a pandas DataFrame. If False, returns None.
+        
+        Returns
+        -------
+        Union[pd.DataFrame, None]
+            If get_data is True, returns the data as a pandas DataFrame. If False, returns None.
+        '''
+        # output file
+        if self._out_file is None:
+            raise RuntimeError('Output file has not been initialized.')
+        elif self._out_file.closed:
+            print('WARNING: Output file has already been closed.')
+        else:
+            # close the output file (writes lines)
+            self._out_file.close()
+        # motors
+        if len(self._motors) == 0:
+            print('WARNING: No motors are active.')
+        else:
+            # loop to delete motors
+            for motor_name in self._motors:
+                del self.__dict__[motor_name]
+        # com ports
+        if len(self._active_ports) == 0:
+            print('WARNING: No com ports are active.')
+        else:
+            # loop to shutdown ports
+            for port in self._active_ports.values():
+                port.close()
+        # CCU
         self._ccu.shutdown()
 
-        # collect output data
-        self.data = pd.read_csv(self._out_file.name)
-        return self.data
+        if get_data:
+            return pd.read_csv(self._out_file.name)

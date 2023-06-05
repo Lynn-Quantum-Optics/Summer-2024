@@ -22,7 +22,7 @@ class Motor:
     Parameters
     ----------
     name : str
-        The unique name for the motor.
+        The name for the motor.
     type : str
         The type of motor.
     offset : float
@@ -33,19 +33,10 @@ class Motor:
         self._name = name
         self._typ = typ
         self._offset = offset
-        
-        # check name
-        if self._name in LIVE_MOTORS:
-            raise RuntimeError(f'Motor with name "{self._name}" already exists.')
-        else:
-            LIVE_MOTORS[self._name] = self
 
         # keeping the position of the motor in local memory
         # this is the virtual position, after offset is applied
         self._pos = self._get_position() - self._offset
-
-        # add to motors dictionary
-        LIVE_MOTORS[self._name] = self
 
     # +++ basic methods +++
 
@@ -228,7 +219,7 @@ class ElliptecMotor:
     Parameters
     ----------
     name : str
-        The unique name for the motor.
+        The name for the motor.
     com_port : serial.Serial
         The serial port the motor is connected to.
     address : Union[str,bytes]
@@ -536,7 +527,7 @@ class ThorLabsMotor:
     Parameters
     ----------
     name : str
-        The unique name for the motor.
+        The name for the motor.
     serial_num : int
         The serial number of the motor.
     offset : float

@@ -388,7 +388,7 @@ class CCU:
         Returns
         -------
         np.ndarray of size (8,)
-            Coincidence count RATES from the CCU. Each element corresponds to a detector/coincidence ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] (in order).
+            Coincidence count RATES from the CCU. Each element corresponds to a detector/coincidence [A, B, A', B', C4, C5, C6, C7] (in order).
         '''
         # calculate number of data points to collect
         num_data = max(int(period / self.UPDATE_PERIOD), 1)
