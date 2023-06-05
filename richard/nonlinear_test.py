@@ -4,6 +4,7 @@ import scipy.linalg as la
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
 import math
+import pandas as pd
 
 ################################### Alec's code from quantum.py #################################################
 
@@ -360,11 +361,29 @@ def state_generation(probs):
         states_and_probs.append([states[i],probs[i]]) 
     return states_and_probs
 
-# calculates the density matrix for the random state and finds the nonlinear witness values
+# reads the data file all_qual_20000_1.csv
 
-rho = density_matrix(state_generation([0.339929317,0.182682327,0.330286837,0.147101518,0.252215356,0.418407958,0.239555648,0.089821038,0.277019071,0.227589352,0.387503992,0.107887585,0.243515418,0.171018197,0.192453328]
-))
-nlew_exp = get_nlEW_expectations(rho)
+all_qual_20000 = pd.read_csv(r"C:\Users\richa\Documents\Harvey Mudd\Summer Research 2023\all_qual_20000_1.csv")
+HH_data = all_qual_20000["HH probability"]
+HV_data = all_qual_20000["HV probability"]
+VH_data = all_qual_20000["VH probability"]
+VV_data = all_qual_20000["VV probability"]
+DD_data = all_qual_20000["DD probability"]
+DA_data = all_qual_20000["DA probability"]
+AD_data = all_qual_20000["AD probability"]
+AA_data = all_qual_20000["AA probability"]
+RR_data = all_qual_20000["RR probability"]
+RL_data = all_qual_20000["RL probability"]
+LR_data = all_qual_20000["LR probability"]
+LL_data = all_qual_20000["LL probability"]
+
+# calculates the density matrix for the random state and finds the nonlinear witness values
+witness_mins = []
+for i in range(20000):
+    rho = density_matrix(state_generation([HV_data[i],HH_data[i],VH_data[i],VV_data[i],DD_data[i],DA_data[i],AD_data[i],AA_data[i],RR_data[i],RL_data[i],LR_data[i],LL_data[i]]))
+    nlew_exp = get_nlEW_expectations(rho)
+    witness_mins.append(min(nlew_exp))
+
 
 # ew_exp = get_EW_expectations(rho)
 
