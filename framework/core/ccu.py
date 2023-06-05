@@ -1,19 +1,26 @@
 ''' ccu.py
+
 This file contains the FPGACCUController class, which is used to interface with the CCU for the experiment. It's most sophisticated method collects count rates for the detectors over some specified time period (with no uncertainties).
 
 FPGA CCU Documentation: http://people.whitman.edu/~beckmk/QM/circuit/circuit.html
 
-authors:
-Alec Roberson (aroberson@hmc.edu)
-Kye W. Shi (kwshi@hmc.edu)
+Author(s)
+- Alec Roberson (aroberson@hmc.edu) 2023
+- Kye W. Shi (kwshi@hmc.edu) 2018
 '''
+
+# python imports
 import functools as ft
 import serial
 import multiprocessing as mp
+import datetime
+import csv
+
+# package imports
 import numpy as np
 import matplotlib.pyplot as plt
-import csv
-import datetime
+
+# ccu class
 
 class CCU:
     ''' Interface for the Altera DE2 FPGA CCU.

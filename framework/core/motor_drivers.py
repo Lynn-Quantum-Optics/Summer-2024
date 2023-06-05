@@ -1,19 +1,22 @@
 ''' motor_drivers.py
+
 This file contains the classes for controlling the various motors in the lab. We have two types of motors: ThorLabs and Elliptec. There is a unique class for each type of motor.
 
-authors:
-Alec Roberson (aroberson@hmc.edu)
-Ben Hartley (bhartley@hmc.edu)
+Author(s):
+- Alec Roberson (aroberson@hmc.edu) 2023
+- Ben Hartley (bhartley@hmc.edu) 2022
 '''
 
-# imports 
+# python imports
 from time import sleep
 import serial
 from typing import Union
+
+# package imports
 import numpy as np
 import thorlabs_apt as apt
 
-# +++ base class +++
+# base class
 
 class Motor:
     ''' Base class for all motor classes
@@ -211,7 +214,7 @@ class Motor:
             self._pos = self._set_position(0) - self._offset
             return self._pos
 
-# +++ subclasses of motor +++
+# subclasses of 
 
 class ElliptecMotor:
     ''' Elliptec Motor class.
@@ -606,7 +609,7 @@ class ThorLabsMotor:
         # if we already know the position, just return it
         return np.deg2rad(self.motor_apt.position)
 
-# +++ motor types dictionary +++
+# motor types dictionary
 MOTOR_DRIVERS = {
     'ThorLabs': ThorLabsMotor,
     'Elliptec': ElliptecMotor

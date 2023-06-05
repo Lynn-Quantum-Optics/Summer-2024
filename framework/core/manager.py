@@ -1,3 +1,12 @@
+''' manager.py
+
+Class for managing the automated laboratory equiptment, including data collection and motor manipulation.
+
+Author(s):
+- Alec Roberson (aroberson@hmc.edu) 2023
+'''
+
+# python imports
 import json
 import time
 import csv
@@ -6,11 +15,17 @@ import datetime
 import copy
 from typing import Union
 import serial
+
+# package imports
 import numpy as np
 import scipy.stats as stats
 import pandas as pd
-from ccu import CCU
-from motor_drivers import MOTOR_DRIVERS
+
+# local imports
+from .ccu import CCU
+from .motor_drivers import MOTOR_DRIVERS
+
+# manager class
 
 class Manager:
     ''' Class for managing the automated laboratory equiptment.
