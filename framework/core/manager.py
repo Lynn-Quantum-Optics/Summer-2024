@@ -211,7 +211,7 @@ class Manager:
                 raise ValueError(f'Attempted to reference unknown motor \"{motor_name}\".')
             self.__dict__[motor_name].rotate_absolute(position)
 
-    def set_meas_basis(self, basis:str) -> None:
+    def meas_basis(self, basis:str) -> None:
         ''' Set the measurement basis for Alice and Bob's half and quarter wave plates. 
         
         Parameters

@@ -6,8 +6,7 @@ The `Manager` class does it all, manages start up, motors, and data collection. 
 
 Class for managing the automated laboratory equiptment.
 
-Parameters
-----------
+**Parameters**
 - `out_file : str` (optional, default `None`) The name of the output file to save the data to. If not specified, a timestamped csv will be saved. _PLEASE NOTE: You should **always** provide an output file. The fact that this is an optional parameter is just for ease of debugging. Warnings will be printed if an output file is not provided._
 - `raw_data_out_file : Union[str,bool]` (optional, default `None`) The name of the output file to save the raw data to. If not specified or false, no raw data will be saved. If True, a timestamped csv will be saved.
 - `config : str` (optional, default `"config.json"`) The name of the configuration file to load.
@@ -37,7 +36,7 @@ Configure the position of multiple motors at a time
 **Parameters**
 - `**kwargs : <NAME OF MOTOR> = <GOTO POSITION RADIANS>` Assign each motor name that you wish to move the absolute angle to which you want it to move, in radians.
 
-### (M) `set_meas_basis(basis:str) -> None`
+### (M) `Manager.meas_basis(basis:str) -> None`
 Set the measurement basis for Alice and Bob's half and quarter wave plates. Measurement bases can be added/modified in the configuration file.
         
 **Parameters**
