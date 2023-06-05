@@ -26,7 +26,8 @@ class Manager:
     '''
     def __init__(self, out_file:str=None, raw_data_out_file:Union[str,bool]=None, config:str='config.json', debug:bool=False):
         # get the time of initialization for file naming
-        self._init_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self._init_time = time.time()
+        self._init_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # load configuration file
         with open(config, 'r') as f:
@@ -48,7 +49,19 @@ class Manager:
             self.init_ccu()
             self.init_motors()
             self.init_output_file()
- 
+    
+    # +++ properties +++
+    
+    @property
+    def motor_list(self) -> list[str]:
+        ''' List of the string names of all motors. '''
+        return self._motors
+    
+    @property
+    def time(self) -> str:
+        ''' String time since initalizing the manager, rounded to the nearest second. '''
+        return str(datetime.timedelta(seconds=int(time.time()-self._init_time)))
+    
     # +++ initialization methods +++
 
     def init_ccu(self) -> None:
@@ -60,9 +73,9 @@ class Manager:
         if self.raw_data_out_file is None or self.raw_data_out_file is False:
             raw_data_csv = None
         elif self.raw_data_out_file is True:
-            raw_data_csv = f'{self._init_time}_raw.csv'
+            raw_data_csv = f'{self._init_time_str}_raw.csv'
         elif os.path.isfile(self.raw_data_out_file):
-            raw_data_csv = f'{self._init_time}_raw.csv'
+            raw_data_csv = f'{self._init_time_str}_raw.csv'
             print(f'WARNING: raw data output file {self.raw_data_out_file} already exists. Raw data will be saved to {raw_data_csv} instead.')
         else:
             raw_data_csv = self.raw_data_out_file
@@ -105,11 +118,11 @@ class Manager:
         
         # check for duplicate output or missing
         if out_file is not None and os.path.isfile(out_file):
-            print(f'WARNING: Output file {out_file} already exists. Data will be saved to {self._init_time}.csv instead.')
-            out_file = f'{self._init_time}.csv'
+            print(f'WARNING: Output file {out_file} already exists. Data will be saved to {self._init_time_str}.csv instead.')
+            out_file = f'{self._init_time_str}.csv'
         elif out_file is None:
-            print(f'WARNING: No output file specified. Data will be saved to {self._init_time}.csv instead.')
-            out_file = f'{self._init_time}.csv'
+            print(f'WARNING: No output file specified. Data will be saved to {self._init_time_str}.csv instead.')
+            out_file = f'{self._init_time_str}.csv'
         
         # open output file and setup output file writer
         self._out_file = open(out_file, 'w+', newline='')
