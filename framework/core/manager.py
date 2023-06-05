@@ -50,6 +50,9 @@ class Manager:
         with open(config, 'r') as f:
             self._config = json.load(f)
         
+        # convert measurements in config file
+        self._convert_config_units()
+        
         # save all initilaization parameters
         self.config_file = config
         self.out_file = out_file
@@ -67,6 +70,25 @@ class Manager:
             self.init_motors()
             self.init_output_file()
     
+    # +++ helper functions +++
+
+    def _convert_config_units(self) -> None:
+        ''' Converts all units in configuration dictionary to radians. '''
+        # motor offsets
+        for m in self._config['motors']:
+            if 'offset' in self._config['motors'][m]:
+                self._config['motors'][m]['offset'] = np.deg2rad(self._config['motors'][m]['offset'])
+        # measurement basis
+        if 'basis_presets' in self._config:
+            for m in self._config['basis_presets']:
+                for k in self._config['basis_presets'][m]:
+                    self._config['basis_presets'][m][k] = np.deg2rad(self._config['basis_presets'][m][k])
+        # state presets
+        if 'state_presets' in self._config:
+            for s in self._config['state_presets']:
+                for m in self._config['state_presets'][s]:
+                    self._config['state_presets'][s][m] = np.deg2rad(self._config['state_presets'][s][m])
+
     # +++ properties +++
     
     @property
@@ -207,9 +229,11 @@ class Manager:
             Assign each motor name that you wish to move the absolute angle to which you want it to move, in radians.
         '''
         for motor_name, position in kwargs.items():
+            # check motor exists
             if not motor_name in self._motors:
                 raise ValueError(f'Attempted to reference unknown motor \"{motor_name}\".')
-            self.__dict__[motor_name].rotate_absolute(position)
+            # set motor position
+            self.__dict__[motor_name].goto(position)
 
     def meas_basis(self, basis:str) -> None:
         ''' Set the measurement basis for Alice and Bob's half and quarter wave plates. 
