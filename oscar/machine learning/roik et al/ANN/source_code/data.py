@@ -4,6 +4,8 @@ import numpy as np
 import math
 import ast
 
+## soubor is file
+## cteni is read
 
 def cteni(soubor):
     with open (soubor,"r") as data:       

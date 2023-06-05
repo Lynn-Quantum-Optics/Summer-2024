@@ -4,7 +4,7 @@ import numpy as np
 import math
 from numpy.linalg import eig
 
-ale = math.tau
+ale = math.tau ## ale means "but"
 b = math.pi
 e = math.e
 zero = 0
@@ -384,7 +384,7 @@ while len(train_labels)>next:
 #print('entan')
 #print(entan)
 
-
+## save
 def zapis(soubor,train_data,train_labels,igen_values): 
     with open(soubor,'w') as f :
         train_data_txt = str(train_data)

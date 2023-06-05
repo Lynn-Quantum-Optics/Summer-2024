@@ -14,6 +14,7 @@ while x < 100000:
     p.append(p_add)                 
     x = x + 1
 
+## my notes: dobre = good, chyba = probably
 
 
 fail= []
