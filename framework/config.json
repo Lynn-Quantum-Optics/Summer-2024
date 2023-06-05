@@ -2,12 +2,7 @@
     "ccu": {
         "port": "COM4",
         "baudrate": 19200,
-        "plot_settings": {
-            "xlim_sec": 60,
-            "smoothing_sec": 0.5,
-            "update_period_sec": 1,
-            "ignore": ["A'", "C5", "C7"]
-        }
+        "ignore": ["A'", "C5", "C7"]
     },
     "motors": {
         "C_UV_HWP": {

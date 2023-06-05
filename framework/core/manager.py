@@ -126,7 +126,7 @@ class Manager:
             self._config['ccu']['port'],
             self._config['ccu']['baudrate'],
             raw_data_csv=raw_data_csv,
-            **self._config['ccu']['plot_settings'])
+            ignore=self._config['ccu'].get('ignore', []))
     
     def init_motors(self) -> None:
         ''' Initialize and connect to all motors. '''

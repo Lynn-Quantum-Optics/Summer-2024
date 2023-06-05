@@ -34,6 +34,8 @@ class CCU:
         Serial communication baud rate (19200 for the Altera DE2 FPGA CC).
     raw_data_csv : str
         Path to the raw data csv file to write to. If None, no file is written.
+    ignore : list[str]
+        Any channels that should be ignored.
     '''
 
     # +++ class variables +++
@@ -45,28 +47,19 @@ class CCU:
     # all in units of 0.1s
     PLOT_XLIM = 600
     PLOT_SMOOTHING = 5
-    PLOT_UPDATE_PERIOD = 10
     
     # +++ BASIC METHODS +++
 
-    def __init__(self, port:str, baud:int, raw_data_csv=None, **kwargs) -> None:
+    def __init__(self, port:str, baud:int, raw_data_csv=None, ignore:'list[str]'=[]) -> None:
         # set local vars
         self.port = port
         self.baud = baud
-
-        # update class variables with kwargs
-        if 'xlim_sec' in kwargs:
-            CCU.PLOT_XLIM = kwargs['xlim_sec']/CCU.UPDATE_PERIOD
-        if 'smoothing_sec' in kwargs:
-            CCU.PLOT_SMOOTHING = kwargs['smoothing_sec']/CCU.UPDATE_PERIOD
-        if 'update_period' in kwargs:
-            CCU.PLOT_UPDATE_PERIOD = kwargs['update_period']/CCU.PLOT_UPDATE_PERIOD
         
         # open pipeline
         self._pipe, conn_to_self = mp.Pipe()
 
         # start listening process
-        self._listening_process = mp.Process(target=CCU._listen_and_plot, args=(conn_to_self, self.port, self.baud, raw_data_csv, kwargs.get('ignore', [])))
+        self._listening_process = mp.Process(target=CCU._listen_and_plot, args=(conn_to_self, self.port, self.baud, raw_data_csv, ignore))
         self._listening_process.start()
 
     # +++ CLEANUP +++
@@ -223,7 +216,7 @@ class CCU:
         return next_to_send, request
     
     @staticmethod
-    def _init_plots(ignore:'list[str]'=[]):
+    def _init_plots():
         # initialize the plot
         fig = plt.figure(figsize=(10,10))
         ax_count_lines = fig.add_subplot(221)
@@ -235,38 +228,43 @@ class CCU:
         ax_count_lines.autoscale(enable=True, axis='both')
         ax_coin_lines.autoscale(enable=True, axis='both')
 
-        # set axis labels
-        ax_count_lines.set_xlabel('Data Index')
-        ax_count_lines.set_ylabel('Counts / Second')
-
-        ax_coin_lines.set_xlabel('Data Index')
-        ax_coin_lines.set_ylabel('Counts / Second')
-
-        ax_count_bars.set_xlabel('Channel')
-        ax_count_bars.set_xlabel('Counts / Second')
-
-        ax_coin_bars.set_xlabel('Channel')
-        ax_coin_bars.set_ylabel('Counts / Second')
+        # title plots and such
+        CCU._title_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig)
 
         # open the plots
         plt.ion()
         plt.show()
 
         # return axes for plotting on
-        return ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars
+        return ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig
+    
+    @staticmethod
+    def _title_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig):
+        # set axis labels
+        ax_count_lines.set_title('Count rates for Detectors')
+        ax_count_lines.set_xlabel('Data Index')
+        ax_count_lines.set_ylabel('Counts / Second')
+
+        ax_coin_lines.set_title('Coincidence Count Rates')
+        ax_coin_lines.set_xlabel('Data Index')
+        ax_coin_lines.set_ylabel('Counts / Second')
+
+        ax_count_bars.set_title('Count Rates')
+        ax_count_bars.set_xlabel('Channel')
+        ax_count_bars.set_xlabel('Counts / Second')
+
+        ax_coin_bars.set_title('Coincidence Count Rates')
+        ax_coin_bars.set_xlabel('Channel')
+        ax_coin_bars.set_ylabel('Counts / Second')
+
+        # pack
+        fig.tight_layout()
+
 
     @staticmethod
-    def _update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, data_packets, current_index, ignore):
+    def _update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig, plot_data_packets, current_index, ignore):
         # get the xdata
         xdata = np.arange(current_index - CCU.PLOT_XLIM, current_index, CCU.PLOT_SMOOTHING)
-        '''
-        # trim and pack data packets
-        trim = current_index % CCU.PLOT_UPDATE_PERIOD
-        tp_data_packets = data_packets[CCU.PLOT_UPDATE_PERIOD-trim:-trim]
-        tp_data_packets = [np.zeros((len(CCU.CHANNEL_KEYS),))] * (CCU.PLOT_XLIM - len(tp_data_packets)) + tp_data_packets
-        # trim and pack data packets
-        pk_data_packets = [np.zeros((len(CCU.CHANNEL_KEYS),))] * (CCU.PLOT_XLIM - len(data_packets)) + data_packets
-        '''
 
         # plot all lines
         for k_idx, ax in zip([0, 4], [ax_count_lines, ax_coin_lines]):
@@ -279,11 +277,9 @@ class CCU:
                 if k in ignore:
                     continue
                 # collect ydata as counts/second
-                ydata = np.array([packet[i+k_idx] for packet in data_packets]) / CCU.UPDATE_PERIOD
-                # take running average
-                ydata_smth = np.mean(ydata.reshape(-1, CCU.PLOT_SMOOTHING), axis=1)
+                ydata = np.array([packet[i+k_idx] for packet in plot_data_packets])
                 # plot the data
-                ax.plot(xdata, ydata_smth, label=k)
+                ax.plot(xdata, ydata, label=k)
             ax.legend()
         
         # plot the bar charts
@@ -291,15 +287,14 @@ class CCU:
             # clear the axes
             ax.cla()
             # collect the most recent ydata as counts/second
-            ydata = np.mean(
-                np.array(
-                    [packet[k_idx:k_idx+4] for packet in \
-                     data_packets[-CCU.PLOT_SMOOTHING:]]) \
-                        / CCU.UPDATE_PERIOD, axis=0)
+            ydata = plot_data_packets[-1][k_idx:k_idx+4]
             # make names
             names = [f'{k}\n{y:.2f}' for k, y in zip(CCU.CHANNEL_KEYS[k_idx:k_idx+4], ydata)]
             # plot the bars
             ax.bar(names, ydata)
+        
+        # title plots
+        CCU._title_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig)
  
         # update the plots
         plt.pause(0.01)
@@ -338,15 +333,22 @@ class CCU:
         data_packets = []
         current_index = 0
 
-        # initialize plot
-        ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars = CCU._init_plots(ignore)
+        # initialize plot variables
+        ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig = CCU._init_plots()
+
+        # index of last plot
+        # counts up by 1 for every CCU.PLOT_SMOOTHING packets
+        last_plot = 0
+
+        # number of data points that will be in each plot
+        PLOT_DATA_LIM = CCU.PLOT_XLIM // CCU.PLOT_SMOOTHING
+
+        # initialize plot data
+        plot_data = list(np.zeros((PLOT_DATA_LIM, len(CCU.CHANNEL_KEYS))))
 
         # initialize requests
         request = 0 # number of data points to send
         next_to_send = 0 # index of next valid packet to send
-
-        # last plot
-        last_plot = 0
 
         # flush the buffer once before beginning
         CCU._flush(conn)
@@ -361,7 +363,6 @@ class CCU:
             data_packets += new_packets
             if len(data_packets) > CCU.PLOT_XLIM:
                 data_packets = data_packets[-CCU.PLOT_XLIM:]
-                # data_packets = data_packets[-CCU.PLOT_UPDATE_PERIOD-CCU.PLOT_XLIM:]
 
             # take any requests
             if request == 0 and p.poll():
@@ -383,15 +384,27 @@ class CCU:
                 next_to_send, request = CCU._send_data(p, data_packets, current_index, next_to_send, request)
 
             # +++ PLOTTING THE DATA +++
-            if last_plot < current_index // CCU.PLOT_UPDATE_PERIOD:
-                # trim and pack data packets
-                trim = current_index % CCU.PLOT_UPDATE_PERIOD
-                if trim == 0:
-                    trimmed_data = data_packets[CCU.PLOT_UPDATE_PERIOD:] 
-                else:
-                    trimmed_data = data_packets[CCU.PLOT_UPDATE_PERIOD - trim : -trim] 
-                packed_data_packets = [np.zeros((len(CCU.CHANNEL_KEYS),))] * (CCU.PLOT_XLIM - len(trimmed_data)) + trimmed_data 
-                CCU._update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, packed_data_packets, current_index - trim, ignore)
+
+            # check if there is plot data to update
+            if last_plot < (current_index-CCU.PLOT_SMOOTHING) // CCU.PLOT_SMOOTHING:
+                # smallest index not included in plot
+                last_plot_i = len(data_packets) + last_plot*CCU.PLOT_SMOOTHING - current_index
+                num_to_add = (current_index - last_plot*CCU.PLOT_SMOOTHING)//CCU.PLOT_SMOOTHING
+                # loop through new data to add
+                for i in range(num_to_add):
+                    # grab the data
+                    start = last_plot_i + i*CCU.PLOT_SMOOTHING
+                    new_data = np.array(data_packets[start:start+CCU.PLOT_SMOOTHING])
+                    # convert to count/sec and smooth
+                    new_data = np.mean(np.array(new_data),axis=0) / CCU.UPDATE_PERIOD
+                    # add to plot data
+                    plot_data.append(new_data)
+                # +++ update plots +++
+                plot_data = plot_data[-PLOT_DATA_LIM:]
+                c_idx = current_index - (current_index % CCU.PLOT_SMOOTHING)
+                CCU._update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig, plot_data, c_idx, ignore)
+                # +++ update last_plot +++
+                last_plot += num_to_add
 
         # outside of the loop, close the connection to CCU and pipe
         conn.close()

@@ -27,4 +27,5 @@
 [x] add motors property to manager
 [x] make manager non-init methods SAFER
 [x] make time columns in output table legible
-[ ] remove all plot arguments
+[x] remove all plot arguments (except ignore)
+[ ] inform everyone about faceid
