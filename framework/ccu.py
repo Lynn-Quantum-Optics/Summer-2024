@@ -1,4 +1,4 @@
-''' ccu_controller.py
+''' ccu.py
 This file contains the FPGACCUController class, which is used to interface with the CCU for the experiment. It's most sophisticated method collects count rates for the detectors over some specified time period (with no uncertainties).
 
 FPGA CCU Documentation: http://people.whitman.edu/~beckmk/QM/circuit/circuit.html
@@ -65,20 +65,18 @@ class CCU:
 
     # +++ CLEANUP +++
     
-    def close(self) -> None:
+    def shutdown(self) -> None:
         ''' Closes the connection to the CCU and terminates the listening process. '''
-        # close the plot
-        plt.close()
         # send close notice
         self._pipe.send('close')
-        # wait for the process to close
-        self._listening_process.join()
         # close the pipe
         self._pipe.close()
+        # wait for the process to close
+        self._listening_process.join()
+        # close the plot
+        plt.close()
 
     # +++ ALL INTERFACING WITH CCU +++
-
-    # this is done in a seperate process, so all static methods
 
     @staticmethod
     def _flush(conn, one=False) -> None:
@@ -374,6 +372,8 @@ class CCU:
         # close csv file
         if csv_out is not None:
             csvfile.close()
+        
+        return
 
     # +++ PUBLIC METHODS +++
 

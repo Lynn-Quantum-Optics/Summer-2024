@@ -12,10 +12,14 @@
 [x] add motor base class back (ach)
     [x] add motor offsets
     [x] add motor naming back (oops)
-[ ] handle connections better
-[ ] handle shutdown better
+[x] handle connections better
+[x] handle shutdown better
 [x] update manager to work with updates to motor motor_drivers
 [x] add raw data output option to manager
 [ ] make manager data management better
 [ ] CHECK A_HWP PRESETS FOR "D": 66.4 ???
 [ ] update documentation.md with ElliptecMotor constructor
+[x] print warnings when no output file is specified
+[x] breakup manager initialization into safe sub-methods
+[x] add debug initialization option to manager
+[ ] go to lab to debug current code! wee
