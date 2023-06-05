@@ -62,6 +62,8 @@ class Manager:
         self._ccu = None
         self._active_ports = {}
         self._motors = []
+        self._out_file = None
+        self._out_writer = None
         self.data = None # output data holding
         
         # intialize everything if not debugging
@@ -92,7 +94,7 @@ class Manager:
     # +++ properties +++
     
     @property
-    def motor_list(self) -> list[str]:
+    def motor_list(self) -> 'list[str]':
         ''' List of the string names of all motors. '''
         return self._motors
     
@@ -163,15 +165,15 @@ class Manager:
             raise RuntimeError('Output file has already been initialized.')
         
         # check for duplicate output or missing
-        if out_file is not None and os.path.isfile(out_file):
-            print(f'WARNING: Output file {out_file} already exists. Data will be saved to {self._init_time_str}.csv instead.')
-            out_file = f'{self._init_time_str}.csv'
-        elif out_file is None:
+        if self.out_file is not None and os.path.isfile(self.out_file):
+            print(f'WARNING: Output file {self.out_file} already exists. Data will be saved to {self._init_time_str}.csv instead.')
+            self.out_file = f'{self._init_time_str}.csv'
+        elif self.out_file is None:
             print(f'WARNING: No output file specified. Data will be saved to {self._init_time_str}.csv instead.')
-            out_file = f'{self._init_time_str}.csv'
+            self.out_file = f'{self._init_time_str}.csv'
         
         # open output file and setup output file writer
-        self._out_file = open(out_file, 'w+', newline='')
+        self._out_file = open(self.out_file, 'w+', newline='')
         self._out_writer = csv.writer(self._out_file)
         
         # write the column headers

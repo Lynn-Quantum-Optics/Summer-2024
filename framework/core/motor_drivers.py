@@ -216,7 +216,7 @@ class Motor:
 
 # subclasses of 
 
-class ElliptecMotor:
+class ElliptecMotor(Motor):
     ''' Elliptec Motor class.
     
     Parameters
@@ -231,15 +231,14 @@ class ElliptecMotor:
         The offset of the motor, in radians. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
     '''
     def __init__(self, name:str, com_port:serial.Serial, address:Union[str,bytes], offset:float=0):
-        # call super constructor
-        super().__init__(name, 'Elliptec', offset)
-
         # self.com_port to serial port
         self.com_port = com_port
         # self._addr to bytes
         self._addr = address is isinstance(address, bytes) and address or address.encode('utf-8')
         # a ton of stuff like model number and such as well as ppmu and travel
         self._get_info()
+        # call super constructor
+        super().__init__(name, 'Elliptec', offset)
 
     # +++ status codes +++
 
@@ -524,7 +523,7 @@ class ElliptecMotor:
         # convert to radians
         return np.deg2rad(pos / self._ppmu)
 
-class ThorLabsMotor:
+class ThorLabsMotor(Motor):
     ''' ThorLabs Motor class.
     
     Parameters
@@ -537,12 +536,12 @@ class ThorLabsMotor:
         The offset of the motor, in radians. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
     '''
     def __init__(self, name:str, sn:int, offset:float=0):
-        # call super constructor
-        super().__init__(name, 'ThorLabs', offset)
-
         # set attributes
         self.serial_num = sn
         self.motor_apt = apt.Motor(sn)
+
+        # call super constructor
+        super().__init__(name, 'ThorLabs', offset)
 
     # +++ overridden private methods +++
 
@@ -554,7 +553,7 @@ class ThorLabsMotor:
         ''' Returns true if the motor is actively moving, false otherwise. '''
         return self.motor_apt.is_in_motion
 
-    def _rotate_relative(self, angle_radians:float) -> float:
+    def _move_relative(self, angle_radians:float) -> float:
         ''' Rotates the motor by a relative angle.
 
         Parameters
@@ -576,7 +575,7 @@ class ThorLabsMotor:
         # return the position reached
         return self._get_position()
 
-    def _rotate_absolute(self, angle_radians:float,) -> float:
+    def _set_position(self, angle_radians:float,) -> float:
         ''' Rotates the motor to an absolute angle.
 
         Parameters

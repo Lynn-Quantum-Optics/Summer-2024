@@ -5,51 +5,52 @@
         "plot_settings": {
             "xlim_sec": 60,
             "smoothing_sec": 0.5,
+            "update_period_sec": 1,
             "ignore": ["A'", "C5", "C7"]
         }
     },
     "motors": {
         "C_UV_HWP": {
-            "typ": "Elliptec",
+            "type": "Elliptec",
             "port": "COM5",
             "address": "A",
             "offset": 0
         },
         "C_QP": {
-            "typ": "Elliptec",
+            "type": "Elliptec",
             "port": "COM5",
             "address": "B",
             "offset": 0
         },
         "C_PCC": {
-            "typ": "Elliptec",
+            "type": "Elliptec",
             "port": "COM5",
             "address": "C",
             "offset": 0
         },
         "B_C_HWP": {
-            "typ": "Elliptec",
+            "type": "Elliptec",
             "port": "COM9",
             "address": "A",
             "offset": 0
         },
         "B_HWP": {
-            "typ": "ThorLabs",
+            "type": "ThorLabs",
             "sn": 83811901,
             "offset": -6.12
         },
         "B_QWP": {
-            "typ": "ThorLabs",
+            "type": "ThorLabs",
             "sn": 83811646,
             "offset": 97.08
         },
         "A_HWP": {
-            "typ": "ThorLabs",
+            "type": "ThorLabs",
             "sn": 83811667,
             "offset": -1.1
         },
         "A_QWP": {
-            "typ": "ThorLabs",
+            "type": "ThorLabs",
             "sn": 83811904,
             "offset": 0.46
         }

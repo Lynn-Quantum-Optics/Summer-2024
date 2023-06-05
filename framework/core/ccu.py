@@ -34,21 +34,18 @@ class CCU:
         Serial communication baud rate (19200 for the Altera DE2 FPGA CC).
     raw_data_csv : str
         Path to the raw data csv file to write to. If None, no file is written.
-    **kwargs
-        xlim_sec : float
-            Number of samples to plot on the running plots.
-        smoothing_sec : float
-            Number of seconds to smooth the running plots over.
     '''
 
-    # +++ CLASS VARIABLES +++
-
+    # +++ class variables +++
     UPDATE_PERIOD = 0.1 # from device documentation
-    # CHANNEL_KEYS = ['C0 (A)', 'C1 (B)', "C2 (A')", "C3 (B')", 'C4', 'C5', 'C6', 'C7'] # for our setup
     CHANNEL_KEYS = ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] # for our setup
     TERMINATION_BYTE = 0xff # from device documentation
-    PLOT_XLIM = 600 # number of samples on running plots
+
+    # +++ plotting parameters +++
+    # all in units of 0.1s
+    PLOT_XLIM = 600
     PLOT_SMOOTHING = 5
+    PLOT_UPDATE_PERIOD = 10
     
     # +++ BASIC METHODS +++
 
@@ -62,6 +59,8 @@ class CCU:
             CCU.PLOT_XLIM = kwargs['xlim_sec']/CCU.UPDATE_PERIOD
         if 'smoothing_sec' in kwargs:
             CCU.PLOT_SMOOTHING = kwargs['smoothing_sec']/CCU.UPDATE_PERIOD
+        if 'update_period' in kwargs:
+            CCU.PLOT_UPDATE_PERIOD = kwargs['update_period']/CCU.PLOT_UPDATE_PERIOD
         
         # open pipeline
         self._pipe, conn_to_self = mp.Pipe()
@@ -260,7 +259,15 @@ class CCU:
     def _update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, data_packets, current_index, ignore):
         # get the xdata
         xdata = np.arange(current_index - CCU.PLOT_XLIM, current_index, CCU.PLOT_SMOOTHING)
-        
+        '''
+        # trim and pack data packets
+        trim = current_index % CCU.PLOT_UPDATE_PERIOD
+        tp_data_packets = data_packets[CCU.PLOT_UPDATE_PERIOD-trim:-trim]
+        tp_data_packets = [np.zeros((len(CCU.CHANNEL_KEYS),))] * (CCU.PLOT_XLIM - len(tp_data_packets)) + tp_data_packets
+        # trim and pack data packets
+        pk_data_packets = [np.zeros((len(CCU.CHANNEL_KEYS),))] * (CCU.PLOT_XLIM - len(data_packets)) + data_packets
+        '''
+
         # plot all lines
         for k_idx, ax in zip([0, 4], [ax_count_lines, ax_coin_lines]):
             # clear the axes
@@ -276,7 +283,8 @@ class CCU:
                 # take running average
                 ydata_smth = np.mean(ydata.reshape(-1, CCU.PLOT_SMOOTHING), axis=1)
                 # plot the data
-                ax_count_lines.plot(xdata, ydata_smth, label=k)
+                ax.plot(xdata, ydata_smth, label=k)
+            ax.legend()
         
         # plot the bar charts
         for k_idx, ax in zip([0,4], [ax_count_bars, ax_coin_bars]):
@@ -337,8 +345,12 @@ class CCU:
         request = 0 # number of data points to send
         next_to_send = 0 # index of next valid packet to send
 
+        # last plot
+        last_plot = 0
+
         # flush the buffer once before beginning
         CCU._flush(conn)
+
 
         # main loop!
         while True:
@@ -349,6 +361,7 @@ class CCU:
             data_packets += new_packets
             if len(data_packets) > CCU.PLOT_XLIM:
                 data_packets = data_packets[-CCU.PLOT_XLIM:]
+                # data_packets = data_packets[-CCU.PLOT_UPDATE_PERIOD-CCU.PLOT_XLIM:]
 
             # take any requests
             if request == 0 and p.poll():
@@ -370,7 +383,15 @@ class CCU:
                 next_to_send, request = CCU._send_data(p, data_packets, current_index, next_to_send, request)
 
             # +++ PLOTTING THE DATA +++
-            CCU._update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, data_packets, current_index, ignore)
+            if last_plot < current_index // CCU.PLOT_UPDATE_PERIOD:
+                # trim and pack data packets
+                trim = current_index % CCU.PLOT_UPDATE_PERIOD
+                if trim == 0:
+                    trimmed_data = data_packets[CCU.PLOT_UPDATE_PERIOD:] 
+                else:
+                    trimmed_data = data_packets[CCU.PLOT_UPDATE_PERIOD - trim : -trim] 
+                packed_data_packets = [np.zeros((len(CCU.CHANNEL_KEYS),))] * (CCU.PLOT_XLIM - len(trimmed_data)) + trimmed_data 
+                CCU._update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, packed_data_packets, current_index - trim, ignore)
 
         # outside of the loop, close the connection to CCU and pipe
         conn.close()
