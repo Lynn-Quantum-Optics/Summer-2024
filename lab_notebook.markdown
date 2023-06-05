@@ -9,6 +9,26 @@ C1: bob, H
 C2: dne (would be opposite for A)
 C3: bob, V
 
+We adjusted the BBO crystal by monitoring the count rates of C4 in HH and VV, the former around 3100 and the latter at 3250 or so.
+
+We determined the correct offset for the UV_HWP when we want HH=VV to be -22.3 degrees from home. We ran an initial sweep of -40 to 3 degrees for the QP in the DA basis with 25 steps and 25 samples. We are re-running from -.1 to 0.05, for 25 steps and 25 samples.
+
+We turned the UV HWP by 90 degrees to try and find a minumum in the DA basis in the range -.4 to -.35; however, this yielded a maximum; so we are rotating the UV HWP by 45 degrees since this should change H->V, V->H.
+
+New setting for Phi+:
+- UV_HWP: 22.3 + 45 degrees --> this minimizes the DA counts, which would correspond to Phi- and we want Phi_
+    --> tuned value is 63.4 degrees.
+- QP setting: -.421 +- e-8 => tuned value is 63.4 degrees
+
+For PCC: want to minimize DA counts. Trying sweep from -10 to 10 degrees in DA basis, 20 steps and 25 samples (since the coincidence count rates are low). Comparing C0, C1, C3 counts: C0 and C1 higher than C3, but not the same--stray light that's not entangled perhaps is entering; also detectors aren't as well alligned as they could be? For C3, the the detector is oriented Point is we can't really compare C4 to C6 numbers.
+
+PCC: for Phi+ is 0.0699 (calculated using weighted avg for 2 fits). Purity: 0.947. Counts:
+- DD: 1546
+- AA: 1503
+- AD: 46.8
+- DA: 35.9
+We could optimize this if we wanted to use this state, but since we are not, we won't do this at the moment. So we're callibrated!! Laser party!
+
 ## 6/1/23
 MP: A, O, R, L
 N2 tank looks nominal. Fitted $sin^2$ to B_C_HWP data and found a min of 2.202 radians. We set the home offset by loading elliptec.py, creating an ellipetic motor object for the B_C_HWP and called ._set_home_offset() when it was at a location of 2.202 radians. However, we are now getting a Serial Port Failed to Open error. We did unplug the main USB so this may have reset the port labeling? We opened Ello and now cannot see either COM5 or COM7. We also checked device manager and cannot see either COM5 or COM7. We realized that COM8 has the 3 preparation; COM9 is the old COM7. For reference: to move a component, call resposition.optical_component(Orientation(Theta, Phi), component_name).

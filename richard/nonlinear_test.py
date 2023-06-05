@@ -3,6 +3,7 @@ import numpy as np
 import scipy.linalg as la
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
+import math
 
 ################################### Alec's code from quantum.py #################################################
 
@@ -26,7 +27,6 @@ def density_matrix(states_and_probs):
     for state, prob in states_and_probs:
         rho += prob * (state @ adjoint(state))
     return rho
-
 
 # pauli spin matricies
 
@@ -327,9 +327,46 @@ def get_nlEW_expectations(rho):
 
 # function for returning nonlinear expectation values
 
-rho = werner_state(0.9, PSI_P)
+
+# polarization bases
+
+H = ket([1,0])
+V = ket([0,1])
+D = (H + V)/np.sqrt(2)
+A = (H - V)/np.sqrt(2)
+R = (H + V*1j)/np.sqrt(2)
+L = (H - V*1j)/np.sqrt(2)
+
+HH = np.kron(H,H)
+HV = np.kron(H,V)
+VH = np.kron(V,V)
+VV = np.kron(V,V)
+DD = np.kron(D,D)
+DA = np.kron(D,A)
+AD = np.kron(A,D)
+AA = np.kron(A,A)
+RR = np.kron(R,R)
+RL = np.kron(R,L)
+LR = np.kron(L,R)
+LL = np.kron(L,L)
+
+
+# generates an input for the function density_matrix using a given set of probabilities correlating to the all_qual files from Becca and Laney in Spring 2023
+
+def state_generation(probs):
+    states_and_probs = []
+    states = [HV,HH,VH,VV,DD,DA,AD,AA,RR,RL,LR,LL]
+    for i in range(len(states)):
+        states_and_probs.append([states[i],probs[i]]) 
+    return states_and_probs
+
+# calculates the density matrix for the random state and finds the nonlinear witness values
+
+rho = density_matrix(state_generation([0.339929317,0.182682327,0.330286837,0.147101518,0.252215356,0.418407958,0.239555648,0.089821038,0.277019071,0.227589352,0.387503992,0.107887585,0.243515418,0.171018197,0.192453328]
+))
 nlew_exp = get_nlEW_expectations(rho)
-ew_exp = get_EW_expectations(rho)
+
+# ew_exp = get_EW_expectations(rho)
 
 # # random density matrix
 # rho_rand = np.eye(4)/4
@@ -340,7 +377,7 @@ ew_exp = get_EW_expectations(rho)
 
 # calculate the concurrence of the mixed state
 # C = []
-# ps = np.linspace(0,1,10000)
+# alphas = np.linspace(0, 2*np.pi, 10000)
 # for p in ps:
 #     rho = werner_state(p, PSI_P)
 #     C.append(concurrence(rho))
@@ -356,21 +393,22 @@ ew_exp = get_EW_expectations(rho)
 # exp_values = np.array(exp_values)
 
 # nlexp_values = []
-# for p in ps:
-#     rho = werner_state(p, PSI_P)
+# for alpha in alphas:
+#     psi = (PSI_P + 1j*PSI_M)/np.sqrt(2)
+#     rho = psi @ adjoint(psi)
 #     ew_exp = get_nlEW_expectations(rho)
 #     nlexp_values.append(min(ew_exp))
 # nlexp_values = np.array(nlexp_values)
 
-# # plot the results
-# # plt.plot(ps, C)
-# # plt.xlabel('p')
-# # plt.ylabel('Concurrence')
-# # plt.show()
+# plot the results
+# plt.plot(ps, C)
+# plt.xlabel('p')
+# plt.ylabel('Concurrence')
+# plt.show()
 
 # plt.plot(ps, exp_values)
-# plt.plot(ps, nlexp_values)
+# plt.plot(alphas, nlexp_values)
 # plt.plot(ps, [0 for i in range(10000)])
 # plt.xlabel('p')
-# plt.ylabel('Minimum Witness value')
+# plt.ylabel('NonLinear Witness')
 # plt.show()
