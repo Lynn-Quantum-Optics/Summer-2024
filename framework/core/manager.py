@@ -255,6 +255,34 @@ class Manager:
 
     # +++ shutdown methods +++
 
+    def output_data(self, new_output:str=None) -> pd.DataFrame:
+        # output file
+        if self._out_file is None:
+            raise RuntimeError('Output file has not been initialized.')
+        elif self._out_file.closed:
+            print('WARNING: Output file has already been closed.')
+        else:
+            # close the output file (writes lines)
+            self._out_file.close()
+            self._out_writer = None
+        
+        # grab the data
+        data = pd.read_csv(self.out_file)
+
+        # load new output file
+        if new_output is not None:
+            # check for duplicate output or missing
+            if os.path.isfile(new_output):
+                new_name = f'{self._init_time}_at_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+                print(f'WARNING: Output file {new_output} already exists. Data will be saved to {new_name} instead.')
+                new_output = new_name
+            # open new output file
+            self.out_file = new_output
+            self._out_file = open(self.out_file, 'w+', newline='')
+            self._out_writer = csv.writer(self._out_file)
+        
+        return data
+
     def shutdown(self, get_data:bool=False) -> Union[pd.DataFrame, None]:
         ''' Shutsdown all the motors and closes the output files. 
         
@@ -268,14 +296,6 @@ class Manager:
         Union[pd.DataFrame, None]
             If get_data is True, returns the data as a pandas DataFrame. If False, returns None.
         '''
-        # output file
-        if self._out_file is None:
-            raise RuntimeError('Output file has not been initialized.')
-        elif self._out_file.closed:
-            print('WARNING: Output file has already been closed.')
-        else:
-            # close the output file (writes lines)
-            self._out_file.close()
         # motors
         if len(self._motors) == 0:
             print('WARNING: No motors are active.')
