@@ -260,7 +260,6 @@ class CCU:
         # pack
         fig.tight_layout()
 
-
     @staticmethod
     def _update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig, plot_data_packets, current_index, ignore):
         # get the xdata
@@ -298,7 +297,6 @@ class CCU:
  
         # update the plots
         plt.pause(0.01)
-
 
     @staticmethod
     def _listen_and_plot(p:mp.Pipe, port:str, baud:int, csv_out:str=None, ignore:'list[str]'=[]) -> None:

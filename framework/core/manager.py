@@ -33,15 +33,15 @@ class Manager:
     Parameters
     ----------
     out_file : str, optional
-        The name of the output file to save the data to. If not specified, a timestamped csv will be saved.
-    raw_data_out_file : Union[str,bool], optional
-        The name of the output file to save the raw data to. If not specified or false, no raw data will be saved. If True, a timestamped csv will be saved.
+        The name of the output file to save the data to. If not specified, no output will be initialized.
+    raw_data_out_file : str, optional
+        The name of the output file to save the raw data to. If not specified, no raw data will be saved.
     config : str, optional
         The name of the configuration file to load. Defaults to 'config.json'.
     debug : bool, optional
-        If True, the CCU and motors will not be initialized with the class, and will have to be initialized later with the init_ccu and init_motors methods. Defaults to False.
+        If True, the CCU and motors will not be initialized with the manager, and will have to be initialized later with the init_ccu and init_motors methods.
     '''
-    def __init__(self, out_file:str=None, raw_data_out_file:Union[str,bool]=None, config:str='config.json', debug:bool=False):
+    def __init__(self, out_file:str=None, raw_data_out_file:str=None, config:str='config.json', debug:bool=False):
         # get the time of initialization for file naming
         self._init_time = time.time()
         self._init_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -71,6 +71,67 @@ class Manager:
             self.init_motors()
             if out_file is not None:
                 self.new_output(out_file)
+
+    # +++ properties +++
+    
+    @property
+    def motor_list(self) -> 'list[str]':
+        ''' List of the string names of all motors. '''
+        return self._motors
+    
+    @property
+    def time(self) -> str:
+        ''' String time since initalizing the manager, rounded to the nearest second. '''
+        return str(datetime.timedelta(seconds=int(time.time()-self._init_time)))
+    
+    # +++ initialization methods +++
+
+    def init_ccu(self) -> None:
+        ''' Initialize the CCU which starts live plotting. '''
+        if self._ccu is not None:
+            raise RuntimeError('CCU has already been initialized.')
+        
+        # sort out raw data output
+        if self.raw_data_out_file is None or self.raw_data_out_file is False:
+            raw_data_csv = None
+        elif self.raw_data_out_file is True:
+            raw_data_csv = f'{self._init_time_str}_raw.csv'
+        elif os.path.isfile(self.raw_data_out_file):
+            raw_data_csv = f'{self._init_time_str}_raw.csv'
+            print(f'WARNING: raw data output file {self.raw_data_out_file} already exists. Raw data will be saved to {raw_data_csv} instead.')
+        else:
+            raw_data_csv = self.raw_data_out_file
+        
+        # initialize the ccu
+        self._ccu = CCU(
+            self._config['ccu']['port'],
+            self._config['ccu']['baudrate'],
+            raw_data_csv=raw_data_csv,
+            ignore=self._config['ccu'].get('ignore', []))
+    
+    def init_motors(self) -> None:
+        ''' Initialize and connect to all motors. '''
+        self._motors = list(self._config['motors'].keys())
+        
+        # loop to initialize all motors
+        for motor_name in self._motors:
+            # check name
+            if motor_name in self.__dict__ or not motor_name.isidentifier():
+                raise ValueError(f'Invalid motor name \"{motor_name}\" (may be duplicate, collision with Manager method, or invalid identifier).')
+            # get the motor arguments
+            motor_dict = copy.deepcopy(self._config['motors'][motor_name])
+            typ = motor_dict.pop('type')
+            # conncet to com ports for elliptec motors
+            if typ == 'Elliptec':
+                port = motor_dict.pop('port')
+                if port in self._active_ports:
+                    com_port = self._active_ports[port]
+                else:
+                    com_port = serial.Serial(port, timeout=2)
+                    self._active_ports[port] = com_port
+                motor_dict['com_port'] = com_port
+            # initialize motor
+            self.__dict__[motor_name] = MOTOR_DRIVERS[typ](name=motor_name, **motor_dict)
 
     # +++ file management +++
 
@@ -146,67 +207,6 @@ class Manager:
         self.out_file = None
 
         return data
-
-    # +++ properties +++
-    
-    @property
-    def motor_list(self) -> 'list[str]':
-        ''' List of the string names of all motors. '''
-        return self._motors
-    
-    @property
-    def time(self) -> str:
-        ''' String time since initalizing the manager, rounded to the nearest second. '''
-        return str(datetime.timedelta(seconds=int(time.time()-self._init_time)))
-    
-    # +++ initialization methods +++
-
-    def init_ccu(self) -> None:
-        ''' Initialize the CCU which starts live plotting. '''
-        if self._ccu is not None:
-            raise RuntimeError('CCU has already been initialized.')
-        
-        # sort out raw data output
-        if self.raw_data_out_file is None or self.raw_data_out_file is False:
-            raw_data_csv = None
-        elif self.raw_data_out_file is True:
-            raw_data_csv = f'{self._init_time_str}_raw.csv'
-        elif os.path.isfile(self.raw_data_out_file):
-            raw_data_csv = f'{self._init_time_str}_raw.csv'
-            print(f'WARNING: raw data output file {self.raw_data_out_file} already exists. Raw data will be saved to {raw_data_csv} instead.')
-        else:
-            raw_data_csv = self.raw_data_out_file
-        
-        # initialize the ccu
-        self._ccu = CCU(
-            self._config['ccu']['port'],
-            self._config['ccu']['baudrate'],
-            raw_data_csv=raw_data_csv,
-            ignore=self._config['ccu'].get('ignore', []))
-    
-    def init_motors(self) -> None:
-        ''' Initialize and connect to all motors. '''
-        self._motors = list(self._config['motors'].keys())
-        
-        # loop to initialize all motors
-        for motor_name in self._motors:
-            # check name
-            if motor_name in self.__dict__ or not motor_name.isidentifier():
-                raise ValueError(f'Invalid motor name \"{motor_name}\" (may be duplicate, collision with Manager method, or invalid identifier).')
-            # get the motor arguments
-            motor_dict = copy.deepcopy(self._config['motors'][motor_name])
-            typ = motor_dict.pop('type')
-            # conncet to com ports for elliptec motors
-            if typ == 'Elliptec':
-                port = motor_dict.pop('port')
-                if port in self._active_ports:
-                    com_port = self._active_ports[port]
-                else:
-                    com_port = serial.Serial(port, timeout=2)
-                    self._active_ports[port] = com_port
-                motor_dict['com_port'] = com_port
-            # initialize motor
-            self.__dict__[motor_name] = MOTOR_DRIVERS[typ](name=motor_name, **motor_dict)
 
     # +++ methods +++
 
