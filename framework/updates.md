@@ -10,5 +10,8 @@
     - `C<i>_err` for coincidence count uncertainties
 - just a general note that all positions returned will always be in the range $(-180,180]$
 - `Manager` now contains a basic sweep routine `Manager.sweep`.
-- `Manager` now contains `fit_sin(x, a, b, c) = a*sin(x+b)+c` and `fit_sin_sq(x,a,b,c)=a*sin^2(x + b) + c` functions for fitting purposes.
-- `Manager`
+- `analysis` now contains many helpful functions including
+    - `sin`, `sin_sq`, `sin2` (as well as `cos...`) which all work with degrees
+    - `fit` for fitting one of the above functions (or one of your own) to data
+    - `plot_func` for plotting fit functions
+    - `find_ratio` for finding where two functions satisfy $p_1 = f_1(x)/(f_1(x)+f_2(x))$

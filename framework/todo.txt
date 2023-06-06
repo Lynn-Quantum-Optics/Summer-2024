@@ -36,3 +36,10 @@
 [x] add basic fit functions to manager
 [x] add basic sweep routine to manager
 [x] better column names from close_output
+[x] create analysis file to help with data analysis
+    [x] add fit functions
+    [x] add fitting
+    [x] add plotting (data and fits)
+    [x] add intersections
+    [x] add ratios
+[ ] figure out what kind of uncertainties curve_fit gives us (SEM?)
