@@ -1,4 +1,4 @@
 - now **all output files get names** and must be loaded by the manager either by calling `Manager.new_output("<filename>.csv")` or by passing the file name as a the `out_file` parameter to the constructor. Note: **collisions will throw runtime errors!!!**
 - now the **only way to get data out of the `Manager`** is by calling `Manager.close_output()`. This method has an optional parameter `get_data` (as a `pd.DataFrame`) that defaults to `True`. Note: `Manager.shutdown()` no longer does any data collection.
 - calling `Manager.take_data(...)` will throw a `RuntimeError` if no output file has been initialized.
-- 
+- **EVERYTHING IS NOW IN DEGREES!**

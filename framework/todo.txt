@@ -36,4 +36,4 @@
     [ ] MANAGER CLASS TO DEGREES
 [ ] add basic fit functions to manager
 [ ] add basic sweep routine to manager
- 
+[ ] better column names from close_output

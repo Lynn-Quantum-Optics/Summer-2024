@@ -13,7 +13,6 @@ import serial
 from typing import Union
 
 # package imports
-import numpy as np
 import thorlabs_apt as apt
 
 # base class
@@ -29,7 +28,7 @@ class Motor:
     type : str
         The type of motor.
     offset : float
-        The offset of the motor, in radians.
+        The offset of the motor, in degrees.
     '''
     def __init__(self, name:str, typ:str, offset:float=0):
         # set attributes
@@ -63,7 +62,7 @@ class Motor:
 
     @property
     def offset(self) -> float:
-        ''' The zero position of this motor
+        ''' The zero position of this motor, in degrees.
         
         i.e. when we say the motor is at zero, where does it actually think it is
         '''
@@ -71,57 +70,58 @@ class Motor:
     
     @property
     def pos(self) -> float:
-        ''' The position of this motor '''
+        ''' The position of this motor, in degrees. '''
         return self._pos
     
     @property
     def is_active(self) -> bool:
+        ''' Whether or not the motor is currently active. '''
         return self._is_active()
     
     @property
     def status(self) -> Union[str,int]:
-        ''' Gets the status of the motor '''
+        ''' Gets the status of the motor (physical/firmware). '''
         return self._get_status()
 
     # +++ private methods to be overridden +++
 
     def _get_position(self) -> float:
-        ''' Gets the position of the motor in radians
+        ''' Gets the position of the motor in degrees
 
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         raise NotImplementedError
     
-    def _set_position(self, angle_radians:float) -> float:
-        ''' Sets the position of the motor in radians
+    def _set_position(self, angle_degrees:float) -> float:
+        ''' Sets the position of the motor in degrees
 
         Parameters
         ----------
-        angle_radians : float
-            The position to set the motor to, in radians.
+        angle_degrees : float
+            The position to set the motor to, in degrees.
         
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         raise NotImplementedError
 
-    def _move_relative(self, angle_radians:float) -> float:
+    def _move_relative(self, angle_degrees:float) -> float:
         ''' Moves the motor by an angle relative to it's current position
 
         Parameters
         ----------
-        angle_radians : float
-            The position to set the motor to, in radians.
+        angle_degrees : float
+            The position to set the motor to, in degrees.
         
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         raise NotImplementedError
 
@@ -147,47 +147,49 @@ class Motor:
 
     # +++ public methods +++
 
-    def goto(self, angle_radians:float) -> float:
-        ''' Sets the angle of the motor in radians
+    def goto(self, angle_degrees:float) -> float:
+        ''' Sets the angle of the motor in degrees
 
         Parameters
         ----------
-        angle_radians : float
-            The angle to set the motor to, in radians.
+        angle_degrees : float
+            The angle to set the motor to, in degrees.
         
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         # calculate the set point
-        set_point = (angle_radians + self._offset) % (2*np.pi)
+        set_point = (angle_degrees + self._offset) % (360)
+        if set_point > 180:
+            set_point -= 360
 
         # update the position, returning it as well
         self._pos = self._set_position(set_point) - self._offset
 
         # restrict the range of self._pos
-        self._pos = (self._pos % (2*np.pi))
-        if self._pos > np.pi:
-            self._pos -= 2*np.pi
+        self._pos = (self._pos % (360))
+        if self._pos > 180:
+            self._pos -= 360
 
         return self._pos
 
-    def move(self, angle_radians:float) -> float:
+    def move(self, angle_degrees:float) -> float:
         ''' Moves the motor by an angle RELATIVE to it's current position
 
         Parameters
         ----------
-        angle_radians : float
-            The angle to move the motor by, in radians.
+        angle_degrees : float
+            The angle to move the motor by, in degrees.
         
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         # use the sub method
-        self._pos = self._move_relative(angle_radians) - self._offset
+        self._pos = self._move_relative(angle_degrees) - self._offset
         return self._pos
 
     def zero(self) -> float:
@@ -196,7 +198,7 @@ class Motor:
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         return self.goto(0)
     
@@ -206,7 +208,7 @@ class Motor:
         Returns
         -------
         float
-            The position of the motor in radians.
+            The position of the motor in degrees.
         '''
         # try to 
         abs_pos = self._set_position(0)
@@ -234,7 +236,7 @@ class ElliptecMotor(Motor):
     address : Union[str,bytes]
         The address of the motor, a single charachter.
     offset : float, optional
-        The offset of the motor, in radians. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
+        The offset of the motor, in degrees. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
     '''
     def __init__(self, name:str, com_port:serial.Serial, address:Union[str,bytes], offset:float=0):
         # self.com_port to serial port
@@ -327,25 +329,23 @@ class ElliptecMotor(Motor):
         self._ppmu = int(resp[25:33], 16)/self._travel
         return None
 
-    def _radians_to_bytes(self, angle_radians:float, num_bytes:int=8) -> bytes:
-        ''' Converts an angle in radians to a hexidecimal byte string.
+    def _degrees_to_bytes(self, angle_degrees:float, num_bytes:int=8) -> bytes:
+        ''' Converts an angle in degrees to a hexidecimal byte string.
 
         Parameters
         ----------
-        angle_radians : float
-            The angle to convert, in radians.
+        angle_degrees : float
+            The angle to convert, in degrees.
         num_bytes : int, optional
             The number of bytes to return. Default is 8.
         
         Returns
         -------
         '''
-        # convert to degrees
-        deg = np.rad2deg(angle_radians)
         # convert to pulses
-        pulses = int(abs(deg) * self._ppmu)
+        pulses = int(abs(angle_degrees) * self._ppmu)
         # if negative, take two's compliment
-        if deg < 0:
+        if angle_degrees < 0:
             pulses = (pulses ^ 0xffffffff) + 1
         # convert to hex
         hexPulses = hex(int(pulses))[2:].upper()
@@ -354,14 +354,12 @@ class ElliptecMotor(Motor):
         # convert to bytes
         return hexPulses.encode('utf-8')
 
-    def _bytes_to_radians(self, angle_bytes:bytes) -> float:
-        ''' Converts a hexidecimal byte string to an angle in radians. '''
+    def _bytes_to_degrees(self, angle_bytes:bytes) -> float:
+        ''' Converts a hexidecimal byte string to an angle in degrees. '''
         # convert to bytes
         pulses = int(angle_bytes, 16)
         # convert to degrees
-        deg = pulses / self._ppmu
-        # convert to radians
-        return np.deg2rad(deg)
+        return pulses / self._ppmu
 
     def _get_home_offset(self) -> int:
         ''' Get the home offset of the motor.
@@ -386,7 +384,7 @@ class ElliptecMotor(Motor):
         Returns
         -------
         float
-            The current position of the motor, in radians (should be zero or close to it).
+            The current position of the motor, in degrees (should be zero or close to it).
         '''
         # get the position exactly
         pos_resp = self._send_instruction(b'gp', resp_len=11, require_resp_code=b'po')
@@ -454,47 +452,47 @@ class ElliptecMotor(Motor):
         else:
             return f'UNKNOWN STATUS CODE {resp[3:5]}'
 
-    def _set_position(self, angle_radians:float) -> float:
+    def _set_position(self, angle_degrees:float) -> float:
         ''' Rotate the motor to an absolute position relative to home.
 
         Parameters
         ----------
-        angle_radians : float
-            The absolute angle to rotate to, in radians.
+        angle_degrees : float
+            The absolute angle to rotate to, in degrees.
         
         Returns
         -------
         float
-            The absolute position of the motor after the move, in radians.
+            The absolute position of the motor after the move, in degrees.
         '''
         # request the move
-        resp = self._send_instruction(b'ma', self._radians_to_bytes(angle_radians, num_bytes=8), resp_len=11)
+        resp = self._send_instruction(b'ma', self._degrees_to_bytes(angle_degrees, num_bytes=8), resp_len=11)
         # block
         while self._is_active():
             pass
         # check response
         return self._return_resp(resp)
 
-    def _move_relative(self, angle_radians:float) -> float:
+    def _move_relative(self, angle_degrees:float) -> float:
         ''' Rotate the motor to a position relative to the current one.
 
         Parameters
         ----------
-        angle_radians : float
-            The angle to rotate, in radians.
+        angle_degrees : float
+            The angle to rotate, in degrees.
         
         Returns
         -------
         float
-            The ABSOLUTE angle in radians that the motor was moved to. Likely will not be the same as the angle requested.
+            The ABSOLUTE angle in degrees that the motor was moved to. Likely will not be the same as the angle requested.
         
         Returns
         -------
         float
-            The absolute position of the motor after the move, in radians.
+            The absolute position of the motor after the move, in degrees.
         '''
         # request the move
-        resp = self._send_instruction(b'mr', self._radians_to_bytes(angle_radians, num_bytes=8))        # block
+        resp = self._send_instruction(b'mr', self._degrees_to_bytes(angle_degrees, num_bytes=8))        # block
         while self._is_active():
             pass
         return self._return_resp(resp)
@@ -505,7 +503,7 @@ class ElliptecMotor(Motor):
         return resp[4] != 48 # zero in ASCII
 
     def _get_position(self, resp:bytes=None) -> float:
-        ''' Get the current position of the motor in radians.
+        ''' Get the current position of the motor in degrees.
         
         Parameters
         ----------
@@ -515,7 +513,7 @@ class ElliptecMotor(Motor):
         Returns
         -------
         float
-            The absolute position of the motor, in radians.
+            The absolute position of the motor, in degrees.
         '''
         # if no response is provided, query the device
         if resp is None:
@@ -526,8 +524,7 @@ class ElliptecMotor(Motor):
         if (pos >> 31) & 1:
             # negative number, take the two's compliment
             pos = -((pos ^ 0xffffffff) + 1)
-        # convert to radians
-        return np.deg2rad(pos / self._ppmu)
+        return pos
 
 class ThorLabsMotor(Motor):
     ''' ThorLabs Motor class.
@@ -539,7 +536,7 @@ class ThorLabsMotor(Motor):
     serial_num : int
         The serial number of the motor.
     offset : float
-        The offset of the motor, in radians. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
+        The offset of the motor, in degrees. In other words, when the motor returns a position of zero, where does the actual motor hardware think it is?
     '''
     def __init__(self, name:str, sn:int, offset:float=0):
         # set attributes
@@ -559,44 +556,42 @@ class ThorLabsMotor(Motor):
         ''' Returns true if the motor is actively moving, false otherwise. '''
         return self.motor_apt.is_in_motion
 
-    def _move_relative(self, angle_radians:float) -> float:
+    def _move_relative(self, angle_degrees:float) -> float:
         ''' Rotates the motor by a relative angle.
 
         Parameters
         ----------
-        angle_radians : float
-            The angle to rotate by, in radians.
+        angle_degrees : float
+            The angle to rotate by, in degrees.
         
         Returns
         -------
         float
-            The absolute position of the motor after the move, in radians.
+            The absolute position of the motor after the move, in degrees.
         '''
         # convert to degrees and send instruction
-        angle = np.rad2deg(angle_radians)
-        self.motor_apt.move_relative(angle)
+        self.motor_apt.move_relative(angle_degrees)
         # (maybe) wait for move to finish
         while self._is_active():
             sleep(0.1)
         # return the position reached
         return self._get_position()
 
-    def _set_position(self, angle_radians:float,) -> float:
+    def _set_position(self, angle_degrees:float,) -> float:
         ''' Rotates the motor to an absolute angle.
 
         Parameters
         ----------
-        angle_radians : float
-            The angle to rotate by, in radians.
+        angle_degrees : float
+            The angle to rotate by, in degrees.
         
         Returns
         -------
         float
-            The absolute position of the motor after the move, in radians.
+            The absolute position of the motor after the move, in degrees.
         '''
         # convert to degrees and send instruction
-        angle = np.rad2deg(angle_radians)
-        self.motor_apt.move_to(angle)
+        self.motor_apt.move_to(angle_degrees)
         # (maybe) wait for move to finish
         while self._is_active():
             sleep(0.1)
@@ -609,10 +604,9 @@ class ThorLabsMotor(Motor):
         Returns
         -------
         float
-            The position of the motor, in radians.
+            The position of the motor, in degrees.
         '''
-        # if we already know the position, just return it
-        return np.deg2rad(self.motor_apt.position)
+        return self.motor_apt.position
 
 # motor types dictionary
 MOTOR_DRIVERS = {
