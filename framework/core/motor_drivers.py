@@ -165,6 +165,12 @@ class Motor:
 
         # update the position, returning it as well
         self._pos = self._set_position(set_point) - self._offset
+
+        # restrict the range of self._pos
+        self._pos = (self._pos % (2*np.pi))
+        if self._pos > np.pi:
+            self._pos -= 2*np.pi
+
         return self._pos
 
     def move(self, angle_radians:float) -> float:

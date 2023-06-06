@@ -17,16 +17,16 @@
 [x] update manager to work with updates to motor motor_drivers
 [x] add raw data output option to manager
 [x] make manager data management better
-[ ] CHECK A_HWP PRESETS FOR "D": 66.4 ???
 [x] update documentation.md with ElliptecMotor constructor
 [x] print warnings when no output file is specified
 [x] breakup manager initialization into safe sub-methods
 [x] add debug initialization option to manager
-[ ] go to lab to debug current code! wee
+[x] go to lab to debug current code! wee
 [x] add time method to manager
 [x] add motors property to manager
 [x] make manager non-init methods SAFER
 [x] make time columns in output table legible
 [x] remove all plot arguments (except ignore)
-[ ] inform everyone about faceid
-[ ] add method to change output file without shutting down!
+[x] add method to change output file without shutting down!
+[ ] add method to manager to get a valid output file (and use it where we do that)
+[ ] fix range of goto output
