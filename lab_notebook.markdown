@@ -2,7 +2,11 @@
 MP: A, O
 Room was a bit warm (68 F) but by the time we turned on the laser (~10:30) the laser thermometer was down to 18C (<20C) so we proceeded. Got no VV coincidences for phi+ --> found error in config file where A_HWP = 0 for VV measurement (should be 45). Out of curiosity I tested running the script with CCU.PLOT_SMOOTHING = 30 (update plot every 3 seconds, maybe faster performance?) and there was literally no difference in run time.
 
-Finally got balancing script to run all the way through without issue! Value decided upon by the script was 66.39 -> I updated this value in config.json line 109 (previously was 63.4 degrees).
+Finally got balancing script to run all the way through without issue! Continuing to do narrower and longer runs with `balance.py` to determine optimal angle for C_UV_HWP for phi+ (or phi-) -> I will update this value in `config.json` line 109 when done (previously was 63.4 degrees).
+
+Optimization idea: let `CCU` (class) calculate means and SEMs of trials to not waste time returning values. Previously, the first sweep in `balance.py` (`SAMP=(5,3), N=20`) took 6:30 (minimum time for sample collection alone would be 5 min). After making the change, the same sweep took 6:30. Nice! No bottlenecks there. I am going to leave the change in there for now, since I think it is the cleaner way to do things.
+
+I also made another efficiency related change that sped up the un-blocking of motors after they've moved. I'm noticing some weird "unexpected response" errors coming from the `Motor` module, but it's unclear why.
 
 ## 6/5/23
 ### Morning
@@ -37,7 +41,7 @@ New setting for Phi+:
 
 For PCC: want to minimize DA counts. Trying sweep from -10 to 10 degrees in DA basis, 20 steps and 25 samples (since the coincidence count rates are low). Comparing C0, C1, C3 counts: C0 and C1 higher than C3, but not the same--stray light that's not entangled perhaps is entering; also detectors aren't as well alligned as they could be? For C3, the the detector is oriented Point is we can't really compare C4 to C6 numbers.
 
-PCC: for Phi+ is 0.0699 (calculated using weighted avg for 2 fits). Purity: 0.947. Counts:
+PCC: for Phi+ is 0.0699 [EDIT: RADIANS] (calculated using weighted avg for 2 fits). Purity: 0.947. Counts:
 - DD: 1546
 - AA: 1503
 - AD: 46.8

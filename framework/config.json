@@ -106,7 +106,7 @@
     },
     "state_presets": {
         "phi_plus": {
-            "C_UV_HWP": 63.4,
+            "C_UV_HWP": 64.883,
             "C_QP": -0.421,
             "C_PCC": 4.005,
             "B_C_HWP": 0.00

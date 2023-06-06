@@ -415,7 +415,7 @@ class ElliptecMotor(Motor):
         '''
         if resp[1:3] == b'GS': # status code
             # parse status
-            s = self.get_status(resp)
+            s = self._get_status(resp)
             # return 0 if ok
             if s == 'ok': 
                 return 0

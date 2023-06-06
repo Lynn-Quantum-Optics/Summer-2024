@@ -5,14 +5,15 @@ import pandas as pd
 if __name__ == '__main__':
     
     # parameters
-    GUESS = 63.4
-    RANGE = 3
-    N = 15
-    SAMP = (5, 1.5)
+    GUESS = 66.39
+    RANGE = 1.5
+    N = 20
+    SAMP = (5, 3)
 
     COMPONENT = 'C_UV_HWP'
     BASIS1 = 'HH'
     BASIS2 = 'VV'
+    STATE = 'phi_plus'
 
     PCT1 = 0.50
     
@@ -20,8 +21,8 @@ if __name__ == '__main__':
     m = Manager(out_file='balance_sweep_1.csv')
 
     # setup the state configuration
-    print(m.time, 'Configuring phi+ state')
-    m.make_state('phi_plus')
+    print(m.time, f'Configuring {STATE} state')
+    m.make_state(STATE)
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -53,9 +54,10 @@ if __name__ == '__main__':
     x = analysis.find_ratio('sin', args1, 'sin', args2, PCT1, data1.C_UV_HWP, GUESS)
 
     # print result
-    print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({1-PCT1*100:.2f}% coincidences): {x:.5f}')
+    print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({(1-PCT1)*100:.2f}% coincidences): {x:.5f}')
     
     # plot the data and fit
+    plt.title(f'Angle of {COMPONENT} to achieve {PCT1*100:.2f}% {BASIS1}\ncoincidences ({(1-PCT1)*100:.2f}% {BASIS2} coincidences): {x:.5f} degrees')
     plt.xlabel(f'{COMPONENT} angle (rad)')
     plt.ylabel(f'Count rates (#/s)')
     plt.errorbar(data1.C_UV_HWP, data1.C4, yerr=data1.C4_sem, fmt='o', label=BASIS1)

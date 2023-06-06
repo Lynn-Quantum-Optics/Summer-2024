@@ -17,8 +17,8 @@ from typing import Union
 import serial
 
 # package imports
+from tqdm import tqdm
 import numpy as np
-import scipy.stats as stats
 import pandas as pd
 
 # local imports
@@ -208,6 +208,21 @@ class Manager:
 
         return data
 
+    @staticmethod
+    def read_csv(filename:str, config:str) -> pd.DataFrame:
+        # read config to get motor names and such
+        with open(config, 'r') as f:
+            cfg = json.load(f)
+        motors = list(cfg['motors'].keys())
+        df = pd.read_csv(filename)
+        df.columns = \
+            [f't_start', 't_end'] + \
+            ['num_samp', 'samp_period'] + \
+            [f'{m}' for m in motors] + \
+            [f'C{i}' for i in range(len(CCU.CHANNEL_KEYS))] + \
+            [f'C{i}_sem' for i in range(len(CCU.CHANNEL_KEYS))]
+
+
     # +++ methods +++
 
     def take_data(self, num_samp:int, samp_period:float) -> None:
@@ -230,17 +245,13 @@ class Manager:
         motor_positions = [self.__dict__[m].pos for m in self._motors]
 
         # record start time
-        start_time = time.time()
+        start_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # run trials
-        data = np.row_stack([self._ccu.count_rates(samp_period) for _ in range(num_samp)])
+        data_avg, data_unc = self._ccu.acquire_data(num_samp, samp_period)
         
         # record stop time
-        stop_time = time.time()
-
-        # calculate averages and uncertainties
-        data_avg = np.mean(data, axis=0)
-        data_unc = stats.sem(data, axis=0)
+        stop_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # record data
         self._out_writer.writerow(\
@@ -311,7 +322,7 @@ class Manager:
             The period of each sample, in seconds (rounds down to nearest 0.1s, min 0.1s).
         '''
         # loop to perform the sweep
-        for pos in np.linspace(pos_min, pos_max, num_steps):
+        for pos in tqdm(np.linspace(pos_min, pos_max, num_steps)):
             self.configure_motors(**{component:pos})
             self.take_data(num_samp, samp_period)
 

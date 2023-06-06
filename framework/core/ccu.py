@@ -18,6 +18,7 @@ import csv
 
 # package imports
 import numpy as np
+import scipy.stats as stats
 import matplotlib.pyplot as plt
 
 # ccu class
@@ -41,12 +42,13 @@ class CCU:
     # +++ class variables +++
     UPDATE_PERIOD = 0.1 # from device documentation
     CHANNEL_KEYS = ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] # for our setup
+    NUM_CHANNEL = len(CHANNEL_KEYS)
     TERMINATION_BYTE = 0xff # from device documentation
 
     # +++ plotting parameters +++
     # all in units of 0.1s
     PLOT_XLIM = 600
-    PLOT_SMOOTHING = 30
+    PLOT_SMOOTHING = 5
     
     # +++ BASIC METHODS +++
 
@@ -415,9 +417,9 @@ class CCU:
         return
 
     # +++ PUBLIC METHODS +++
-
+    '''
     def count_rates(self, period:float) -> np.ndarray:
-        ''' Acquires the coincidence count rates from the CCU over the specified period.
+        '' Acquires the coincidence count rates from the CCU over the specified period.
 
         Parameters
         ----------
@@ -428,7 +430,7 @@ class CCU:
         -------
         np.ndarray of size (8,)
             Coincidence count RATES from the CCU. Each element corresponds to a detector/coincidence [A, B, A', B', C4, C5, C6, C7] (in order).
-        '''
+        ''
         # calculate number of data points to collect
         num_data = max(int(period / self.UPDATE_PERIOD), 1)
         # request data
@@ -440,3 +442,27 @@ class CCU:
         # accumulate data and convert to rate
         actual_period = num_data * self.UPDATE_PERIOD # may be different from period
         return np.sum(data_out, axis=0) / actual_period
+    '''
+    def acquire_data(self, num_samp:int, samp_period:float) -> np.ndarray:
+        '''
+        
+        '''
+        # calculate sample period in number of data points
+        samp_period = max(int(samp_period / CCU.UPDATE_PERIOD), 1)
+        # calculate total number of data points needed
+        num_data = num_samp * samp_period
+        # request data
+        self._pipe.send(num_data)
+        # wait for data
+        data_out = []
+        while len(data_out) < num_data:
+            data_out.append(self._pipe.recv())
+        # reshape and accumulate data, converting it to a count rate
+        data_out = np.array(data_out).reshape(num_samp, samp_period, CCU.NUM_CHANNEL)
+        actual_period = samp_period * self.UPDATE_PERIOD # may be different from period
+        data_out = np.sum(data_out, axis=1)/actual_period # aggregate by sample
+        # put together the output
+        data_avgs = np.mean(data_out, axis=0)
+        data_sems = stats.sem(data_out, axis=0)
+        return data_avgs, data_sems
+        
