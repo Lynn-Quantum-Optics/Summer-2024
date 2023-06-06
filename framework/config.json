@@ -53,7 +53,7 @@
     "basis_presets": {
         "A_HWP": {
             "H": 0,
-            "V": 45,
+            "V": 0,
             "D": 67.5,
             "A": 22.5,
             "R": 0,
@@ -105,12 +105,12 @@
         }
     },
     "state_presets": {
-        "phi plus": {
-            "C_UV_HWP": 0,
-            "C_QP": 0,
-            "C_PCC": 0
+        "phi_plus": {
+            "C_UV_HWP": 63.4,
+            "C_QP": -0.421,
+            "C_PCC": 4.005
         },
-        "phi minus": {
+        "phi_minus": {
             "C_UV_HWP": 0,
             "C_QP": 0,
             "C_PCC": 0

@@ -1,75 +1,68 @@
-
+from tqdm import tqdm
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit, minimize
-from core import Manager
+from core import Manager, analysis
 
-# parameters
+if __name__ == '__main__':
+    # parameters
 
-GUESS = np.pi/4
-RANGE = 0.1
-N = 50
-SAMP = (5, 1.5)
+    GUESS = 63.4
+    RANGE = 3
+    N = 15
+    SAMP = (5, 1.5)
 
-COMPONENT = 'C_UV_HWP'
-BASIS1 = 'HH'
-BASIS2 = 'VV'
+    COMPONENT = 'C_UV_HWP'
+    BASIS1 = 'HH'
+    BASIS2 = 'VV'
 
-# sweep first basis
-m = Manager(out_file='balance_sweep_1.csv')
-m.meas_basis(BASIS1)
+    PCT1 = 0.51
 
-for i, angle in enumerate(np.linspace(GUESS-RANGE, GUESS+RANGE, N)):
-    m.configure_motors(**{COMPONENT: angle})
-    m.take_data(*SAMP)
+    
+    # initialize manager
+    m = Manager(out_file='balance_sweep_1.csv')
 
-data1 = m.output_data(new_output='balance_sweep_2.csv')
+    # setup the state configuration
+    print(m.time, 'configuring phi+ state')
+    m.make_state('phi+')
 
-# sweep in the second basis
+    # configure measurement basis
+    print(m.time, f'Configuring measurement basis {BASIS1}')
+    m.meas_basis(BASIS1)
 
-m.meas_basis(BASIS2)
+    # do sweep
+    print(m.time, f'Beginning sweep of {BASIS1} from {GUESS-RANGE} to {GUESS+RANGE}')
+    m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
-for i, angle in enumerate(np.linspace(GUESS-RANGE, GUESS+RANGE, N)):
-    m.configure_motors(**{COMPONENT: angle})
-    m.take_data(*SAMP)
+    # obtain the first round of data and switch to a new output file
+    data1 = m.close_output()
+    m.open_output('balance_sweep_2.csv')
 
-data2 = m.shutdown(get_data=True)
+    # sweep in the second basis
+    print(m.time, f'Configuring measurement basis {BASIS2}')
+    m.meas_basis(BASIS2)
 
-# put all the data together
+    print(m.time, f'Beginning sweep of {BASIS2} from {GUESS-RANGE} to {GUESS+RANGE}')
+    m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
-data = pd.DataFrame()
+    print(m.time, 'Data collected, shutting down...')
+    data2 = m.close_output()
+    m.shutdown()
 
-data['angle 1'] = data1[f"{COMPONENT} position (rad)"]
-data['angle 2'] = data2[f"{COMPONENT} position (rad)"]
+    print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
+    
+    args1, unc1, _ = analysis.fit('sin', data1.C_UV_HWP, data1.C4, data1.C4_unc)
+    args2, unc2, _ = analysis.fit('sin', data2.C_UV_HWP, data2.C4, data2.C4_unc)
+    x = analysis.find_ratio('sin', args1, 'sin', args2, PCT1, data1.C_UV_HWP, GUESS)
 
-data['counts 1'] = data1["C4 rate (#/s)"]
-data['counts 1 err'] = data1["C4 rate unc (#/s)"]
-
-data['counts 2'] = data1["C4 rate (#/s)"]
-data['counts 2 err'] = data1["C4 rate unc (#/s)"]
-
-# fit function
-def fit_func(x, a, b, c):
-    return a * np.cos(x + b) + c
-
-# fit the data
-popt1, pcov1 = curve_fit(fit_func, data['angle 1'], data['counts 1'], sigma=data['counts 1 err'])
-popt2, pcov2 = curve_fit(fit_func, data['angle 2'], data['counts 2'], sigma=data['counts 2 err'])
-
-# minimize the difference between the two fits
-def min_me(x, args1, args2):
-    return fit_func(x, *args1) - fit_func(x, *args2)
-
-sol = minimize(fit_func, GUESS, args=(popt1, popt2))
-print(sol.x)
-
-# plot the data
-plt.xlabel(f'{COMPONENT} angle (rad)')
-plt.ylabel(f'Count rates (#/s)')
-plt.errorbar(data['angle 1'], data['counts 1'], yerr=data['counts 1 err'], fmt='o', label=BASIS1)
-plt.errorbar(data['angle 2'], data['counts 2'], yerr=data['counts 2 err'], fmt='o', label=BASIS2)
-xs = np.linspace(GUESS-RANGE, GUESS+RANGE, 100)
-plt.plot(xs, fit_func(xs, *popt1), label=f'{BASIS1} fit')
-plt.plot(xs, fit_func(xs, *popt2), label=f'{BASIS2} fit')
-plt.legend()
+    # print result
+    print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({1-PCT1*100:.2f}% coincidences): {x:.5f}')
+    
+    # plot the data and fit
+    plt.xlabel(f'{COMPONENT} angle (rad)')
+    plt.ylabel(f'Count rates (#/s)')
+    plt.errorbar(data1.C_UV_HWP, data1.C4, yerr=data1.C4_err, fmt='o', label=BASIS1)
+    plt.errorbar(data2.C_UV_HWP, data2.C4, yerr=data2.C4_err, fmt='o', label=BASIS2)
+    analysis.plot_func('sin', args1, data1.C_UV_HWP, label=f'{BASIS1} fit function')
+    analysis.plot_func('sin', args2, data2.C_UV_HWP, label=f'{BASIS2} fit function')
+    plt.legend()
+    plt.show()

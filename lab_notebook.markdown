@@ -3,6 +3,10 @@
 MP: A, R
 Relatively normal morning, A debugged code using the computer. Used detectors but not laser. Learned that face-ID can cause anomalous coincidence counds up to 4/sec at the desk or 8/sec on the other end of the room -> **need to address this**. Bumped 5V voltage knob _before_ turning on detectors but noticed, disconnected detectors and checked with multimeter and it was still at 5V. All detectors (that were operational) are (still) operational.
 
+### Evening
+MP: A, O, R, L (mostly A in lab)
+Doing code overview. When aranging the nitrogen lines I (A) lightly grazed BBO housing, not with any appriciable force, and the counts continue to align with what we saw last time, so I don't think there is any difference in alignments.
+
 ## 6/2/23
 MP: A, O, R, L
 Main room was a bit warm initially but not feels like 64 which matches what we want. The teperature in the experiment room seems pretty constant; was 17.9C when I (O) arrived and is 18.0C about 40 mins later.
