@@ -26,17 +26,18 @@ def QP(phi): return np.matrix(np.diag([1, np.e**(phi*1j)]))
 
 ## test sample values ##
 # angles are: H1, H2, Q1, QP1
-angle_dict = {'PhiP':[np.pi/4, 0,0, 0], 'PhiM':[np.pi/4, 0, 0, np.pi], 'PsiP':[np.pi/4, np.pi/4, np.pi/4, 0], 'PsiM':[np.pi/4, np.pi/4, np.pi/4, np.pi]}
-desired_state = angle_dict['PhiM']
+angle_dict = {'PhiP':[np.pi/4, 0,0, 0, 0], 'PhiM':[np.pi/4, 0, 0, 0, np.pi], 'PsiP':[np.pi/4, 0, np.pi/4,np.pi/4,  np.pi], 'PsiM':[np.pi/4, 0, np.pi/4,np.pi/4, 0]}
+desired_state = angle_dict['PsiP']
 
 ## compute components ##
 H1 = H(desired_state[0])
 H2 = H(desired_state[1])
 Q1 = Q(desired_state[2])
-QP1 = QP(desired_state[3])
+Q2 = Q(desired_state[3])
+QP1 = QP(desired_state[4])
 
 ## compute density matrix ##
-M = np.kron(Q1 @ H1, H2 @ Q1 @ QP1 @ H1) @ rho_PhiP
-rho = np.round(M @ M.H,2)
+M = np.kron(H1, H2 @ Q2 @  Q1 @ QP1 @ H1) @ rho_PhiP
+rho = np.round(M @ M.H,2).real
 
 print(rho)
