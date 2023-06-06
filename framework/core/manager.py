@@ -302,3 +302,28 @@ class Manager:
                 port.close()
         # CCU
         self._ccu.shutdown()
+
+    # +++ useful basic routines +++
+    
+    def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> None:
+        ''' Sweeps a component of the setup while collecting data
+        
+        Parameters
+        ----------
+        component : str
+            The name of the component to sweep. Must be a motor name.
+        pos_min : float
+            The minimum position to sweep to, in degrees.
+        pos_max : float
+            The maximum position to sweep to, in degrees.
+        num_steps : int
+            The number of steps to perform over the specified range.
+        num_samp : int
+            Number of samples to take at each step.
+        samp_period : float
+            The period of each sample, in seconds (rounds down to nearest 0.1s, min 0.1s).
+        '''
+        # loop to perform the sweep
+        for pos in np.linspace(pos_min, pos_max, num_steps):
+            self.configure_motors(**{component:pos})
+            self.take_data(num_samp, samp_period)

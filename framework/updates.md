@@ -9,3 +9,6 @@
     - `C<i>` for detector channel coincidence rates #/s (e.g. `C4` for $\ket{H}\ket{H}$ coincidence counts per second)
     - `C<i>_err` for coincidence count uncertainties
 - just a general note that all positions returned will always be in the range $(-180,180]$
+- `Manager` now contains a basic sweep routine `Manager.sweep`.
+- `Manager` now contains `fit_sin(x, a, b, c) = a*sin(x+b)+c` and `fit_sin_sq(x,a,b,c)=a*sin^2(x + b) + c` functions for fitting purposes.
+- `Manager`
