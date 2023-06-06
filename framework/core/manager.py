@@ -55,22 +55,93 @@ class Manager:
         
         # save all initilaization parameters
         self.config_file = config
-        self.out_file = out_file
         self.raw_data_out_file = raw_data_out_file
 
-        # initialize other class variables
+        # initialize output file variables
+        self.out_file = None
+        self._out_file = None # file object
+        self._out_writer = None # csv writer
+
+        # initialize ccu and motor class variables
         self._ccu = None
-        self._active_ports = {}
         self._motors = []
-        self._out_file = None
-        self._out_writer = None
+        self._active_ports = {}
         self.data = None # output data holding
         
         # intialize everything if not debugging
         if not debug:
             self.init_ccu()
             self.init_motors()
-            self.init_output_file()
+            if out_file is not None:
+                self.new_output(out_file)
+
+    # +++ file management +++
+
+    def new_output(self, out_file:str) -> None:
+        ''' Opens a new output file and initializes data collection
+
+        Parameters
+        ----------
+        out_file : str
+            The name of the output file to save the data to.
+        '''
+        # check if motors and ccu have been initialized
+        if self._ccu is None:
+            raise RuntimeError('Cannot initialize output file; CCU has not been initialized.')
+        if len(self._motors) == 0:
+            raise RuntimeError('Cannot initialize output file; No motors have been initialized.')
+        
+        # check output file for collisions
+        if self._out_file is not None:
+            raise RuntimeError('Output file has already been initialized.')
+        elif os.path.isfile(out_file):
+            raise RuntimeError(f'Output file {out_file} already exists.')
+        
+        # open output file and setup output file writer
+        self.out_file = out_file
+        self._out_file = open(self.out_file, 'w+', newline='')
+        self._out_writer = csv.writer(self._out_file)
+        
+        # write the column headers
+        self._out_writer.writerow(\
+            [f'start time (s)', 'stop time (s)'] + \
+            ['num samples (#)', 'period per sample (s)'] + \
+            [f'{m} position (rad)' for m in self._motors] + \
+            [f'{k} rate (#/s)' for k in self._ccu.CHANNEL_KEYS] + \
+            [f'{k} rate unc (#/s)' for k in self._ccu.CHANNEL_KEYS])
+
+    def close_output(self, get_data:bool=True) -> Union[pd.DataFrame, None]:
+        ''' Closes the output file
+
+        Parameters
+        ----------
+        get_data : bool, optional
+            If True, returns the data as a pandas dataframe. Defaults to True.
+        
+        Returns
+        -------
+        Union[pd.DataFrame, None]
+            If get_data is True, returns the data as a pandas dataframe. Otherwise, returns None.
+        '''
+        # output file
+        if self.out_file is None:
+            raise RuntimeError('Cannot close output, output has not been initialized.')
+        else:
+            # close the output file (writes lines)
+            self._out_file.close()
+            self._out_file = None
+            self._out_writer = None
+
+        # grab the data
+        if get_data:
+            data = pd.read_csv(self.out_file)
+        else:
+            data = None
+
+        # reset out_file
+        self.out_file = None
+
+        return data
     
     # +++ helper functions +++
 
@@ -152,38 +223,6 @@ class Manager:
             # initialize motor
             self.__dict__[motor_name] = MOTOR_DRIVERS[typ](name=motor_name, **motor_dict)
 
-    def init_output_file(self) -> None:
-        ''' Initialize the output file. Note that this CAN ONLY BE DONE AFTER initializing the motors and the CCU. '''
-        # check if motors and ccu have been initialized
-        if self._ccu is None:
-            raise RuntimeError('Cannot initialize output file; CCU has not been initialized.')
-        if len(self._motors) == 0:
-            raise RuntimeError('Cannot initialize output file; No motors have been initialized.')
-        
-        # check output file for collisions
-        if self._out_file is not None:
-            raise RuntimeError('Output file has already been initialized.')
-        
-        # check for duplicate output or missing
-        if self.out_file is not None and os.path.isfile(self.out_file):
-            print(f'WARNING: Output file {self.out_file} already exists. Data will be saved to {self._init_time_str}.csv instead.')
-            self.out_file = f'{self._init_time_str}.csv'
-        elif self.out_file is None:
-            print(f'WARNING: No output file specified. Data will be saved to {self._init_time_str}.csv instead.')
-            self.out_file = f'{self._init_time_str}.csv'
-        
-        # open output file and setup output file writer
-        self._out_file = open(self.out_file, 'w+', newline='')
-        self._out_writer = csv.writer(self._out_file)
-        
-        # write the column headers
-        self._out_writer.writerow(\
-            [f'start time (s)', 'stop time (s)'] + \
-            ['num samples (#)', 'period per sample (s)'] + \
-            [f'{m} position (rad)' for m in self._motors] + \
-            [f'{k} rate (#/s)' for k in self._ccu.CHANNEL_KEYS] + \
-            [f'{k} rate unc (#/s)' for k in self._ccu.CHANNEL_KEYS])
-
     # +++ methods +++
 
     def take_data(self, num_samp:int, samp_period:float) -> None:
@@ -198,6 +237,10 @@ class Manager:
         samp_period : float
             Collection time for each sample, in seconds. Note that this will be rounded to the nearest 0.1 seconds (minimum 0.1 seconds).
         '''
+        # check for output file
+        if self.out_file == None:
+            raise RuntimeError('Cannot take data, no output file has been initialized.')
+        
         # record all motor positions
         motor_positions = [self.__dict__[m].pos for m in self._motors]
 
@@ -255,46 +298,8 @@ class Manager:
 
     # +++ shutdown methods +++
 
-    def output_data(self, new_output:str=None) -> pd.DataFrame:
-        # output file
-        if self._out_file is None:
-            raise RuntimeError('Output file has not been initialized.')
-        elif self._out_file.closed:
-            print('WARNING: Output file has already been closed.')
-        else:
-            # close the output file (writes lines)
-            self._out_file.close()
-            self._out_writer = None
-        
-        # grab the data
-        data = pd.read_csv(self.out_file)
-
-        # load new output file
-        if new_output is not None:
-            # check for duplicate output or missing
-            if os.path.isfile(new_output):
-                new_name = f'{self._init_time}_at_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
-                print(f'WARNING: Output file {new_output} already exists. Data will be saved to {new_name} instead.')
-                new_output = new_name
-            # open new output file
-            self.out_file = new_output
-            self._out_file = open(self.out_file, 'w+', newline='')
-            self._out_writer = csv.writer(self._out_file)
-        
-        return data
-
-    def shutdown(self, get_data:bool=False) -> Union[pd.DataFrame, None]:
-        ''' Shutsdown all the motors and closes the output files. 
-        
-        Parameters
-        ----------
-        get_data : bool
-            If True, returns the data as a pandas DataFrame. If False, returns None.
-        
-        Returns
-        -------
-        Union[pd.DataFrame, None]
-            If get_data is True, returns the data as a pandas DataFrame. If False, returns None.
+    def shutdown(self) -> None:
+        ''' Shutsdown all the motors and terminates CCU processes, closing all com ports
         '''
         # motors
         if len(self._motors) == 0:
@@ -312,6 +317,3 @@ class Manager:
                 port.close()
         # CCU
         self._ccu.shutdown()
-
-        if get_data:
-            return pd.read_csv(self._out_file.name)

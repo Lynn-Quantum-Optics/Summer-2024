@@ -28,5 +28,12 @@
 [x] make time columns in output table legible
 [x] remove all plot arguments (except ignore)
 [x] add method to change output file without shutting down!
-[ ] add method to manager to get a valid output file (and use it where we do that)
-[ ] fix range of goto output
+[x] improve manager management of output file
+[ ] DECIDE ON range of pos output
+[ ] EVERYTHING IN DEGREES
+    [ ] MOTORS CLASS TO DEGREES
+    [ ] CCU CLASS TO DEGREES
+    [ ] MANAGER CLASS TO DEGREES
+[ ] add basic fit functions to manager
+[ ] add basic sweep routine to manager
+ 
