@@ -15,3 +15,4 @@
     - `fit` for fitting one of the above functions (or one of your own) to data
     - `plot_func` for plotting fit functions
     - `find_ratio` for finding where two functions satisfy $p_1 = f_1(x)/(f_1(x)+f_2(x))$
+- added `Manager.make_state(...)` for configuring one of the state presets from the config file
