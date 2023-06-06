@@ -46,7 +46,7 @@ class CCU:
     # +++ plotting parameters +++
     # all in units of 0.1s
     PLOT_XLIM = 600
-    PLOT_SMOOTHING = 5
+    PLOT_SMOOTHING = 30
     
     # +++ BASIC METHODS +++
 
@@ -218,7 +218,7 @@ class CCU:
     @staticmethod
     def _init_plots():
         # initialize the plot
-        fig = plt.figure(figsize=(10,10))
+        fig = plt.figure(figsize=(8,8))
         ax_count_lines = fig.add_subplot(221)
         ax_coin_lines = fig.add_subplot(222)
         ax_count_bars = fig.add_subplot(223)

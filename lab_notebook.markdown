@@ -1,3 +1,9 @@
+## 6/6/23
+MP: A, O
+Room was a bit warm (68 F) but by the time we turned on the laser (~10:30) the laser thermometer was down to 18C (<20C) so we proceeded. Got no VV coincidences for phi+ --> found error in config file where A_HWP = 0 for VV measurement (should be 45). Out of curiosity I tested running the script with CCU.PLOT_SMOOTHING = 30 (update plot every 3 seconds, maybe faster performance?) and there was literally no difference in run time.
+
+Finally got balancing script to run all the way through without issue! Value decided upon by the script was 66.39 -> I updated this value in config.json line 109 (previously was 63.4 degrees).
+
 ## 6/5/23
 ### Morning
 MP: A, R

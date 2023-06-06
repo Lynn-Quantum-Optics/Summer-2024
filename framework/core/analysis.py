@@ -81,7 +81,7 @@ FIT_FUNCS = {
 
 # +++ functions for fitting +++
 
-def fit(func:Union[str,function], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray, p0:'list[float]'=None, bounds:'list[tuple]'=None) -> 'tuple[np.ndarray, np.ndarray]':
+def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray, **kwargs) -> 'tuple[np.ndarray, np.ndarray]':
     ''' Fit data to a sine function
 
     Parameters
@@ -92,10 +92,8 @@ def fit(func:Union[str,function], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray,
         Y values
     y_err : np.ndarray
         Y errors
-    p0 : list, optional
-        Initial guess for parameters, by default None.
-    bounds : list[tuple], optional
-        Bounds for parameters, by default None.
+    **kwargs
+        Get passed to scipy.optimize.curve_fit
     
     Returns
     -------
@@ -106,10 +104,10 @@ def fit(func:Union[str,function], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray,
     if isinstance(func, str):
         func = FIT_FUNCS[func]
     # fit the function
-    popt, pcov = opt.curve_fit(func, x, y, p0=p0, sigma=y_err, absolute_sigma=True, bounds=bounds)
+    popt, pcov = opt.curve_fit(func, x, y, sigma=y_err, absolute_sigma=True, **kwargs)
     return popt, np.sqrt(np.diag(pcov)), pcov
 
-def plot_func(func:Union[str,function], args:tuple, x:np.ndarray, ax:plt.Axes=None, num_points:int=300, **kwargs):
+def plot_func(func:Union[str,'function'], args:tuple, x:np.ndarray, ax:plt.Axes=None, num_points:int=300, **kwargs):
     ''' Plot a function
     
     Parameters
@@ -137,7 +135,7 @@ def plot_func(func:Union[str,function], args:tuple, x:np.ndarray, ax:plt.Axes=No
     x = np.linspace(np.min(x), np.max(x), num_points)
     ax.plot(x, func(x, *args), **kwargs)
 
-def find_ratio(func1:Union[str,function], args1:tuple, func2:Union[str,function], args2:tuple, pct_1:float, x:np.ndarray, guess:float=None):
+def find_ratio(func1:Union[str,'function'], args1:tuple, func2:Union[str,'function'], args2:tuple, pct_1:float, x:np.ndarray, guess:float=None):
     ''' Find where the two functions satisfy func1(x) / (func1(x) + func2(x)) = pct_1
 
     Parameters

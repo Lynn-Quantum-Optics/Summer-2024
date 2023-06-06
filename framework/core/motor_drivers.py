@@ -162,16 +162,12 @@ class Motor:
         '''
         # calculate the set point
         set_point = (angle_degrees + self._offset) % (360)
-        if set_point > 180:
-            set_point -= 360
 
         # update the position, returning it as well
         self._pos = self._set_position(set_point) - self._offset
 
         # restrict the range of self._pos
         self._pos = (self._pos % (360))
-        if self._pos > 180:
-            self._pos -= 360
 
         return self._pos
 
@@ -354,13 +350,6 @@ class ElliptecMotor(Motor):
         # convert to bytes
         return hexPulses.encode('utf-8')
 
-    def _bytes_to_degrees(self, angle_bytes:bytes) -> float:
-        ''' Converts a hexidecimal byte string to an angle in degrees. '''
-        # convert to bytes
-        pulses = int(angle_bytes, 16)
-        # convert to degrees
-        return pulses / self._ppmu
-
     def _get_home_offset(self) -> int:
         ''' Get the home offset of the motor.
         
@@ -467,9 +456,7 @@ class ElliptecMotor(Motor):
         '''
         # request the move
         resp = self._send_instruction(b'ma', self._degrees_to_bytes(angle_degrees, num_bytes=8), resp_len=11)
-        # block
-        while self._is_active():
-            pass
+        # requiring a response already blocks until done moving :)
         # check response
         return self._return_resp(resp)
 
@@ -492,9 +479,8 @@ class ElliptecMotor(Motor):
             The absolute position of the motor after the move, in degrees.
         '''
         # request the move
-        resp = self._send_instruction(b'mr', self._degrees_to_bytes(angle_degrees, num_bytes=8))        # block
-        while self._is_active():
-            pass
+        resp = self._send_instruction(b'mr', self._degrees_to_bytes(angle_degrees, num_bytes=8), resp_len=11)
+        # requiring a response already blocks until done moving :)
         return self._return_resp(resp)
 
     def _is_active(self) -> bool:
@@ -524,7 +510,7 @@ class ElliptecMotor(Motor):
         if (pos >> 31) & 1:
             # negative number, take the two's compliment
             pos = -((pos ^ 0xffffffff) + 1)
-        return pos
+        return pos / self._ppmu
 
 class ThorLabsMotor(Motor):
     ''' ThorLabs Motor class.

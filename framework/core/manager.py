@@ -166,7 +166,7 @@ class Manager:
             ['num samples (#)', 'period per sample (s)'] + \
             [f'{m} position (deg)' for m in self._motors] + \
             [f'{k} rate (#/s)' for k in self._ccu.CHANNEL_KEYS] + \
-            [f'{k} rate unc (#/s)' for k in self._ccu.CHANNEL_KEYS])
+            [f'{k} rate SEM (#/s)' for k in self._ccu.CHANNEL_KEYS])
 
     def close_output(self, get_data:bool=True) -> Union[pd.DataFrame, None]:
         ''' Closes the output file
@@ -199,7 +199,7 @@ class Manager:
                 ['num_samp', 'samp_period'] + \
                 [f'{m}' for m in self._motors] + \
                 [f'C{i}' for i in range(len(self._ccu.CHANNEL_KEYS))] + \
-                [f'C{i}_err' for i in range(len(self._ccu.CHANNEL_KEYS))]
+                [f'C{i}_sem' for i in range(len(self._ccu.CHANNEL_KEYS))]
         else:
             data = None
 
