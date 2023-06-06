@@ -132,6 +132,13 @@ class Manager:
         # grab the data
         if get_data:
             data = pd.read_csv(self.out_file)
+            # convert columns to be useful
+            data.columns = \
+                [f't_start', 't_end'] + \
+                ['num_samp', 'samp_period'] + \
+                [f'{m}' for m in self._motors] + \
+                [f'C{i}' for i in range(len(self._ccu.CHANNEL_KEYS))] + \
+                [f'C{i}_err' for i in range(len(self._ccu.CHANNEL_KEYS))]
         else:
             data = None
 

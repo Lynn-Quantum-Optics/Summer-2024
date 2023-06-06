@@ -29,11 +29,10 @@
 [x] remove all plot arguments (except ignore)
 [x] add method to change output file without shutting down!
 [x] improve manager management of output file
-[ ] DECIDE ON range of pos output
-[ ] EVERYTHING IN DEGREES
-    [ ] MOTORS CLASS TO DEGREES
-    [ ] CCU CLASS TO DEGREES
-    [ ] MANAGER CLASS TO DEGREES
+[x] DECIDE ON range of pos output
+[x] EVERYTHING IN DEGREES
+    [x] MOTORS CLASS TO DEGREES
+    [x] MANAGER CLASS TO DEGREES
 [ ] add basic fit functions to manager
 [ ] add basic sweep routine to manager
-[ ] better column names from close_output
+[x] better column names from close_output

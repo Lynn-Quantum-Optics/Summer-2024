@@ -2,3 +2,10 @@
 - now the **only way to get data out of the `Manager`** is by calling `Manager.close_output()`. This method has an optional parameter `get_data` (as a `pd.DataFrame`) that defaults to `True`. Note: `Manager.shutdown()` no longer does any data collection.
 - calling `Manager.take_data(...)` will throw a `RuntimeError` if no output file has been initialized.
 - **EVERYTHING IS NOW IN DEGREES!**
+- now output data frames have columns that can be easily reffered to in python
+    - `t_start` and `t_end`
+    - `num_samp` and `samp_period`
+    - Motor names for angles in degrees (e.g. `C_UV_HWP`)
+    - `C<i>` for detector channel coincidence rates #/s (e.g. `C4` for $\ket{H}\ket{H}$ coincidence counts per second)
+    - `C<i>_err` for coincidence count uncertainties
+- just a general note that all positions returned will always be in the range $(-180,180]$
