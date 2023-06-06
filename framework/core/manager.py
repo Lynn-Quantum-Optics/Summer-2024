@@ -281,30 +281,17 @@ class Manager:
             B_HWP=self._config['basis_presets']['B_HWP'][B],
             B_QWP=self._config['basis_presets']['B_QWP'][B])
 
-    # +++ shutdown methods +++
-
-    def shutdown(self) -> None:
-        ''' Shutsdown all the motors and terminates CCU processes, closing all com ports
+    def make_state(self, state:str) -> None:
+        ''' Create a state from presets in the config file
+        
+        Parameters
+        ----------
+        state : str
+            The state to create, one of the presets from the config file.
         '''
-        # motors
-        if len(self._motors) == 0:
-            print('WARNING: No motors are active.')
-        else:
-            # loop to delete motors
-            for motor_name in self._motors:
-                del self.__dict__[motor_name]
-        # com ports
-        if len(self._active_ports) == 0:
-            print('WARNING: No com ports are active.')
-        else:
-            # loop to shutdown ports
-            for port in self._active_ports.values():
-                port.close()
-        # CCU
-        self._ccu.shutdown()
+        # setup the state
+        self.configure_motors(**self._config['state_presets'][state])
 
-    # +++ useful basic routines +++
-    
     def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> None:
         ''' Sweeps a component of the setup while collecting data
         
@@ -327,3 +314,25 @@ class Manager:
         for pos in np.linspace(pos_min, pos_max, num_steps):
             self.configure_motors(**{component:pos})
             self.take_data(num_samp, samp_period)
+
+    # +++ shutdown methods +++
+
+    def shutdown(self) -> None:
+        ''' Shutsdown all the motors and terminates CCU processes, closing all com ports
+        '''
+        # motors
+        if len(self._motors) == 0:
+            print('WARNING: No motors are active.')
+        else:
+            # loop to delete motors
+            for motor_name in self._motors:
+                del self.__dict__[motor_name]
+        # com ports
+        if len(self._active_ports) == 0:
+            print('WARNING: No com ports are active.')
+        else:
+            # loop to shutdown ports
+            for port in self._active_ports.values():
+                port.close()
+        # CCU
+        self._ccu.shutdown()
