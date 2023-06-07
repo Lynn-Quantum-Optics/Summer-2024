@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from tqdm import trange
 
 # random state gen imports #
-from jones_datagen import get_random_jones, get_random_simplex
+from jones_simplex_datagen import get_random_jones, get_random_simplex
 from o_r_datagen import get_random_state
 
 def get_min_eig(M0):
