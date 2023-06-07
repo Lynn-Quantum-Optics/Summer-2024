@@ -150,15 +150,15 @@ def gen_dataset(size, savepath):
         HH = compute_proj(H, H, M0)
         VV = compute_proj(V, V, M0)
         HV = compute_proj(H, V, M0)
-        df_3 = df_3.append({'HH':HH, 'VV':VV, 'HV':HV,'min_eig':min_eig,'purity':purity}, ignore_index=True)
+        df_3 = pd.concat([df_3, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'min_eig':min_eig,'purity':purity}])])
 
         DD = compute_proj(D, D, M0)
         AA = compute_proj(A, A, M0)
-        df_5 = df_5.append({'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'AA':AA, 'min_eig':min_eig,'purity':purity}, ignore_index=True)
+        df_5 = pd.concat([df_5, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'AA':AA, 'min_eig':min_eig,'purity':purity}])])
 
         RR = compute_proj(R,R, M0)
         LL = compute_proj(L, L, M0)
-        df_6 = df_6.append({'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'RR':RR,'LL': LL,'min_eig':min_eig,'purity':purity}, ignore_index=True)
+        df_6 = pd.concat([df_6, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'RR':RR,'LL': LL,'min_eig':min_eig,'purity':purity}])])
 
         DL = compute_proj(D,L, M0)
         AR = compute_proj(A,R, M0)
@@ -166,12 +166,12 @@ def gen_dataset(size, savepath):
         AV = compute_proj(A,V, M0)
         LH = compute_proj(L,H, M0)
         RV = compute_proj(R,V, M0)
-        df_12 = df_12.append({'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'min_eig':min_eig,'purity':purity}, ignore_index=True)
+        df_12 = pd.concat([df_12, pd.DataFrame.from_records([{'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'min_eig':min_eig,'purity':purity}])])
 
         DR = compute_proj(D,R, M0)
         DV = compute_proj(D,V, M0)
         LV = compute_proj(L,V, M0)
-        df_15 = df_15.append({'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'DR':DR, 'DV':DV, 'LV':LV, 'min_eig':min_eig,'purity':purity}, ignore_index=True)
+        df_15 = pd.concat([df_15, pd.DataFrame.from_records([{'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'DR':DR, 'DV':DV, 'LV':LV, 'min_eig':min_eig,'purity':purity}])])
 
     df_3.to_csv(join(savepath, 'df_3.csv'))
     df_5.to_csv(join(savepath, 'df_5.csv'))
@@ -179,7 +179,7 @@ def gen_dataset(size, savepath):
     df_12.to_csv(join(savepath, 'df_12.csv'))
     df_15.to_csv(join(savepath, 'df_15.csv'))
 
-
-size=440000
-savepath='RO_data'
-gen_dataset(size, savepath)
+if __name__ == '__main__':
+    size=4400000
+    savepath='RO_data'
+    gen_dataset(size, savepath)
