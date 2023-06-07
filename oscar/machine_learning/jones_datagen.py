@@ -1,57 +1,79 @@
 # file to use the jones matrices to randomly generate entangled states
+from os.path import join
 import numpy as np
 import pandas as pd
 from os.path import join
 from scipy.optimize import minimize
 from tqdm import trange # for progress bar
 
-## jones matrices ##
-def R(alpha): return np.matrix([[np.cos(alpha), np.sin(alpha)], [-np.sin(alpha), np.cos(alpha)]])
-def H(theta): return np.matrix([[np.cos(2*theta), np.sin(2*theta)], [np.sin(2*theta), -np.cos(2*theta)]])
-def Q(alpha): return R(alpha) @ np.matrix(np.diag([np.e**(np.pi / 4 * 1j), np.e**(-np.pi / 4 * 1j)])) @ R(-alpha)
-def get_QP(phi): return np.matrix(np.diag([1, np.e**(phi*1j)]))
-
-## Phi+ Bell state density matrix ##
-PhiP = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
-rho_PhiP= PhiP @ PhiP.reshape((1,4))
-
-## function to compute permutation ##
-def compute_state(theta1, theta2, alpha1, alpha2, phi):
-    '''
-    Computes the rotated polarization state given:
-    --
-    theta1: angle for UV_HWP (0 -> pi/4)
-    theta2: angle for Bob C_HWP (0 -> pi/4)
-    alpha1: angle for QWP (0 -> pi/2)
-    phi1: angle for QP (0 -> 0.69 (due to limitations of experiment))
-    '''
-    H1 = H(theta1)
-    H2 = H(theta2)
-    Q1 = Q(alpha1)
-    Q2 = Q(alpha2)
-    QP = get_QP(phi)
-
-    ## compute density matrix ##
-    M = np.kron(H1, H2 @ Q2 @ Q1 @ QP @ H1) @ rho_PhiP
-    rho = np.round(M @ M.H,2).real
-
-    return rho
-
-def get_random_state():
+def get_random_jones():
     '''
     Computes random angles in the ranges specified and generates the resulting states
     '''
+    ## jones matrices ##
+    def R(alpha): return np.matrix([[np.cos(alpha), np.sin(alpha)], [-np.sin(alpha), np.cos(alpha)]])
+    def H(theta): return np.matrix([[np.cos(2*theta), np.sin(2*theta)], [np.sin(2*theta), -np.cos(2*theta)]])
+    def Q(alpha): return R(alpha) @ np.matrix(np.diag([np.e**(np.pi / 4 * 1j), np.e**(-np.pi / 4 * 1j)])) @ R(-alpha)
+    def get_QP(phi): return np.matrix(np.diag([1, np.e**(phi*1j)]))
+    B = np.matrix([[0, 0, 0, 1], [1, 0,0,0]]).T
+
+    ## function to compute permutation ##
+    def compute_state(theta1, theta2, alpha1, alpha2, phi):
+        '''
+        Computes the rotated polarization state given:
+        --
+        theta1: angle for UV_HWP (0 -> pi/4)
+        theta2: angle for Bob C_HWP (0 -> pi/4)
+        alpha1: angle for QWP (0 -> pi/2)
+        phi1: angle for QP (0 -> 0.69 (due to limitations of experiment))
+        '''
+        H1 = H(theta1)
+        H2 = H(theta2)
+        Q1 = Q(alpha1)
+        Q2 = Q(alpha2)
+        QP = get_QP(phi)
+
+        ## compute density matrix ##
+        P = np.kron(Q2,Q1 @ H2) @ B @ QP @ H1
+        rho = np.real(np.round(P @ P.H,2))
+
+        return rho
+
     theta_ls = np.random.rand(2)*np.pi/4
     theta1, theta2 = theta_ls[0], theta_ls[1]
     alpha_ls = np.random.rand(2)*np.pi/2
     alpha1, alpha2 = alpha_ls[0], alpha_ls[1]
     phi = np.random.rand()*0.69
 
-    return compute_state(theta1, theta2, alpha1, alpha2, phi), [theta1, theta2, alpha1, alpha2, phi]
+    return [compute_state(theta1, theta2, alpha1, alpha2, phi), [theta1, theta2, alpha1, alpha2, phi]]
 
-def analyze_state(rho_angles):
+def get_random_simplex():
     '''
-    Takes as input a density matrix, outputs dictionary with angles, projection probabilities, W values, and W' values
+    Returns density matrix for random state of form:
+    a|HH> + be^(i*beta)|01> + ce^(i*gamma)*|10> + de^(i*delta)*|11>
+    '''
+    
+    a = np.random.rand()
+    b = np.random.rand() *(1-a)
+    c = np.random.rand()*(1-a-b)
+    d = 1-a-b-c
+
+    real_ls = [] # list to store real coefficients
+    real_ls = np.sqrt(np.array([a, b, c, d]))
+    np.random.shuffle(real_ls)
+    rand_angle=np.random.rand(3)*2*np.pi
+
+    state_vec = np.multiply(real_ls, np.e**(np.concatenate((np.array([1]), rand_angle))*1j)).reshape((4,1))
+
+    # compute density matrix
+    rho = np.real(state_vec @ np.conjugate(state_vec.reshape((1,4))))
+
+    return [rho, np.concatenate((real_ls, rand_angle))]
+
+def analyze_state(rho_angles, rand_type):
+    '''
+    Takes as input a density matrix, outputs dictionary with angles, projection probabilities, W values, and W' values. 
+    rand_type is a string, either <jones> or <simplex>, which builds the correct df
     '''
     rho = rho_angles[0]
     angles = rho_angles[1]
@@ -78,7 +100,7 @@ def analyze_state(rho_angles):
         '''
         Computes projection into desired bases.
         '''
-        return  np.trace(rho @ np.kron(basis1, basis2))
+        return  np.real(np.trace(rho @ np.kron(basis1, basis2)))
 
     def compute_witnesses(rho):
         '''
@@ -88,51 +110,51 @@ def analyze_state(rho_angles):
 
         def get_W1(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
-            return (0.25*(expec_vals[0,0] + expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] + expec_vals[0,3]))).real
+            return np.real(0.25*(expec_vals[0,0] + expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] + expec_vals[0,3])))
         def get_W2(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
-            return (0.25*(expec_vals[0,0] - expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] - (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] - expec_vals[0,3]))).real
+            return np.real(0.25*(expec_vals[0,0] - expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] - (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] - expec_vals[0,3])))
         def get_W3(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
-            return (0.25*(expec_vals[0,0] + expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[1,0] + expec_vals[0,1]))).real
+            return np.real(0.25*(expec_vals[0,0] + expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[1,0] + expec_vals[0,1])))
         def get_W4(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
-            return (0.25*(expec_vals[0,0] - expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[2,2] - 2*a*b*(expec_vals[1,0] - expec_vals[0,1]))).real
+            return np.real(0.25*(expec_vals[0,0] - expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[2,2] - 2*a*b*(expec_vals[1,0] - expec_vals[0,1])))
         def get_W5(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
-            return (0.25*(expec_vals[0,0] + expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + 2*a*b*(expec_vals[2,0] + expec_vals[0,2]))).real
+            return np.real(0.25*(expec_vals[0,0] + expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + 2*a*b*(expec_vals[2,0] + expec_vals[0,2])))
         def get_W6(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
-            return (0.25*(expec_vals[0,0] - expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[1,1] - 2*a*b*(expec_vals[2,0] - expec_vals[0,2]))).real
+            return np.real(0.25*(expec_vals[0,0] - expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[1,1] - 2*a*b*(expec_vals[2,0] - expec_vals[0,2])))
         
         ## W' from summer 2022 ##
         def get_Wp1(params, expec_vals):
             theta, alpha = params[0], params[1]
-            return (.25*(expec_vals[0,0] + expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]+expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1]))).real
+            return np.real(.25*(expec_vals[0,0] + expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]+expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1])))
         def get_Wp2(params, expec_vals):
             theta, alpha = params[0], params[1]
-            return (.25*(expec_vals[0,0] - expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]-expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] - expec_vals[0,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1]))).real
+            return np.real(.25*(expec_vals[0,0] - expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]-expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] - expec_vals[0,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1])))
         def get_Wp3(params, expec_vals):
             theta, alpha, beta = params[0], params[1], params[2]
-            return (.25 * (np.cos(theta)**2*(expec_vals[0,0] + expec_vals[3,3]) + np.sin(theta)**2*(expec_vals[0,0] - expec_vals[3,3]) + np.cos(theta)**2*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(theta)**2*np.cos(2*alpha - beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*expec_vals[1,0] + np.sin(2*theta)*np.cos(alpha - beta)*expec_vals[0,1] + np.sin(2*theta)*np.sin(alpha)*expec_vals[2,0] + np.sin(2*theta)*np.sin(alpha - beta)*expec_vals[0,2]+np.cos(theta)**2*np.sin(beta)*(expec_vals[2,1] - expec_vals[1,2]) + np.sin(theta)**2*np.sin(2*alpha - beta)*(expec_vals[2,1] + expec_vals[1,2]))).real
+            return np.real(.25 * (np.cos(theta)**2*(expec_vals[0,0] + expec_vals[3,3]) + np.sin(theta)**2*(expec_vals[0,0] - expec_vals[3,3]) + np.cos(theta)**2*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(theta)**2*np.cos(2*alpha - beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*expec_vals[1,0] + np.sin(2*theta)*np.cos(alpha - beta)*expec_vals[0,1] + np.sin(2*theta)*np.sin(alpha)*expec_vals[2,0] + np.sin(2*theta)*np.sin(alpha - beta)*expec_vals[0,2]+np.cos(theta)**2*np.sin(beta)*(expec_vals[2,1] - expec_vals[1,2]) + np.sin(theta)**2*np.sin(2*alpha - beta)*(expec_vals[2,1] + expec_vals[1,2])))
         def get_Wp4(params, expec_vals):
             theta, alpha = params[0], params[1]
-            return (.25*(expec_vals[0,0]+expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] + expec_vals[1,0]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2]))).real
+            return np.real(.25*(expec_vals[0,0]+expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] + expec_vals[1,0]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2])))
         def get_Wp5(params, expec_vals):
             theta, alpha = params[0], params[1]
-            return (.25*(expec_vals[0,0]-expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] - expec_vals[1,0]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2]))).real
+            return np.real(.25*(expec_vals[0,0]-expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] - expec_vals[1,0]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2])))
         def get_Wp6(params,expec_vals):
             theta, alpha, beta = params[0], params[1], params[2]
-            return (.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[2,3] + expec_vals[2,0]) + np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[2,3] - expec_vals[2,0]) - np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[3,2] + expec_vals[0,2]) - np.sin(theta)**2*np.sin(2*beta)*(expec_vals[3,2] - expec_vals[0,2]))).real
+            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[2,3] + expec_vals[2,0]) + np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[2,3] - expec_vals[2,0]) - np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[3,2] + expec_vals[0,2]) - np.sin(theta)**2*np.sin(2*beta)*(expec_vals[3,2] - expec_vals[0,2])))
         def get_Wp7(params, expec_vals):
             theta, alpha = params[0], params[1]
-            return (.25*(expec_vals[0,0] + expec_vals[2,2]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1] - expec_vals[1,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0]+expec_vals[0,2]))).real
+            return np.real(.25*(expec_vals[0,0] + expec_vals[2,2]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1] - expec_vals[1,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0]+expec_vals[0,2])))
         def get_Wp8(params, expec_vals):
             theta, alpha = params[0], params[1]
-            return (.25*(expec_vals[0,0] - expec_vals[2,2] + np.cos(2*theta)*(expec_vals[3,3]-expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1]+expec_vals[1,3])+np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0] - expec_vals[0,2]))).real
+            return np.real(.25*(expec_vals[0,0] - expec_vals[2,2] + np.cos(2*theta)*(expec_vals[3,3]-expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1]+expec_vals[1,3])+np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0] - expec_vals[0,2])))
         def get_Wp9(params, expec_vals):
             theta, alpha, beta = params[0], params[1], params[2]
-            return (.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[0,1] + expec_vals[3,1]) + np.sin(theta)**2*np.sin(2*beta)*(expec_vals[0,1] - expec_vals[3,1]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[1,0] + expec_vals[1,3])+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[1,0] - expec_vals[1,3]))).real
+            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[0,1] + expec_vals[3,1]) + np.sin(theta)**2*np.sin(2*beta)*(expec_vals[0,1] - expec_vals[3,1]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[1,0] + expec_vals[1,3])+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[1,0] - expec_vals[1,3])))
 
         # print('rho', rho)
         # print('expec vals', expec_vals)
@@ -150,13 +172,33 @@ def analyze_state(rho_angles):
                 W_expec_vals.append(minimize(W, x0=[0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
         
         # find min W expec value; this tells us if first 12 measurements are enough #
-        W_min = min(W_expec_vals[:6])
-        Wp_t1 = min(W_expec_vals[6:9])
-        Wp_t2 = min(W_expec_vals[9:12])
-        Wp_t3 = min(W_expec_vals[12:15])
+        W_min = np.real(min(W_expec_vals[:6]))
+        Wp_t1 = np.real(min(W_expec_vals[6:9]))
+        Wp_t2 = np.real(min(W_expec_vals[9:12]))
+        Wp_t3 = np.real(min(W_expec_vals[12:15]))
 
         return W_min, Wp_t1, Wp_t2, Wp_t3
+    
+    def check_entangled(M0):
+        '''
+        Computes the eigenvalues of the partial transpose; if at least one is negative, then state labeled as '0' for entangled; else, '1'. 
+        '''
+        def partial_transpose(M0):
+            # decompose M0 into blocks
+            b1 = M0[:2, :2]
+            b2 = M0[:2, 2:]
+            b3 = M0[2:, :2]
+            b4 = M0[2:, 2:]
 
+            PT = np.matrix(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
+            return PT
+
+        # compute partial tranpose
+        PT = partial_transpose(M0)
+        eigenvals = np.linalg.eigvals(PT)
+        eigenvals.sort() # sort
+
+        return np.real(eigenvals[0]) # return min eigenvalue
 
     ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
     H = np.array([[1,0]]).reshape(2,1) # ZP
@@ -181,18 +223,37 @@ def analyze_state(rho_angles):
 
     ## compute W and W' ##
     W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
-   
 
-    return {'theta1':angles[0], 'theta2':angles[1], 'alpha1':angles[2], 'alpha2':angles[3], 'phi':angles[4],
-     'HH':HH, 'HV':HV,'VH':VH, 'VV':VV, 'DD':DD, 'DA':DA, 'AD':AD, 'AA':AA, 
-     'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3}
+    min_eig = check_entangled(rho)
+   
+    if rand_type=='jones':
+        return {'theta1':angles[0], 'theta2':angles[1], 'alpha1':angles[2], 'alpha2':angles[3], 'phi':angles[4],
+        'HH':HH, 'HV':HV,'VH':VH, 'VV':VV, 'DD':DD, 'DA':DA, 'AD':AD, 'AA':AA, 
+        'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3, 'min_eig':min_eig}
+    elif rand_type =='simplex':
+        return {'a':angles[0], 'b':angles[1], 'c':angles[2], 'd':angles[3], 'beta':angles[4], 'gamma':angles[5], 'delta':angles[6],
+        'HH':HH, 'HV':HV,'VH':VH, 'VV':VV, 'DD':DD, 'DA':DA, 'AD':AD, 'AA':AA, 
+        'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3, 'min_eig':min_eig}
+    else:
+        print('Incorrect rand_type.')
 
 ## perform randomization ##
 # set number of states
-N=102000 
+N=50000
 # initilize dataframe to hold states
-df = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
+df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
      'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-     'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': []}) 
+     'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
+     'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+     'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
 for i in trange(N):
-    analyze_state(get_random_state())
+    df_jones = df_jones.append(analyze_state(get_random_jones(), 'jones'), ignore_index=True)
+    df_simplex = df_simplex.append(analyze_state(get_random_simplex(), 'simplex'), ignore_index=True)
+
+# save!
+DATA_PATH = 'jones_simplex_data'
+df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
+df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
+
+# print(analyze_state(get_random_simplex(), 'simplex'))

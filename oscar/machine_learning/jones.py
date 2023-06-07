@@ -22,22 +22,30 @@ print(rho_PsiM, 'PsiM')
 def R(alpha): return np.matrix([[np.cos(alpha), np.sin(alpha)], [-np.sin(alpha), np.cos(alpha)]])
 def H(theta): return np.matrix([[np.cos(2*theta), np.sin(2*theta)], [np.sin(2*theta), -np.cos(2*theta)]])
 def Q(alpha): return R(alpha) @ np.matrix(np.diag([np.e**(np.pi / 4 * 1j), np.e**(-np.pi / 4 * 1j)])) @ R(-alpha)
-def QP(phi): return np.matrix(np.diag([1, np.e**(phi*1j)]))
+def get_QP(phi): return np.matrix(np.diag([1, np.e**(phi*1j)]))
+B = np.matrix([[0, 0, 0, 1], [1, 0,0,0]]).T
 
 ## test sample values ##
 # angles are: H1, H2, Q1, QP1
-angle_dict = {'PhiP':[np.pi/4, 0,0, 0, 0], 'PhiM':[np.pi/4, 0, 0, 0, np.pi], 'PsiP':[np.pi/4, 0, np.pi/4,np.pi/4,  np.pi], 'PsiM':[np.pi/4, 0, np.pi/4,np.pi/4, 0]}
-desired_state = angle_dict['PsiP']
+# angle_dict = {'PhiP':[np.pi/4, 0,0, 0, 0], 'PhiM':[np.pi/4, 0, 0, 0, np.pi], 'PsiP':[np.pi/4, 0, np.pi/4,np.pi/4,  np.pi], 'PsiM':[np.pi/4, 0, np.pi/4,np.pi/4, 0]}
+# desired_state = angle_dict['PsiP']
 
-## compute components ##
-H1 = H(desired_state[0])
-H2 = H(desired_state[1])
-Q1 = Q(desired_state[2])
-Q2 = Q(desired_state[3])
-QP1 = QP(desired_state[4])
+# desired_state=[np.pi/4, 0, np.pi/4, 0, 0]
+desired_state=[np.pi, 0, 0]
 
-## compute density matrix ##
-M = np.kron(H1, H2 @ Q2 @  Q1 @ QP1 @ H1) @ rho_PhiP
-rho = np.round(M @ M.H,2).real
+def get_rho(desired_state):
 
-print(rho)
+    ## compute components ##
+    H1 = H(desired_state[0])
+    H2 = H(desired_state[1])
+    # Q1 = Q(desired_state[2])
+    # Q2 = Q(desired_state[3])
+    QP = get_QP(desired_state[2])
+
+    ## compute density matrix ##
+    P = np.kron(np.eye(2), H2) @ B @ QP @ H1
+    rho = np.round(P @ P.H,2).real
+
+    print(rho)
+
+get_rho(desired_state)

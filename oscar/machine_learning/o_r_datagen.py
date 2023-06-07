@@ -96,24 +96,24 @@ def gen_dataset(size, savepath):
             return (np.trace(num) / np.trace(denom)).real
         except ZeroDivisionError:
             return 0
-    
-    def partial_transpose(M0):
-        # decompose M0 into blocks
-        b1 = M0[:2, :2]
-        b2 = M0[:2, 2:]
-        b3 = M0[2:, :2]
-        b4 = M0[2:, 2:]
-
-        PT = np.matrix(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
-        return PT
 
     def get_purity(M0):
-        return np.trace(np.linalg.matrix_power(M0, 2)) # returns trace of reduced density matrix ^2
+        return (np.trace(np.linalg.matrix_power(M0, 2))).real # returns trace of reduced density matrix ^2
 
     def check_entangled(M0):
         '''
         Computes the eigenvalues of the partial transpose; if at least one is negative, then state labeled as '0' for entangled; else, '1'. 
         '''
+        def partial_transpose(M0):
+            # decompose M0 into blocks
+            b1 = M0[:2, :2]
+            b2 = M0[:2, 2:]
+            b3 = M0[2:, :2]
+            b4 = M0[2:, 2:]
+
+            PT = np.matrix(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
+            return PT
+
         # compute partial tranpose
         PT = partial_transpose(M0)
         eigenvals = np.linalg.eigvals(PT)
