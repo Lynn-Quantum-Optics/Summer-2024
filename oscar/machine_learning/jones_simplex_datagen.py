@@ -159,14 +159,14 @@ def analyze_state(rho_angles, rand_type):
 
         # print('rho', rho)
         # print('expec vals', expec_vals)
-        # print('testing Wp1', get_Wp1([np.pi, np.pi/3], expec_vals))
+        # print('testing W', get_W2(np.pi, expec_vals))
 
         # now perform optimization; break into three groups based on the number of params to optimize
         all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
         W_expec_vals = []
         for i, W in enumerate(all_W):
             if i <= 5: # just theta optimization
-                W_expec_vals.append(minimize(W, x0=[0], args = (expec_vals,), bounds=[(0, np.pi/2)])['fun'][0])
+                W_expec_vals.append(minimize(W, x0=[0], args = (expec_vals,), bounds=[(0, np.pi/2)])['fun']) # gave an error with [0] after ['fun']
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
                  W_expec_vals.append(minimize(W, x0=[0, 0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
             else:# theta and alpha
@@ -239,19 +239,48 @@ def analyze_state(rho_angles, rand_type):
         print('Incorrect rand_type.')
 
 ## perform randomization ##
-def gen_data(N=50000):
-    # initilize dataframe to hold states
-    df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
-        'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-        'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
-    df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
-        'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-        'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
-    for i in trange(N):
-        df_jones = df_jones.append(analyze_state(get_random_jones(), 'jones'), ignore_index=True)
-        df_simplex = df_simplex.append(analyze_state(get_random_simplex(), 'simplex'), ignore_index=True)
+def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_data'):
+    '''
+    Generates random states and computes 12 input probabilities, W min, W' min for each triplet, and min_eig for each state.
+    params:
+        N: number of states to generate
+        do_jones: if True, generate states using Jones generation
+        do_simplex: if True, generate states using simplex generation
+        DATA_PATH: path to save data
+    '''
+    if do_jones and do_simplex:
+        # initilize dataframe to hold states
+        df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
+            'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+        df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
+            'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+        for i in trange(N):
+            df_jones = pd.concat([df_jones, pd.DataFrame.from_records([analyze_state(get_random_jones(), 'jones')])])
+            df_simplex = pd.concat([df_simplex, pd.DataFrame.from_records([analyze_state(get_random_simplex(), 'simplex')])])
+        # save!
+        df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
+        df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
+    elif do_jones:
+        df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
+            'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+        for i in trange(N):
+            df_jones = pd.concat([df_jones, pd.DataFrame.from_records([analyze_state(get_random_jones(), 'jones')])])
+        # save!
+        df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
+    elif do_simplex:
+        df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
+            'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+        for i in trange(N):
+            df_simplex = pd.concat([df_simplex, pd.DataFrame.from_records([analyze_state(get_random_simplex(), 'simplex')])])
+        # save!
+        df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
+    else:
+        print('Hmmm... make sure one of do_jones or do_simplex is enabled.')
+    
 
-    # save!
-    DATA_PATH = 'jones_simplex_data'
-    df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
-    df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
+if __name__=='__main__':
+    gen_data(do_jones=True, do_simplex=False)
