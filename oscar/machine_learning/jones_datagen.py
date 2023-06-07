@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from os.path import join
 from scipy.optimize import minimize
+import scipy.linalg as la
 from tqdm import trange # for progress bar
 
 def get_random_jones():
@@ -37,7 +38,7 @@ def get_random_jones():
         P = np.kron(Q2,Q1 @ H2) @ B @ QP @ H1
         rho = np.real(np.round(P @ P.H,2))
 
-        return rho
+        return np.matrix(rho)
 
     theta_ls = np.random.rand(2)*np.pi/4
     theta1, theta2 = theta_ls[0], theta_ls[1]
@@ -66,7 +67,7 @@ def get_random_simplex():
     state_vec = np.multiply(real_ls, np.e**(np.concatenate((np.array([1]), rand_angle))*1j)).reshape((4,1))
 
     # compute density matrix
-    rho = np.real(state_vec @ np.conjugate(state_vec.reshape((1,4))))
+    rho = np.matrix(np.real(state_vec @ np.conjugate(state_vec.reshape((1,4)))))
 
     return [rho, np.concatenate((real_ls, rand_angle))]
 
@@ -179,7 +180,7 @@ def analyze_state(rho_angles, rand_type):
 
         return W_min, Wp_t1, Wp_t2, Wp_t3
     
-    def check_entangled(M0):
+    def get_min_eig(M0):
         '''
         Computes the eigenvalues of the partial transpose; if at least one is negative, then state labeled as '0' for entangled; else, '1'. 
         '''
@@ -195,7 +196,7 @@ def analyze_state(rho_angles, rand_type):
 
         # compute partial tranpose
         PT = partial_transpose(M0)
-        eigenvals = np.linalg.eigvals(PT)
+        eigenvals = la.eigvals(PT)
         eigenvals.sort() # sort
 
         return np.real(eigenvals[0]) # return min eigenvalue
@@ -224,7 +225,7 @@ def analyze_state(rho_angles, rand_type):
     ## compute W and W' ##
     W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
 
-    min_eig = check_entangled(rho)
+    min_eig = get_min_eig(rho)
    
     if rand_type=='jones':
         return {'theta1':angles[0], 'theta2':angles[1], 'alpha1':angles[2], 'alpha2':angles[3], 'phi':angles[4],
@@ -238,22 +239,19 @@ def analyze_state(rho_angles, rand_type):
         print('Incorrect rand_type.')
 
 ## perform randomization ##
-# set number of states
-N=50000
-# initilize dataframe to hold states
-df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
-     'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-     'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
-df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
-     'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-     'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
-for i in trange(N):
-    df_jones = df_jones.append(analyze_state(get_random_jones(), 'jones'), ignore_index=True)
-    df_simplex = df_simplex.append(analyze_state(get_random_simplex(), 'simplex'), ignore_index=True)
+def gen_data(N=50000):
+    # initilize dataframe to hold states
+    df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
+        'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+        'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+    df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
+        'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
+        'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+    for i in trange(N):
+        df_jones = df_jones.append(analyze_state(get_random_jones(), 'jones'), ignore_index=True)
+        df_simplex = df_simplex.append(analyze_state(get_random_simplex(), 'simplex'), ignore_index=True)
 
-# save!
-DATA_PATH = 'jones_simplex_data'
-df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
-df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
-
-# print(analyze_state(get_random_simplex(), 'simplex'))
+    # save!
+    DATA_PATH = 'jones_simplex_data'
+    df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
+    df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
