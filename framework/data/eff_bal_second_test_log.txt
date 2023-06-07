@@ -1,0 +1,16 @@
+0:00:35 Manager initialized
+0:00:35 Configuring phi_plus state
+0:00:52 Taking initialization data C_UV_HWP @ 65.36000 deg
+0:01:31 Taking initialization data: C_UV_HWP @ 66.36000 deg
+0:02:10 At 65.360 deg -> 51.491433501787256% HH detections
+0:02:10 At 66.360 deg -> 48.458149779735685% HH detections
+0:02:11 0: new best guess = 65.85169 degrees
+0:03:30 PCT at guess = 50.23071 +- 0.2210336 %
+0:03:30 0: new range angles = 65.85169, 66.36000
+0:03:30 1: new best guess = 65.91785 degrees
+0:04:50 PCT at guess = 49.90212 +- 0.1530541 %
+0:04:50 1: new range angles = 65.85169, 65.91785
+0:04:50 2: new best guess = 65.89814 degrees
+0:06:09 PCT at guess = 49.93728 +- 0.3119332 %
+Last guess as close as we can get reliably.
+0:06:09 2: new range angles = 65.85169, 65.89814

@@ -261,6 +261,35 @@ class Manager:
             list(data_avg) + \
             list(data_unc))
 
+    def get_rate(self, num_samp:int, samp_period:float, *keys) -> 'list[float]':
+        # get the data from the CCU
+        data_avg, data_unc = self._ccu.acquire_data(num_samp, samp_period)
+        
+        # filter as applicable
+        if len(keys) == 0:
+            return data_avg, data_unc
+        elif len(keys) == 1:
+            return data_avg[CCU.CHANNEL_KEYS.index(keys[0])], data_unc[CCU.CHANNEL_KEYS.index(keys[0])]
+        else:
+            out_avgs = np.array([data_avg[CCU.CHANNEL_KEYS.index(k)] for k in keys])
+            out_uncs = np.array([data_unc[CCU.CHANNEL_KEYS.index(k)] for k in keys])
+            return out_avgs, out_uncs
+    
+    def pct_det(self, basis1:str, basis2:str, num_samp:int, samp_period:float, chan:str='C4'):
+        # take first measurement
+        self.meas_basis(basis1)
+        rate1, unc1 = self.get_rate(num_samp, samp_period, chan)
+        # take first measurement
+        self.meas_basis(basis2)
+        rate2, unc2 = self.get_rate(num_samp, samp_period, chan)
+        # get percentage and uncertainty
+        pct = rate1 / (rate1 + rate2)
+        unc = (rate2/(rate1+rate2)**2)*unc1 + (rate1/(rate1+rate2)**2)*unc2
+        return pct, unc
+
+
+
+
     def configure_motors(self, **kwargs) -> None:
         ''' Configure the position of multiple motors at a time
 
