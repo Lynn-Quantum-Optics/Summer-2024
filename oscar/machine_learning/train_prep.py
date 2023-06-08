@@ -2,16 +2,18 @@
 
 from os.path import join
 import pandas as pd
+import numpy as np
 
-def prepare_data(datapath, method='witness_s', p=0.8):
+def prepare_data(datapath, savename, method, p=0.8):
     ''' Function to prepare data for training.
     params:
         datapath: path to csv
+        savename: what to name the prepped data
         method: 'witness_s' (simplex) or 'witness_j' (jones) or 'entangled' for prediction method
         p: fraction of data to use for training
     '''
     df= pd.read_csv(datapath)
-
+    other = [] # for other columns to save
     if method=='witness_s' or method=='witness_j':
         inputs = ['HH','HV', 'VH','VV', 'DD', 'DA','AD','AA', 'RR', 'RL','LR','LL']
         outputs=['Wp_t1', 'Wp_t2', 'Wp_t3']
@@ -19,6 +21,9 @@ def prepare_data(datapath, method='witness_s', p=0.8):
             other = ['a','b','c','d','beta', 'gamma', 'delta']
         else:
             other = ['theta1', 'theta2', 'alpha1', 'alpha2', 'phi']
+        # reassign df so it only has rows corresponding to positive W and >=1 W'<0
+        df[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t1']<0))]
+
     elif method=='entangled':
         # add code here
         outputs = ['min_eig']
@@ -49,6 +54,22 @@ def prepare_data(datapath, method='witness_s', p=0.8):
         X_test = df_test[inputs]
         Y_test = simplify_targ(df_test[outputs])
 
-        return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
+        if len(other)==0:
+            np.save(join(savename+'_X_train.npy'), X_train.to_numpy())
+            np.save(join(savename+'_Y_train.npy'), Y_train.to_numpy())
+            np.save(join(savename+'_X_test.npy'), X_test.to_numpy())
+            np.save(join(savename+'_Y_test.npy'), Y_test.to_numpy())
+            return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
+        else:
+            Other_train = df_train[other]
+            Other_test = df_test[other]
+
+            np.save(join(savename+'_X_train.npy'), X_train.to_numpy())
+            np.save(join(savename+'_Y_train.npy'), Y_train.to_numpy())
+            np.save(join(savename+'_X_test.npy'), X_test.to_numpy())
+            np.save(join(savename+'_Y_test.npy'), Y_test.to_numpy())
+            np.save(join(savename+'_Other_train.npy'), Other_train.to_numpy())
+            np.save(join(savename+'_Other_test.npy'), Other_test.to_numpy())
+            return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy(), Other_train.to_numpy(), Other_test.to_numpy()
     
     return split_data()
