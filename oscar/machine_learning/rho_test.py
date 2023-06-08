@@ -89,7 +89,11 @@ def check_entangled_sample(N=10000, conditions=None, func=get_random_simplex, me
                 concurrence, min_eig = check_entangled(state)
                 if conditions[0][0] <= concurrence <= conditions[0][1] and conditions[1][0] <= min_eig <= conditions[1][1]:
                     print(state)
-                    print('is Hermitian', all(state==state.H))
+                    print(np.trace(state))
+                    print('is Hermitian', np.all(state==state.H))
+                    print('min eig', min_eig)
+                    print('concurrence', concurrence)
+                    print('eig of state', la.eigvals(state))
                     go=True
                 else:
                     concurrence, min_eig = check_entangled(get_state())
