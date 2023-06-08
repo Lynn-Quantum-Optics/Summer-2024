@@ -197,7 +197,11 @@ def compute_witnesses(rho):
             W_expec_vals.append(minimize(W, x0=[0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
     
     # find min W expec value; this tells us if first 12 measurements are enough #
-    W_min = np.real(min(W_expec_vals[:6]))[0]
+    try:
+        W_min = np.real(min(W_expec_vals[:6]))[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
+    except TypeError: # if it's a float, then just use that
+        W_min = np.real(min(W_expec_vals[:6]))
+
     Wp_t1 = np.real(min(W_expec_vals[6:9]))
     Wp_t2 = np.real(min(W_expec_vals[9:12]))
     Wp_t3 = np.real(min(W_expec_vals[12:15]))
