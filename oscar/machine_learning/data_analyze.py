@@ -69,7 +69,7 @@ def get_witness_dist(df_ls, labels, plot=True, savename=None):
 if __name__ == '__main__':
     DATA_PATH = 'jones_simplex_data'
     df_jones = pd.read_csv(join(DATA_PATH, 'jones_50000_0.csv'))
-    df_simplex = pd.read_csv(join(DATA_PATH, 'simplex_50000_0.csv'))
+    df_simplex = pd.read_csv(join(DATA_PATH, 'simplex_200000_0.csv'))
 
-    get_min_eig_dist_comp([df_jones, df_simplex], labels=['Jones', 'Simplex'],savename=join(DATA_PATH, 'min_eig_dist_comp_50000_0'))
-    get_witness_dist([df_jones, df_simplex], labels=['Jones', 'Simplex'], savename=join(DATA_PATH, 'witness_dist_comp_50000_0'))
+    # get_min_eig_dist_comp([df_jones, df_simplex], labels=['Jones', 'Simplex'],savename=join(DATA_PATH, 'min_eig_dist_comp_200000_0'))
+    get_witness_dist([df_jones, df_simplex], labels=['Jones', 'Simplex'], savename=join(DATA_PATH, 'witness_dist_comp_200000_0'))
