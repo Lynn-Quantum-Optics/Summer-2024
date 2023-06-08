@@ -116,6 +116,6 @@ def gen_dataset(size, savepath):
 
 ## build dataset ##
 if __name__ == '__main__':
-    size=4400000
+    size=44
     savepath='RO_data'
     gen_dataset(size, savepath)
