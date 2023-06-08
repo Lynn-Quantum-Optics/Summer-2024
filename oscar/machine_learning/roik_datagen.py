@@ -86,6 +86,8 @@ def gen_dataset(size, savepath):
     Takes as input the length of the desired dataset and returns a csv of randomized states as well as path to save
     '''
 
+    M0 = get_random_roik() # get the randomized state
+
     HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV = get_all_roik_projections(M0)
 
     # initialize dataframes
