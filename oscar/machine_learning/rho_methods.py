@@ -197,7 +197,7 @@ def compute_witnesses(rho):
             W_expec_vals.append(minimize(W, x0=[0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
     
     # find min W expec value; this tells us if first 12 measurements are enough #
-    W_min = np.real(min(W_expec_vals[:6]))
+    W_min = np.real(min(W_expec_vals[:6]))[0]
     Wp_t1 = np.real(min(W_expec_vals[6:9]))
     Wp_t2 = np.real(min(W_expec_vals[9:12]))
     Wp_t3 = np.real(min(W_expec_vals[12:15]))
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     from jones_simplex_datagen import get_random_jones, get_random_simplex
     from roik_datagen import get_random_roik
 
-    def check_entangled_sample(N=10000, conditions=None, func=get_random_simplex, method_name='simplex', savedir='rho_test_plots', special_name='0', display=False):
+    def check_conc_min_eig_sample(N=10000, conditions=None, func=get_random_simplex, method_name='simplex', savedir='rho_test_plots', special_name='0', display=False, fit=False):
         ''' Checks random sample of N simplex generated matrices. 
         params:
             N: number of random states to check
@@ -278,6 +278,7 @@ if __name__ == '__main__':
             savedir: directory to save plots
             special_name: if searching with specific conditions, add a unique name to the plot
             display: whether to display plot
+            fit: whether to fit a func to the data
         '''
         concurrence_ls = []
         min_eig_ls = []
@@ -295,12 +296,12 @@ if __name__ == '__main__':
                 go=False
                 while not(go):
                     rho = get_state()
-                    concurrence, min_eig = check_entangled(rho)
+                    concurrence, min_eig = check_conc_min_eig(rho)
                     if conditions[0][0] <= concurrence <= conditions[0][1] and conditions[1][0] <= min_eig <= conditions[1][1]:
                         # print(is_valid_rho(state))
                         go=True
                     else:
-                        concurrence, min_eig = check_entangled(get_state())
+                        concurrence, min_eig = check_conc_min_eig(get_state())
             else:
                 # check if entangled
                 concurrence, min_eig = check_conc_min_eig(get_state())
@@ -318,16 +319,20 @@ if __name__ == '__main__':
         plt.ylabel('Min eigenvalue')
         plt.title('Concurrence vs. min eigenvalue for %s'%method_name)
         plt.savefig(join(savedir, 'concurrence_vs_min_eig_%i_%s_%s.pdf'%(N, method_name, special_name)))
+        # if fit:
+        #     from scipy.optimize import curve_fit
+        #     def func(x, a, b, c):
+        #         return 
         if display:
             plt.show()
 
     # no conditions
-    check_entangled_sample()
-    check_entangled_sample(func=get_random_roik, method_name='roik')
-    check_entangled_sample(func=get_random_jones, method_name='jones')
+    check_conc_min_eig_sample()
+    # check_conc_min_eig_sample(func=get_random_roik, method_name='roik')
+    # check_conc_min_eig_sample(func=get_random_jones, method_name='jones')
 
     # conditions:
         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
-    # check_entangled_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
-    # check_entangled_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
+    # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
+    # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
     pass
