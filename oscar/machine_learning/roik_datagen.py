@@ -5,7 +5,7 @@ from os.path import join
 from tqdm import trange # for progress bar
 
 # import for rho_test ##
-from rho_test import is_valid_rho, get_purity, get_min_eig, get_all_roik_projections
+from rho_methods import is_valid_rho, get_purity, get_min_eig, get_all_roik_projections
 
 ### randomization functions ###
 def get_random_roik():
