@@ -10,7 +10,7 @@ from tqdm import trange
 
 # random state gen imports #
 from jones_simplex_datagen import get_random_jones, get_random_simplex
-from o_r_datagen import get_random_state
+from o_r_datagen import get_random_roik
 
 def get_min_eig(M0):
     '''
@@ -43,14 +43,13 @@ def get_concurrence(rho):
             sy = np.array([[0,-1j],[1j,0]])
             sysy = np.kron(sy,sy)
             # perform spin flipping
-            return sysy @ rho.H @ sysy
+            return sysy @ rho.conj() @ sysy
         sqrt_rho = la.sqrtm(rho)
         rho_tilde = spin_flip(rho)
         return (sqrt_rho @ rho_tilde @ sqrt_rho)
     R = R_matrix(rho)
     eig_vals = np.real(la.eigvals(R))
-    np.sort(eig_vals)[::-1] # reverse sort numpy array
-    print(eig_vals)
+    eig_vals = np.sort(eig_vals)[::-1] # reverse sort numpy array
     return np.max([0,eig_vals[0] - eig_vals[1] - eig_vals[2] - eig_vals[3]])
 
 def check_entangled(rho, print=False):
@@ -86,8 +85,11 @@ def check_entangled_sample(N=10000, conditions=None, func=get_random_simplex, me
         if conditions != None:
             go=False
             while not(go):
-                concurrence, min_eig = check_entangled(get_state())
+                state = get_state()
+                concurrence, min_eig = check_entangled(state)
                 if conditions[0][0] <= concurrence <= conditions[0][1] and conditions[1][0] <= min_eig <= conditions[1][1]:
+                    print(state)
+                    print('is Hermitian', all(state==state.H))
                     go=True
                 else:
                     concurrence, min_eig = check_entangled(get_state())
@@ -108,9 +110,16 @@ def check_entangled_sample(N=10000, conditions=None, func=get_random_simplex, me
     plt.ylabel('Min eigenvalue')
     plt.title('Concurrence vs. min eigenvalue for %s'%method_name)
     plt.savefig(join(savedir, 'concurrence_vs_min_eig_%i_%s_%s.pdf'%(N, method_name, special_name)))
-    plt.show()
+    # plt.show()
 
 # presets
-# if __name__ == '__main__':
-#     check_entangled_sample(func=get_random_state, method_name='roik')
-#     check_entangled_sample(N=1000, method_name='simplex', conditions=((0, 0), (-1000, 1000)), func=get_random_simplex, special_name='conc_0')
+if __name__ == '__main__':
+    # no conditions
+    # check_entangled_sample()
+    # check_entangled_sample(func=get_random_roik, method_name='roik')
+    # check_entangled_sample(func=get_random_jones, method_name='jones')
+
+    # conditions
+    check_entangled_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='conc_0')
+    # check_entangled_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
+    pass

@@ -5,7 +5,7 @@ from os.path import join
 from tqdm import trange # for progress bar
 
 ### randomization functions ###
-def get_roik_random():
+def get_random_roik():
     ## method 1: random diagonal elements ##
     def rand_diag():
         # get 4 random params
@@ -142,7 +142,7 @@ def gen_dataset(size, savepath):
     
     for j in trange(size):
         # get the randomized state
-        M0 = get_roik_random() 
+        M0 = get_random_roik() 
         min_eig = check_entangled(M0)
         purity = get_purity(M0)
 

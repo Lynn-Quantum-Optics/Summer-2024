@@ -33,10 +33,11 @@ def get_random_jones():
         Q1 = Q(alpha1)
         Q2 = Q(alpha2)
         QP = get_QP(phi)
+        init_state = np.matrix([[1,0],[0,0]])
 
         ## compute density matrix ##
-        P = np.kron(Q2,Q1 @ H2) @ B @ QP @ H1
-        rho = np.real(np.round(P @ P.H,2))
+        P = np.kron(Q2,Q1 @ H2) @ B @ QP @ H1 @ init_state
+        rho = np.round(P @ P.H,2)
 
         return np.matrix(rho)
 
@@ -67,7 +68,7 @@ def get_random_simplex():
     state_vec = np.multiply(real_ls, np.e**(np.concatenate((np.array([1]), rand_angle))*1j)).reshape((4,1))
 
     # compute density matrix
-    rho = np.matrix(np.real(state_vec @ np.conjugate(state_vec.reshape((1,4)))))
+    rho = np.matrix(state_vec @ np.conjugate(state_vec.reshape((1,4))))
 
     return [rho, np.concatenate((real_ls, rand_angle))]
 
