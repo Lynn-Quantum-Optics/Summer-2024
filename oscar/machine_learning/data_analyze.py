@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ## analyze the data ##
-def get_min_eig_dist_comp(df_ls, labels,savename=None):
+def get_min_eig_dist_comp(df_ls, labels,title='sick title', savename=None):
     ''' Compare  the distribution of min eigenvalues for any number of dfs.'''
     # get min eigenvalues
     min_eig_ls = [df['min_eig'] for df in df_ls]
@@ -16,10 +16,9 @@ def get_min_eig_dist_comp(df_ls, labels,savename=None):
         axes[i].hist(min_eig_ls[i], bins=100, alpha=0.9)
         axes[i].set_title(labels[i])
         axes[i].set_ylabel('Counts')
-    axes[-1].set_title('Simplex')
     axes[-1].set_xlabel('Min eigenvalue')
 
-    plt.suptitle('Distribution of min eigenvalues for %i random states'%len(df_ls[0]))
+    plt.suptitle('Distribution of min eigenvalues for %s'%title)
 
     if savename != None:
         plt.savefig(savename+'.pdf')
@@ -27,6 +26,24 @@ def get_min_eig_dist_comp(df_ls, labels,savename=None):
 
     # return where min eig is negative
     return [df['min_eig'][df['min_eig']<0] for df in df_ls]
+
+def get_purity_dist_comp(df_ls, labels, title='super cool title', savename=None):
+    ''' Compare the distribution of purity for any number of dfs.'''
+    # get purity
+    purity_ls = [df['purity'] for df in df_ls]
+
+    fig, axes = plt.subplots(len(df_ls),1, figsize=(7,8), sharex=True)
+    for i in range(len(df_ls)):
+        axes[i].hist(purity_ls[i], bins=100, alpha=0.9)
+        axes[i].set_title(labels[i])
+        axes[i].set_ylabel('Counts')
+    axes[-1].set_xlabel('Purity')
+
+    plt.suptitle('Distribution of purity for %s'%title)
+
+    if savename != None:
+        plt.savefig(savename+'.pdf')
+    plt.show()
 
 def get_witness_dist(df_ls, labels, plot=True, savename=None):
     ''' Compare the distribution of W values for any number of dfs.'''
@@ -68,8 +85,8 @@ def get_witness_dist(df_ls, labels, plot=True, savename=None):
 
 if __name__ == '__main__':
     DATA_PATH = 'jones_simplex_data'
-    df_jones = pd.read_csv(join(DATA_PATH, 'jones_50000_0.csv'))
-    df_simplex = pd.read_csv(join(DATA_PATH, 'simplex_200000_0.csv'))
+    # df_jones = pd.read_csv(join(DATA_PATH, 'jones_50000_0.csv'))
+    df_simplex = pd.read_csv(join(DATA_PATH, 'simplex_2000_0.csv'))
 
     # get_min_eig_dist_comp([df_jones, df_simplex], labels=['Jones', 'Simplex'],savename=join(DATA_PATH, 'min_eig_dist_comp_200000_0'))
-    get_witness_dist([df_jones, df_simplex], labels=['Jones', 'Simplex'], savename=join(DATA_PATH, 'witness_dist_comp_200000_0'))
+    witness_ls  = get_witness_dist([df_simplex], labels=['Simplex'], savename=join(DATA_PATH, 'witness_dist_comp_2000_0'))
