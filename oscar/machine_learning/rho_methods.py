@@ -27,7 +27,7 @@ def is_valid_rho(rho):
 
 def get_purity(rho):
     ''' Calculates the purity of a density matrix. '''
-    return np.trace(rho @ rho)
+    return np.real(np.trace(rho @ rho))
 
 ##############################################
 ## for tomography ##
