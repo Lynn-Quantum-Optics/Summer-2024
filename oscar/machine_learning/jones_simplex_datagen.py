@@ -125,5 +125,5 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
     
 
 if __name__=='__main__':
-    gen_data(N=200000, do_jones=False, do_simplex=True)
+    # gen_data(N=200000, do_jones=False, do_simplex=True)
     gen_data(N=20000, do_jones=True, do_simplex=False)

@@ -1,7 +1,10 @@
 # file for sample jones matrix computations
-import numpy as np
 
-# from main file
+# main package imports #
+import numpy as np
+from scipy.optimize import minimize
+
+# special methods for density matrices #
 from rho_methods import check_conc_min_eig, is_valid_rho
 
 ## jones matrices ##
@@ -50,10 +53,57 @@ def get_Jrho_I(angles):
 
     return rho
 
+def jones_decompose(func, targ_rho):
+    ''' Function to decompose a given density matrix into jones matrices. 
+    params:
+        func: what setup (either Jrho_C or Jrho_I) to fit to
+        targ_rho: target density matrix
+    '''
+    def get_random_angles_C():
+        ''' Returns random angles for the Jrho_C setup'''
+        theta_ls = np.random.rand(2)*np.pi/4
+        theta1, theta2 = theta_ls[0], theta_ls[1]
+        alpha_ls = np.random.rand(2)*np.pi/2
+        alpha1, alpha2 = alpha_ls[0], alpha_ls[1]
+        phi = np.random.rand()*0.69 # experimental limit of our QP
+
+        return [theta1, theta2, alpha1, alpha2, phi]
+    
+    # initial guesses (PhiP)
+    if func==get_Jrho_C:
+        # x0 = [np.pi/8,0,0, 0, 0]
+        x0 = get_random_angles_C()
+        bounds = [(0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, 0.69)]
+    elif func==get_Jrho_I:
+        x0 = [np.pi/8,0,0, 0,0,0, 0,0,0]
+        bounds = bounds = [(0, np.pi/4), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2),(0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2) ]
+
+    # loss function
+    def loss(angles, targ_rho):
+        # get predicted density matrix
+        pred_rho = func(angles)
+        # get element-wise squared diff
+        squared_diff = np.square(pred_rho - targ_rho)
+        # get RMSE
+        sum_squared_diff = np.sqrt(1 / (2*targ_rho.shape[0])**2 * np.sum(squared_diff))
+        return sum_squared_diff
+
+    # minimize loss function
+    min_result= minimize(loss, x0=x0, args=(targ_rho), bounds=bounds)
+    min_loss = min_result.fun
+    best_angles = min_result.x
+    print('actual state', targ_rho)
+    print('predicted state', func(best_angles) )
+    return best_angles, min_loss
+
+
 if __name__=='__main__':
     # import predefined states for testing
     from sample_rho import PhiP, PhiM, PsiP, PsiM
 
-    angles=[np.pi/8,0,0, 0, 0] # PhiP
-    rho = get_Jrho_C(*angles)
-    print(rho)
+    # angles=[np.pi/8,0,0, 0, 0] # PhiP
+    # angles=[np.pi/8, np.pi/4, 0, 0, np.pi] # PsiM
+    # rho = get_Jrho_C(angles)
+    # print(rho)
+    from roik_datagen import get_random_roik
+    jones_decompose(get_Jrho_C, get_random_roik())
