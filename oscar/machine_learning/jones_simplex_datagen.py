@@ -22,12 +22,12 @@ def get_random_jones():
         return [theta1, theta2, alpha1, alpha2, phi]
 
     angles = get_random_angles_C()
-    rho = get_Jrho_C(*angles)
+    rho = get_Jrho_C(angles)
 
     # call method to confirm state is valid
     while not(is_valid_rho(rho)):
         angles = get_random_angles_C()
-        rho = get_Jrho_C(*angles)
+        rho = get_Jrho_C(angles)
 
     return [rho, angles]
 
@@ -125,4 +125,5 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
     
 
 if __name__=='__main__':
-    gen_data(do_jones=True, do_simplex=False)
+    gen_data(N=200000, do_jones=False, do_simplex=True)
+    gen_data(N=20000, do_jones=True, do_simplex=False)

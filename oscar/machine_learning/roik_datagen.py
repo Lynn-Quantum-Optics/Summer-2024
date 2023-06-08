@@ -71,12 +71,12 @@ def get_random_roik():
 
     M = rand_diag()
     U = rand_unitary()
-    M0 = combine_rand(M, U)
+    M0 = combine_rand()
 
     while not(is_valid_rho(M0)): # if not valid density matrix, keep generating
         M = rand_diag()
         U = rand_unitary()
-        M0 = combine_rand(M, U)
+        M0 = combine_rand()
 
     return M0
 
@@ -118,6 +118,6 @@ def gen_dataset(size, savepath):
 
 ## build dataset ##
 if __name__ == '__main__':
-    size=44
+    size=20000
     savepath='RO_data'
     gen_dataset(size, savepath)

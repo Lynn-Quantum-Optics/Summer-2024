@@ -303,7 +303,7 @@ if __name__ == '__main__':
                         concurrence, min_eig = check_entangled(get_state())
             else:
                 # check if entangled
-                concurrence, min_eig = check_entangled(get_state())
+                concurrence, min_eig = check_conc_min_eig(get_state())
             # plot
             concurrence_ls.append(concurrence)
             min_eig_ls.append(min_eig)
@@ -322,12 +322,12 @@ if __name__ == '__main__':
             plt.show()
 
     # no conditions
-    # check_entangled_sample()
-    # check_entangled_sample(func=get_random_roik, method_name='roik')
-    # check_entangled_sample(func=get_random_jones, method_name='jones')
+    check_entangled_sample()
+    check_entangled_sample(func=get_random_roik, method_name='roik')
+    check_entangled_sample(func=get_random_jones, method_name='jones')
 
     # conditions:
         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
-    check_entangled_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
+    # check_entangled_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
     # check_entangled_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
     pass
