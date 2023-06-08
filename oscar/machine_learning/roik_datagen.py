@@ -94,15 +94,12 @@ def gen_dataset(size, savepath):
     df_15 = pd.DataFrame({'DD':[], 'AA':[], 'DL':[], 'AR':[], 'DH':[], 'AV':[], 'LL':[], 'RR':[], 'LH':[], 'RV':[], 'HH':[], 'VV':[], 'DR':[], 'DV':[], 'LV':[], 'min_eig':[], 'purity':[]})
     
     # for j in trange(size):
-    for j in range(size):
-        print(j)
+    for j in trange(size):
         # get the randomized state and important properties
         M0 = get_random_roik() 
         min_eig = get_min_eig(M0)
         purity = get_purity(M0)
-        print('here')
         HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV = get_all_roik_projections(M0)
-        print('here2')
         # compute projections in groups
         df_3 = pd.concat([df_3, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'min_eig':min_eig,'purity':purity}])])        
         df_5 = pd.concat([df_5, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'AA':AA, 'min_eig':min_eig,'purity':purity}])])
@@ -118,7 +115,6 @@ def gen_dataset(size, savepath):
 
 ## build dataset ##
 if __name__ == '__main__':
-    size=20000
+    N = int(input('How many states to generate?'))
     savepath='RO_data'
-    print('test')
-    gen_dataset(size, savepath)
+    gen_dataset(N, savepath)

@@ -125,5 +125,10 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
     
 
 if __name__=='__main__':
-    # gen_data(N=200000, do_jones=False, do_simplex=True)
-    gen_data(N=20000, do_jones=True, do_simplex=False)
+    N = int(input('How many states to generate?'))
+    do_j = int(input('Do Jones? (0/1)'))
+    do_s = int(input('Do Simplex? (0/1)'))
+    print(bool(do_j), bool(do_s))
+    gen_data(N=N, do_jones=bool(do_j), do_simplex=bool(do_s))
+    # gen_data(N=100000, do_jones=False, do_simplex=True)
+    # # gen_data(N=20000, do_jones=True, do_simplex=False)
