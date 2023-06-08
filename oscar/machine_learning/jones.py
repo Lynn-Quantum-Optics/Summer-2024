@@ -1,23 +1,8 @@
 # file for sample jones matrix computations
 import numpy as np
-from rho_test import get_concurrence, get_min_eig
 
-## sample bell states##
-PhiP = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
-rho_PhiP= PhiP @ PhiP.reshape((1,4))
-print(rho_PhiP, 'PhiP')
-
-PhiM = np.array([1/np.sqrt(2), 0, 0, -1/np.sqrt(2)]).reshape((4,1))
-rho_PhiM= PhiM @ PhiM.reshape((1,4))
-print(rho_PhiM, 'PhiM')
-
-PsiP = np.array([0, 1/np.sqrt(2),  1/np.sqrt(2), 0]).reshape((4,1))
-rho_PsiP= PsiP @ PsiP.reshape((1,4))
-print(rho_PsiP, 'PsiP')
-
-PsiM = np.array([0, 1/np.sqrt(2),  -1/np.sqrt(2), 0]).reshape((4,1))
-rho_PsiM= PsiM @ PsiM.reshape((1,4))
-print(rho_PsiM, 'PsiM')
+# from main file
+from rho_methods import check_conc_min_eig, is_valid_rho
 
 ## jones matrices ##
 def R(alpha): return np.matrix([[np.cos(alpha), np.sin(alpha)], [-np.sin(alpha), np.cos(alpha)]])
@@ -27,34 +12,48 @@ def get_QP(phi): return np.matrix(np.diag([1, np.e**(phi*1j)]))
 B = np.matrix([[0, 0, 0, 1], [1, 0,0,0]]).T
 init_state = np.matrix([[1,0],[0,0]])
 
-## test sample values ##
-# angles are: H1, H2, Q1, QP1
-# angle_dict = {'PhiP':[np.pi/4, 0,0, 0, 0], 'PhiM':[np.pi/4, 0, 0, 0, np.pi], 'PsiP':[np.pi/4, 0, np.pi/4,np.pi/4,  np.pi], 'PsiM':[np.pi/4, 0, np.pi/4,np.pi/4, 0]}
-# desired_state = angle_dict['PsiP']
-
-# desired_state=[np.pi/4, 0, np.pi/4, 0, 0]
-desired_state=[np.pi/8,0,0, 0, 0] # PhiP
-
-def get_rho(desired_state):
-
-    ## compute components ##
-    H1 = H(desired_state[0])
-    H2 = H(desired_state[1])
-    Q1 = Q(desired_state[2])
-    Q2 = Q(desired_state[3])
-    QP = get_QP(desired_state[2])
+def get_Jrho_C(angles):
+    ''' Jones matrix with *almost* current setup, just adding one QWP on Alice. Computes the rotated polarization state using the following setup:
+        UV_HWP -> QP -> BBO -> A_QWP -> A_Detectors
+                            -> B_HWP -> B_QWP -> B_Detectors
+    '''
+    H1 = H(angles[0])
+    H2 = H(angles[1])
+    Q1 = Q(angles[2])
+    Q2 = Q(angles[3])
+    QP = get_QP(angles[4])
 
     ## compute density matrix ##
     P = np.kron(Q2, Q1 @ H2) @ B @ QP @ H1 @ init_state
-    rho = np.round(P @ P.H,2).real
+    rho = np.round(P @ P.H,2)
 
-    print(rho)
     return rho
 
-def get_info(desired_state):
-    rho = get_rho(desired_state)
-    print(get_concurrence(rho))
-    print(get_min_eig(rho))
+def get_Jrho_I(angles):
+    ''' Jones matrix method with Ideal setup. Computes the rotated polarization state using the following setup:
+        UV_HWP -> QP -> BBO -> A_HWP -> A_QWP -> A_QWP -> A_Detectors
+                            -> B_HWP -> B_QWP -> B_QWP -> B_Detectors
+    '''
+    H1 = H(angles[0])
+    H2 = H(angles[1])
+    H3 = H(angles[2])
+    Q1 = Q(angles[3])
+    Q2 = Q(angles[4])
+    Q3 = Q(angles[5])
+    Q4 = Q(angles[6])
+    Q5 = Q(angles[7])
+    Q6 = Q(angles[8])
+
+    ## compute density matrix ##
+    P = np.kron(H3 @ Q5 @ Q6, H2 @ Q3 @ Q4) @ B @Q2 @Q1 @ H1 @ init_state
+    rho = np.round(P @ P.H,2)
+
+    return rho
 
 if __name__=='__main__':
-    get_info(desired_state)
+    # import predefined states for testing
+    from sample_rho import PhiP, PhiM, PsiP, PsiM
+
+    angles=[np.pi/8,0,0, 0, 0] # PhiP
+    rho = get_Jrho_C(*angles)
+    print(rho)

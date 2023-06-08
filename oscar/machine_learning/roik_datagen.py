@@ -4,6 +4,9 @@ import pandas as pd
 from os.path import join
 from tqdm import trange # for progress bar
 
+# import for rho_test ##
+from rho_test import is_valid_rho, get_purity, get_min_eig, get_all_roik_projections
+
 ### randomization functions ###
 def get_random_roik():
     ## method 1: random diagonal elements ##
@@ -63,12 +66,17 @@ def get_random_roik():
         return unitary_final
 
     ## combine M and U as follows: U M U^\dagger
-    def combine_rand(M, U): 
+    def combine_rand(): 
         return U @ M @ U.H # .H does conjugate transpose
 
     M = rand_diag()
     U = rand_unitary()
     M0 = combine_rand(M, U)
+
+    while not(is_valid_rho(M0)): # if not valid density matrix, keep generating
+        M = rand_diag()
+        U = rand_unitary()
+        M0 = combine_rand(M, U)
 
     return M0
 
@@ -78,60 +86,7 @@ def gen_dataset(size, savepath):
     Takes as input the length of the desired dataset and returns a csv of randomized states as well as path to save
     '''
 
-    def compute_proj(basis1, basis2, M0):
-        '''
-        Computes projection into desired bases.
-        '''
-        Bell_singlet = np.matrix([[0, 0, 0, 0], [0, .5, -.5, 0], [0, -0.5, .5, 0], [0, 0, 0, 0]])
-
-        M0_swapped = M0.copy() # swap the subsystems A and B
-        M0_swapped[:, 1] = M0[:, 2]
-        M0_swapped[:, 2] = M0[:, 1]
-
-        M_T = np.kron(M0, M0_swapped)
-        num = M_T @ np.kron(np.kron(basis1, Bell_singlet), basis2)
-        denom = M_T @ np.kron(np.kron(basis1, np.eye(4)), basis2)
-
-        try: # compute the projection as defined in Roik et al
-            return (np.trace(num) / np.trace(denom)).real
-        except ZeroDivisionError:
-            return 0
-
-    def get_purity(M0):
-        return (np.trace(np.linalg.matrix_power(M0, 2))).real # returns trace of reduced density matrix ^2
-
-    def check_entangled(M0):
-        '''
-        Computes the eigenvalues of the partial transpose; if at least one is negative, then state labeled as '0' for entangled; else, '1'. 
-        '''
-        def partial_transpose(M0):
-            # decompose M0 into blocks
-            b1 = M0[:2, :2]
-            b2 = M0[:2, 2:]
-            b3 = M0[2:, :2]
-            b4 = M0[2:, 2:]
-
-            PT = np.matrix(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
-            return PT
-
-        # compute partial tranpose
-        PT = partial_transpose(M0)
-        eigenvals = np.linalg.eigvals(PT)
-        eigenvals.sort() # sort
-
-        # output = 1
-        # if eigenvals[0] < 0: # min neg eigenval implies entangled; else, stays 1 for separable
-        #     output=0
-
-        return eigenvals[0].real # return min eigenvalue
-
-    # define the single bases for projection
-    H = np.array([[1,0],[0,0]])
-    V = np.array([[0,0],[0,1]])    
-    D = np.array([[1/2,1/2],[1/2,1/2]])
-    A = np.array([[1/2,-1/2],[-1/2,1/2]])
-    R = np.array([[1/2,1j/2],[-1j/2,1/2]])
-    L = np.array([[1/2,-1j/2],[1j/2,1/2]])
+    HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV = get_all_roik_projections(M0)
 
     # initialize dataframes
     df_3 = pd.DataFrame({'HH':[], 'VV':[], 'HV':[], 'min_eig':[], 'purity':[]})
@@ -143,34 +98,14 @@ def gen_dataset(size, savepath):
     for j in trange(size):
         # get the randomized state
         M0 = get_random_roik() 
-        min_eig = check_entangled(M0)
+        min_eig = get_min_eig(M0)
         purity = get_purity(M0)
 
         # compute projections in groups
-        HH = compute_proj(H, H, M0)
-        VV = compute_proj(V, V, M0)
-        HV = compute_proj(H, V, M0)
-        df_3 = pd.concat([df_3, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'min_eig':min_eig,'purity':purity}])])
-
-        DD = compute_proj(D, D, M0)
-        AA = compute_proj(A, A, M0)
+        df_3 = pd.concat([df_3, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'min_eig':min_eig,'purity':purity}])])        
         df_5 = pd.concat([df_5, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'AA':AA, 'min_eig':min_eig,'purity':purity}])])
-
-        RR = compute_proj(R,R, M0)
-        LL = compute_proj(L, L, M0)
         df_6 = pd.concat([df_6, pd.DataFrame.from_records([{'HH':HH, 'VV':VV, 'HV':HV,'DD':DD, 'RR':RR,'LL': LL,'min_eig':min_eig,'purity':purity}])])
-
-        DL = compute_proj(D,L, M0)
-        AR = compute_proj(A,R, M0)
-        DH = compute_proj(D,H, M0)
-        AV = compute_proj(A,V, M0)
-        LH = compute_proj(L,H, M0)
-        RV = compute_proj(R,V, M0)
         df_12 = pd.concat([df_12, pd.DataFrame.from_records([{'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'min_eig':min_eig,'purity':purity}])])
-
-        DR = compute_proj(D,R, M0)
-        DV = compute_proj(D,V, M0)
-        LV = compute_proj(L,V, M0)
         df_15 = pd.concat([df_15, pd.DataFrame.from_records([{'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'DR':DR, 'DV':DV, 'LV':LV, 'min_eig':min_eig,'purity':purity}])])
 
     df_3.to_csv(join(savepath, 'df_3.csv'))
@@ -179,6 +114,7 @@ def gen_dataset(size, savepath):
     df_12.to_csv(join(savepath, 'df_12.csv'))
     df_15.to_csv(join(savepath, 'df_15.csv'))
 
+## build dataset ##
 if __name__ == '__main__':
     size=4400000
     savepath='RO_data'
