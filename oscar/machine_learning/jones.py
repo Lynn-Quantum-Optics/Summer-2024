@@ -106,7 +106,7 @@ def get_random_jones(setup='C'):
 
     return [rho, angles]
 
-def jones_decompose(targ_rho, setup = 'C', eps_min=0.8, eps_max=0.95, N = 20000, verbose=False):
+def jones_decompose(targ_rho, setup = 'C', eps_min=0.8, eps_max=0.99, N = 20000, verbose=False):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -172,13 +172,13 @@ def jones_decompose(targ_rho, setup = 'C', eps_min=0.8, eps_max=0.95, N = 20000,
                 break
 
         except KeyboardInterrupt:
-            print('interrupted...')
+            print('interrupted...saving best result so far')
             break
             
     if verbose:
         print('actual state', targ_rho)
-        print('predicted state', func(best_angles) )
-        print('fidelity', fidelity)
+        print('predicted state', func(max_best_angles) )
+        print('fidelity', max_best_fidelity)
     return max_best_angles, max_best_fidelity
 
 
@@ -195,24 +195,32 @@ if __name__=='__main__':
 
     # define test states
     # get random eta, chi: 
-    eta_ls = np.random.rand(3)*np.pi/2
-    chi_ls = np.random.rand(3)*2*np.pi
-    states_C = [PhiP, PhiM, PsiP, PsiM, E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
-    states_names_C = ['PhiP', 'PhiM', 'PsiP', 'PsiM', 'E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
-    setup_C = ['C', 'C', 'C', 'C', 'C', 'C', 'C']
-    states_I = [E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
-    setup_I = ['I', 'I', 'I']
-    states_names_I= ['E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
+    num_random = 10
+    eta_ls = np.random.rand(num_random)*np.pi/2
+    chi_ls = np.random.rand(num_random)*2*np.pi
 
-    states_tot = states_C + states_I
-    names_tot = states_names_C + states_names_I
-    setup_tot = setup_C + setup_I
+    states=[PhiP, PhiM, PsiP, PsiM, *[E_state0(eta_ls[i], chi_ls[i]) for i in range(num_random)], *[E_state1(eta_ls[i], chi_ls[i]) for i in range(num_random)], *[get_random_simplex()[0] for i in range(num_random)]]
+    states_names = ['PhiP', 'PhiM', 'PsiP', 'PsiM', *[f'E0_{eta_ls[i]}_{chi_ls[i]}' for i in range(num_random)], *[f'E1_{eta_ls[i]}_{chi_ls[i]}' for i in range(num_random)], *[f'RS_{get_random_simplex()[1]}' for i in range(num_random)]]
+    # do only C setup for now
+    setup = ['C', 'C', 'C', 'C', *[f'C_{i}' for i in range(num_random)], *[f'C_{i}' for i in range(num_random)], [f'C_{i}' for i in range(num_random)]]
 
-    # run decomposition
-    for i in trange(len(states_tot)):
-        print('starting state', names_tot[i], '...')
-        angles, fidelity = jones_decompose(states_tot[i], setup_tot[i], verbose=True)
-        decomp_df = decomp_df.append({'state': names_tot[i], 'angles': angles, 'fidelity': fidelity}, ignore_index=True)
+     # run decomposition
+    for i in trange(len(states)):
+        print('starting state', states_names[i], '...')
+        angles, fidelity = jones_decompose(states[i], setup[i], verbose=True)
+        decomp_df = pd.concat([decomp_df, pd.DataFrame.from_records([{'state': states_names[i], 'angles': angles, 'fidelity': fidelity}])])
+
+    # states_C = [PhiP, PhiM, PsiP, PsiM, E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
+    # states_names_C = ['PhiP', 'PhiM', 'PsiP', 'PsiM', 'E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
+    # setup_C = ['C', 'C', 'C', 'C', 'C', 'C', 'C']
+    # states_I = [E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
+    # setup_I = ['I', 'I', 'I']
+    # states_names_I= ['E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
+
+    # states_tot = states_C + states_I
+    # names_tot = states_names_C + states_names_I
+    # setup_tot = setup_C + setup_I
+
         
     # save results
     decomp_df.to_csv('decomp_results.csv')
