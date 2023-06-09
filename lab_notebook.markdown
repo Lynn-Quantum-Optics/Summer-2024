@@ -1,3 +1,10 @@
+## 6/9/23
+MP: A
+
+Here to do some tests with some of the math that I've been working on. Laser temp 19.0C at 10:55. Double checked detector power supply voltages with ampmeter. Digital logic was at 4.89 -> 5.00V. All detectors in working order.
+
+First test: balancing HH/VV using my script, but with the previously calibrated quartz plate setting of -24.1215 degrees (instead of the incorrect -0.421 degrees, which is actually the radian value). Previously calibrated value was 63.4 and my script came up with 65.2439869938821, so it seems there is *some* drift. Pretty significant drift honestly. I updated this value in the config.
+
 ## 6/6/23
 MP: A, O
 Room was a bit warm (68 F) but by the time we turned on the laser (~10:30) the laser thermometer was down to 18C (<20C) so we proceeded. Got no VV coincidences for phi+ --> found error in config file where A_HWP = 0 for VV measurement (should be 45). Out of curiosity I tested running the script with CCU.PLOT_SMOOTHING = 30 (update plot every 3 seconds, maybe faster performance?) and there was literally no difference in run time.

@@ -1,0 +1,41 @@
+0:00:35	initialization complete
+0:00:35	configuring phi+
+0:00:35	Loading state phi_plus from configuration -> {'C_UV_HWP': 65.3998, 'C_QP': -24.1215, 'C_PCC': 4.005, 'B_C_HWP': 0.0}
+0:00:53	BEGIN SUBROUTINE: hone_pct
+0:00:53	Angles to test: 65.36, 65.86, 66.36
+0:00:53	Taking data for basis HH
+0:01:08	Moving C_UV_HWP to 65.36
+0:01:12	Taking data...
+0:01:12	Warning: Collecting data without writing to output file.
+0:01:17	Moving C_UV_HWP to 65.86
+0:01:22	Taking data...
+0:01:22	Warning: Collecting data without writing to output file.
+0:01:27	Moving C_UV_HWP to 66.36
+0:01:31	Taking data...
+0:01:31	Warning: Collecting data without writing to output file.
+0:01:36	Taking data for basis VV
+0:01:48	Moving C_UV_HWP to 65.36
+0:01:52	Taking data...
+0:01:52	Warning: Collecting data without writing to output file.
+0:01:58	Moving C_UV_HWP to 65.86
+0:02:02	Taking data...
+0:02:02	Warning: Collecting data without writing to output file.
+0:02:07	Moving C_UV_HWP to 66.36
+0:02:11	Taking data...
+0:02:11	Warning: Collecting data without writing to output file.
+0:02:17	C_UV_HWP = 65.36 deg -> 49.65332 ± 0.44829% HH detections
+0:02:17	C_UV_HWP = 65.86 deg -> 47.34768 ± 0.58137% HH detections
+0:02:17	C_UV_HWP = 66.36 deg -> 45.82807 ± 0.36803% HH detections
+0:02:17	Doing linear regression to determine optimal angle
+0:02:17	Calculated best angle: 65.2439869938821 deg
+0:02:17	Taking data for target angle...
+0:02:21	Configuring basis HH
+0:02:34	Warning: Collecting data without writing to output file.
+0:02:39	Configuring basis VV
+0:02:50	Warning: Collecting data without writing to output file.
+0:02:55	Calculating final statistics for output
+0:02:55	target_angle = 65.2439869938821
+0:02:55	angle_unc = 0.09938040716696953
+0:02:55	pct1 = 0.49330698623151453
+0:02:55	pct1_unc = 0.0037712342470824357
+0:02:55	END SUBROUTINE: hone_pct
