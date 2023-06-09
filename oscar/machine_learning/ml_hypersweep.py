@@ -291,7 +291,7 @@ if __name__=='__main__':
         elif wtr==1:
             sweep_id = wandb.sweep(nn5h_sweep_config, project="Lynn Quantum Optics-NN5h")
             wandb.agent(sweep_id=sweep_id, function=train_nn5h)
-        elif wtr==1:
+        elif wtr==2:
             sweep_id = wandb.sweep(nn5h_sweep_config, project="Lynn Quantum Optics-NN3h")
             wandb.agent(sweep_id=sweep_id, function=train_nn3h)
         else:

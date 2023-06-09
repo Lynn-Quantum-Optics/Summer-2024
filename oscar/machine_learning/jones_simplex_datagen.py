@@ -38,7 +38,7 @@ def analyze_state(rho_angles, rand_type):
         print('Incorrect rand_type.')
 
 ## perform randomization ##
-def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_data'):
+def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_data', special='0'):
     '''
     Generates random states and computes 12 input probabilities, W min, W' min for each triplet, and min_eig for each state.
     params:
@@ -46,6 +46,7 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
         do_jones: if True, generate states using Jones generation
         do_simplex: if True, generate states using simplex generation
         DATA_PATH: path to save data
+        special: special identifier for file
     '''
     if do_jones and do_simplex:
         # initilize dataframe to hold states
@@ -59,8 +60,8 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
             df_jones = pd.concat([df_jones, pd.DataFrame.from_records([analyze_state(get_random_jones(), 'jones')])])
             df_simplex = pd.concat([df_simplex, pd.DataFrame.from_records([analyze_state(get_random_simplex(), 'simplex')])])
         # save!
-        df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
-        df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
+        df_jones.to_csv(join(DATA_PATH, 'jones_%i_%s.csv'%(N, special)))
+        df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_%s.csv'%(N, special)))
     elif do_jones:
         df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
             'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
@@ -68,7 +69,7 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
         for i in trange(N):
             df_jones = pd.concat([df_jones, pd.DataFrame.from_records([analyze_state(get_random_jones(), 'jones')])])
         # save!
-        df_jones.to_csv(join(DATA_PATH, 'jones_%i_0.csv'%N))
+        df_jones.to_csv(join(DATA_PATH, 'jones_%i_%s.csv'%(N, special)))
     elif do_simplex:
         df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
             'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
@@ -76,7 +77,7 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
         for i in trange(N):
             df_simplex = pd.concat([df_simplex, pd.DataFrame.from_records([analyze_state(get_random_simplex(), 'simplex')])])
         # save!
-        df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_0.csv'%N))
+        df_simplex.to_csv(join(DATA_PATH, 'simplex_%i_%s.csv'%(N, special)))
     else:
         print('Hmmm... make sure one of do_jones or do_simplex is enabled.')
     
@@ -85,7 +86,8 @@ if __name__=='__main__':
     N = int(input('How many states to generate?'))
     do_j = int(input('Do Jones? (0/1)'))
     do_s = int(input('Do Simplex? (0/1)'))
+    special = input('Special identifier for file?')
     print(bool(do_j), bool(do_s))
-    gen_data(N=N, do_jones=bool(do_j), do_simplex=bool(do_s))
+    gen_data(N=N, do_jones=bool(do_j), do_simplex=bool(do_s), special=special)
     # gen_data(N=100000, do_jones=False, do_simplex=True)
     # # gen_data(N=20000, do_jones=True, do_simplex=False)
