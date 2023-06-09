@@ -2,7 +2,7 @@
 import numpy as np
 
 ## note: get_random_jones is in jones.py ##
-from rho_methods import is_valid_rho
+from rho_methods import is_valid_rho, get_rho
 
 def get_random_simplex():
     '''
@@ -10,23 +10,31 @@ def get_random_simplex():
     a|HH> + be^(i*beta)|01> + ce^(i*gamma)*|10> + de^(i*delta)*|11>
     along with generation parameters [a, b, c, d, beta, gamma, delta]
     '''
+
+    def get_random_state_vec():
     
-    a = np.random.rand()
-    b = np.random.rand() *(1-a)
-    c = np.random.rand()*(1-a-b)
-    d = 1-a-b-c
+        a = np.random.rand()
+        b = np.random.rand() *(1-a)
+        c = np.random.rand()*(1-a-b)
+        d = 1-a-b-c
 
-    real_ls = [] # list to store real coefficients
-    real_ls = np.sqrt(np.array([a, b, c, d]))
-    np.random.shuffle(real_ls)
-    rand_angle=np.random.rand(3)*2*np.pi
+        real_ls = [] # list to store real coefficients
+        real_ls = np.sqrt(np.array([a, b, c, d]))
+        np.random.shuffle(real_ls)
+        rand_angle=np.random.rand(3)*2*np.pi
 
-    state_vec = np.multiply(real_ls, np.e**(np.concatenate((np.array([1]), rand_angle))*1j)).reshape((4,1))
+        params = np.concatenate((real_ls, rand_angle))
 
-    # compute density matrix
-    rho = np.matrix(state_vec @ np.conjugate(state_vec.reshape((1,4))))
+        state_vec = np.multiply(real_ls, np.e**(np.concatenate((np.array([1]), rand_angle))*1j)).reshape((4,1))
+        # compute density matrix
+        rho = get_rho(state_vec)
+        return rho, params
+    
+    rho = get_random_state_vec()[0]
+    while not(is_valid_rho(rho)):
+        rho, params = get_random_state_vec()
 
-    return [rho, np.concatenate((real_ls, rand_angle))]
+    return [rho, params]
 
 ### randomization functions ###
 def get_random_roik():
