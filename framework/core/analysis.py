@@ -80,7 +80,7 @@ FIT_FUNCS = {
     'linear': line,
     'line': line,
     'quad': quadratic,
-    'quadratic': quadratic
+    'quadratic': quadratic,
     'sin': sin,
     'sin_sq': sin_sq,
     'sin2': sin2,
