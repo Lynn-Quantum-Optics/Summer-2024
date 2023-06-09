@@ -2,6 +2,7 @@
 import numpy as np
 
 ## note: get_random_jones is in jones.py ##
+from rho_methods import is_valid_rho
 
 def get_random_simplex():
     '''

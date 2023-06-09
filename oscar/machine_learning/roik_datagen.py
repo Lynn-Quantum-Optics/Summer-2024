@@ -9,9 +9,10 @@ from rho_methods import get_purity, get_min_eig, get_all_roik_projections
 from random_gen import get_random_roik
 
 ## generate the complete dataset ##
-def gen_dataset(size, savepath):
+def gen_dataset(size, savepath, special):
     '''
     Takes as input the length of the desired dataset and returns a csv of randomized states as well as path to save
+    special: special name identifier for the files
     '''
 
     # initialize dataframes
@@ -35,14 +36,15 @@ def gen_dataset(size, savepath):
         df_12 = pd.concat([df_12, pd.DataFrame.from_records([{'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'min_eig':min_eig,'purity':purity}])])
         df_15 = pd.concat([df_15, pd.DataFrame.from_records([{'DD':DD, 'AA':AA, 'DL':DL, 'AR':AR, 'DH':DH, 'AV':AV, 'LL':LL, 'RR':RR, 'LH':LH, 'RV':RV, 'HH':HH, 'VV':VV, 'DR':DR, 'DV':DV, 'LV':LV, 'min_eig':min_eig,'purity':purity}])])
 
-    df_3.to_csv(join(savepath, 'df_3.csv'))
-    df_5.to_csv(join(savepath, 'df_5.csv'))
-    df_6.to_csv(join(savepath, 'df_6.csv'))
-    df_12.to_csv(join(savepath, 'df_12.csv'))
-    df_15.to_csv(join(savepath, 'df_15.csv'))
+    df_3.to_csv(join(savepath, 'df_3_%s.csv'%special))
+    df_5.to_csv(join(savepath, 'df_5_%s.csv'%special))
+    df_6.to_csv(join(savepath, 'df_6_%s.csv'%special))
+    df_12.to_csv(join(savepath, 'df_12_%s.csv'%special))
+    df_15.to_csv(join(savepath, 'df_15_%s.csv'%special))
 
 ## build dataset ##
 if __name__ == '__main__':
     N = int(input('How many states to generate?'))
+    special = input('Special name identifier for the files?')
     savepath='RO_data'
-    gen_dataset(N, savepath)
+    gen_dataset(N, savepath, special)
