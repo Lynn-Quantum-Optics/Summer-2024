@@ -11,6 +11,9 @@ import pandas as pd
 def line(x:np.ndarray, m:float, b:float):
     return m*x + b
 
+def quadratic(x:np.ndarray, x_ext:float, a:float, b:float):
+    return a*(x-x_ext)**2 + b
+
 def sin(x:np.ndarray, a:float, b:float, c:float):
     ''' A general sine funcition for fitting. Note that both parameters x and b are in degrees.
 
@@ -76,6 +79,8 @@ def cos2(x:np.ndarray, a:float, b:float, c:float):
 FIT_FUNCS = {
     'linear': line,
     'line': line,
+    'quad': quadratic,
+    'quadratic': quadratic
     'sin': sin,
     'sin_sq': sin_sq,
     'sin2': sin2,

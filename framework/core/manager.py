@@ -69,6 +69,7 @@ class Manager:
         if os.path.isfile('./mlog.txt'):
             os.remove('./mlog.txt')
         self._log_file = open('./mlog.txt', 'w+')
+        self.log(f'Log file opened. Manager started at {self._init_time_str}.')
             
         
         # intialize everything if not debugging
@@ -320,6 +321,9 @@ class Manager:
             # set motor position
             self.__dict__[motor_name].goto(position)
 
+    def configure_motor(self, motor:str, pos:float) -> float:
+        return self.__dict__[motor].goto(pos)
+
     def meas_basis(self, basis:str) -> None:
         ''' Set the measurement basis for Alice and Bob's half and quarter wave plates. 
         
@@ -345,6 +349,7 @@ class Manager:
             The state to create, one of the presets from the config file.
         '''
         # setup the state
+        self.log(f'Loading state preset for {state} -> {self._config["state_presets"][state]}')
         self.configure_motors(**self._config['state_presets'][state])
 
     def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> None:
