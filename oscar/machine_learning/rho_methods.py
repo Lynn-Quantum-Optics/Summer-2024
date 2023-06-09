@@ -12,6 +12,10 @@ from tqdm import trange
 ##############################################
 ## for more basic stats about a state ##
 
+def get_rho(state):
+    ''' Function to compute density matrix from a given 2-qubit state vector. '''
+    return np.matrix(state @ np.conjugate(state.reshape((1,4))))
+
 def is_valid_rho(rho):
     ''' Checks if a density matrix is valid. '''
     # check if Hermitian
@@ -24,6 +28,10 @@ def is_valid_rho(rho):
     if not(np.all(la.eigvals(rho) >= 0)):
         return False
     return True
+
+def adjoint(state):
+    ''' Returns the adjoint of a state vector. For a np.matrix, can use .H'''
+    return np.conjugate(state).T
 
 def get_purity(rho):
     ''' Calculates the purity of a density matrix. '''
@@ -60,7 +68,12 @@ def get_expec_vals(rho):
 
 def compute_proj(basis1, basis2, rho):
     ''' Computes projection into desired bases using projection operations on both qubits'''
-    return  np.real(np.trace(rho @ np.kron(basis1, basis2)))
+    # get projection operators
+    proj1 = basis1 @ adjoint(basis1)
+    proj2 = basis2 @ adjoint(basis2)
+
+    # print(np.kron(proj1, proj2))
+    return np.real(np.trace(np.kron(proj1, proj2)@rho))
 
 def get_all_projections(rho):
     ''' Computes 12 projections based on the standard projection'''
