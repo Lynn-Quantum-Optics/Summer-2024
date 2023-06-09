@@ -3,6 +3,9 @@
 import wandb
 import numpy as np
 from xgboost import XGBClassifier
+from keras import layers
+from keras.models import Model, Sequential
+from keras.optimizers import Adam
 
 ## compute accuracy ##
 def evaluate_perf(model, X_train, Y_train, X_test, Y_test):
@@ -96,11 +99,174 @@ def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, lear
 
 #######################################################
 ## NN ##
+nn3h_sweep_config = {
+    'method': 'random',
+    'name': 'val_accuracy',
+    'goal': 'maximize',
+'parameters':{
+    'epochs': {
+       'distribution': 'int_uniform',
+       'min': 20,
+       'max': 100
+    },
+    # for build_dataset
+     'batch_size': {
+       'values': [x for x in range(32, 161, 32)]
+    },
+    'size_1': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },
+    'size_2': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },'size_3': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256,
+    },
+    'dropout': {
+      'distribution': 'uniform',
+       'min': 0,
+       'max': 0.6
+    },
+    'learning_rate':{
+         #uniform distribution between 0 and 1
+         'distribution': 'uniform', 
+         'min': 0,
+         'max': 0.1
+     }
+},
+}
 
 
+nn5h_sweep_config = {
+    'method': 'random',
+    'name': 'val_accuracy',
+    'goal': 'maximize',
+    'metric':'val_accuracy',
+'parameters':{
+    'epochs': {
+       'distribution': 'int_uniform',
+       'min': 20,
+       'max': 100
+    },
+    # for build_dataset
+     'batch_size': {
+       'values': [x for x in range(32, 161, 32)]
+    },
+    'size_1': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },
+    'size_2': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },'size_3': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },'size_4': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },'size_5': {
+       'distribution': 'int_uniform',
+       'min': 64,
+       'max': 256
+    },
+    'dropout': {
+      'distribution': 'uniform',
+       'min': 0,
+       'max': 0.6
+    },
+    'learning_rate':{
+         #uniform distribution between 0 and 1
+         'distribution': 'uniform', 
+         'min': 0,
+         'max': 0.1
+     }
+},
+}
 
-def train_nn(X_train, Y_train, X_test, Y_test):
-    pass
+def train_nn3h():
+    ''' Function to run wandb sweep for NN.'''
+    
+    wandb.init(config=nn3h_sweep_config) # initialize wandb client
+
+    
+    def build_model(size1, size2, size3, dropout, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size1))
+        model.add(layers.Dense(size2))
+        model.add(layers.Dense(size3))
+
+        model.add(layers.Dropout(dropout))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('softmax'))
+
+        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(wandb.config.size_1,  wandb.config.size_2, wandb.config.size_3, 
+              wandb.config.dropout, wandb.config.learning_rate)
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = wandb.config.batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=wandb.config.epochs,
+        callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
+      )
+
+def train_nn5h():
+    ''' Function to run wandb sweep for NN.'''
+    
+    wandb.init(config=nn5h_sweep_config) # initialize wandb client
+
+    
+    def build_model(size1, size2, size3, size4, size5, dropout, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size1))
+        model.add(layers.Dense(size2))
+        model.add(layers.Dense(size3))
+        model.add(layers.Dense(size4))
+        model.add(layers.Dense(size5))
+
+        model.add(layers.Dropout(dropout))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('softmax'))
+
+        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(wandb.config.size_1,  wandb.config.size_2, wandb.config.size_3, 
+              wandb.config.size_4, wandb.config.size_5, 
+              wandb.config.dropout, wandb.config.learning_rate)
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = wandb.config.batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=wandb.config.epochs,
+        callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
+      )
 
 
 ## run on our data ##
@@ -114,12 +280,21 @@ if __name__=='__main__':
     JS_DATA_PATH = 'jones_simplex_data'
     X_train, Y_train, X_test, Y_test, _ , _ = prepare_data(datapath=join(JS_DATA_PATH, 'simplex_100000_0.csv'), savename='simp_100k', method='witness_s')
     
-    def run_sweep(do_xgb=True):
-        if do_xgb:
+    def run_sweep(wtr=0):
+        ''' Function to run hyperparam sweep.
+        Params:
+            wtr: int, 0 for XGB, 1 for NN5H, 2 for NN3H
+        '''
+        if wtr==0:
             sweep_id = wandb.sweep(xgb_sweep_config, project="Lynn Quantum Optics3")
             wandb.agent(sweep_id=sweep_id, function=train_xgb)
+        elif wtr==1:
+            sweep_id = wandb.sweep(nn5h_sweep_config, project="Lynn Quantum Optics-NN5h")
+            wandb.agent(sweep_id=sweep_id, function=train_nn5h)
+        elif wtr==1:
+            sweep_id = wandb.sweep(nn5h_sweep_config, project="Lynn Quantum Optics-NN3h")
+            wandb.agent(sweep_id=sweep_id, function=train_nn3h)
         else:
-            sweep_id = wandb.sweep(nn_sweep_config, project="Lynn Quantum Optics-NN")
-            wandb.agent(sweep_id=sweep_id, function=train_nn)
-    
-    run_sweep(do_xgb=True)
+            raise ValueError('wtr must be 0, 1, or 2.')
+    wtr = int(input('Enter 0 for XGB, 1 for NN5H, 2 for NN3H:'))
+    run_sweep(wtr)
