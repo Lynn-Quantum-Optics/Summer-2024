@@ -3,7 +3,9 @@ MP: A
 
 Here to do some tests with some of the math that I've been working on. Laser temp 19.0C at 10:55. Double checked detector power supply voltages with ampmeter. Digital logic was at 4.89 -> 5.00V. All detectors in working order.
 
-First test: balancing HH/VV using my script, but with the previously calibrated quartz plate setting of -24.1215 degrees (instead of the incorrect -0.421 degrees, which is actually the radian value). Previously calibrated value was 63.4 and my script came up with 65.2439869938821, so it seems there is *some* drift. Pretty significant drift honestly. I updated this value in the config.
+First test: balancing HH/VV using my script, but with the previously calibrated quartz plate setting of -24.1215 degrees (instead of the incorrect -0.421 degrees, which is actually the radian value). Previously calibrated value was 63.4 and my script came up with 65.2439869938821, so it seems there is *some* drift. Pretty significant drift honestly. I updated this value in the config. I actually kept running this balancing script and the drift is indeed quite significant. I did notice some temperature changes throughout the day: cold when i came in but then it got VERY warm, relatively speaking (laser at 19C) and has been getting colder and colder throughout the day. The drift has (anecdotally) only really gone one way throughout the day, so I think it could be possible that it's due to temperature changes. It's definitely worth talking to F&M at least.
+
+No other notes on the apparatus, left it all day until close.
 
 ## 6/6/23
 MP: A, O
