@@ -64,6 +64,12 @@ class Manager:
         self._motors = []
         self._active_ports = {}
         self.data = None # output data holding
+
+        # initialize the log file
+        if os.path.isfile('./mlog.txt'):
+            os.remove('./mlog.txt')
+        self._log_file = open('./mlog.txt', 'w+')
+            
         
         # intialize everything if not debugging
         if not debug:
@@ -248,7 +254,7 @@ class Manager:
         '''
         # check for output file
         if self.out_file == None:
-            raise RuntimeError('Cannot take data, no output file has been initialized.')
+            self.log('Warning: Collecting data without writing to output file.')
         
         # record all motor positions
         motor_positions = [self.__dict__[m].pos for m in self._motors]
@@ -263,12 +269,13 @@ class Manager:
         stop_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # record data
-        self._out_writer.writerow(\
-            [start_time, stop_time] + \
-            [num_samp, samp_period] + \
-            motor_positions + \
-            list(data_avg) + \
-            list(data_unc))
+        if self.out_file is not None:
+            self._out_writer.writerow(\
+                [start_time, stop_time] + \
+                [num_samp, samp_period] + \
+                motor_positions + \
+                list(data_avg) + \
+                list(data_unc))
         
         # return the right rates
         if len(keys) == 0:
@@ -294,8 +301,9 @@ class Manager:
         return pct, unc
 
     def log(self, note:str):
-        print(self.time, note)
-
+        line = self.time + f'\t{note}'
+        print(line)
+        self._log_file.write(line + '\n')
 
     def configure_motors(self, **kwargs) -> None:
         ''' Configure the position of multiple motors at a time
@@ -381,5 +389,9 @@ class Manager:
             # loop to shutdown ports
             for port in self._active_ports.values():
                 port.close()
+        # output files
+        if self.out_file is not None:
+            self.close_output(get_data=False)
+        self._log_file.close()
         # CCU
         self._ccu.shutdown()
