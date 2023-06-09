@@ -8,6 +8,9 @@ import pandas as pd
 
 # +++ basic functions for fitting +++
 
+def line(x:np.ndarray, m:float, b:float):
+    return m*x + b
+
 def sin(x:np.ndarray, a:float, b:float, c:float):
     ''' A general sine funcition for fitting. Note that both parameters x and b are in degrees.
 
@@ -71,6 +74,8 @@ def cos2(x:np.ndarray, a:float, b:float, c:float):
 # dictionary
 
 FIT_FUNCS = {
+    'linear': line,
+    'line': line,
     'sin': sin,
     'sin_sq': sin_sq,
     'sin2': sin2,

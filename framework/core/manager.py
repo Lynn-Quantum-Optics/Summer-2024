@@ -225,7 +225,7 @@ class Manager:
 
     # +++ methods +++
 
-    def take_data(self, num_samp:int, samp_period:float) -> None:
+    def take_data(self, num_samp:int, samp_period:float, *keys:str) -> 'tuple[np.ndarray, np.ndarray]':
         ''' Take detector data
 
         The data is written to the csv output table.
@@ -236,6 +236,15 @@ class Manager:
             Number of samples to take.
         samp_period : float
             Collection time for each sample, in seconds. Note that this will be rounded to the nearest 0.1 seconds (minimum 0.1 seconds).
+        *keys : str
+            The CCU channel keys to return data for. All rates will be taken and written to the output file, only these rates will be returned. If no keys are given, all rates will be returned.
+        
+        Returns
+        -------
+        data_avg : np.ndarray
+            The average number of counts per second for each channel.
+        data_unc : np.ndarray
+            The standard error of the mean for each channel.
         '''
         # check for output file
         if self.out_file == None:
@@ -260,21 +269,18 @@ class Manager:
             motor_positions + \
             list(data_avg) + \
             list(data_unc))
-
-    def get_rate(self, num_samp:int, samp_period:float, *keys) -> 'list[float]':
-        # get the data from the CCU
-        data_avg, data_unc = self._ccu.acquire_data(num_samp, samp_period)
         
-        # filter as applicable
+        # return the right rates
         if len(keys) == 0:
             return data_avg, data_unc
         elif len(keys) == 1:
-            return data_avg[CCU.CHANNEL_KEYS.index(keys[0])], data_unc[CCU.CHANNEL_KEYS.index(keys[0])]
+            k = keys[0]
+            return data_avg[CCU.CHANNEL_KEYS.index(k)], data_unc[CCU.CHANNEL_KEYS.index(k)]
         else:
             out_avgs = np.array([data_avg[CCU.CHANNEL_KEYS.index(k)] for k in keys])
             out_uncs = np.array([data_unc[CCU.CHANNEL_KEYS.index(k)] for k in keys])
             return out_avgs, out_uncs
-    
+
     def pct_det(self, basis1:str, basis2:str, num_samp:int, samp_period:float, chan:str='C4'):
         # take first measurement
         self.meas_basis(basis1)
@@ -287,7 +293,8 @@ class Manager:
         unc = (rate2/(rate1+rate2)**2)*unc1 + (rate1/(rate1+rate2)**2)*unc2
         return pct, unc
 
-
+    def log(self, note:str):
+        print(self.time, note)
 
 
     def configure_motors(self, **kwargs) -> None:
