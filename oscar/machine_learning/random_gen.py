@@ -2,7 +2,8 @@
 import numpy as np
 
 ## note: get_random_jones is in jones.py ##
-from rho_methods import is_valid_rho, get_rho
+from rho_methods import *
+from sample_rho import *
 
 def get_random_simplex():
     '''
@@ -11,7 +12,7 @@ def get_random_simplex():
     along with generation parameters [a, b, c, d, beta, gamma, delta]
     '''
 
-    def get_random_state_vec():
+    def get_random_state():
     
         a = np.random.rand()
         b = np.random.rand() *(1-a)
@@ -30,9 +31,9 @@ def get_random_simplex():
         rho = get_rho(state_vec)
         return rho, params
     
-    rho = get_random_state_vec()[0]
+    rho, params = get_random_state()
     while not(is_valid_rho(rho)):
-        rho, params = get_random_state_vec()
+        rho, params = get_random_state()
 
     return [rho, params]
 
@@ -108,3 +109,38 @@ def get_random_roik():
         M0 = combine_rand()
 
     return M0
+
+def get_random_E0():
+    ''' Using the defintion of E0 in sample_rho.py'''
+
+    # get random params
+    def get_rand_state():
+        eta = np.random.rand()*np.pi/2
+        chi = np.random.rand()*2*np.pi
+
+        E0 = get_E0(eta, chi)
+        angles = [eta, chi]
+        return E0, angles
+    E0, angles = get_rand_state()
+    while not(is_valid_rho(E0)):
+        E0, angles = get_rand_state()
+
+    return [E0,angles]
+
+def get_random_E1():
+    ''' Using the defintion of E1 in sample_rho.py'''
+
+    # get random params
+    def get_rand_state():
+        eta = np.random.rand()*np.pi/2
+        chi = np.random.rand()*2*np.pi
+
+        E1 = get_E1(eta, chi)
+        angles = [eta, chi]
+        return E1, angles
+    E1, angles = get_rand_state()
+    while not(is_valid_rho(E1)):
+        E1, angles = get_rand_state()
+
+    return [E1,angles]
+

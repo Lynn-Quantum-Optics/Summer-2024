@@ -19,10 +19,10 @@ PhiPM_s = 1/np.sqrt(2) *(PhiP_s + PhiM_s)
 PhiPM = get_rho(PhiPM_s)
 
 # Eritas's states from spring 2023 writeup
-def E_state0(eta, chi): 
+def get_E0(eta, chi): 
     E_state0_s= np.cos(eta)*PsiP_s + np.sin(eta)*np.exp(1j*chi)*PsiM_s 
     return get_rho(E_state0_s)
 
-def E_state1(eta, chi):
+def get_E1(eta, chi):
     E_state1_s= 1/np.sqrt(2) * (np.cos(eta)*(PsiP_s + 1j*PsiM_s) + np.sin(eta)*np.exp(1j*chi)*(PhiP_s + 1j*PhiM_s))
     return get_rho(E_state1_s)
