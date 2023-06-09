@@ -7,52 +7,9 @@ import scipy.linalg as la
 from tqdm import trange # for progress bar
 
 from rho_methods import is_valid_rho, get_min_eig, compute_witnesses, get_all_projections
-from jones import get_Jrho_C
+from jones import get_random_jones
+from random_gen import get_random_simplex
 
-def get_random_jones():
-    ''' Computes random angles in the ranges specified and generates the resulting states'''
-    def get_random_angles_C():
-        ''' Returns random angles for the Jrho_C setup'''
-        theta_ls = np.random.rand(2)*np.pi/4
-        theta1, theta2 = theta_ls[0], theta_ls[1]
-        alpha_ls = np.random.rand(2)*np.pi/2
-        alpha1, alpha2 = alpha_ls[0], alpha_ls[1]
-        phi = np.random.rand()*0.69 # experimental limit of our QP
-
-        return [theta1, theta2, alpha1, alpha2, phi]
-
-    angles = get_random_angles_C()
-    rho = get_Jrho_C(angles)
-
-    # call method to confirm state is valid
-    while not(is_valid_rho(rho)):
-        angles = get_random_angles_C()
-        rho = get_Jrho_C(angles)
-
-    return [rho, angles]
-
-def get_random_simplex():
-    '''
-    Returns density matrix for random state of form:
-    a|HH> + be^(i*beta)|01> + ce^(i*gamma)*|10> + de^(i*delta)*|11>
-    '''
-    
-    a = np.random.rand()
-    b = np.random.rand() *(1-a)
-    c = np.random.rand()*(1-a-b)
-    d = 1-a-b-c
-
-    real_ls = [] # list to store real coefficients
-    real_ls = np.sqrt(np.array([a, b, c, d]))
-    np.random.shuffle(real_ls)
-    rand_angle=np.random.rand(3)*2*np.pi
-
-    state_vec = np.multiply(real_ls, np.e**(np.concatenate((np.array([1]), rand_angle))*1j)).reshape((4,1))
-
-    # compute density matrix
-    rho = np.matrix(state_vec @ np.conjugate(state_vec.reshape((1,4))))
-
-    return [rho, np.concatenate((real_ls, rand_angle))]
 
 def analyze_state(rho_angles, rand_type):
     '''

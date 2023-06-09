@@ -29,6 +29,10 @@ def get_purity(rho):
     ''' Calculates the purity of a density matrix. '''
     return np.real(np.trace(rho @ rho))
 
+def get_fidelity(rho1, rho2):
+    '''Compute fidelity of 2 density matrices'''
+    return np.real((np.trace(la.sqrtm(rho1)@rho2@la.sqrtm(rho1)))**2)
+
 ##############################################
 ## for tomography ##
 
