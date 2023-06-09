@@ -20,3 +20,8 @@ PsiM =  compute_rho(PsiM_s)
 
 PhiPM_s = 1/np.sqrt(2) *(PhiP_s + PhiM_s)
 PhiPM = compute_rho(PhiPM_s)
+
+# Eritas's states
+def E_state0(eta, chi): 
+    E_state0_s= np.cos(eta)*PhiP_s + np.sin(eta)*np.exp(1j*chi)*PhiM_s 
+    return compute_rho(E_state0_s)

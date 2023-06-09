@@ -70,7 +70,7 @@ def get_random_Jangles(setup='C'):
     # init state
     beta = np.random.rand()*np.pi/2 
     gamma = np.random.rand()*2*np.pi
-    
+
     if setup == 'C':
         # HWPs
         theta_ls = np.random.rand(2)*np.pi/4
@@ -106,80 +106,113 @@ def get_random_jones(setup='C'):
 
     return [rho, angles]
 
-def jones_decompose(setup, targ_rho, eps):
-    ''' Function to decompose a given density matrix into jones matrices. 
+def jones_decompose(targ_rho, setup = 'C', eps_min=0.8, eps_max=0.95, N = 20000, verbose=False):
+    ''' Function to decompose a given density matrix into jones matrices
     params:
-        setup: either 'C' for current setup or 'I' for ideal setup
         targ_rho: target density matrix
-        eps: tolerance for fidelity
+        setup: either 'C' for current setup or 'I' for ideal setup
+        eps_min: minimum tolerance for fidelity
+        eps_max: maximum tolerance for fidelity; if reached, halleljuah and break early!
+        N: max number of times to try to optimize
+        verbose: whether to include print statements.
+    returns:
+        angles: list of angles matching setup return. note beta and gamma, which set the initial polarization state, are the first two elements
+        fidelity: fidelity of the resulting guessed state
+    note: if you use Cntrl-C to break out of the function, it will return the best guess so far
     '''
     
     # initial guesses (PhiP)
     if setup=='C':
         func = get_Jrho_C
         # x0 = [np.pi/8,0,0, 0, 0]
-        x0 = get_random_Jangles(setup=setup)
         bounds = [(0, np.pi/2), (0, 2*np.pi), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, 0.69)]
     elif setup=='I':
         func = get_Jrho_I
-        x0 = get_random_Jangles(setup=setup)
         bounds = [(0, np.pi/2), (0, 2*np.pi), (0, np.pi/4), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2),(0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2) ]
     else:
         raise ValueError('Invalid setup. Must be either "C" or "I"')
 
     def loss_fidelity(angles, targ_rho):
+        ''' Function to quantify the distance between the targ and pred density matrices'''
         pred_rho = func(angles)
         fidelity = get_fidelity(pred_rho, targ_rho)
+        
+        return 1-np.sqrt(fidelity)
 
-        return np.sqrt(2*(1-np.sqrt(fidelity)))
-
-    # minimize loss function
-    # min_result= minimize(loss_frobenius, x0=x0, args=(targ_rho), bounds=bounds, tol=1e-10, method='TNC')
+    # get initial result
+    x0 = get_random_Jangles(setup=setup)
     result = minimize(loss_fidelity, x0=x0, args=(targ_rho,), bounds=bounds)
-    min_loss = result.fun
     best_angles = result.x
     fidelity = get_fidelity(func(best_angles), targ_rho)
-    N=10**9 # max number of times to try
+    rho = func(best_angles)
+    
+    # iterate eiher until we hit max bound or we get a valid rho with fidelity above the min
+    max_best_fidelity = fidelity
+    max_best_angles = best_angles
     n=0
-    while n < N and fidelity<eps:
+    while n < N and (not(is_valid_rho(rho)) or  (is_valid_rho(rho) and fidelity<eps_min)):
         try:
-            while not(is_valid_rho(func(best_angles))) and fidelity<eps:
-                print('invalid rho, trying again')
-                x0 = get_random_Jangles(setup=setup)
-                result = minimize(loss_fidelity, x0=x0, args=(targ_rho,), bounds=bounds, tol=1e-10, method='TNC')
-                min_loss = result.fun
-                best_angles = result.x
-                fidelity = get_fidelity(func(best_angles), targ_rho)
-        except ValueError: # in case the matrix is all 0, run again
-            print('invalid rho, trying again')
+            n+=1
+            if verbose: 
+                print('n', n)
+                print(fidelity, max_best_fidelity)
+            
+            # start with different initial guesses
             x0 = get_random_Jangles(setup=setup)
             result = minimize(loss_fidelity, x0=x0, args=(targ_rho,), bounds=bounds, tol=1e-10, method='TNC')
-            min_loss = result.fun
             best_angles = result.x
             fidelity = get_fidelity(func(best_angles), targ_rho)
-        n+=1
+            rho = func(best_angles)
 
+            if fidelity > max_best_fidelity:
+                max_best_fidelity = fidelity
+                max_best_angles = best_angles
 
-    print('actual state', targ_rho)
-    print('predicted state', func(best_angles) )
-    # print('angles', best_angles)
-    print('loss', min_loss)
-    print('fidelity', get_fidelity(func(best_angles), targ_rho))
-    return best_angles, min_loss, fidelity
+            if fidelity > eps_max: # if we get a good enough result, break early
+                break
+
+        except KeyboardInterrupt:
+            print('interrupted...')
+            break
+            
+    if verbose:
+        print('actual state', targ_rho)
+        print('predicted state', func(best_angles) )
+        print('fidelity', fidelity)
+    return max_best_angles, max_best_fidelity
 
 
 if __name__=='__main__':
-    # import predefined states for testing
-    from sample_rho import PhiP, PhiM, PsiP, PsiM, PhiPM
-    from random_gen import get_random_simplex
-    from scipy.stats import sem
+    import pandas as pd
+    from tqdm import trange
 
-    # angles=[np.pi/8,0,0, 0, 0] # PhiP
-    # angles=[np.pi/8, np.pi/4, 0, 0, np.pi] # PsiM
-    # rho = get_Jrho_C(angles)
-    # print(rho)
-    fidelity_ls =[]
-    for l in range(10):
-        best_angles, min_loss, fidelity= jones_decompose('C', get_random_jones()[0], 0.85)
-        fidelity_ls.append(fidelity)
-    print(np.mean(fidelity_ls), sem(fidelity_ls))
+    # import predefined states for testing
+    from sample_rho import *
+    from random_gen import *
+
+    # initilize dataframe to store results
+    decomp_df = pd.DataFrame(columns=['state', 'angles', 'fidelity'])
+
+    # define test states
+    # get random eta, chi: 
+    eta_ls = np.random.rand(3)*np.pi/2
+    chi_ls = np.random.rand(3)*2*np.pi
+    states_C = [PhiP, PhiM, PsiP, PsiM, E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
+    states_names_C = ['PhiP', 'PhiM', 'PsiP', 'PsiM', 'E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
+    setup_C = ['C', 'C', 'C', 'C', 'C', 'C', 'C']
+    states_I = [E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
+    setup_I = ['I', 'I', 'I']
+    states_names_I= ['E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
+
+    states_tot = states_C + states_I
+    names_tot = states_names_C + states_names_I
+    setup_tot = setup_C + setup_I
+
+    # run decomposition
+    for i in trange(len(states_tot)):
+        print('starting state', names_tot[i], '...')
+        angles, fidelity = jones_decompose(states_tot[i], setup_tot[i], verbose=True)
+        decomp_df = decomp_df.append({'state': names_tot[i], 'angles': angles, 'fidelity': fidelity}, ignore_index=True)
+        
+    # save results
+    decomp_df.to_csv('decomp_results.csv')

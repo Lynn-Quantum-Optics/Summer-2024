@@ -31,7 +31,12 @@ def get_purity(rho):
 
 def get_fidelity(rho1, rho2):
     '''Compute fidelity of 2 density matrices'''
-    return np.real((np.trace(la.sqrtm(rho1)@rho2@la.sqrtm(rho1)))**2)
+    return (np.real(np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1)))))**2
+
+def Bures_distance(rho1, rho2):
+    '''Compute the distance between 2 density matrices'''
+    fidelity = get_fidelity(rho1, rho2)
+    return np.sqrt(2*(1-np.sqrt(fidelity)))
 
 ##############################################
 ## for tomography ##
@@ -273,10 +278,10 @@ def check_conc_min_eig(rho, printf=False):
 if __name__ == '__main__':
     ## testing randomization processes ##
     # random state gen imports #
-    from jones_simplex_datagen import get_random_jones, get_random_simplex
-    from roik_datagen import get_random_roik
+    from jones import get_random_jones
+    from random_gen import get_random_simplex, get_random_roik
 
-    def check_conc_min_eig_sample(N=10000, conditions=None, func=get_random_simplex, method_name='simplex', savedir='rho_test_plots', special_name='0', display=False, fit=False):
+    def check_conc_min_eig_sample(N=10000, conditions=None, func=get_random_simplex, method_name='Simplex', savedir='rho_test_plots', special_name='0', display=False, fit=False):
         ''' Checks random sample of N simplex generated matrices. 
         params:
             N: number of random states to check
@@ -322,20 +327,37 @@ if __name__ == '__main__':
         # axes[1].hist(min_eig_ls, bins=100)
         # plt.show()
         plt.figure(figsize=(10,7))
-        plt.plot(concurrence_ls, min_eig_ls, 'o')
+        plt.plot(concurrence_ls, min_eig_ls, 'o', label='Random states')
         plt.xlabel('Concurrence')
         plt.ylabel('Min eigenvalue')
-        plt.title('Concurrence vs. min eigenvalue for %s'%method_name)
-        plt.savefig(join(savedir, 'concurrence_vs_min_eig_%i_%s_%s.pdf'%(N, method_name, special_name)))
-        # if fit:
-        #     from scipy.optimize import curve_fit
-        #     def func(x, a, b, c):
-        #         return 
+        plt.title('Concurrence vs. PT Min Eigenvalue for %s'%method_name)
+        
+        if fit: # fit exponential!
+            from scipy.optimize import curve_fit
+            def func(x, a, b,c, d, e, f, g):
+                # return a*np.exp(-b*(x+c)) + d*x**3 + e*x**2 +f*x+g
+                return a + b*x + c*x**2 + d*x**3 + e*x**4 + f*x**5 + g*x**6
+            popt, pcov = curve_fit(func, concurrence_ls, min_eig_ls)
+            perr = np.sqrt(np.diag(pcov))
+            conc_lin = np.linspace(min(concurrence_ls), max(concurrence_ls), 1000)
+
+            # calculate chi2red
+            # chi2red= np.sum((np.array(min_eig_ls) - func(np.array(concurrence_ls), *popt))**2)/(len(min_eig_ls) - len(pcov))
+            # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-')
+            # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)}+ %5.3fx^3 + %5.3fx^2 + %5.3fx + %5.3f \pm (%5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f), \chi^2_\\nu = %5.3f$'%(*popt, *perr, chi2red))
+            # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)} %5.3fx^3  +%5.3fx^2  %5.3fx  %5.3f$'%(*popt,))
+            plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f + %5.3fx + %5.3fx^2 + %5.3fx^3 + %5.3fx^4 + %5.3fx^5 + %5.3fx^6$'%(*popt,))
+            plt.legend()
+
+        plt.savefig('%s/conc_min_eig_%s_%s.pdf'%(savedir, method_name, special_name))
+
         if display:
             plt.show()
 
     # no conditions
-    check_conc_min_eig_sample()
+    # check_conc_min_eig_sample(fit=True, method_name='Simplex', func=get_random_simplex, special_name='fit')
+    check_conc_min_eig_sample(fit=True, method_name='Roik', func=get_random_roik, special_name='fit')
+    # check_conc_min_eig_sample(fit=True, method_name='Jones', func=get_random_jones, special_name='fit')
     # check_conc_min_eig_sample(func=get_random_roik, method_name='roik')
     # check_conc_min_eig_sample(func=get_random_jones, method_name='jones')
 
