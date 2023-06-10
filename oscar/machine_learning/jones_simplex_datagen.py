@@ -121,7 +121,7 @@ if __name__=='__main__':
     do_j = int(input('Do Jones? (0/1)'))
     do_s = int(input('Do Simplex? (0/1)'))
     special = input('Special identifier for file?')
-    restrict = input("Restrict to W>=0 but >= one of W' < 0? (0/1)")
+    restrict = int(input("Restrict to W>=0 but >= one of W' < 0? (0/1)"))
     print(bool(do_j), bool(do_s), bool(restrict))
     gen_data(N=N, do_jones=bool(do_j), do_simplex=bool(do_s), special=special, restrict=bool(restrict))
     # gen_data(N=100000, do_jones=False, do_simplex=True)

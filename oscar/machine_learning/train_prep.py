@@ -1,5 +1,5 @@
 # file to prepare data for ml
-
+import os
 from os.path import join
 import pandas as pd
 import numpy as np
@@ -9,18 +9,38 @@ def prepare_data(datapath, savename, method, p=0.8):
     params:
         datapath: path to csv
         savename: what to name the prepped data
-        method: 'witness_s' (simplex) or 'witness_j' (jones) or 'entangled' for prediction method
+        method: 'witness_s' (simplex) or 'witness_j' or witness_js for combined (jones) or 'entangled' for prediction method
         p: fraction of data to use for training
     '''
-    df= pd.read_csv(datapath)
+
+    # load multiple csvs
+    if os.isdir(datapath):
+        df= pd.DataFrame()
+        for f in os.listdir(datapath):
+            if method=='witness_s':
+                if f.endswith('.csv') and f.split('_')[0]=='simplex':
+                    df = pd.concat([df, pd.read_csv(join(datapath, f))])
+            elif method=='witness_j':
+                if f.endswith('.csv') and f.split('_')[0]=='jones':
+                    df = pd.concat([df, pd.read_csv(join(datapath, f))])
+            elif method=='witness_js':
+                if f.endswith('.csv'):
+                    df = pd.concat([df, pd.read_csv(join(datapath, f))])
+    else:
+        df= pd.read_csv(datapath)
+
+
     other = [] # for other columns to save
-    if method=='witness_s' or method=='witness_j':
+    if method=='witness_s' or method=='witness_j' or method=='witness_js':
         inputs = ['HH','HV', 'VH','VV', 'DD', 'DA','AD','AA', 'RR', 'RL','LR','LL']
         outputs=['Wp_t1', 'Wp_t2', 'Wp_t3']
         if method=='witness_s':
             other = ['a','b','c','d','beta', 'gamma', 'delta']
-        else:
+        elif method=='witness_j':
             other = ['theta1', 'theta2', 'alpha1', 'alpha2', 'phi']
+        else: # if combined, include all
+            other = ['a','b','c','d','beta', 'gamma', 'delta', 'theta1', 'theta2', 'alpha1', 'alpha2', 'phi']
+        
         # reassign df so it only has rows corresponding to positive W and >=1 W'<0
         df[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t1']<0))]
 
