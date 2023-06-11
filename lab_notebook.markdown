@@ -1,3 +1,11 @@
+## 6/11/23
+MP: A
+
+drift experiment procedure:
+[ ] load and test the code prior to any experimental setup (as much as possible)
+[ ] 
+
+
 ## 6/9/23
 MP: A
 
