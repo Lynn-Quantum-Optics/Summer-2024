@@ -31,10 +31,10 @@ if __name__ == '__main__':
     # main loopski!
     while minute < TOTAL_TIME:
         # check if too much time has passed (more than a minute)
-        if ((time.time() - start_time) % 60) > (minute + 1):
+        if ((time.time() - start_time) // 60) > (minute + 1):
             m.log('PROBLEM ENCOUNTERED: Last round took more than a minute. Data for an intermediate minute will have been skipped.')
         # time for the next test?
-        if ((time.time() - start_time) % 60) > minute:
+        if ((time.time() - start_time) // 60) > minute:
             # log experiment time
             minute += 1
             m.log(f'Starting minute {minute} at {m.now})')
