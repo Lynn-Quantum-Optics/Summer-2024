@@ -75,7 +75,7 @@ if __name__ == '__main__':
     # done with main loop! save data
     m.log('Main loop complete, saving data...')
     m.close_output(get_data=False)
-    df = pd.DataFrame(df)
+    df = pd.DataFrame(df, ignore_index=True)
     df.to_csv('drift_experiment.csv')
 
     # shutdown

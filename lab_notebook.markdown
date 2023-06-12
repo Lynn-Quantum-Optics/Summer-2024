@@ -20,6 +20,18 @@ This experimental procedure should give us lots of options for how we choose to 
 - Ran it again and it appears to be working normally. I got up and visually inspected to ensure that the only motors it manipulated inbetween trials were the measurement ones, the C_UV_HWP, C_QP, C_PCC, and C_B_HWP all remain still.
 - I also ensured that the timing was safe by letting it run for a few minutes and seeing that it had a good amount of time in between measurements. (~18 seconds, well enough buffer for any weird motor mishaps if it takes the basis motors a little longer to get aligned.
 - I let this test run for a good bit longer, saved the logs and data as `drift_experiment/debug1_all_data.py` and `drift_experiment/debug1_mlog.txt`.
+- At this point I committed all these changed (including this notebook) and pushed the code.
+- Now at 10:50, I am getting up from the computer desk to setup the experimental apparatus for data collection.
+- Nitrogen at 710psi, laser thermometer at 19.4C
+- I realized at 10:54 there was one part of the script I forgot to test. I turned off the detectors and laser both of which had been on for < 2 min to test this final data output. Given the nature of the experiment, this took a few minutes.
+    - Saved to `drift_experiment/` as `debug2_all_data.csv`, `debug2_select_data.csv`, and `debug2_mlog.txt`
+    - Caught one small "bug"(?) -- forgot `ignore_index=True` flag on `pd.DataFrame.to_csv`
+- Turning on the laser and detectors again at 11:00
+- Laser thermometer now down to 18.6 C
+- Doing one last git-push with all these changes
+- Starting the experiment script at 11:01
+- 
+
 
 ## 6/9/23
 MP: A
