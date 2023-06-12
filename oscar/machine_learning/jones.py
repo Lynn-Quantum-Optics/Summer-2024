@@ -435,7 +435,7 @@ if __name__=='__main__':
     from sample_rho import *
     from random_gen import *
 
-    def do_full_ex_decomp(savename,bell=False, eritas=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100):
+    def do_full_ex_decomp(savename,bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100):
         ''' Run example decompositions using the C setup.
         Params:
             setup: 'C' or ;'I'
@@ -455,9 +455,7 @@ if __name__=='__main__':
                 states_bell_names = ['PhiP', 'PhiM', 'PsiP', 'PsiM']
                 states += states_bell
                 states_names += states_bell_names
-        print('ehre')
-        print(len(states))
-        if eritas:
+        if e0:
             # get random Eritas states
             states_E0_all = [get_random_E0() for i in range(num_random)]
             states_E0 = [states_E0_all[i][0] for i in range(num_random)]
@@ -466,13 +464,13 @@ if __name__=='__main__':
             states+=states_E0
             states_names+=states_E0_names
 
+        if e1:
             states_E1_all = [get_random_E1() for i in range(num_random)]
             states_E1 = [states_E1_all[i][0] for i in range(num_random)]   
             states_E1_names = [f'E1_{states_E1_all[i][1][0]}_{states_E1_all[i][1][1]}' for i in range(num_random)]
 
             states+=states_E1
             states_names+=states_E1_names
-        print('hi')
         if random:
             states_RS_all = [get_random_simplex() for i in range(num_random)]
             states_RS = [states_RS_all[i][0] for i in range(num_random)]
@@ -480,7 +478,6 @@ if __name__=='__main__':
        
             states+=states_RS
             states_names+=states_RS_names
-        print('hi2')
         if jones_C:
             # get random Jones states
             states_jones_all = [get_random_jones(setup='C', simple=False) for i in range(num_random)]
@@ -489,7 +486,6 @@ if __name__=='__main__':
 
             states+=states_jones
             states_names+=states_jones_names
-        print('hi3')
         if jones_I:
             # get random Jones states
             states_jones_all = [get_random_jones(setup='I', simple=False) for i in range(num_random)]
@@ -498,8 +494,6 @@ if __name__=='__main__':
 
             states+=states_jones
             states_names+=states_jones_names
-        print('hi4')
-        print(roik)
         if roik:
             states_roik_all = [get_random_roik(.95) for i in range(num_random)]
             states_roik = [states_roik_all[i][0] for i in range(num_random)]
@@ -508,7 +502,6 @@ if __name__=='__main__':
             states+=states_roik
             states_names+=states_roik_names
         
-        print('here')
         print('num states:', len(states))
         # list to hold the parameters (i, setup, simple) to pass to the pool multiprocessing object
         decomp_ls = []
@@ -548,16 +541,17 @@ if __name__=='__main__':
     # while setup != 'C' and setup != 'I':
     #     setup=input('Enter setup (C or I): ')
     bell = bool(int(input('include bell states?')))
-    eritas = bool(int(input('include eritas states?')))
+    e0 = bool(int(input('include eritas 0 state?')))
+    e1 = bool(int(input('include eritas 1 state?')))
     random = bool(int(input('include random states?')))
     jones_C = bool(int(input('include jones states in C setup?')))
     jones_I = bool(int(input('include jones states in I setup?')))
     roik = bool(int(input('include roik states?')))
     special = input('special name to append to file?')
-    savename = f'decomp_all_{bell}_{eritas}_{random}_{special}'
-    print('all', bell, eritas, random, jones_C, jones_I, roik)
+    savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
+    print('all', bell, e0, e1, random, jones_C, jones_I, roik)
 
-    do_full_ex_decomp(bell=bell, eritas=eritas, random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename)
+    do_full_ex_decomp(bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename)
 
     # jones_decompose(PhiM, adapt=False, frac=.07, verbose=True, debug=True)
 
