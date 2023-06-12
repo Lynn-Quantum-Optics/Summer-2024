@@ -13,7 +13,13 @@ MP: A
 This experimental procedure should give us lots of options for how we choose to aggregate and analyze the data. But first we must take it! I've just written the code that performs this experiment (`framework/drift_experiment.py`) and so this begins the lab session for completing the experiment.
 
 ### Experimental Notes
-- 
+- Entered ~10:30. Lab is cold, if anything the back room is warmer than the front! Computer was very slow getting started, but now I think we're getting there.
+- Began with a git pull and then ran `drift_experiment.py` to see if it works (lasers and detectors powered off). I'm letting this run for a few loops to make sure that it doesn't encounter any bugs immediately.
+- Let it run for a few (~3) minutes, encountered one error fairly immediately: used modulo instead of integer division on lines 34 & 37.
+    - Saved the log and output data for this run as `drift_experiment/debug0_all_data.py` and `drift_experiment/debug0_mlog.txt`
+- Ran it again and it appears to be working normally. I got up and visually inspected to ensure that the only motors it manipulated inbetween trials were the measurement ones, the C_UV_HWP, C_QP, C_PCC, and C_B_HWP all remain still.
+- I also ensured that the timing was safe by letting it run for a few minutes and seeing that it had a good amount of time in between measurements. (~18 seconds, well enough buffer for any weird motor mishaps if it takes the basis motors a little longer to get aligned.
+- I let this test run for a good bit longer, saved the logs and data as `drift_experiment/debug1_all_data.py` and `drift_experiment/debug1_mlog.txt`.
 
 ## 6/9/23
 MP: A
