@@ -447,7 +447,6 @@ if __name__=='__main__':
         
         states = []
         states_names = []
-
         ## compile states ##
         if bell:
             for i in range(num_random):
@@ -495,7 +494,10 @@ if __name__=='__main__':
             states+=states_jones
             states_names+=states_jones_names
         if roik:
-            states_roik_all = [get_random_roik(.95) for i in range(num_random)]
+            print('generating random separable roik states...')
+            states_roik_all = []
+            for i in trange(num_random):
+                states_roik_all.append(get_random_roik(.95))
             states_roik = [states_roik_all[i][0] for i in range(num_random)]
             states_roik_names = [f'roik_{states_roik_all[i][1]}' for i in range(num_random)]
 
