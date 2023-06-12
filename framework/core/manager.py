@@ -91,6 +91,10 @@ class Manager:
         ''' String time since initalizing the manager, rounded to the nearest second. '''
         return str(datetime.timedelta(seconds=int(time.time()-self._init_time)))
     
+    @property
+    def now(self) -> str:
+        return datetime.datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+
     # +++ initialization methods +++
 
     def init_ccu(self) -> None:
