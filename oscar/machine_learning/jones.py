@@ -413,7 +413,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
         print('projections of predicted', proj_pred)
         print('projections of actual', proj_targ)
 
-        return targ_name, setup, simple, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
+        return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
 
     if not(debug):
         try:
@@ -529,7 +529,7 @@ if __name__=='__main__':
         results = [result for result in results if result is not None] 
 
         ## save to df ##
-        columns = ['state', 'setup', 'simple', 'n', 'fidelity', 'angles', 'projH&V_pred', 'projH&V_targ', 'projD&A_pred',  'projD&A_targ','projR&L_pred', 'projR&L_targ']
+        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'projH&V_pred', 'projH&V_targ', 'projD&A_pred',  'projD&A_targ','projR&L_pred', 'projR&L_targ']
         decomp_df = pd.DataFrame.from_records(results, columns=columns)
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
