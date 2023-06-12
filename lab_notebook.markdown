@@ -1,10 +1,19 @@
-## 6/11/23
+## 6/12/23 (Drift experiment #1)
 MP: A
 
-drift experiment procedure:
-[ ] load and test the code prior to any experimental setup (as much as possible)
-[ ] 
+### Procedure
+- be as fast and as thourough as possible in the lab. if the drift is exagerated during the first moments of operation of the experiment, we would like to measure that.
+- this also means we will need to load and test the code (as much as possible) prior to any experimental setup.
+- for this first drift experiment, we will only measure coincidence counts in the $\ket{HH}$ and $\ket{VV}$ basis
+    - _Note: I am considering a more full exploration of the state over time, perhaps a kind of tomography drift experiment. But for now it seems reasonable to limit the scope to the one aspect we're interested in._
+- The scheme of the test is as follows. Every minute, we will have our apparatus orient it's measurement half and quarter waveplates to measure in either the $\ket{HH}$ or $\ket{VV}$ basis (alternating).
+- We then commence 30 seconds of data collection which will be broken into 6 x 5 second intervals, from which the mean and standard error of the count rate can be gathered.
+- I have opted to not do any kind of live-plotting or live data output for the time being. I will do a short trial run to make sure that nothing crazy is happening, but I think any kind of live-data output would make me more likely to check on the experiment and since people coming and going is something we want to control for I've opted against that option.
 
+This experimental procedure should give us lots of options for how we choose to aggregate and analyze the data. But first we must take it! I've just written the code that performs this experiment (`framework/drift_experiment.py`) and so this begins the lab session for completing the experiment.
+
+### Experimental Notes
+- 
 
 ## 6/9/23
 MP: A
