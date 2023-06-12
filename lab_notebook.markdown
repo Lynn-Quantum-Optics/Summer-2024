@@ -29,8 +29,20 @@ This experimental procedure should give us lots of options for how we choose to 
 - Turning on the laser and detectors again at 11:00
 - Laser thermometer now down to 18.6 C
 - Doing one last git-push with all these changes
-- Starting the experiment script at 11:01
-- 
+- Ran the command to begin the experiment script at 11:03.
+- First time the detectors and laser have been active -- count rates look nominal (a couple (1-3) hundred thousand raw counts, ~ 1500 for coincidence counts of HH and VV for phi_plus) 
+- Waited around in the lab until 11:07 to make sure nothing has broken yet. Everything looks good. I'm going to make a sign for no one to come in and turn of the lights in the front room and let this run for **4 hours** now.
+
+- Re-entered the lab at 11:43 because in preparing some analysis, I've realized that I've introduced a fatal bug in the termination sequence for the program (it's actually the same bug as before - i misused and misplaced the `ignore_index=True` flag and I should have used `index=False`)
+- After examining the script and for a few minutes, I've determined that I will be able to salvage the same data from the manager's raw data output, and so I will not be terminating program execution early.
+- Program execution is nominal so far. One misplaced termination byte occurred as I was entering but it doesn't seem out of the ordinary.
+- Leaving the lab again at 11:46. Lights off, door closed.
+
+- Re-entered for the final time at 2:54 (minute 230). Program is still performing nominally.
+- When the experiment began I noticed count rates were relatively equal, but now they are noticeably unequal, so I am hopeful that this data collection will reveal some measurable drift. I am going to return to the front room to wait for data collection to finish before pulling the analysis/plotting code I wrote today.
+- As expected, the code resulted in error and I had to manually interrupt it at 3:06
+- Now turning everything off before analysis
+- Laser thermometer 18.7 C
 
 
 ## 6/9/23

@@ -75,11 +75,11 @@ def calculate_percentages(df:pd.DataFrame):
 if __name__ == '__main__':
     # parameters
     
-    PLOT_TITLE = 'Ratio of HH to HH and VV detections in the $\Phi^+$ state\nData taken in each basis for 30 seconds, every other minute for 4 hours'
     ALL_DATA_FILE = 'drift_experiment_all_data.csv'
     OUTPUT_FILE = 'DE_output.csv'
-    AGGREGATE_EVERY = 10 # minutes
+    AGGREGATE_EVERY = 30 # minutes
     NUM_SAMP_ORIGINAL = 6 # number of samples in original data collection
+    PLOT_TITLE = f'Ratio of HH to HH and VV detections in the $\Phi^+$ state\nData taken in each basis for 30 seconds, every other minute for 4 hours\nData Averaged Every {AGGREGATE_EVERY} Minutes\n2023.06.12 11:04:27 - 2023.06.12 15:05:02'
 
     df = acquire_data(ALL_DATA_FILE)
     df = aggregate_data(df, AGGREGATE_EVERY // 2, NUM_SAMP_ORIGINAL)
