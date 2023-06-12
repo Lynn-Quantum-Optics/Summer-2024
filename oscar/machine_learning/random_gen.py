@@ -38,7 +38,11 @@ def get_random_simplex():
     return [rho, params]
 
 ### randomization functions ###
-def get_random_roik():
+def get_random_roik(purity_cond = 1):
+    ''' Function to generate random density matrix with roik method.
+    params:
+        purity_condition: if not None, will generate random density matrix until purity is less than this value
+    '''
     ## method 1: random diagonal elements ##
     def rand_diag():
         # get 4 random params
@@ -103,12 +107,12 @@ def get_random_roik():
     U = rand_unitary()
     M0 = combine_rand()
 
-    while not(is_valid_rho(M0)): # if not valid density matrix, keep generating
+    while not(is_valid_rho(M0)) or get_purity(M0)>purity_cond: # if not valid density matrix, keep generating
         M = rand_diag()
         U = rand_unitary()
         M0 = combine_rand()
 
-    return M0
+    return M0, get_purity(M0)
 
 def get_random_E0():
     ''' Using the defintion of E0 in sample_rho.py'''
