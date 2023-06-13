@@ -202,7 +202,7 @@ def get_random_Jangles(setup, simple=False):
                 # UV HWP
                 theta_UV = np.random.rand()*np.pi/4
                 # QP
-                phi = np.random.rand()*0.69
+                phi = np.random.rand()*np.pi/2
                 # B HWP
                 theta_B = np.random.rand()*np.pi/4
                 # QWPs
@@ -267,7 +267,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
             if simple: # beta, gamma, theta, alpha1, alpha2
                 bounds = [(0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
             else: # theta_0, phi, theta_B, alpha_B1, alpha_B2
-                bounds = [(0, np.pi/4), (0, 0.69), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
+                bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
         elif setup=='I':
             if simple: # beta, gamma, theta1, theta2, alpha1, alpha2
                 bounds = [(0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2)]
