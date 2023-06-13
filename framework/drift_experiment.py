@@ -5,7 +5,7 @@ import pandas as pd
 if __name__ == '__main__':
     # parameters
     SAMP = (6, 5)
-    TOTAL_TIME = 60 * 4 # collect 4 hours of data
+    TOTAL_TIME = 60 * 5 # collect 5 hours of data
 
     # initialize manager
     m = Manager(out_file='drift_experiment_all_data.csv')

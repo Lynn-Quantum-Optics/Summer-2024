@@ -44,6 +44,19 @@ This experimental procedure should give us lots of options for how we choose to 
 - Now turning everything off before analysis
 - Laser thermometer 18.7 C
 
+### Drift Experiment #2: Exact Same one, again
+- Note that this is happening at 5:24, so we expect things are still relatively hot.
+- While taking some pre-experiment thermal photos, the thermal camera's power cable exerted a small force on the far mirror.
+- Laser at 18.3 C
+- N2 at 525psi
+- Running the exact same script but increasing the runtime to 5 hours.
+- Started script at 5:35
+- Leaving lab at 5:38, everything running nominally
+
+- Returned aroun 10:45. Program shut down as expected.
+- Turned off N2 supply at 275psi
+- Took thermal immages of optical components using the buisness card as a background.
+- Completed analysis and pushed changes.
 
 ## 6/9/23
 MP: A
