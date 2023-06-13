@@ -271,7 +271,7 @@ class ElliptecMotor(Motor):
 
     # +++ helper functions +++
 
-    def _send_instruction(self, inst:bytes, data:bytes=b'', resp_len:int=None, require_resp_code:bytes=None) -> Union[bytes,None]:
+    def _send_instruction(self, inst:bytes, data:bytes=b'', require_resp_len:int=None, require_resp_code:bytes=None) -> bytes:
         ''' Sends an instruction to the motor and gets a response if applicable.
         
         Parameters
@@ -280,38 +280,42 @@ class ElliptecMotor(Motor):
             The instruction to send, should be 2 bytes long.
         data : bytes, optional
             The data to send, if applicable.
-        resp_len : int, optional
-            The length of the response to require. If None, no response is expected.
+        require_resp_len : int, optional
+            The length of the response to require.
         require_resp_code : bytes, optional
-            The response code to require. If None, no response code check is performed.
+            The response code to require.
 
         Returns
         -------
         bytes or None
             The response from the motor. None if no response is expected.
         '''
-        # clear the queue if we want a response
-        if resp_len is not None:
-            self.com_port.readall()
+        # check that the com queue is empty
+        if self.com_port.in_waiting:
+            print(f'Warning: {self} found non-empty com queue. Flushing -> {self.com_port.readall()}.')
 
         # send instruction
         self.com_port.write(self._addr + inst + data)
 
-        if resp_len is not None:
-            # read the response
-            resp = self.com_port.read(resp_len)
-            # check response code if applicable
-            if require_resp_code is not None:
-                if resp[1:3] != require_resp_code.upper():
-                    raise RuntimeError(f'Expected response code {require_resp_code.upper()} but got {resp[2:3]}')
-            # return the response
-            return resp
+        # always get the response
+        resp = self.com_port.read_until(b'\r\n')[:-2]
+
+        # check the length of the response
+        if require_resp_len and (len(resp) != require_resp_len):
+            raise RuntimeError(f'Sent instruction "{self._addr+inst+data}" to {self} expecting response length {require_resp_len} but got response {resp} (length={len(resp)})')
+        
+        # check response code
+        if require_resp_code and (resp[1:3] != require_resp_code.upper()):
+            raise RuntimeError(f'Sent instruction "{self._addr+inst+data}" to {self} expecting response code {require_resp_code} but got response {resp} (code="{resp[1:3]}")')
+        
+        # return the response
+        return resp
     
     def _get_info(self) -> int:
         ''' Requests basic info from the motor. '''
         # return (143360/360)
         # get the info
-        resp = self._send_instruction(b'in', resp_len=33, require_resp_code=b'in')
+        resp = self._send_instruction(b'in', require_resp_len=33, require_resp_code=b'in')
         # parse the info
         self._info = dict(
             ELL = str(resp[3:6]),
@@ -358,7 +362,7 @@ class ElliptecMotor(Motor):
         int
             The home offset of the motor, in pulses.
         '''
-        resp = self._send_instruction(b'go', resp_len=11, require_resp_code=b'ho')[3:11]
+        resp = self._send_instruction(b'go', require_resp_len=11, require_resp_code=b'ho')[3:11]
         pos = int(resp[3:11], 16)
         # check negative
         if (pos >> 31) & 1:
@@ -376,7 +380,7 @@ class ElliptecMotor(Motor):
             The current position of the motor, in degrees (should be zero or close to it).
         '''
         # get the position exactly
-        pos_resp = self._send_instruction(b'gp', resp_len=11, require_resp_code=b'po')
+        pos_resp = self._send_instruction(b'gp', require_resp_len=11, require_resp_code=b'po')
         pos = int(pos_resp[3:11], 16)
         # check negative
         if (pos >> 31) & 1:
@@ -396,45 +400,13 @@ class ElliptecMotor(Motor):
         # check the new position
         return self._get_position()
 
-    def _return_resp(self, resp:bytes) -> Union[float,None]:
-        ''' Returns a response from the motor. Also checks if that response contains an error code, and alerts the user.
-        
-        Parameters
-        ----------
-        resp : bytes
-            The response to return to the user.
-
-        Returns
-        -------
-        float
-            If the response was a position.
-        0
-            If the response was a nominal status.
-        None
-            If the response was a status.
-        '''
-        if resp[1:3] == b'GS': # status code
-            # parse status
-            s = self._get_status(resp)
-            # return 0 if ok
-            if s == 'ok': 
-                return 0
-            # otherwise, raise an error
-            raise RuntimeError(f'{self} encountered status ({self.get_status(resp)})')
-        elif resp[1:3] == b'PO':
-            # return position
-            return self._get_position(resp)
-        else:
-            # raise an error
-            raise RuntimeError(f'{self} encountered an unexpected response ({resp}) which did not match any known response codes.')
-
     # +++ private overridden methods +++
 
     def _get_status(self, resp:bytes=None) -> str:
         ''' Retrieve the status of the motor. '''
         if resp is None:
             # get resp
-            resp = self._send_instruction(b'gs', resp_len=5, require_resp_code=b'gs')
+            resp = self._send_instruction(b'gs', require_resp_len=5, require_resp_code=b'gs')
         # return the status
         if resp[3:5] in self.STATUS_CODES:
             return self.STATUS_CODES[resp[3:5]]
@@ -455,10 +427,10 @@ class ElliptecMotor(Motor):
             The absolute position of the motor after the move, in degrees.
         '''
         # request the move
-        resp = self._send_instruction(b'ma', self._degrees_to_bytes(angle_degrees, num_bytes=8), resp_len=11)
+        resp = self._send_instruction(b'ma', self._degrees_to_bytes(angle_degrees, num_bytes=8), require_resp_len=11, require_resp_code=b'po')
         # requiring a response already blocks until done moving :)
         # check response
-        return self._return_resp(resp)
+        return self._get_position(resp)
 
     def _move_relative(self, angle_degrees:float) -> float:
         ''' Rotate the motor to a position relative to the current one.
@@ -479,13 +451,13 @@ class ElliptecMotor(Motor):
             The absolute position of the motor after the move, in degrees.
         '''
         # request the move
-        resp = self._send_instruction(b'mr', self._degrees_to_bytes(angle_degrees, num_bytes=8), resp_len=11)
+        resp = self._send_instruction(b'mr', self._degrees_to_bytes(angle_degrees, num_bytes=8), require_resp_len=11, require_resp_code=b'po')
         # requiring a response already blocks until done moving :)
-        return self._return_resp(resp)
+        return self._get_position(resp)
 
     def _is_active(self) -> bool:
         ''' Check if the motor is active by querying the status. '''
-        resp = self._send_instruction(b'i1', resp_len=24, require_resp_code=b'i1')
+        resp = self._send_instruction(b'i1', require_resp_len=24, require_resp_code=b'i1')
         return resp[4] != 48 # zero in ASCII
 
     def _get_position(self, resp:bytes=None) -> float:
@@ -503,7 +475,7 @@ class ElliptecMotor(Motor):
         '''
         # if no response is provided, query the device
         if resp is None:
-            resp = self._send_instruction(b'gp', resp_len=11, require_resp_code=b'po')
+            resp = self._send_instruction(b'gp', require_resp_len=11, require_resp_code=b'po')
         pos = resp[3:11]
         # check if negative and take the two's compliment
         pos = int(pos, 16)
