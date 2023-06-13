@@ -295,7 +295,7 @@ class ElliptecMotor(Motor):
             print(f'Warning: {self} found non-empty com queue. Flushing -> {self.com_port.readall()}.')
 
         # send instruction
-        self.com_port.write(self._addr + inst + data)
+        self.com_port.write(self._addr + inst + data + b'\r\n')
 
         # always get the response
         resp = self.com_port.read_until(b'\r\n')[:-2]

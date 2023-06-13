@@ -138,7 +138,7 @@ class Manager:
                 if port in self._active_ports:
                     com_port = self._active_ports[port]
                 else:
-                    com_port = serial.Serial(port, timeout=2)
+                    com_port = serial.Serial(port, timeout=5) # time out for all read
                     self._active_ports[port] = com_port
                 motor_dict['com_port'] = com_port
             # initialize motor
