@@ -2,7 +2,7 @@
 
 # main package imports #
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import minimize, approx_fprime
 
 # for adaptive sampling #
 # import tensorflow as tf
@@ -240,14 +240,16 @@ def get_random_jones(setup='C', simple=True):
 
     return [rho, angles]
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac = 0.1, simple=False, epsilon=0.999, N = 1000, verbose=False, debug=False):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug=False, verbose=False, simple=False, epsilon=0.999, N = 1000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
         targ_name: name of target state
         setup: either 'C' for current setup or 'I' for ideal setup
-        adapt: whether to adaptively optimize the angles via gradient descent
+        adapt: 0: random hop, 1: random fan, 2: gradient descent
+        zeta: learning rate for gradient descent
         frac: what percentage of the domain of the angles to change each time in adapt
+        gd_tune: whether to output parameters for gd tuning
         simple: boolean for whether to start with arbitrary cos(beta)|0> + sin(beta) e^(i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP
         epsilon: maximum tolerance for fidelity; if reached, halleljuah and break early!
         N: max number of times to try to optimize
@@ -257,6 +259,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
         angles: list of angles matching setup return. note beta and gamma, which set the initial polarization state, are the first two elements
         fidelity: fidelity of the resulting guessed state
     note: if you use Cntrl-C to break out of the function, it will return the best guess so far
+    RETURNS: targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
     '''
 
     def decompose():
@@ -283,10 +286,6 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
             
             return 1-np.sqrt(fidelity)
 
-        # def wrapped_loss_fidelity(inputs):
-        #     ''' Wrapped version of loss_fideliy for tensorflow tensor'''
-        #     return tf.numpy_function(loss_fidelity, [inputs], tf.float32)
-
         # get initial result
         def minimize_angles(x0):
             result = minimize(loss_fidelity, x0=x0, bounds=bounds)
@@ -305,88 +304,46 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
         else:
             max_best_fidelity = 0
             max_best_angles = [0 for _ in best_angles]
+        grad_angles = max_best_angles # keep track of the angles for gradient descent
+
         n=0 # keep track of overall number of iterations
-        m = 0 # keep track of number of iterations current adapt search
+        index_since_improvement = 0 # keep track of number of iterations since the max fidelity last improved
         while n < N and fidelity<epsilon:
             try:
                 if verbose: 
                     print('n', n)
                     print(fidelity, max_best_fidelity)
                 
-                ## start with different initial guesses ##
-                if adapt and not(np.all(max_best_angles == np.zeros(len(max_best_angles)))): # implement gradient descent
+                ### different strategies ###
+                ## random fan ##
+                if adapt==1 and not(np.all(max_best_angles == np.zeros(len(max_best_angles)))):
                     m+=1
                     if m>0:
-
                         if m==frac*N:
                             x0 = get_random_Jangles(setup=setup, simple=simple)
                             m=-frac*N
-
-                        # angle_lines = [np.linspace(max(bounds[i][0], max_best_angles[i]*(1-m*((bounds[i][1] - bounds[i][0]) / (.1*N)))), min(max_best_angles[i]*1.1, bounds[i][1]), 10) for i in range(len(max_best_angles))]
 
                         x0 = [np.random.uniform(max(bounds[i][0], max_best_angles[i] * (1 - m * ((bounds[i][1] - bounds[i][0]) / (frac * N)))),
                             min(bounds[i][1], max_best_angles[i] * (1 + m * ((bounds[i][1] - bounds[i][0]) / (frac * N)))))
         for i in range(len(max_best_angles))]
 
-                    # angle_mesh = list(itertools.product(*angle_lines))
-                    # L = loss_fidelity(angle_mesh)
-    
-                    # grad = np.gradient(L, *angle_lines)
-                    # print(grad)
                     else: # cool down
                         x0 = get_random_Jangles(setup=setup, simple=simple)
 
+                ## gradient descent ##
+                elif adapt==2 and not(np.all(max_best_angles == np.zeros(len(max_best_angles)))):            
+                    if index_since_improvement % (frac*N)==0: # random search
+                        x0 = get_random_Jangles(setup=setup, simple=simple)
+                    else:
+                        gradient = approx_fprime(grad_angles, loss_fidelity, epsilon=1e-8) # epsilon is step size in finite difference
+                        if verbose: print(gradient)
+                        # update angles
+                        x0 = [max_best_angles[i] - zeta*gradient[i] for i in range(len(max_best_angles))]
+                        grad_angles = x0
 
 
-# print('gradient descent')
-                    # # max_best_angles.reshape(-1, len(max_best_angles))
-                    # print(max_best_angles.shape, max_best_angles[4])
-                    # print(setup)
-                    # print(simple)
-                    # rho = func(max_best_angles)
-                    # print(rho)
-                    # print(loss_fidelity(max_best_angles))
-                    # grad = np.gradient(loss_fidelity(max_best_angles))
-                    # print(grad)
-                    # max_best_angles = list(max_best_angles)
-                    # print(max_best_angles)
-                    # print(type(max_best_angles))
-                    # x = torch.tensor(max_best_angles, requires_grad=True)
-                    # loss = loss_fidelity(x)
-                    # loss.backward()
-                    # gradient = x.grad.detach().numpy()
-                    # print(gradient)
-
-                    # define inputs
-                    # tf_vars = [tf.Variable(i) for i in np.arange(0, len(max_best_angles), 1.0)]
-                    # print(tf_vars)
-                    # with tf.GradientTape() as t:
-                    #     output = wrapped_loss_fidelity(tf_vars)
-
-                    # gradients = t.gradient(output, tf_vars)
-
-                    # get n-d grid of angles
-                    # angle_grid = np.meshgrid(*[np.linspace(max(bounds[i][0], max_best_angles[i]*.9), min(max_best_angles[i]*1.1, bounds[i][1]), 10) for i in range(len(max_best_angles))])
-                    # grad = np.gradient(loss_fidelity(angle_grid), angle_grid)
-                    # print(grad)
-
-                    # inputs = []
-                    # grids = []
-                    # for j in range(len(max_best_angles)):
-                    #     x = np.linspace(max(bounds[j][0], max_best_angles[j]*.9), min(max_best_angles[j]*1.1, bounds[j][1]), 10)
-                    #     inputs.append(x)
-                    #     grids.extend(np.meshgrid(*inputs))
-
-                    # x= tf.convert_to_tensor(max_best_angles, dtype=tf.complex64)
-                    # with tf.GradientTape() as t:
-                    #     t.watch(x)
-                    #     loss = tf.py_function(loss_fidelity, [x], Tout=tf.float64)
-                    # gradient = t.gradient(loss, x)
-
-                    
-                    # x0 -= lr*grad
-                    # print(x0)
-                else: # stick with random guesses
+                ## random hop ##
+                else:
                     x0 = get_random_Jangles(setup=setup, simple=simple)
 
                 best_angles, fidelity, rho = minimize_angles(x0)
@@ -394,6 +351,9 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
                 if fidelity > max_best_fidelity:
                     max_best_fidelity = fidelity
                     max_best_angles = best_angles
+                    index_since_improvement = 0
+                else:
+                    index_since_improvement += 1
 
                 n+=1
 
@@ -413,7 +373,10 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=False, frac =
         print('projections of predicted', proj_pred)
         print('projections of actual', proj_targ)
 
-        return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
+        if not(gd_tune):
+            return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
+        else:
+            return setup, frac, zeta, n, max_best_fidelity
 
     if not(debug):
         try:
@@ -430,10 +393,14 @@ if __name__=='__main__':
     from tqdm import trange
     # for parallel processing
     from multiprocessing import cpu_count, Pool
+    # # for viewing arguments of function
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
 
     # import predefined states for testing
     from sample_rho import *
     from random_gen import *
+
 
     def do_full_ex_decomp(setup,bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, savename='test') :
         ''' Run example decompositions using the C setup.
@@ -543,23 +510,130 @@ if __name__=='__main__':
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
 
-    setup = input('Enter setup: C or I, or B for both')
-    bell = bool(int(input('include bell states?')))
-    e0 = bool(int(input('include eritas 0 state?')))
-    e1 = bool(int(input('include eritas 1 state?')))
-    random = bool(int(input('include random states?')))
-    jones_C = bool(int(input('include jones states in C setup?')))
-    jones_I = bool(int(input('include jones states in I setup?')))
-    roik = bool(int(input('include roik states?')))
-    special = input('special name to append to file?')
-    num_random = int(input('number of random states to generate?'))
-    savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
-    print('all', bell, e0, e1, random, jones_C, jones_I, roik)
+    # setup = input('Enter setup: C or I, or B for both')
+    # bell = bool(int(input('include bell states?')))
+    # e0 = bool(int(input('include eritas 0 state?')))
+    # e1 = bool(int(input('include eritas 1 state?')))
+    # random = bool(int(input('include random states?')))
+    # jones_C = bool(int(input('include jones states in C setup?')))
+    # jones_I = bool(int(input('include jones states in I setup?')))
+    # roik = bool(int(input('include roik states?')))
+    # special = input('special name to append to file?')
+    # num_random = int(input('number of random states to generate?'))
+    # savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
+    # print(setup, bell, e0, e1, random, jones_C, jones_I, roik)
 
-    do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
+    # do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
 
-    # jones_decompose(PhiM, adapt=False, frac=.07, verbose=True, debug=True)
+    def tune_gd(f_min=0.001, f_max = 0.1, f_it =2, zeta_min=0, zeta_max=.5, zeta_it=2, num_to_avg=1):
+        f_ls = np.logspace(np.log10(f_min), np.log10(f_max), f_it)
+        zeta_ls = np.logspace(zeta_min, np.log10(zeta_max), zeta_it)
+        sfz_ls = []
+        sfz_unique = []
+        f_plot_ls = []
+        zeta_plot_ls = []
+        for frac in f_ls:
+            for zeta in zeta_ls:
+                f_plot_ls.append(frac)
+                zeta_plot_ls.append(zeta)
+                for setup in ['C', 'I']:
+                    sfz_unique.append([setup, frac, zeta]) # get unique configs
+                    for j in range(num_to_avg): # repeat each config num_to_avg times
+                        sfz_ls.append([setup, frac, zeta])
+        print(sfz_ls)
+        
 
+        def compute():
+
+            ## build multiprocessing pool ##
+            pool = Pool(cpu_count())
+            # targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug
+            inputs = [(PhiM, 'PhiM', sfz[0], 2, sfz[1], sfz[2], True) for  sfz in sfz_ls]        
+            results = pool.starmap_async(jones_decompose, inputs).get()
+
+            # end multiprocessing
+            pool.close()
+            pool.join()
+
+            # filter None results out
+            results = [result for result in results if result is not None]
+
+            # get all unique configs
+            cols = ['setup', 'frac', 'zeta', 'n', 'fidelity']
+            df = pd.DataFrame.from_records(results, columns=cols)
+            df.to_csv(join('decomp', 'tune_gd.csv'))
+
+        def plot():
+            n_C_ls = []
+            n_C_sem_ls = []
+            fidelity_C_ls = []
+            fidelity_C_sem_ls = []
+            n_I_ls = []
+            n_I_sem_ls = []
+            fidelity_I_ls = []
+            fidelity_I_sem_ls = []
+
+            for sfz in sfz_unique:
+                setup = sfz[0]
+                df_sfz = df.loc[(df['setup']==setup) & (df['frac']==sfz[1]) & (df['zeta']==sfz[2])]
+
+                n_avg = np.mean(df_sfz['n'].to_numpy())
+                n_sem = np.std(df_sfz['n'].to_numpy())/np.sqrt(len(df_sfz['n'].to_numpy()))
+                fidelity_avg = np.mean(df_sfz['fidelity'].to_numpy())
+                fidelity_sem = np.std(df_sfz['fidelity'].to_numpy())/np.sqrt(len(df_sfz['fidelity'].to_numpy()))
+
+                if setup=='C':
+                    n_C_ls.append(n_avg)
+                    n_C_sem_ls.append(n_sem)
+                    fidelity_C_ls.append(fidelity_avg)
+                    fidelity_C_sem_ls.append(fidelity_sem)
+                else:
+                    n_I_ls.append(n_avg)
+                    n_I_sem_ls.append(n_sem)
+                    fidelity_I_ls.append(fidelity_avg)
+                    fidelity_I_sem_ls.append(fidelity_sem)
+
+            print(len(f_plot_ls), len(zeta_plot_ls), len(n_C_ls), len(n_I_ls))
+            print(n_C_ls, n_I_ls)
+
+            # F, Zeta = np.meshgrid(f_plot_ls, zeta_plot_ls)
+
+            fig= plt.figure()
+            ax1 = fig.add_subplot(211, projection='3d')
+            # sc1= ax1.errorbar(f_plot_ls, zeta_plot_ls, n_C_ls, zerr=n_C_sem_ls, fmt='o')
+            sc1= ax1.scatter(f_plot_ls, zeta_plot_ls, n_C_ls, marker='o', c=np.array(fidelity_C_ls), cmap=plt.cm.magma)
+            cb1 = fig.colorbar(sc1, ax=ax1, shrink=1)
+            cb1.ax.set_position(cb1.ax.get_position().translated(0.09, 0))
+            # surf1 = ax1.plot_surface(F, Zeta, np.array(n_C_ls), facecolors=cm.coolwarm(fidelity_C_ls),linewidth=0, antialiased=False)
+            # ax1.colorbar(surf1, shrink=0.5, aspect=5)
+            ax1.set_xlabel('$f$')
+            ax1.set_ylabel('$\zeta$')
+            ax1.set_zlabel('$\overline{n}$')
+            ax1.set_title('C setup')
+
+            ax2 = fig.add_subplot(212, projection='3d')
+            sc2= ax2.scatter(f_plot_ls, zeta_plot_ls, n_I_ls, marker='o', c=np.array(fidelity_I_ls), cmap=plt.cm.magma)
+            cb2 = fig.colorbar(sc2, ax=ax2, shrink=1)
+            cb2.ax.set_position(cb2.ax.get_position().translated(0.09, 0))
+            # surf2 = ax2.plot_surface(F, Zeta, np.array(n_I_ls), facecolors=cm.coolwarm(fidelity_I_ls), linewidth=0, antialiased=False)
+            # ax2.colorbar(surf2, shrink=0.5, aspect=5)
+            ax2.set_xlabel('$f$')
+            ax2.set_ylabel('$\zeta$')
+            ax2.set_zlabel('$\overline{n}$')
+            ax2.set_title('I setup')
+
+            fig.set_size_inches(7, 10)
+
+            plt.savefig(join('decomp', 'tune_gd.pdf'))
+            plt.show()
+    
+        # compute()
+        df = pd.read_csv(join('decomp', 'tune_gd.csv'))
+        plot()
+    
+    # jones_decompose(PhiM, adapt=2, zeta=0.1, frac=.005, verbose=True, debug=True)
+    tune_gd()
+    # tune_gd(f_min=0.001, f_max = 0.1, f_it =10, zeta_min=0, zeta_max=.5, zeta_it=10, num_to_avg=10)
 
 
 ## ex_decomp old code ##
