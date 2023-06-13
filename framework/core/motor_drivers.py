@@ -43,7 +43,7 @@ class Motor:
     # +++ basic methods +++
 
     def __repr__(self) -> str:
-        return f'{self.typ}Motor-{self.name}'
+        return f'{self.type}Motor-{self.name}'
     
     def __str__(self) -> str:
         return self.__repr__()

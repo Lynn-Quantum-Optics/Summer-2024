@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from core import Manager, analysis
 import numpy as np
+import pandas as pd
 
 def hone_pct(m:Manager, component:str, target_pct_1:float, guess:float, delta:float, num_samp:int, samp_period:float, within:float, *bases):
     ''' Hone in on a percentage of detections in a given basis.
@@ -89,33 +90,35 @@ def min_det(m:Manager, component:str, basis:str, guess:float, delta:float, num_s
     m.log('BEGIN ROUTINE: min_det')
     
     # initialize data lists
-    x = []
-    y = []
-    yerr = []
+    angles = []
+    rates = []
+    rate_errs = []
 
     # configure measurement
-    m.log(f'Configuring measurement basis: {basis}')
+    m.log(f'Configuring measurement basis: {basis}.')
     m.meas_basis(basis)
 
     # loop to sweep
     for angle in np.linspace(guess-delta, guess+delta, num_sweep):
         # move component
-        m.log(f'Moving {component} to {angle}')
+        m.log(f'Moving {component} to {angle}.')
         actual_angle = m.configure_motor(component, angle)
-        x.append(actual_angle)
+        angles.append(actual_angle)
 
         # take datas
-        rate, unc = m.take_data(*samp, 'C4')
-        y.append(rate)
-        yerr.append(unc)
+        m.log('Collecting sample.')
+        rate, err = m.take_data(*samp, 'C4')
+        rates.append(rate)
+        rate_errs.append(err)
     
     # fit a quadratic expression
-
+    m.log('Fitting ')
+    (ang_ext, a, b), (ang_ext_err, _, _), _ = analysis.fit('quadratic', angles, rates, rate_errs)
 
     m.log('END ROUTINE: min_det')
-    return theta
+    return (ang_ext, ang_ext_err), (angles, rates, rate_errs), (ang_ext, a, b)
 
-def main():
+def main_old():
     # parameters
     GUESS = 65.86
     RANGE = 0.5
@@ -139,6 +142,45 @@ def main():
     print(target_angle, pct1, pct1_unc)
 
     m.shutdown()
+
+def main():
+    GUESS = 45
+    RANGE = 3
+    SAMP = (5,5) # (5,5)
+    N_SWEEP = 10
+    COMPONENT = 'C_UV_HWP'
+    BASIS = 'VV'
+    EXP_COND = 'warm'
+
+    # initialize manager
+    m = Manager(out_file=f'min_VV/{EXP_COND}_calib_all.csv')
+
+    # setup the testing state
+    m.make_state('HH')
+
+    # run the minimize detections routine
+    theta_info, data, params = min_det(m, COMPONENT, BASIS, GUESS, RANGE, N_SWEEP, SAMP)
+    theta, theta_err = theta_info
+    angles, rates, rate_errs = data
+
+    # save the important data
+    df = pd.DataFrame({
+        f'{COMPONENT} angle (degrees)':angles,
+        f'{BASIS} rate (counts/sec)': rates,
+        f'{BASIS} rate SEM (counts/sec)': rate_errs})
+    df.to_csv(f'min_VV/{EXP_COND}_calib.csv', index=False)
+
+    # plot the fit and such
+    plt.errorbar(angles, rates, rate_errs, fmt='o')
+    analysis.plot_func('quadratic', params, angles)
+    plt.xlabel(f'{COMPONENT} Angle (degrees)')
+    plt.ylabel(f'{BASIS} Count Rate')
+    plt.title(f'{BASIS} Count Rate by {COMPONENT} Angle\nExtrema at {theta} +- {theta_err} degrees')
+
+    # show the plot, then shut down
+    plt.show()
+    m.shutdown()
+
 
 if __name__ == '__main__':
     main()

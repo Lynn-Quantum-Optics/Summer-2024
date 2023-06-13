@@ -1,4 +1,22 @@
-## 6/12/23 (Drift experiment #1)
+## 6/13/23
+MP: A
+
+The results from last night suggest that the UVHWP could indeed have temperature fluctuations influencing the results. In light of this, today we are running an experiment to hopefully determine in which configuration (hot or cold) the half-wave plate best performs it's function as a half wave plate. The strategy will be to minimize HH coincidence counts while the detector is cold.
+
+- I am keeping everything cold as much as possible prior to the experiment, however some testing and calibration will be required to make sure we will collect the data we want. I will try to let things cool in between runs, and mark significant times in this notebook.
+- One thing I am doing however is warming up the laser. I turned on the laser at ~10:25 and left it on while writing the code for these tests and calibrations and such.
+- Unblocked laser at 10:55 to manually verify the premise of the test.
+- Confirmed that VV is ~ minimized when C_UV_HWP -> 45 degrees
+- Blocked laser again at 10:58.
+- Unblocked again at 11:07 to debug the calibration script.
+- First try had an error in the fitting script, second try began at 11:12.
+- Second try failed to output. Reblocked laser at 11:14.
+- Unblocked at 11:17 to further debug calibration. Reblocked at 11:20. Calibration script works! Going to let everything cool for a few minutes before the final cold calibration.
+- Unblocking at 11:26 for the final cold calibration run --> data saved to framework/min_VV/cold_*
+- Left the **laser unblocked** and the **detectors off** for about 2 hours over lunch. Returning at 1:26 to take the warm calibration data.
+- Completed calibration for the warm setup, the results are suscpiciously simmilar to the cold results! What the heck!?
+
+## 6/12/23 (Drift Experiments)
 MP: A
 
 ### Procedure

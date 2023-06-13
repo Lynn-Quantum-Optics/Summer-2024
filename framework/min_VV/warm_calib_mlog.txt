@@ -1,0 +1,26 @@
+0:00:00	Log file opened. Manager started at 2023-06-13_13-26-22.
+0:00:35	Loading state preset for HH -> {'C_UV_HWP': 45, 'C_QP': -24.1215, 'C_PCC': 4.005, 'B_C_HWP': 0.0}
+0:00:53	BEGIN ROUTINE: min_det
+0:00:53	Configuring measurement basis: VV.
+0:00:54	Moving C_UV_HWP to 42.0.
+0:00:58	Collecting sample.
+0:01:24	Moving C_UV_HWP to 42.666666666666664.
+0:01:28	Collecting sample.
+0:01:53	Moving C_UV_HWP to 43.333333333333336.
+0:01:57	Collecting sample.
+0:02:23	Moving C_UV_HWP to 44.0.
+0:02:27	Collecting sample.
+0:02:53	Moving C_UV_HWP to 44.666666666666664.
+0:02:57	Collecting sample.
+0:03:23	Moving C_UV_HWP to 45.333333333333336.
+0:03:27	Collecting sample.
+0:03:52	Moving C_UV_HWP to 46.0.
+0:03:56	Collecting sample.
+0:04:21	Moving C_UV_HWP to 46.666666666666664.
+0:04:26	Collecting sample.
+0:04:51	Moving C_UV_HWP to 47.333333333333336.
+0:04:55	Collecting sample.
+0:05:20	Moving C_UV_HWP to 48.0.
+0:05:25	Collecting sample.
+0:05:50	Fitting 
+0:05:50	END ROUTINE: min_det
