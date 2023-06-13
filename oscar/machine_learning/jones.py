@@ -435,10 +435,10 @@ if __name__=='__main__':
     from sample_rho import *
     from random_gen import *
 
-    def do_full_ex_decomp(savename,bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100):
+    def do_full_ex_decomp(setup,bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, savename='test') :
         ''' Run example decompositions using the C setup.
         Params:
-            setup: 'C' or ;'I'
+            setup: 'C' or 'I' or 'B' for both.
             savename: name of file to save results to
             bell: whether to include bell states
             num_random: number of random states to decompose
@@ -508,7 +508,14 @@ if __name__=='__main__':
         # list to hold the parameters (i, setup, simple) to pass to the pool multiprocessing object
         decomp_ls = []
         for i in trange(len(states)):
-            for setup in ['C','I']:
+            if setup=='B':
+                for option in ['C','I']:
+                    if bell:
+                        for adapt in [True,False]:
+                            decomp_ls.append((i, option, adapt))
+                    else:
+                        decomp_ls.append((i, option, False))
+            else:
                 if bell:
                     for adapt in [True,False]:
                         decomp_ls.append((i, setup, adapt))
@@ -536,12 +543,7 @@ if __name__=='__main__':
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
 
-    
-    
-    
-    # setup=input('Enter setup (C or I): ')
-    # while setup != 'C' and setup != 'I':
-    #     setup=input('Enter setup (C or I): ')
+    setup = input('Enter setup: C or I, or B for both')
     bell = bool(int(input('include bell states?')))
     e0 = bool(int(input('include eritas 0 state?')))
     e1 = bool(int(input('include eritas 1 state?')))
@@ -550,10 +552,11 @@ if __name__=='__main__':
     jones_I = bool(int(input('include jones states in I setup?')))
     roik = bool(int(input('include roik states?')))
     special = input('special name to append to file?')
+    num_random = int(input('number of random states to generate?'))
     savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
     print('all', bell, e0, e1, random, jones_C, jones_I, roik)
 
-    do_full_ex_decomp(bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename)
+    do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
 
     # jones_decompose(PhiM, adapt=False, frac=.07, verbose=True, debug=True)
 

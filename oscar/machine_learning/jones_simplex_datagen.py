@@ -6,7 +6,7 @@ from os.path import join
 import scipy.linalg as la
 from tqdm import trange # for progress bar
 
-from rho_methods import is_valid_rho, get_min_eig, compute_witnesses, get_all_projections
+from rho_methods import is_valid_rho, get_concurrence, compute_witnesses, get_all_projections
 from jones import get_random_jones
 from random_gen import get_random_simplex
 
@@ -24,23 +24,23 @@ def analyze_state(rho_angles, rand_type):
     ## compute W and W' ##
     W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
 
-    min_eig = get_min_eig(rho)
+    concurrence = get_concurrence(rho)
    
     if rand_type=='jones':
         return {'theta1':angles[0], 'theta2':angles[1], 'alpha1':angles[2], 'alpha2':angles[3], 'phi':angles[4],
         'HH':HH, 'HV':HV,'VH':VH, 'VV':VV, 'DD':DD, 'DA':DA, 'AD':AD, 'AA':AA, 
-        'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3, 'min_eig':min_eig}
+        'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3, 'concurrence':concurrence}
     elif rand_type =='simplex':
         return {'a':angles[0], 'b':angles[1], 'c':angles[2], 'd':angles[3], 'beta':angles[4], 'gamma':angles[5], 'delta':angles[6],
         'HH':HH, 'HV':HV,'VH':VH, 'VV':VV, 'DD':DD, 'DA':DA, 'AD':AD, 'AA':AA, 
-        'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3, 'min_eig':min_eig}
+        'RR':RR, 'RL':RL, 'LR':LR, 'LL':LL, 'W_min':W_min, 'Wp_t1': Wp_t1,'Wp_t2': Wp_t2, 'Wp_t3': Wp_t3, 'concurrence':concurrence}
     else:
         print('Incorrect rand_type.')
 
 ## perform randomization ##
 def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_data', special='0', restrict=False):
     '''
-    Generates random states and computes 12 input probabilities, W min, W' min for each triplet, and min_eig for each state.
+    Generates random states and computes 12 input probabilities, W min, W' min for each triplet, and concurrence for each state.
     params:
         N: number of states to generate
         do_jones: if True, generate states using Jones generation
@@ -52,10 +52,10 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
         # initilize dataframe to hold states
         df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
             'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'concurrence':[]}) 
         df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
             'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'concurrence':[]}) 
         if not(restrict):
             for i in trange(N):
                 df_jones = pd.concat([df_jones, pd.DataFrame.from_records([analyze_state(get_random_jones(), 'jones')])])
@@ -80,7 +80,7 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
     elif do_jones:
         df_jones = pd.DataFrame({'theta1':[], 'theta2':[], 'alpha1':[], 'alpha2':[], 'phi':[],
             'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'concurrence':[]}) 
         if not(restrict):
             for i in trange(N):
                 df_jones = pd.concat([df_jones, pd.DataFrame.from_records([analyze_state(get_random_jones(), 'jones')])])
@@ -97,7 +97,7 @@ def gen_data(N=50000, do_jones=True, do_simplex=True, DATA_PATH='jones_simplex_d
     elif do_simplex:
         df_simplex = pd.DataFrame({'a':[], 'b':[], 'c':[], 'd':[], 'beta':[], 'gamma':[], 'delta':[],
             'HH':[], 'HV':[],'VH':[], 'VV':[], 'DD':[], 'DA':[], 'AD':[], 'AA':[], 
-            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'min_eig':[]}) 
+            'RR':[], 'RL':[], 'LR':[], 'LL':[], 'W_min':[], 'Wp_t1': [],'Wp_t2': [], 'Wp_t3': [], 'concurrence':[]}) 
         if not(restrict):
             for i in trange(N):
                 df_simplex = pd.concat([df_simplex, pd.DataFrame.from_records([analyze_state(get_random_simplex(), 'simplex')])])
