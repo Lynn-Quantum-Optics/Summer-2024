@@ -16,6 +16,10 @@ The results from last night suggest that the UVHWP could indeed have temperature
 - Left the **laser unblocked** and the **detectors off** for about 2 hours over lunch. Returning at 1:26 to take the warm calibration data.
 - Completed calibration for the warm setup, the results are suscpiciously simmilar to the cold results! What the heck!?
 
+- Now I am attempting to run pretty much the same script but using it to find the angle near 0 that minimizes HH detections to observe the difference.
+- Run into weird and unexpected bugs.
+- Shut down the setup at 2:51 when it became clear these issues would be plaguing the rest of the day's work.
+
 ## 6/12/23 (Drift Experiments)
 MP: A
 

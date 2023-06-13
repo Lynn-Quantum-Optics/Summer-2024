@@ -143,7 +143,7 @@ def main_old():
 
     m.shutdown()
 
-def main():
+def min_VV():
     GUESS = 45
     RANGE = 3
     SAMP = (5,5) # (5,5)
@@ -182,5 +182,43 @@ def main():
     m.shutdown()
 
 
+def min_HH():
+    GUESS = 0
+    RANGE = 3
+    SAMP = (5,5) # (5,5)
+    N_SWEEP = 10
+    COMPONENT = 'C_UV_HWP'
+    BASIS = 'HH'
+    EXP_COND = 'warm'
+
+    # initialize manager
+    m = Manager(out_file=f'min_HH/{EXP_COND}_calib_all.csv')
+
+    # setup the testing state
+    m.make_state('VV') # HH causes error!!!
+
+    # run the minimize detections routine
+    theta_info, data, params = min_det(m, COMPONENT, BASIS, GUESS, RANGE, N_SWEEP, SAMP)
+    theta, theta_err = theta_info
+    angles, rates, rate_errs = data
+
+    # save the important data
+    df = pd.DataFrame({
+        f'{COMPONENT} angle (degrees)':angles,
+        f'{BASIS} rate (counts/sec)': rates,
+        f'{BASIS} rate SEM (counts/sec)': rate_errs})
+    df.to_csv(f'min_VV/{EXP_COND}_calib.csv', index=False)
+
+    # plot the fit and such
+    plt.errorbar(angles, rates, rate_errs, fmt='o')
+    analysis.plot_func('quadratic', params, angles)
+    plt.xlabel(f'{COMPONENT} Angle (degrees)')
+    plt.ylabel(f'{BASIS} Count Rate (counts/sec)')
+    plt.title(f'{BASIS} Count Rate by {COMPONENT} Angle\nExtrema at {theta} +- {theta_err} degrees')
+
+    # show the plot, then shut down
+    plt.show()
+    m.shutdown()
+
 if __name__ == '__main__':
-    main()
+    min_HH()
