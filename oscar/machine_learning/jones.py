@@ -597,6 +597,19 @@ if __name__=='__main__':
                     fidelity_I_sem_ls.append(fidelity_sem)
 
             # save csv summary of results #
+            summary = pd.DataFrame()
+            summary['setup'] = [sfz[0] for sfz in sfz_unique]
+            summary['frac'] = [sfz[1] for sfz in sfz_unique]
+            summary['zeta'] = [sfz[2] for sfz in sfz_unique]
+            summary['n_C'] = n_C_ls
+            summary['n_C_sem'] = n_C_sem_ls
+            summary['n_I'] = n_I_ls
+            summary['n_I_sem'] = n_I_sem_ls
+            summary['fidelity_C'] = fidelity_C_ls
+            summary['fidelity_C_sem'] = fidelity_C_sem_ls
+            summary['fidelity_I'] = fidelity_I_ls
+            summary['fidelity_I_sem'] = fidelity_I_sem_ls
+            summary.to_csv(join('decomp', savename+'_summary.csv'))
 
             fig= plt.figure()
             ax1 = fig.add_subplot(211, projection='3d')
