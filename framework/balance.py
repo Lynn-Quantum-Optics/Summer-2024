@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     args1, unc1, _ = analysis.fit('sin2', data1.C_UV_HWP, data1.C4, data1.C4_sem)
     args2, unc2, _ = analysis.fit('sin2', data2.C_UV_HWP, data2.C4, data2.C4_sem)
-    x = analysis.find_ratio('sin', args1, 'sin', args2, PCT1, data1.C_UV_HWP, GUESS)
+    x = analysis.find_ratio('sin2', args1, 'sin2', args2, PCT1, data1.C_UV_HWP, GUESS)
 
     # print result
     print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({(1-PCT1)*100:.2f}% coincidences): {x:.5f}')
