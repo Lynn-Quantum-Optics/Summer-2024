@@ -33,12 +33,12 @@ def init_state_bg(beta, gamma):
 # initial state for simple=False
 Is0 = init_state_bg(0,0)
 
-def get_Jrho(angles, setup = 'C', simple=True, check=False):
+def get_Jrho(angles, setup = 'C', check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
         setup: either 'C' for current setup or 'I' for ideal setup
-        simple: [CURRENTLY DEPRICATED] boolean for whether to start with arbitrary cos(beta)|0> + sin(beta) e^(i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP for C and I respectively
+       (i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP for C and I respectively
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
     '''
 
@@ -48,50 +48,27 @@ def get_Jrho(angles, setup = 'C', simple=True, check=False):
                             -> B_HWP -> B_QWP -> B_Detectors
         '''
         
-        if simple:
-            ''' Assumes input state of cos(beta)|0> + sin(beta) e^(i*gamma)|1>. Input angles:
-                beta, gamma, Bob's HWP, Bob's QWP, Alice's QWP'''
+        ''' Starts with input state with beta = gamma = 0. Input angles:
+            UV_HWP, QP, Bob's HWP, Bob's QWP, Alice's QWP
+        '''
+        # UVHWP 
+        theta0 = angles[0]
+        # QP
+        phi = angles[1]
+        # B HWP
+        B_theta = angles[2]
+        # B and A QWPs
+        B_alpha = angles[3]
+        A_alpha = angles[4]
 
-            # init state
-            beta = angles[0]
-            gamma = angles[1]
+        H_UV = H(theta0)
+        QP = get_QP(phi)
+        H_B = H(B_theta)
+        Q_B = Q(B_alpha)
+        Q_A = Q(A_alpha)
 
-            # B HWP
-            B_theta = angles[2]
-            # B and A QWPs
-            B_alpha = angles[3]
-            A_alpha = angles[4]
-
-            Is = init_state_bg(beta, gamma)
-            H_B = H(B_theta)
-            Q_B = Q(B_alpha)
-            Q_A = Q(A_alpha)
-
-            P = np.kron(Q_A, Q_B @ H_B) @ BBO @ Is
-            rho = P @ adjoint(P)
-
-        else:
-            ''' Starts with input state with beta = gamma = 0. Input angles:
-                UV_HWP, QP, Bob's HWP, Bob's QWP, Alice's QWP
-            '''
-            # UVHWP 
-            theta0 = angles[0]
-            # QP
-            phi = angles[1]
-            # B HWP
-            B_theta = angles[2]
-            # B and A QWPs
-            B_alpha = angles[3]
-            A_alpha = angles[4]
-
-            H_UV = H(theta0)
-            QP = get_QP(phi)
-            H_B = H(B_theta)
-            Q_B = Q(B_alpha)
-            Q_A = Q(A_alpha)
-
-            P = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV @ Is0
-            rho = P @ adjoint(P)
+        P = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV @ Is0
+        rho = P @ adjoint(P)
 
     elif setup == 'I':
         ''' Jones matrix method with Ideal setup. Computes the rotated polarization state using the following setup:
@@ -99,58 +76,34 @@ def get_Jrho(angles, setup = 'C', simple=True, check=False):
                                 -> B_HWP -> B_QWP -> B_QWP -> B_Detectors
         '''
         
-        if simple:
-            ''' Assumes input state of cos(beta)|0> + sin(beta) e^(i*gamma)|1>. Input angles:
-                beta, gamma, Bob's HWP, Alice's HWP, Bob's QWP1, Bob's QWP2, Alice's QWP1, Alice's QWP2'''
-            # init state
-            beta = angles[0]
-            gamma = angles[1]
-            # HWPs
-            B_theta = angles[2]
-            A_theta = angles[3]
-            # B and A QWPs
-            B_alpha_ls = angles[3:5]
-            A_alpha_ls = angles[5:7]
+        
+        ''' Starts with input state with beta = gamma = 0. Input angles:
+        UV_HWP, QP0, QP1, Bob's HWP, Alice's HWP, Bob's QWP1, Bob's QWP2, Alice's QWP1, Alice's QWP2
+        '''
+        # UVHWP 
+        theta_0 = angles[0]
+        # initial QWPs
+        Q_init = angles[1:3]
+        # HWPs
+        theta_B = angles[3]
+        theta_A = angles[4]
+        # B and A QWPs
+        alpha_B_ls = angles[5:7]
+        alpha_A_ls = angles[7:9]
 
-            Is = init_state_bg(beta, gamma)
-            H_B = H(B_theta)
-            H_A = H(A_theta)
-            Q_B1 = Q(B_alpha_ls[0])
-            Q_B2 = Q(B_alpha_ls[1])
-            Q_A1 = Q(A_alpha_ls[0])
-            Q_A2 = Q(A_alpha_ls[1])
+        H_UV = H(theta_0)
+        Q0= Q(Q_init[0])
+        Q1 = Q(Q_init[1])
+        H_B = H(theta_B)
+        H_A = H(theta_A)
+        Q_B1 = Q(alpha_B_ls[0])
+        Q_B2 = Q(alpha_B_ls[1])
+        Q_A1 = Q(alpha_A_ls[0])
+        Q_A2 = Q(alpha_A_ls[1])
 
-            P = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Is
-            rho = P @ adjoint(P)
+        P = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV @ Is0
 
-        else:
-            ''' Starts with input state with beta = gamma = 0. Input angles:
-            UV_HWP, QP0, QP1, Bob's HWP, Alice's HWP, Bob's QWP1, Bob's QWP2, Alice's QWP1, Alice's QWP2
-            '''
-            # UVHWP 
-            theta_0 = angles[0]
-            # initial QWPs
-            Q_init = angles[1:3]
-            # HWPs
-            theta_B = angles[3]
-            theta_A = angles[4]
-            # B and A QWPs
-            alpha_B_ls = angles[5:7]
-            alpha_A_ls = angles[7:9]
-
-            H_UV = H(theta_0)
-            Q0= Q(Q_init[0])
-            Q1 = Q(Q_init[1])
-            H_B = H(theta_B)
-            H_A = H(theta_A)
-            Q_B1 = Q(alpha_B_ls[0])
-            Q_B2 = Q(alpha_B_ls[1])
-            Q_A1 = Q(alpha_A_ls[0])
-            Q_A2 = Q(alpha_A_ls[1])
-
-            P = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV @ Is0
-
-            rho = P @ adjoint(P)
+        rho = P @ adjoint(P)
 
     else:
         raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
@@ -168,65 +121,42 @@ def get_Jrho(angles, setup = 'C', simple=True, check=False):
 
 
 
-def get_random_Jangles(setup, simple=False):
+def get_random_Jangles(setup):
     ''' Returns random angles for the Jrho_C setup. Confirms that the density matrix is valid.
     params: setup: either 'C' for current setup or 'I' for ideal setup
-            simple: boolean for whether to start with arbitrary cos(beta)|0> + sin(beta) e^(i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP
     '''
 
     def get_angles():
 
+        if setup=='C':
+            # UV HWP
+            theta_UV = np.random.rand()*np.pi/4
+            # QP
+            phi = np.random.rand()*np.pi/2
+            # B HWP
+            theta_B = np.random.rand()*np.pi/4
+            # QWPs
+            alpha_ls = np.random.rand(2)*np.pi/2
+            angles= [theta_UV, phi, theta_B, *alpha_ls]
+        elif setup=='I':
+            # UVHWP 
+            theta_0 = np.random.rand()*np.pi/4
+            # initial QWPs
+            Q_init = np.random.rand(2)*np.pi/2
+            # HWPs
+            theta_ls = np.random.rand(2)*np.pi/4
+            # B and A QWPs
+            alpha_ls = np.random.rand(4)*np.pi/2
 
-        if simple:
-             # init state
-            beta = np.random.rand()*np.pi/4 
-            gamma = np.random.rand()*np.pi/2
-
-            if setup=='C':
-                # HWP
-                theta = np.random.rand()*np.pi/4
-                # QWPs
-                alpha_ls = np.random.rand(2)*np.pi/2
-                angles = [beta, gamma, theta, *alpha_ls]
-
-            elif setup=='I':
-                # HWPs
-                theta_ls = np.random.rand(2)*np.pi/4
-                # QWPs
-                alpha_ls = np.random.rand(4)*np.pi/2
-                angles = [beta, gamma, *theta_ls, *alpha_ls]
-            else:
-                raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
+            angles= [theta_0, *Q_init, *theta_ls, *alpha_ls]
         else:
-            if setup=='C':
-                # UV HWP
-                theta_UV = np.random.rand()*np.pi/4
-                # QP
-                phi = np.random.rand()*np.pi/2
-                # B HWP
-                theta_B = np.random.rand()*np.pi/4
-                # QWPs
-                alpha_ls = np.random.rand(2)*np.pi/2
-                angles= [theta_UV, phi, theta_B, *alpha_ls]
-            elif setup=='I':
-                # UVHWP 
-                theta_0 = np.random.rand()*np.pi/4
-                # initial QWPs
-                Q_init = np.random.rand(2)*np.pi/2
-                # HWPs
-                theta_ls = np.random.rand(2)*np.pi/4
-                # B and A QWPs
-                alpha_ls = np.random.rand(4)*np.pi/2
-
-                angles= [theta_0, *Q_init, *theta_ls, *alpha_ls]
-            else:
-                raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
+            raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
 
         return angles
 
     # confirm angles are valid #
     angles = get_angles()
-    while not(is_valid_rho(get_Jrho(angles=angles, setup=setup, simple=simple))):
+    while not(is_valid_rho(get_Jrho(angles=angles, setup=setup))):
         angles = get_angles()
     return angles
 
