@@ -509,23 +509,24 @@ if __name__=='__main__':
         decomp_df = pd.DataFrame.from_records(results, columns=columns)
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
+    def tune_gd(f_min=0.001, f_max = 0.1, f_it =10, zeta_min=0.001, zeta_max=.5, zeta_it=10, num_to_avg=10, do_compute=False, do_plot=False):
+        ''' Function to tune the gradient descent algorithm based on the PhiM state.
+        Params:
+            f_min: minimum fraction of N to do hop
+            f_max: maximum fraction of N to do hop
+            f_it: number of iterations between f_min and f_max
+            zeta_min: minimum zeta (learning rate)
+            zeta_max: maximum zeta (learning rate)
+            zeta_it: number of iterations between zeta_min and zeta_max
+            num_to_avg: number of times to repeat each config to get average and sem
+            do_compute: whether to compute new data
+            do_plot: whether to plot data
+        N.b. defaults based on initial run.
+        '''
+        assert do_compute or do_plot, 'must do at least one of compute or plot'
 
-    # setup = input('Enter setup: C or I, or B for both')
-    # bell = bool(int(input('include bell states?')))
-    # e0 = bool(int(input('include eritas 0 state?')))
-    # e1 = bool(int(input('include eritas 1 state?')))
-    # random = bool(int(input('include random states?')))
-    # jones_C = bool(int(input('include jones states in C setup?')))
-    # jones_I = bool(int(input('include jones states in I setup?')))
-    # roik = bool(int(input('include roik states?')))
-    # special = input('special name to append to file?')
-    # num_random = int(input('number of random states to generate?'))
-    # savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
-    # print(setup, bell, e0, e1, random, jones_C, jones_I, roik)
+        savename=f'gd_tune_{f_min}_{f_max}_{f_it}_{zeta_min}_{zeta_max}_{zeta_it}_{num_to_avg}'
 
-    # do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
-
-    def tune_gd(f_min=0.001, f_max = 0.1, f_it =2, zeta_min=0, zeta_max=.5, zeta_it=2, num_to_avg=1):
         f_ls = np.logspace(np.log10(f_min), np.log10(f_max), f_it)
         zeta_ls = np.logspace(zeta_min, np.log10(zeta_max), zeta_it)
         sfz_ls = []
@@ -540,9 +541,10 @@ if __name__=='__main__':
                     sfz_unique.append([setup, frac, zeta]) # get unique configs
                     for j in range(num_to_avg): # repeat each config num_to_avg times
                         sfz_ls.append([setup, frac, zeta])
-        print(sfz_ls)
         
-
+        print(sfz_ls)
+        print(savename)
+        
         def compute():
 
             ## build multiprocessing pool ##
@@ -561,7 +563,7 @@ if __name__=='__main__':
             # get all unique configs
             cols = ['setup', 'frac', 'zeta', 'n', 'fidelity']
             df = pd.DataFrame.from_records(results, columns=cols)
-            df.to_csv(join('decomp', 'tune_gd.csv'))
+            df.to_csv(join('decomp', savename+'.csv'))
 
         def plot():
             n_C_ls = []
@@ -575,7 +577,8 @@ if __name__=='__main__':
 
             for sfz in sfz_unique:
                 setup = sfz[0]
-                df_sfz = df.loc[(df['setup']==setup) & (df['frac']==sfz[1]) & (df['zeta']==sfz[2])]
+                df_sfz = df.loc[(df['setup']==setup) & np.isclose(df['frac'], sfz[1], rtol=1e-5) & np.isclose(df['zeta'], sfz[2], rtol=1e-5)]
+                assert len(df_sfz) > 0, f'no results for this config {sfz}'
 
                 n_avg = np.mean(df_sfz['n'].to_numpy())
                 n_sem = np.std(df_sfz['n'].to_numpy())/np.sqrt(len(df_sfz['n'].to_numpy()))
@@ -593,30 +596,22 @@ if __name__=='__main__':
                     fidelity_I_ls.append(fidelity_avg)
                     fidelity_I_sem_ls.append(fidelity_sem)
 
-            print(len(f_plot_ls), len(zeta_plot_ls), len(n_C_ls), len(n_I_ls))
-            print(n_C_ls, n_I_ls)
-
-            # F, Zeta = np.meshgrid(f_plot_ls, zeta_plot_ls)
+            # save csv summary of results #
 
             fig= plt.figure()
             ax1 = fig.add_subplot(211, projection='3d')
-            # sc1= ax1.errorbar(f_plot_ls, zeta_plot_ls, n_C_ls, zerr=n_C_sem_ls, fmt='o')
-            sc1= ax1.scatter(f_plot_ls, zeta_plot_ls, n_C_ls, marker='o', c=np.array(fidelity_C_ls), cmap=plt.cm.magma)
+            sc1= ax1.scatter(f_plot_ls, zeta_plot_ls, n_C_ls, marker='o', c=np.array(fidelity_C_ls), cmap=plt.cm.viridis)
             cb1 = fig.colorbar(sc1, ax=ax1, shrink=1)
             cb1.ax.set_position(cb1.ax.get_position().translated(0.09, 0))
-            # surf1 = ax1.plot_surface(F, Zeta, np.array(n_C_ls), facecolors=cm.coolwarm(fidelity_C_ls),linewidth=0, antialiased=False)
-            # ax1.colorbar(surf1, shrink=0.5, aspect=5)
             ax1.set_xlabel('$f$')
             ax1.set_ylabel('$\zeta$')
             ax1.set_zlabel('$\overline{n}$')
             ax1.set_title('C setup')
 
             ax2 = fig.add_subplot(212, projection='3d')
-            sc2= ax2.scatter(f_plot_ls, zeta_plot_ls, n_I_ls, marker='o', c=np.array(fidelity_I_ls), cmap=plt.cm.magma)
+            sc2= ax2.scatter(f_plot_ls, zeta_plot_ls, n_I_ls, marker='o', c=np.array(fidelity_I_ls), cmap=plt.cm.viridis)
             cb2 = fig.colorbar(sc2, ax=ax2, shrink=1)
             cb2.ax.set_position(cb2.ax.get_position().translated(0.09, 0))
-            # surf2 = ax2.plot_surface(F, Zeta, np.array(n_I_ls), facecolors=cm.coolwarm(fidelity_I_ls), linewidth=0, antialiased=False)
-            # ax2.colorbar(surf2, shrink=0.5, aspect=5)
             ax2.set_xlabel('$f$')
             ax2.set_ylabel('$\zeta$')
             ax2.set_zlabel('$\overline{n}$')
@@ -624,67 +619,31 @@ if __name__=='__main__':
 
             fig.set_size_inches(7, 10)
 
-            plt.savefig(join('decomp', 'tune_gd.pdf'))
+            plt.savefig(join('decomp', savename+'.pdf'))
             plt.show()
     
-        # compute()
-        df = pd.read_csv(join('decomp', 'tune_gd.csv'))
-        plot()
+        if do_compute: compute()
+        if do_plot:
+            df = pd.read_csv(join('decomp', savename+'.csv'))
+            plot()
     
-    # jones_decompose(PhiM, adapt=2, zeta=0.1, frac=.005, verbose=True, debug=True)
-    tune_gd()
-    # tune_gd(f_min=0.001, f_max = 0.1, f_it =10, zeta_min=0, zeta_max=.5, zeta_it=10, num_to_avg=10)
+    ## optimize gradient descent params, f and zeta ##
+    tune_gd(do_compute=True, f_it=20, zeta_it=20, num_to_avg=20)
 
 
-## ex_decomp old code ##
-# initilize dataframe to store results
-        # global decomp_df
-        # decomp_df = pd.DataFrame({'state':[], 'n':[], 'setup': [], 'simple': [], 'angles':[], 'fidelity':[], 'projH&V_pred':[], 'projD&A_pred':[], 'projR&L_pred':[], 'projH&V_targ':[], 'projD&A_targ':[], 'projR&L_targ':[]})
+    ## test states and get average fidelity ##
 
-        # try:
-        #     angles, fidelity, proj_pred, proj_targ, n = jones_decompose(states[i], setup=setup,simple=simple, N=N, verbose=True)
-        #     decomp_df = pd.concat([decomp_df, pd.DataFrame.from_records([{'state':states_names[i], 'n':n, 'setup': setup, 'simple': simple, 'angles':angles, 'fidelity':fidelity, 'projH&V_pred':proj_pred[:4], 'projD&A_pred':proj_pred[4:8], 'projR&L_pred':proj_pred[8:], 'projH&V_targ':proj_targ[:4], 'projD&A_targ':proj_targ[4:8], 'projR&L_targ':proj_targ[8:]}])])
-        # except: # if there's an error, save what we have
-        #     print('error! saving what we have')
-        #     decomp_df.to_csv(savename+'.csv')
+    # setup = input('Enter setup: C or I, or B for both')
+    # bell = bool(int(input('include bell states?')))
+    # e0 = bool(int(input('include eritas 0 state?')))
+    # e1 = bool(int(input('include eritas 1 state?')))
+    # random = bool(int(input('include random states?')))
+    # jones_C = bool(int(input('include jones states in C setup?')))
+    # jones_I = bool(int(input('include jones states in I setup?')))
+    # roik = bool(int(input('include roik states?')))
+    # special = input('special name to append to file?')
+    # num_random = int(input('number of random states to generate?'))
+    # savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
+    # print(setup, bell, e0, e1, random, jones_C, jones_I, roik)
 
-        # decomp_df.to_csv(savename+'.csv')
-        # return decomp_df
-
-
-
-
-
-
-
-
-
-    # jones_decompose(get_random_simplex()[0], setup = 'I', simple=False, epsilon=.99, N = 30000, verbose=True)
-        
-     # define test states
-    # get random eta, chi: 
-    # num_random = 10
-    # eta_ls = np.random.rand(num_random)*np.pi/2
-    # chi_ls = np.random.rand(num_random)*2*np.pi
-
-    # states=[PhiP, PhiM, PsiP, PsiM, *[E_state0(eta_ls[i], chi_ls[i]) for i in range(num_random)], *[E_state1(eta_ls[i], chi_ls[i]) for i in range(num_random)], *[get_random_simplex()[0] for i in range(num_random)]]
-    # states_names = ['PhiP', 'PhiM', 'PsiP', 'PsiM', *[f'E0_{eta_ls[i]}_{chi_ls[i]}' for i in range(num_random)], *[f'E1_{eta_ls[i]}_{chi_ls[i]}' for i in range(num_random)], *[f'RS_{get_random_simplex()[1]}' for i in range(num_random)]]
-    # # do only C setup for now
-    # setup = ['C', 'C', 'C', 'C', *['C' for i in range(num_random)], *['C' for i in range(num_random)], *['C' for i in range(num_random)]]
-
-     # run decomposition
-    # for i in trange(len(states)):
-    #     print('starting state', states_names[i], '...')
-    #     angles, fidelity = jones_decompose(states[i], setup[i], verbose=True)
-    #     decomp_df = pd.concat([decomp_df, pd.DataFrame.from_records([{'state': states_names[i], 'angles': angles, 'fidelity': fidelity}])])
-
-    # states_C = [PhiP, PhiM, PsiP, PsiM, E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
-    # states_names_C = ['PhiP', 'PhiM', 'PsiP', 'PsiM', 'E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
-    # setup_C = ['C', 'C', 'C', 'C', 'C', 'C', 'C']
-    # states_I = [E_state0(eta_ls[0], chi_ls[0]), E_state0(eta_ls[1], chi_ls[1]), E_state0(eta_ls[2], chi_ls[2])]
-    # setup_I = ['I', 'I', 'I']
-    # states_names_I= ['E0_'+str(eta_ls[0])+'_'+str(chi_ls[0]), 'E0_'+str(eta_ls[1])+'_'+str(chi_ls[1]), 'E0_'+str(eta_ls[2])+'_'+str(chi_ls[2])]
-
-    # states_tot = states_C + states_I
-    # names_tot = states_names_C + states_names_I
-    # setup_tot = setup_C + setup_I
+    # do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
