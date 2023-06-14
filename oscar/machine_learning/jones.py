@@ -402,10 +402,11 @@ if __name__=='__main__':
     from random_gen import *
 
 
-    def do_full_ex_decomp(setup,bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, savename='test') :
+    def do_full_ex_decomp(setup,adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, savename='test') :
         ''' Run example decompositions using the C setup.
         Params:
             setup: 'C' or 'I' or 'B' for both.
+            adapt: 0 for no adaptation, 1 for random fan, 2 for gradient descent
             savename: name of file to save results to
             bell: whether to include bell states
             num_random: number of random states to decompose
@@ -477,17 +478,9 @@ if __name__=='__main__':
         for i in trange(len(states)):
             if setup=='B':
                 for option in ['C','I']:
-                    if bell:
-                        for adapt in [True,False]:
-                            decomp_ls.append((i, option, adapt))
-                    else:
-                        decomp_ls.append((i, option, False))
+                    decomp_ls.append((i, option, adapt))
             else:
-                if bell:
-                    for adapt in [True,False]:
-                        decomp_ls.append((i, setup, adapt))
-                else:
-                    decomp_ls.append((i, setup, False))
+                decomp_ls.append((i, option, adapt))
         
         print(decomp_ls)
 
@@ -641,22 +634,25 @@ if __name__=='__main__':
             plot()
     
     ## optimize gradient descent params, f and zeta ##
-    tune_gd(do_compute=True, f_it=20, zeta_it=20, num_to_avg=20)
+    # tune_gd(do_compute=True, f_it=20, zeta_it=20, num_to_avg=20)
 
 
-    ## test states and get average fidelity ##
+    ## test states and get average fidelit##
 
-    # setup = input('Enter setup: C or I, or B for both')
-    # bell = bool(int(input('include bell states?')))
-    # e0 = bool(int(input('include eritas 0 state?')))
-    # e1 = bool(int(input('include eritas 1 state?')))
-    # random = bool(int(input('include random states?')))
-    # jones_C = bool(int(input('include jones states in C setup?')))
-    # jones_I = bool(int(input('include jones states in I setup?')))
-    # roik = bool(int(input('include roik states?')))
-    # special = input('special name to append to file?')
-    # num_random = int(input('number of random states to generate?'))
-    # savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
-    # print(setup, bell, e0, e1, random, jones_C, jones_I, roik)
+    setup = input('Enter setup: C or I, or B for both')
+    assert setup in ['C', 'I', 'B'], f'invalid setup. you have {setup}'
+    adapt = int(input('0 for random hop, 1 for random fan, 2 for gradient descent'))
+    assert adapt in [0, 1, 2], f'invalid adapt. you have {adapt}'
+    bell = bool(int(input('include bell states?')))
+    e0 = bool(int(input('include eritas 0 state?')))
+    e1 = bool(int(input('include eritas 1 state?')))
+    random = bool(int(input('include random states?')))
+    jones_C = bool(int(input('include jones states in C setup?')))
+    jones_I = bool(int(input('include jones states in I setup?')))
+    roik = bool(int(input('include roik states?')))
+    special = input('special name to append to file?')
+    num_random = int(input('number of random states to generate?'))
+    savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
+    print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik)
 
-    # do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
+    do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
