@@ -362,8 +362,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
                 break
 
         # compute projections in 12 basis states
-        proj_pred = get_all_projections(func(max_best_angles))
-        proj_targ = get_all_projections(targ_rho)
+        proj_pred = get_12s_redundant_projections(func(max_best_angles))
+        proj_targ = get_12s_redundant_projections(targ_rho)
 
         # if verbose:
         print('actual state', targ_rho)
@@ -374,7 +374,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
         print('projections of actual', proj_targ)
 
         if not(gd_tune):
-            return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
+            return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:3], proj_targ[:3], proj_pred[3:6], proj_targ[3:6], proj_pred[6:], proj_targ[6:]
         else:
             return setup, frac, zeta, n, max_best_fidelity
 
@@ -490,7 +490,7 @@ if __name__=='__main__':
         inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1], decomp_in[2]) for  decomp_in in decomp_ls]        
         results = pool.starmap_async(jones_decompose, inputs).get()
 
-        # end multiprocessing
+        ## end multiprocessing ##
         pool.close()
         pool.join()
 
