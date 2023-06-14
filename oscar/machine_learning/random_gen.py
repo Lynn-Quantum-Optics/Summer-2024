@@ -114,6 +114,21 @@ def get_random_roik(purity_cond = 1):
 
     return M0, get_purity(M0)
 
+def get_random_werner_simplex():
+    ''' Function to generate mixed random density matrix by mixing a random pure state with a maximally mixed one.'''
+
+    def do_mixing():
+        ''' Function to mix two density matrices together. '''
+        rand_pure = get_random_simplex()[0]
+        max_mixed = np.eye(4)/4
+        p = np.random.rand()
+        return p*rand_pure + (1-p)*max_mixed
+
+    rho = do_mixing()
+    while not(is_valid_rho(rho)):
+        rho = do_mixing()
+    return rho
+
 def get_random_E0():
     ''' Using the defintion of E0 in sample_rho.py'''
 
