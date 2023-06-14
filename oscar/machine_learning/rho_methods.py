@@ -50,21 +50,21 @@ def Bures_distance(rho1, rho2):
 ## for tomography ##
 
 def get_expec_vals(rho):
-        ''' Returns all 16 expectation vals given density matrix. '''
-        # pauli matrices
-        I = np.eye(2)
-        X = np.matrix([[0, 1], [1, 0]])
-        Y = np.matrix([[0, -1j], [1j, 0]])
-        Z = np.matrix([[1, 0], [0, -1]])
+    ''' Returns all 16 expectation vals given density matrix. '''
+    # pauli matrices
+    I = np.eye(2)
+    X = np.matrix([[0, 1], [1, 0]])
+    Y = np.matrix([[0, -1j], [1j, 0]])
+    Z = np.matrix([[1, 0], [0, -1]])
 
-        expec_vals=[]
+    expec_vals=[]
 
-        Pa_matrices = [I, X, Y, Z]
-        for Pa1 in Pa_matrices:
-            for Pa2 in Pa_matrices:
-                expec_vals.append(np.trace(np.kron(Pa1, Pa2) @ rho))
+    Pa_matrices = [I, X, Y, Z]
+    for Pa1 in Pa_matrices:
+        for Pa2 in Pa_matrices:
+            expec_vals.append(np.trace(np.kron(Pa1, Pa2) @ rho))
 
-        return np.array(expec_vals).reshape(4,4)
+    return np.array(expec_vals).reshape(4,4)
 
 def compute_proj(basis1, basis2, rho):
     ''' Computes projection into desired bases using projection operations on both qubits'''
@@ -75,9 +75,36 @@ def compute_proj(basis1, basis2, rho):
     # print(np.kron(proj1, proj2))
     return np.real(np.trace(np.kron(proj1, proj2)@rho))
 
-def get_all_projections(rho):
-    ''' Computes 12 projections based on the standard projection'''
+def get_9s_projections(rho):
+    ''' Computes 9 projections based on the standard projection'''
     ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
+    H = np.array([[1,0]]).reshape(2,1) # ZP
+    V = np.array([[0,1]]).reshape(2,1) # ZM
+    D = 1/np.sqrt(2) * np.array([[1,1]]).reshape(2,1) # XP
+    A = 1/np.sqrt(2) * np.array([[1,-1]]).reshape(2,1) # XM
+    R = 1/np.sqrt(2) * np.array([[1,1j]]).reshape(2,1) # YP
+    L = 1/np.sqrt(2) * np.array([[1,-1j]]).reshape(2,1) # YM
+
+    HH = compute_proj(H, H, rho)
+    HV = compute_proj(H, V, rho)
+    # VH = compute_proj(V, H, rho)
+    VV = compute_proj(V, V, rho)
+    DD = compute_proj(D, D, rho)
+    DA = compute_proj(D, A, rho)
+    # AD = compute_proj(A, D, rho)
+    AA = compute_proj(A, A, rho)
+    RR = compute_proj(R, R, rho)
+    RL = compute_proj(R, L, rho)
+    # LR = compute_proj(L, R, rho)
+    LL = compute_proj(L, L, rho)
+
+    # return HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL
+    return HH, HV, VV, DD, DA, AA, RR, RL, LL
+
+def get_12s_redundant_projections(rho):
+    ''' Computes 12 projections based on the standard projection'''
+
+     ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
     H = np.array([[1,0]]).reshape(2,1) # ZP
     V = np.array([[0,1]]).reshape(2,1) # ZM
     D = 1/np.sqrt(2) * np.array([[1,1]]).reshape(2,1) # XP
@@ -99,6 +126,41 @@ def get_all_projections(rho):
     LL = compute_proj(L, L, rho)
 
     return HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL
+    
+
+def get_16s_projections(rho):
+    ''' Computes 16 projections based on the standard projection; choice of bases is motivated by Roik et al'''
+    ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
+    H = np.array([[1,0]]).reshape(2,1) # ZP
+    V = np.array([[0,1]]).reshape(2,1) # ZM
+    D = 1/np.sqrt(2) * np.array([[1,1]]).reshape(2,1) # XP
+    A = 1/np.sqrt(2) * np.array([[1,-1]]).reshape(2,1) # XM
+    R = 1/np.sqrt(2) * np.array([[1,1j]]).reshape(2,1) # YP
+    L = 1/np.sqrt(2) * np.array([[1,-1j]]).reshape(2,1) # YM
+
+    HH = compute_proj(H, H, rho)
+    VV = compute_proj(V, V, rho)
+    HV = compute_proj(H, V, rho)
+
+    DD = compute_proj(D, D,rho)
+    AA = compute_proj(A, A,rho)
+
+    RR = compute_proj(R,R, rho)
+    LL = compute_proj(L, L,rho)
+
+    DL = compute_proj(D,L, rho)
+    AR = compute_proj(A,R, rho)
+    DH = compute_proj(D,H, rho)
+    AV = compute_proj(A,V, rho)
+    LH = compute_proj(L,H, rho)
+    RV = compute_proj(R,V, rho)
+
+    DR = compute_proj(D,R, rho)
+    DV = compute_proj(D,V, rho)
+    LV = compute_proj(L,V, rho)
+
+    return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
+
 
 def compute_roik_proj(basis1, basis2, M0):
         ''' Computes projection into desired bases as in the Roik et al paper'''
