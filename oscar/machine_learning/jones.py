@@ -231,16 +231,17 @@ def get_random_Jangles(setup, simple=False):
     return angles
 
 
-def get_random_jones(setup='C', simple=True):
+def get_random_jones(setup='C', return_params=False):
     ''' Computes random angles in the ranges specified and generates the resulting states'''
     # get random angles
     angles = get_random_Jangles(setup=setup)
     # get density matrix
-    rho = get_Jrho(setup=setup, angles=angles, simple=simple)
+    rho = get_Jrho(setup=setup, angles=angles)
 
-    return [rho, angles]
+    if not(return_params): return [rho, angles]
+    else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug=False, verbose=False, simple=False, epsilon=0.999, N = 1000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug=False, verbose=False, epsilon=0.999, N = 1000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -250,7 +251,6 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
         zeta: learning rate for gradient descent
         frac: what percentage of the domain of the angles to change each time in adapt
         gd_tune: whether to output parameters for gd tuning
-        simple: boolean for whether to start with arbitrary cos(beta)|0> + sin(beta) e^(i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP
         epsilon: maximum tolerance for fidelity; if reached, halleljuah and break early!
         N: max number of times to try to optimize
         verbose: whether to include print statements.
@@ -263,19 +263,15 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
     '''
 
     def decompose():
-        func = lambda angles: get_Jrho(angles=angles, setup=setup, simple=simple)
+        func = lambda angles: get_Jrho(angles=angles, setup=setup)
 
         # initial guesses (PhiP)
         if setup=='C':
-            if simple: # beta, gamma, theta, alpha1, alpha2
-                bounds = [(0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
-            else: # theta_0, phi, theta_B, alpha_B1, alpha_B2
-                bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
+            # theta_0, phi, theta_B, alpha_B1, alpha_B2
+            bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
         elif setup=='I':
-            if simple: # beta, gamma, theta1, theta2, alpha1, alpha2
-                bounds = [(0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2)]
-            else: # theta_uv, alpha_0, alpha_1, theta_B, theta_A, alpha_B1, alpha_B2, alpha_A1, alpha_A2
-                bounds = [(0, np.pi/4),  (0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2)]
+            # theta_uv, alpha_0, alpha_1, theta_B, theta_A, alpha_B1, alpha_B2, alpha_A1, alpha_A2
+            bounds = [(0, np.pi/4),  (0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2)]
         else:
             raise ValueError(f'Invalid setup. Must be either "C" or "I". You have {setup}.')
 
@@ -294,7 +290,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
             fidelity = get_fidelity(rho, targ_rho)
             return best_angles, fidelity, rho
 
-        x0 = get_random_Jangles(setup=setup, simple=simple)
+        x0 = get_random_Jangles(setup=setup)
         best_angles, fidelity, rho = minimize_angles(x0)
         
         # iterate eiher until we hit max bound or we get a valid rho with fidelity above the min
@@ -320,7 +316,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
                     m+=1
                     if m>0:
                         if m==frac*N:
-                            x0 = get_random_Jangles(setup=setup, simple=simple)
+                            x0 = get_random_Jangles(setup=setup)
                             m=-frac*N
 
                         x0 = [np.random.uniform(max(bounds[i][0], max_best_angles[i] * (1 - m * ((bounds[i][1] - bounds[i][0]) / (frac * N)))),
@@ -328,12 +324,12 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
         for i in range(len(max_best_angles))]
 
                     else: # cool down
-                        x0 = get_random_Jangles(setup=setup, simple=simple)
+                        x0 = get_random_Jangles(setup=setup)
 
                 ## gradient descent ##
                 elif adapt==2 and not(np.all(max_best_angles == np.zeros(len(max_best_angles)))):            
                     if index_since_improvement % (frac*N)==0: # random search
-                        x0 = get_random_Jangles(setup=setup, simple=simple)
+                        x0 = get_random_Jangles(setup=setup)
                     else:
                         gradient = approx_fprime(grad_angles, loss_fidelity, epsilon=1e-8) # epsilon is step size in finite difference
                         if verbose: print(gradient)
@@ -344,7 +340,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
 
                 ## random hop ##
                 else:
-                    x0 = get_random_Jangles(setup=setup, simple=simple)
+                    x0 = get_random_Jangles(setup=setup)
 
                 best_angles, fidelity, rho = minimize_angles(x0)
 
@@ -439,7 +435,7 @@ if __name__=='__main__':
             states+=states_E1
             states_names+=states_E1_names
         if random:
-            states_RS_all = [get_random_simplex() for i in range(num_random)]
+            states_RS_all = [get_random_simplex(return_params=True) for i in range(num_random)]
             states_RS = [states_RS_all[i][0] for i in range(num_random)]
             states_RS_names = [f'RS_{states_RS_all[i][1][0]}_{states_RS_all[i][1][1]}_{states_RS_all[i][1][2]}_{states_RS_all[i][1][3]}__{states_RS_all[i][1][4]}__{states_RS_all[i][1][5]}__{states_RS_all[i][1][6]}' for i in range(num_random)]
        
@@ -447,7 +443,7 @@ if __name__=='__main__':
             states_names+=states_RS_names
         if jones_C:
             # get random Jones states
-            states_jones_all = [get_random_jones(setup='C', simple=False) for i in range(num_random)]
+            states_jones_all = [get_random_jones(setup='C', return_params=True) for i in range(num_random)]
             states_jones = [states_jones_all[i][0] for i in range(num_random)]
             states_jones_names = [f'jones_{states_jones_all[i][1]}' for i in range(num_random)]
 
@@ -455,7 +451,7 @@ if __name__=='__main__':
             states_names+=states_jones_names
         if jones_I:
             # get random Jones states
-            states_jones_all = [get_random_jones(setup='I', simple=False) for i in range(num_random)]
+            states_jones_all = [get_random_jones(setup='I', return_params=True) for i in range(num_random)]
             states_jones = [states_jones_all[i][0] for i in range(num_random)]
             states_jones_names = [f'jones_{states_jones_all[i][1]}' for i in range(num_random)]
 

@@ -11,17 +11,39 @@ from rho_methods import *
 from random_gen import *
 from jones import *
 
-def build_dataset(random_method, prob_type, num_to_gen, savename):
+def gen_rand_info(func, prob_type, verbose=True):
+    ''' Function to compute random state based on imput method and return measurement projections, witness values, concurrence, and purity.
+        params:
+            func: function to generate random state
+            prob_type: string, either 'standard' for nonredudant 9, or 'roik_like' for 16 nonredudant
+            verbose: bool, whether to print progress
+    '''
+
+    # generate random state
+    rho = func()
+    W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
+    concurrence = get_concurrence(rho)
+    purity = get_purity(rho)
+    print(f'made state with concurrence {concurrence} and purity {purity}')
+    if prob_type=='standard':
+        HH, HV, VV, DD, DA, AA, RR, RL, LL = get_9s_projections(rho)
+        return HH, HV, VV, DD, DA, AA, RR, RL, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
+    elif prob_type=='roik_like':
+        HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV = get_16s_projections(rho)
+        return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
+
+def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False):
     ''' Fuction to build a dataset of randomly generated states.
     params:
         random_method: string, either 'simplex', 'jones_I','jones_C' or 'random'
         prob_type: string, either 'standard' for nonredudant 9, or 'roik_like' for 16 nonredudant
         num_to_gen: number of states to generate
         savename: name of file to save data to
+        verbose: bool, whether to print progress
     '''
 
     # confirm valid random method
-    assert random_method in ['simplex', 'jones_I','jones_C', 'random'], f'Invalid random method. You have {random_method}.'
+    assert random_method in ['simplex', 'jones_I','jones_C', 'random', 'werner_simplex'], f'Invalid random method. You have {random_method}.'
 
     # confirm valid prob_type
     assert prob_type in ['standard', 'roik_like'], f'Invalid prob_type. You have {prob_type}.'
@@ -45,25 +67,10 @@ def build_dataset(random_method, prob_type, num_to_gen, savename):
     elif random_method=='werner_simplex':
         func = get_random_werner_simplex
 
-    def gen_rand_info():
-        ''' Function to ompute random state based on imput method and return measurement projections, witness values, concurrence, and purity.'''
-
-        # generate random state
-        rho = func()
-        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
-        concurrence = get_concurrence(rho)
-        purity = get_purity(rho)
-        if prob_type=='standard':
-            HH, HV, VV, DD, DA, AA, RR, RL, LL = get_9s_projections(rho)
-            return HH, HV, VV, DD, DA, AA, RR, RL, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
-        elif prob_type=='roik_like':
-            HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV = get_16s_projections(rho)
-            return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
-
-    ## build multiprocessing pool ##
+    # build multiprocessing pool ##
     pool = Pool(cpu_count())
-    inputs = [None]*num_to_gen
-    results = pool.starmap_async(gen_rand_info, inputs)
+    inputs = [(func, prob_type, verbose) for _ in range(num_to_gen)]
+    results = pool.starmap_async(gen_rand_info, inputs).get()
 
     ## end multiprocessing ##
     pool.close()
@@ -79,13 +86,27 @@ def build_dataset(random_method, prob_type, num_to_gen, savename):
 ## ask user for info ##
 if __name__=='__main__':
     # random_method, prob_type, num_to_gen, savename
-    random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', or 'random': ")
-    prob_type = input("Enter prob_type: 'standard' or 'roik_like': ")
-    num_to_gen = int(input("Enter number of states to generate: "))
-    special = input("Enter special name for file: ")
+    preset = bool(int(input('Use preset (1) or custom (0): ')))
+    if preset:
+        random_method = 'simplex'
+        prob_type = 'standard'
+        num_to_gen = 100
+        special = 'preset'
+        datadir = 0
+    else:
+        random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', or 'werner_simplex': ")
+        prob_type = input("Enter prob_type: 'standard' or 'roik_like': ")
+        num_to_gen = int(input("Enter number of states to generate: "))
+        special = input("Enter special name for file: ")
+        datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
+
     if not(isdir('random_gen')):
-        os.mkdir('random_gen')
-    datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
+        os.makedirs('random_gen')
+    if not(isdir(join('random_gen', 'data'))):
+        os.makedirs(join('random_gen', 'data'))
+    if not(isdir(join('random_gen', 'test'))):
+        os.makedirs(join('random_gen', 'test'))
+    
     if datadir:
         savename = join('random_gen', 'data', f'{random_method}_{prob_type}_{num_to_gen}_{special}')
     else:

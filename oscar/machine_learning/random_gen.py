@@ -5,11 +5,13 @@ import numpy as np
 from rho_methods import *
 from sample_rho import *
 
-def get_random_simplex():
+def get_random_simplex(return_params=False):
     '''
     Returns density matrix for random state of form:
     a|HH> + be^(i*beta)|01> + ce^(i*gamma)*|10> + de^(i*delta)*|11>
     along with generation parameters [a, b, c, d, beta, gamma, delta]
+    params:
+        return_params: bool, whether to return generation parameters
     '''
 
     def get_random_state():
@@ -35,7 +37,8 @@ def get_random_simplex():
     while not(is_valid_rho(rho)):
         rho, params = get_random_state()
 
-    return [rho, params]
+    if return_params: return [rho, params]
+    else: return rho
 
 ### randomization functions ###
 def get_random_roik(purity_cond = 1):
@@ -119,7 +122,7 @@ def get_random_werner_simplex():
 
     def do_mixing():
         ''' Function to mix two density matrices together. '''
-        rand_pure = get_random_simplex()[0]
+        rand_pure = get_random_simplex()
         max_mixed = np.eye(4)/4
         p = np.random.rand()
         return p*rand_pure + (1-p)*max_mixed
@@ -129,8 +132,11 @@ def get_random_werner_simplex():
         rho = do_mixing()
     return rho
 
-def get_random_E0():
-    ''' Using the defintion of E0 in sample_rho.py'''
+def get_random_E0(return_params = True):
+    ''' Using the defintion of E0 in sample_rho.py
+    params:
+        return_params: if True, returns the parameters used to generate the state. True by default
+    '''
 
     # get random params
     def get_rand_state():
@@ -144,9 +150,10 @@ def get_random_E0():
     while not(is_valid_rho(E0)):
         E0, angles = get_rand_state()
 
-    return [E0,angles]
+    if return_params: return [E0,angles]
+    else: return E0
 
-def get_random_E1():
+def get_random_E1(return_params = True):
     ''' Using the defintion of E1 in sample_rho.py'''
 
     # get random params
@@ -161,5 +168,6 @@ def get_random_E1():
     while not(is_valid_rho(E1)):
         E1, angles = get_rand_state()
 
-    return [E1,angles]
+    if return_params: return [E1,angles]
+    else: return E1
 
