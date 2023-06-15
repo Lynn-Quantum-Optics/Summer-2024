@@ -16,6 +16,10 @@ def get_rho(state):
     ''' Function to compute density matrix from a given 2-qubit state vector. '''
     return np.matrix(state @ np.conjugate(state.reshape((1,4))))
 
+def adjoint(state):
+    ''' Returns the adjoint of a state vector. For a np.matrix, can use .H'''
+    return np.conjugate(state).T
+
 def is_valid_rho(rho, verbose=True):
     ''' Checks if a density matrix is valid. 
     params:
@@ -35,14 +39,11 @@ def is_valid_rho(rho, verbose=True):
         if verbose: print('rho trace is not 1')
         return False
     # check if positive semidefinite
-    if not(np.all(la.eigvals(rho) >= 0)):
+    eig_val = la.eigvals(rho)
+    if not(np.all(np.greater_equal(eig_val,np.zeros(len(eig_val))) | np.isclose(eig_val,np.zeros(len(eig_val)), rtol=1e-5))):
         if verbose: print('rho is not positive semidefinite')
         return False
     return True
-
-def adjoint(state):
-    ''' Returns the adjoint of a state vector. For a np.matrix, can use .H'''
-    return np.conjugate(state).T
 
 def get_purity(rho):
     ''' Calculates the purity of a density matrix. '''
