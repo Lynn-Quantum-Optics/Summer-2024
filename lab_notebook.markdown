@@ -1,3 +1,27 @@
+## 6/15/23
+MP: A
+
+Took a day off yesterday to do the mathematics and consider the physical reality of our theory. We now suspect that the UV HWP may not be causing any problems at all! Today we are seeking to investigate the laser as a potential cause of drift. To do this, we will run the exact same drift experiment as the previous days, however we will let the laser alone warm up for about 3 hours before the test.
+
+- Laser turned on and left blocked at 9:23. Waiting until at least 12:23 to begin the experiment.
+
+In the mean time, I will be toying around with an arduino/raspberrypi/whatever tools I can get my hands on in order to monitor the temperature (and other statistics) about the laser. While these tools might be _nice_ to have while running this current test, the current test will allow us to determine if this minimally-intensive "warming up" procedure will allow us to stabilize our detections for further experiments, and so it is taking precedence.
+
+- Returned around 12:30 after a morning's hard work on the laser-monitoring software/hardware.
+- Got BBO setup. Re-configured the nitrogen regulator since we went through about 500psi on the 13th (it should be going much slower).
+- Turning on detectors.
+- Looked over the code to make sure everything is in order. We'll be running `drift_experiment.py` to measure HH and VV coincidences every other minute. We're setting the total run time for this experiment to three hours so that we can observe any hints of drift we might see, as well as any large initial drifts.
+- In the spirit of keeping everything else cool for as long as possible, I'll start the script and then I'll unblock the laser (since the first part of the script is calibration and getting all the motors oriented anyways).
+- Starting the script at 12:40, laser unblocked within the same minute.
+- Script is running smoothly. It got the motors setup REALLY fast (perhaps they were already in place from a the last set of experiments?) and is now taking data
+- Anecdotally, there is already a difference in counts (VV > HH) which we did not see on the cold run.
+- Script just finished minute 2 of collection and is starting minute 3. Leaving the lab at 12:44 for the experiment to run.
+
+- Returned at 15:43, experiment seems to have completed less than a minute ago.
+- Shutting down experiment now, as the rest of the day I'll only be fuffing with the laser.
+- Reconfiguration of the nitrogen regulator seems to have been a success, only used ~100psi today and the flow of nitrogen is still noticeable at the outlets.
+- Renaming and uploading data to github.
+
 ## 6/13/23
 MP: A
 

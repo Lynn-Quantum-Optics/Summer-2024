@@ -5,7 +5,7 @@ import pandas as pd
 if __name__ == '__main__':
     # parameters
     SAMP = (6, 5)
-    TOTAL_TIME = 60 * 5 # collect 5 hours of data
+    TOTAL_TIME = 60 * 3 # collect 3 hours of data
 
     # initialize manager
     m = Manager(out_file='drift_experiment_all_data.csv')
@@ -14,14 +14,6 @@ if __name__ == '__main__':
     # setup the state
     m.make_state('phi_plus')
     m.log(f'configured phi_plus: {m._config["state_presets"]["phi_plus"]}')
-
-    # initialize dataframe dictionary
-    df = {
-        'time (min)':[],
-        'HH':[],
-        'VV':[],
-        'HH_err':[],
-        'VV_err':[]}
 
     # get ready for main loop -- remember start time
     minute = -1
@@ -37,7 +29,7 @@ if __name__ == '__main__':
         if ((time.time() - start_time) // 60) > minute:
             # log experiment time
             minute += 1
-            m.log(f'Starting minute {minute} at {m.now})')
+            m.log(f'Starting minute {minute} at {m.now}')
 
             # select basis
             if minute % 2 == 0:
@@ -50,24 +42,6 @@ if __name__ == '__main__':
             # take data
             m.log('Taking data...')
             rate, unc = m.take_data(*SAMP, 'C4')
-
-            # adding data to dataframe
-            m.log('Appending to dataframe...')
-            
-            df['time (min)'].append(minute)
-            if minute % 2 == 0:
-                # took data in HH
-                df['HH'].append(rate)
-                df['HH_err'].append(unc)
-                df['VV'].append(None)
-                df['VV_err'].append(None)
-            elif minute % 2 == 1:
-                # took data in VV
-                df['HH'].append(None)
-                df['HH_err'].append(None)
-                df['VV'].append(rate)
-                df['VV_err'].append(unc)
-
             m.log(f'Finished minute {minute} at {m.now}')
         # take a lil nap after every iteration
         time.sleep(0.1)
@@ -75,8 +49,6 @@ if __name__ == '__main__':
     # done with main loop! save data
     m.log('Main loop complete, saving data...')
     m.close_output(get_data=False)
-    df = pd.DataFrame(df)
-    df.to_csv('drift_experiment.csv', index=False)
 
     # shutdown
     m.log('Drift experiment complete! Shutting down.')
