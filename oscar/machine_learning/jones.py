@@ -1,6 +1,8 @@
 # file for jones matrix computations
 
 # main package imports #
+from os.path import isdir, join
+import os
 import numpy as np
 from scipy.optimize import minimize, approx_fprime
 
@@ -200,20 +202,21 @@ def get_random_jones(setup='C', return_params=False):
     if not(return_params): return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug=False, verbose=False, epsilon=0.999, N = 1000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 1000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
         targ_name: name of target state
         setup: either 'C' for current setup or 'I' for ideal setup
         adapt: 0: random hop, 1: random fan, 2: gradient descent
-        zeta: learning rate for gradient descent
         frac: what percentage of the domain of the angles to change each time in adapt
+        zeta: learning rate for gradient descent
         gd_tune: whether to output parameters for gd tuning
-        epsilon: maximum tolerance for fidelity; if reached, halleljuah and break early!
-        N: max number of times to try to optimize
+        save_rho: whether to save the density matrix
         verbose: whether to include print statements.
         debug: whether to enforce try/excpet to block errors
+        epsilon: maximum tolerance for fidelity; if reached, halleljuah and break early!
+        N: max number of times to try to optimize
     returns:
         angles: list of angles matching setup return. note beta and gamma, which set the initial polarization state, are the first two elements
         fidelity: fidelity of the resulting guessed state
@@ -294,8 +297,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
                         x0 = get_random_Jangles(setup=setup)
 
                 ## gradient descent ##
-                elif adapt==2 and not(np.all(max_best_angles == np.zeros(len(max_best_angles)))):            
-                    if index_since_improvement % (frac*N)==0: # random search
+                elif adapt==2:            
+                    if index_since_improvement % (frac*N)==0: # periodic random search (hop)
                         x0 = get_random_Jangles(setup=setup)
                     else:
                         gradient = approx_fprime(grad_angles, loss_fidelity, epsilon=1e-8) # epsilon is step size in finite difference
@@ -315,6 +318,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
                     max_best_fidelity = fidelity
                     max_best_angles = best_angles
                     index_since_improvement = 0
+                elif not(is_valid_rho(rho)):
+                    n-=1
                 else:
                     index_since_improvement += 1
 
@@ -325,6 +330,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
                 break
 
         # compute projections in 12 basis states
+        best_pred_rho = func(max_best_angles)
         proj_pred = get_12s_redundant_projections(func(max_best_angles))
         proj_targ = get_12s_redundant_projections(targ_rho)
 
@@ -337,7 +343,14 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
         print('projections of actual', proj_targ)
 
         if not(gd_tune):
-            return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:3], proj_targ[:3], proj_pred[3:6], proj_targ[3:6], proj_pred[6:], proj_targ[6:]
+            if save_rho: # save best predicted and actual rho
+                # create new directory
+                if not(isdir(join('decomp', targ_name, setup))):
+                    os.makedirs(join('decomp', targ_name, setup))
+                # save rho
+                np.save(join('decomp', targ_name, setup, f'rho_{n}_{max_best_fidelity}'), best_pred_rho)
+            return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, best_pred_rho, targ_rho
+
         else:
             return setup, frac, zeta, n, max_best_fidelity
 
@@ -533,8 +546,10 @@ if __name__=='__main__':
 
             for sfz in sfz_unique:
                 setup = sfz[0]
-                df_sfz = df.loc[(df['setup']==setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4) & df['n']!=0]
-                assert len(df_sfz) > 0, f'no results for this config {sfz}'
+                df_sfz = df.loc[(df['setup'] == setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4) & (df['n'] > 0)]
+                df_test = df.loc[(df['setup']==setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4)]
+                df_test_n = df_test.loc[df_test['n'] != 0]
+                assert len(df_sfz) > 0, f'no results for this config {sfz}_{df_test_n}'
 
                 n_avg = np.mean(df_sfz['n'].to_numpy())
                 n_sem = np.std(df_sfz['n'].to_numpy())/np.sqrt(len(df_sfz['n'].to_numpy()))
@@ -565,6 +580,11 @@ if __name__=='__main__':
             summary['fidelity_I'] = fidelity_I_ls
             summary['fidelity_I_sem'] = fidelity_I_sem_ls
             summary.to_csv(join('decomp', savename+'_summary.csv'))
+
+            # print best configurations #
+            print('best C config:\n', summary.sort_values(['n_C', 'fidelity_C'], ascending=[True, False]).head())
+            print('------------')
+            print('best I config:\n', summary.sort_values(['n_I', 'fidelity_I'], ascending=[True, False]).head())
 
             fig= plt.figure()
             ax1 = fig.add_subplot(211, projection='3d')
