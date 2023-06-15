@@ -1,11 +1,13 @@
 # file to test the speed of different random generation methods
 
 import time
+import numpy as np
+import matplotlib.pyplot as plt
 from tqdm import trange
 from random_gen import *
 from rho_methods import *
 
-def test_roik_actual(size=100):
+def test_roik_actual(size=1000):
     ''' Fom actual roik paper code: vypocet_general_state.py'''
     import math
     import random
@@ -150,7 +152,7 @@ def test_roik_actual(size=100):
         resoult = np.array(Unitary_fin @ matrix @ Unitary_fin_herm)
         
         
-        density_matrix = [[resoult.item(0, 0),resoult.item(0,1),resoult.item(0, 2),resoult.item(0,3)],[resoult.item(1, 0),resoult.item(1,1),resoult.item(1, 2),resoult.item(1,3)],[resoult.item(2, 0),resoult.item(2,1),resoult.item(2, 2),resoult.item(2,3)],[resoult.item(3, 0),resoult.item(3,1),resoult.item(3, 2),resoult.item(3,3)]]  
+        density_matrix = np.matrix([[resoult.item(0, 0),resoult.item(0,1),resoult.item(0, 2),resoult.item(0,3)],[resoult.item(1, 0),resoult.item(1,1),resoult.item(1, 2),resoult.item(1,3)],[resoult.item(2, 0),resoult.item(2,1),resoult.item(2, 2),resoult.item(2,3)],[resoult.item(3, 0),resoult.item(3,1),resoult.item(3, 2),resoult.item(3,3)]]  )
         ########## I added this part ##########
         if not(is_valid_rho(density_matrix, verbose=True)): 
             print('invalid!!')
@@ -160,33 +162,56 @@ def test_roik_actual(size=100):
     t0= time.time()
     i=0
     num_attempts = 0
+    purity_ls = []
     while i < size:
         resoult = do_calc()
         if is_valid_rho(resoult):
             i+=1
+            purity_ls.append(get_purity(resoult))
         print(i)
         
     tf = time.time()
     print("Time for 100 hurwitz: ", tf-t0)
     print("Time for 1 hurwitz: ", (tf-t0)/size)
 
-def test_roik(size=100):
+    plt.figure(figsize=(10,7))
+    plt.title(f'Purity for Paper Roik for {size} states')
+    plt.hist(purity_ls, bins=20)
+    plt.savefig(f'roik_actual_{size}.pdf')
+
+def test_roik(size=1000):
     t0 = time.time()
+    purity_ls = []
     for i in trange(size):
-        get_random_roik()
+        rho = get_random_roik()
+        purity_ls.append(get_purity(rho))
     t1 = time.time()
     print("Time for 100 roik: ", t1-t0)
     print("Time for 1 roik: ", (t1-t0)/size)
 
-def test_hurwitz(size=100):
+    # make histogram
+    plt.figure(figsize=(10,7))
+    plt.title(f'Purity for Incorrect Phi Definition for {size} states')
+    plt.hist(purity_ls, bins=20)
+    plt.savefig(f'roik_{size}.pdf')
+    
+def test_hurwitz(size=1000):
     t0 = time.time()
+    purity_ls = []
     for i in trange(size):
-        get_random_hurwitz()
+        rho = get_random_hurwitz()
+        purity_ls.append(get_purity(rho))
     t1 = time.time()
     print("Time for 100 hurwitz: ", t1-t0)
     print("Time for 1 hurwitz: ", (t1-t0)/size)
+    plt.figure(figsize=(10,7))
+    plt.title(f'Purity for Horowitz (in Roik et al) Definition for {size} states')
+    plt.xlabel('Purity')
+    plt.ylabel('Count')
+    plt.hist(purity_ls, bins=20)
+    plt.savefig(f'horowitz_{size}.pdf')
 
-def test_alec(size=100):
+def test_alec(size=1000):
     def random_prob_vector(dim) -> np.ndarray:
         ''' Generates a random vectors of evenly distributed probabilities between 0 and 1.
         '''
@@ -336,4 +361,7 @@ def test_alec(size=100):
             i+=1
         print(i)
 
-test_hurwitz()
+# test_roik()
+# test_roik_actual()
+# test_hurwitz(10000)
+test_alec()
