@@ -16,19 +16,27 @@ def get_rho(state):
     ''' Function to compute density matrix from a given 2-qubit state vector. '''
     return np.matrix(state @ np.conjugate(state.reshape((1,4))))
 
-def is_valid_rho(rho):
-    ''' Checks if a density matrix is valid. '''
+def is_valid_rho(rho, verbose=True):
+    ''' Checks if a density matrix is valid. 
+    params:
+        rho: density matrix to check
+        verbose: bool, whether to print out what is wrong with rho
+    '''
     # make sure not a 0 matrix
     if np.all(np.isclose(rho, np.zeros((4,4)), rtol=1e-5)):
+        if verbose: print('rho is 0 matrix')
         return False
     # check if Hermitian
     if not(np.all(rho==adjoint(rho))):
+        if verbose: print('rho is not Hermitian')
         return False
     # check if trace 1, within tolerance. can use param rtol to change tolerance
     if not(np.isclose(np.trace(rho), 1, rtol=1e-5)):
+       if verbose:  print('rho trace is not 1')
         return False
     # check if positive semidefinite
     if not(np.all(la.eigvals(rho) >= 0)):
+        if verbose: print('rho is not positive semidefinite')
         return False
     return True
 
