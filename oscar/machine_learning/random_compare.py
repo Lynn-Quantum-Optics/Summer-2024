@@ -58,10 +58,11 @@ def compare_hurwitz(size=100):
     ax[1].set_title('Phi Distruibution')
     ax[1].legend()
     ax[1].set_xlabel('Angle (Rad)')
-    plt.title(f'Comparison of Hurwitz Method for {size} Random Density Matrices')
+    plt.suptitle(f'Comparison of Hurwitz Method for {size} Random Density Matrices')
+    plt.tight_layout()
     plt.savefig(join('random_compare', f'hurwitz_compare_{size}.pdf'))
     plt.show()
     
-compare_hurwitz(10000)
+compare_hurwitz(100000)
     
 

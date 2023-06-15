@@ -202,7 +202,7 @@ def get_random_jones(setup='C', return_params=False):
     if not(return_params): return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 1000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 1000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -223,6 +223,10 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
     note: if you use Cntrl-C to break out of the function, it will return the best guess so far
     RETURNS: targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
     '''
+
+    # set zeta to be more aggressive for C based on tuning
+    if setup=='C':
+        zeta=0.07
 
     def decompose():
         func = lambda angles: get_Jrho(angles=angles, setup=setup)
@@ -660,13 +664,13 @@ if __name__=='__main__':
 
         
         for i, E0_state in enumerate(tqdm(E0_states)):
-            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E0', setup = 'Ca', adapt=2, frac = 0.06, zeta = 0.932, debug=True)
+            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E0', setup = 'Ca', debug=True)
 
             e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E0', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'projH&V_pred':proj_H_V_pred, 'projH&V_targ':proj_H_V_targ, 'projD&A_pred':proj_D_A_pred, 'projD&A_targ':proj_D_A_targ, 'projR&L_pred':proj_R_L_pred, 'projR&L_targ':proj_R_L_targ}])])
 
 
         for i, E1_state in enumerate(tqdm(E1_states)):
-            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E1', setup = 'Ca', adapt=2, frac = 0.06, zeta = 0.932, debug=True)
+            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E1', setup = 'Ca', debug=True)
 
             e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E1', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'projH&V_pred':proj_H_V_pred, 'projH&V_targ':proj_H_V_targ, 'projD&A_pred':proj_D_A_pred, 'projD&A_targ':proj_D_A_targ, 'projR&L_pred':proj_R_L_pred, 'projR&L_targ':proj_R_L_targ}])])
 
