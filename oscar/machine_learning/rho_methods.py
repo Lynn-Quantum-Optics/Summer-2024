@@ -27,12 +27,12 @@ def is_valid_rho(rho, verbose=True):
         if verbose: print('rho is 0 matrix')
         return False
     # check if Hermitian
-    if not(np.all(rho==adjoint(rho))):
+    if not(np.all(np.isclose(rho,adjoint(rho), rtol=1e-5))):
         if verbose: print('rho is not Hermitian')
         return False
     # check if trace 1, within tolerance. can use param rtol to change tolerance
     if not(np.isclose(np.trace(rho), 1, rtol=1e-5)):
-       if verbose:  print('rho trace is not 1')
+        if verbose: print('rho trace is not 1')
         return False
     # check if positive semidefinite
     if not(np.all(la.eigvals(rho) >= 0)):
