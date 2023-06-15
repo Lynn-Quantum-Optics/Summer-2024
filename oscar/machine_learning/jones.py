@@ -4,10 +4,6 @@
 import numpy as np
 from scipy.optimize import minimize, approx_fprime
 
-# for adaptive sampling #
-# import tensorflow as tf
-import itertools
-
 # special methods for density matrices #
 from rho_methods import *
 from random_gen import *
@@ -105,6 +101,29 @@ def get_Jrho(angles, setup = 'C', check=False):
 
         rho = P @ adjoint(P)
 
+    elif setup=='Ca':
+        ''' Jones matrix with *almost* current setup, just adding one QWP on Alice. Computes the rotated polarization state using the following setup:
+        UV_HWP -> QP -> BBO -> A_QWP -> A_Detectors
+                            -> B_HWP -> B_QWP -> B_Detectors
+        '''
+        
+        ''' Starts with input state with beta = gamma = 0. Input angles:
+            UV_HWP, QP, Bob's HWP, Bob's QWP, Alice's QWP
+        '''
+        # UVHWP 
+        theta0 = angles[0]
+        # QP
+        phi = angles[1]
+        # B HWP
+        B_theta = angles[2]
+   
+        H_UV = H(theta0)
+        QP = get_QP(phi)
+        H_B = H(B_theta)
+
+        P = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV @ Is0
+        rho = P @ adjoint(P)
+
     else:
         raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
 
@@ -149,6 +168,16 @@ def get_random_Jangles(setup):
             alpha_ls = np.random.rand(4)*np.pi/2
 
             angles= [theta_0, *Q_init, *theta_ls, *alpha_ls]
+
+        elif setup=='Ca':
+            # UV HWP
+            theta_UV = np.random.rand()*np.pi/4
+            # QP
+            phi = np.random.rand()*np.pi/2
+            # B HWP
+            theta_B = np.random.rand()*np.pi/4
+            angles= [theta_UV, phi, theta_B]
+
         else:
             raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
 
@@ -195,15 +224,23 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
     def decompose():
         func = lambda angles: get_Jrho(angles=angles, setup=setup)
 
-        # initial guesses (PhiP)
+        # iset bounds for guesses
+        H_bound = (0, np.pi/4)
+        Q_bound = (0, np.pi/2)
+        QP_bound = (0, np.pi/2)
         if setup=='C':
             # theta_0, phi, theta_B, alpha_B1, alpha_B2
-            bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
+            # bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
+            bounds = [H_bound, QP_bound, H_bound, Q_bound, Q_bound]
         elif setup=='I':
             # theta_uv, alpha_0, alpha_1, theta_B, theta_A, alpha_B1, alpha_B2, alpha_A1, alpha_A2
-            bounds = [(0, np.pi/4),  (0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2)]
+            # bounds = [(0, np.pi/4),  (0, np.pi/2), (0, np.pi/2), (0, np.pi/4), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2), (0, np.pi/2)]
+            bounds = [H_bound, Q_bound, Q_bound, H_bound, H_bound, Q_bound, Q_bound, Q_bound, Q_bound]
+        elif setup=='Ca':
+            # theta_uv, phi, theta_B
+            bounds = [H_bound, QP_bound, H_bound]
         else:
-            raise ValueError(f'Invalid setup. Must be either "C" or "I". You have {setup}.')
+            raise ValueError(f'Invalid setup. Must be either "C" or "I" or "Ca". You have {setup}.')
 
         def loss_fidelity(angles):
             ''' Function to quantify the distance between the targ and pred density matrices'''
@@ -234,7 +271,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
 
         n=0 # keep track of overall number of iterations
         index_since_improvement = 0 # keep track of number of iterations since the max fidelity last improved
-        while n < N and fidelity<epsilon:
+        while n < N and max_best_fidelity<epsilon:
             try:
                 if verbose: 
                     print('n', n)
@@ -274,7 +311,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1
 
                 best_angles, fidelity, rho = minimize_angles(x0)
 
-                if fidelity > max_best_fidelity:
+                if fidelity > max_best_fidelity and is_valid_rho(rho):
                     max_best_fidelity = fidelity
                     max_best_angles = best_angles
                     index_since_improvement = 0
@@ -316,7 +353,7 @@ if __name__=='__main__':
     # for loading data
     import pandas as pd
     # for progress bar
-    from tqdm import trange
+    from tqdm import tqdm, trange
     # for parallel processing
     from multiprocessing import cpu_count, Pool
     # # for viewing arguments of function
@@ -428,7 +465,7 @@ if __name__=='__main__':
         decomp_df = pd.DataFrame.from_records(results, columns=columns)
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
-    def tune_gd(f_min=0.001, f_max = 0.1, f_it =10, zeta_min=0.001, zeta_max=.5, zeta_it=10, num_to_avg=10, do_compute=False, do_plot=False):
+    def tune_gd(f_min=0.001, f_max = 0.1, f_it =10, zeta_min=0.001, zeta_max=1, zeta_it=10, num_to_avg=10, do_compute=False, do_plot=False):
         ''' Function to tune the gradient descent algorithm based on the PhiM state.
         Params:
             f_min: minimum fraction of N to do hop
@@ -447,7 +484,7 @@ if __name__=='__main__':
         savename=f'gd_tune_{f_min}_{f_max}_{f_it}_{zeta_min}_{zeta_max}_{zeta_it}_{num_to_avg}'
 
         f_ls = np.logspace(np.log10(f_min), np.log10(f_max), f_it)
-        zeta_ls = np.logspace(zeta_min, np.log10(zeta_max), zeta_it)
+        zeta_ls = np.logspace(np.log10(zeta_min), np.log10(zeta_max), zeta_it)
         sfz_ls = []
         sfz_unique = []
         f_plot_ls = []
@@ -461,7 +498,7 @@ if __name__=='__main__':
                     for j in range(num_to_avg): # repeat each config num_to_avg times
                         sfz_ls.append([setup, frac, zeta])
         
-        print(sfz_ls)
+        print(sfz_ls, len(sfz_ls))
         print(savename)
         
         def compute():
@@ -496,7 +533,7 @@ if __name__=='__main__':
 
             for sfz in sfz_unique:
                 setup = sfz[0]
-                df_sfz = df.loc[(df['setup']==setup) & np.isclose(df['frac'], sfz[1], rtol=1e-5) & np.isclose(df['zeta'], sfz[2], rtol=1e-5)]
+                df_sfz = df.loc[(df['setup']==setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4) & df['n']!=0]
                 assert len(df_sfz) > 0, f'no results for this config {sfz}'
 
                 n_avg = np.mean(df_sfz['n'].to_numpy())
@@ -517,9 +554,8 @@ if __name__=='__main__':
 
             # save csv summary of results #
             summary = pd.DataFrame()
-            summary['setup'] = [sfz[0] for sfz in sfz_unique]
-            summary['frac'] = [sfz[1] for sfz in sfz_unique]
-            summary['zeta'] = [sfz[2] for sfz in sfz_unique]
+            summary['frac'] = f_plot_ls
+            summary['zeta'] = zeta_plot_ls
             summary['n_C'] = n_C_ls
             summary['n_C_sem'] = n_C_sem_ls
             summary['n_I'] = n_I_ls
@@ -558,27 +594,62 @@ if __name__=='__main__':
         if do_plot:
             df = pd.read_csv(join('decomp', savename+'.csv'))
             plot()
+
+
+    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2 to test eritas states on ca'))
     
-    ## optimize gradient descent params, f and zeta ##
-    # tune_gd(do_compute=True, f_it=20, zeta_it=20, num_to_avg=20)
+    ## test states and get average fidelity ##
+    if resp == 0:
+        setup = input('Enter setup: C or I, or B for both')
+        assert setup in ['C', 'I', 'B'], f'invalid setup. you have {setup}'
+        adapt = int(input('0 for random hop, 1 for random fan, 2 for gradient descent'))
+        assert adapt in [0, 1, 2], f'invalid adapt. you have {adapt}'
+        bell = bool(int(input('include bell states?')))
+        e0 = bool(int(input('include eritas 0 state?')))
+        e1 = bool(int(input('include eritas 1 state?')))
+        random = bool(int(input('include random states?')))
+        jones_C = bool(int(input('include jones states in C setup?')))
+        jones_I = bool(int(input('include jones states in I setup?')))
+        roik = bool(int(input('include roik states?')))
+        special = input('special name to append to file?')
+        num_random = int(input('number of random states to generate?'))
+        savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
+        print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik)
+
+        do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
+
+    elif resp==1:
+         ## optimize gradient descent params, f and zeta ##
+        do_compute = bool(int(input('run computation?')))
+        do_plot = bool(int(input('plot results?')))
+        tune_gd(do_compute=do_compute, do_plot=do_plot, f_it=20, zeta_it=20, num_to_avg=10)
+
+    
+    elif resp==2:
+        eta_ls = np.linspace(0, np.pi/2, 4)
+        chi_ls = np.linspace(0, 2*np.pi,4)
+        E0_states = []
+        E1_states = []
+        state_angles = []
+        for eta in eta_ls:
+            for chi in chi_ls:
+                E0_states.append(get_E0(eta, chi))
+                state_angles.append([eta, chi])
+
+        e_df = pd.DataFrame({'state': [], 'eta, chi':[], 'fidelity':[],'angles':[], 'projH&V_pred':[], 'projH&V_targ':[], 'projD&A_pred':[], 'projD&A_targ':[], 'projR&L_pred':[], 'projR&L_targ':[]})
+
+        
+        for i, E0_state in enumerate(tqdm(E0_states)):
+            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E0', setup = 'Ca', adapt=2, frac = 0.06, zeta = 0.932, debug=True)
+
+            e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E0', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'projH&V_pred':proj_H_V_pred, 'projH&V_targ':proj_H_V_targ, 'projD&A_pred':proj_D_A_pred, 'projD&A_targ':proj_D_A_targ, 'projR&L_pred':proj_R_L_pred, 'projR&L_targ':proj_R_L_targ}])])
 
 
-    ## test states and get average fidelit##
+        for i, E1_state in enumerate(tqdm(E1_states)):
+            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E1', setup = 'Ca', adapt=2, frac = 0.06, zeta = 0.932, debug=True)
 
-    setup = input('Enter setup: C or I, or B for both')
-    assert setup in ['C', 'I', 'B'], f'invalid setup. you have {setup}'
-    adapt = int(input('0 for random hop, 1 for random fan, 2 for gradient descent'))
-    assert adapt in [0, 1, 2], f'invalid adapt. you have {adapt}'
-    bell = bool(int(input('include bell states?')))
-    e0 = bool(int(input('include eritas 0 state?')))
-    e1 = bool(int(input('include eritas 1 state?')))
-    random = bool(int(input('include random states?')))
-    jones_C = bool(int(input('include jones states in C setup?')))
-    jones_I = bool(int(input('include jones states in I setup?')))
-    roik = bool(int(input('include roik states?')))
-    special = input('special name to append to file?')
-    num_random = int(input('number of random states to generate?'))
-    savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
-    print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik)
+            e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E1', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'projH&V_pred':proj_H_V_pred, 'projH&V_targ':proj_H_V_targ, 'projD&A_pred':proj_D_A_pred, 'projD&A_targ':proj_D_A_targ, 'projR&L_pred':proj_R_L_pred, 'projR&L_targ':proj_R_L_targ}])])
 
-    do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
+        e_df.to_csv(join('decomp', 'eritas_states.csv'))
+        print(e_df)
+
