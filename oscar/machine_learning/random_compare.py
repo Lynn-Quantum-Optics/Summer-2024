@@ -62,6 +62,13 @@ def compare_hurwitz(size=100):
     plt.tight_layout()
     plt.savefig(join('random_compare', f'hurwitz_compare_{size}.pdf'))
     plt.show()
+
+    print('mean purity method 0:', np.mean(purity0_ls))
+    print('sem purity method 0:', np.std(purity0_ls)/np.sqrt(size))
+    print('mean purity method 1:', np.mean(purity1_ls))
+    print('sem purity method 1:', np.std(purity1_ls)/np.sqrt(size))
+    print('mean purity method 2:', np.mean(purity2_ls))
+    print('sem purity method 2:', np.std(purity2_ls)/np.sqrt(size))
     
 compare_hurwitz(100000)
     
