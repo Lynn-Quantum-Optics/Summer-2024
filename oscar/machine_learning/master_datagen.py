@@ -43,7 +43,7 @@ def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False)
     '''
 
     # confirm valid random method
-    assert random_method in ['simplex', 'jones_I','jones_C', 'random', 'werner_simplex'], f'Invalid random method. You have {random_method}.'
+    assert random_method in ['simplex', 'jones_I','jones_C', 'hurwitz'], f'Invalid random method. You have {random_method}.'
 
     # confirm valid prob_type
     assert prob_type in ['standard', 'roik_like'], f'Invalid prob_type. You have {prob_type}.'
@@ -62,10 +62,8 @@ def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False)
         func = get_random_jones(setup='C')
     elif random_method=='jones_I':
         func = get_random_jones(setup='I')
-    elif random_method=='roik':
-        func = get_random_roik
-    elif random_method=='werner_simplex':
-        func = get_random_werner_simplex
+    elif random_method=='hurwitz':
+        func = get_random_hurwitz
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
@@ -94,7 +92,7 @@ if __name__=='__main__':
         special = 'preset'
         datadir = 0
     else:
-        random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', or 'werner_simplex': ")
+        random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', or 'hurwitz': ")
         prob_type = input("Enter prob_type: 'standard' or 'roik_like': ")
         num_to_gen = int(input("Enter number of states to generate: "))
         special = input("Enter special name for file: ")
