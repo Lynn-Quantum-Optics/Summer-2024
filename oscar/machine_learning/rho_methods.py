@@ -18,6 +18,9 @@ def get_rho(state):
 
 def is_valid_rho(rho):
     ''' Checks if a density matrix is valid. '''
+    # make sure not a 0 matrix
+    if np.all(np.isclose(rho, np.zeros((4,4)), rtol=1e-5)):
+        return False
     # check if Hermitian
     if not(np.all(rho==adjoint(rho))):
         return False
