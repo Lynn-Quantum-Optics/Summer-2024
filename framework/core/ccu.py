@@ -434,8 +434,3 @@ class CCU(SerialMonitor):
 
         # flush events
         self._fig.canvas.flush_events()
-
-if __name__ == '__main__':
-    import time
-    ccu = CCU('COM4', 19200, 60, 1, [])
-    x = ccu.acquire_data(5, 1)
