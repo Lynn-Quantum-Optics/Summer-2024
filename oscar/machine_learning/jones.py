@@ -352,7 +352,9 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
                 if not(isdir(join('decomp', targ_name, setup))):
                     os.makedirs(join('decomp', targ_name, setup))
                 # save rho
-                np.save(join('decomp', targ_name, setup, f'rho_{n}_{max_best_fidelity}'), best_pred_rho)
+                np.save(join('decomp', targ_name, setup, f'pred_rho_{n}_{max_best_fidelity}'), best_pred_rho)
+                np.save(join('decomp', targ_name, setup, f'targ_rho'), targ_rho)
+
             return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, best_pred_rho, targ_rho
 
         else:
