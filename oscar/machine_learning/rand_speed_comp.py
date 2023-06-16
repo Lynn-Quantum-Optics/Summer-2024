@@ -356,8 +356,8 @@ def test_alec(size=1000):
         return out
     i = 0
     while i< size:
-        resoult = RDM1(4)
-        if is_valid_rho(resoult, verbose=True):
+        rho = RDM1(4)
+        if is_valid_rho(rho, verbose=True):
             i+=1
         print(i)
 
