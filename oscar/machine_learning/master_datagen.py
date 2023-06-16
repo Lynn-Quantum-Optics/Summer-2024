@@ -6,6 +6,7 @@ import os
 from os.path import join, isdir
 
 from multiprocessing import cpu_count, Pool
+from functools import partial
 
 from rho_methods import *
 from random_gen import *
@@ -44,7 +45,7 @@ def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False)
 
     # confirm valid random method
     assert random_method in ['simplex', 'jones_I','jones_C', 'hurwitz'], f'Invalid random method. You have {random_method}.'
-
+        
     # confirm valid prob_type
     assert prob_type in ['standard', 'roik_like'], f'Invalid prob_type. You have {prob_type}.'
 
@@ -63,7 +64,9 @@ def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False)
     elif random_method=='jones_I':
         func = get_random_jones(setup='I')
     elif random_method=='hurwitz':
-        func = get_random_hurwitz
+        method = int(input('which method for phi random gen do you want? 0, 1, 2'))
+        assert method in [1, 2, 3], f'Invalid method. You have {method}.'
+        func = partial(get_random_hurwitz, method=method)
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
