@@ -10,7 +10,7 @@ Author(s)
 '''
 
 # python imports
-from typing import Union
+from typing import Union, List
 import functools as ft
 import serial
 import multiprocessing as mp
@@ -23,7 +23,6 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 
 # base class for hardware monitoring interface
-
 
 class SerialMonitor:
     ''' Base class for all serial monitors.
@@ -53,7 +52,7 @@ class SerialMonitor:
 
     # +++ BASIC METHODS +++
 
-    def __init__(self, port:str, baud:int, update_period:float, channel_keys:'list[str]', termination_seq:bytes, plot_xlim:float, plot_smoothing:float, ignore:list[str], rate_data:bool) -> None:
+    def __init__(self, port:str, baud:int, update_period:float, channel_keys:List[str], termination_seq:bytes, plot_xlim:float, plot_smoothing:float, ignore:List[str], rate_data:bool) -> None:
         # set local vars
         self._port = port
         self._baud = baud
@@ -65,23 +64,24 @@ class SerialMonitor:
         self._rate_data = rate_data
 
         # put plot vars in terms of update period
-        self._plot_smoothing = max(plot_smoothing//self._update_period, 1)
+        self._plot_smoothing = max(int(plot_smoothing/self._update_period), 1)
         # make sure xlim / smoothing is an integer
-        self._num_plot_xlim = self._plot_smoothing*((plot_xlim/self._update_period)//self._plot_smoothing)
-        self._plot_xlim = self._num_plot_xlim*self._update_period
+        self._num_plot_xlim = int(plot_xlim / self._update_period / self._plot_smoothing)
+        self._num_plot_xlim -= (self._num_plot_xlim % self._plot_smoothing)
+        self._plot_xlim = self._num_plot_xlim * self._plot_smoothing * self._update_period
 
         # open a pipeline for the listening process
         self._main_pipe, self._listener_pipe = mp.Pipe()
 
         # initialize a bunch of variables that only get set inside the listening process
-        self._listeing_process = None
         self._conn = None
         self._request = None
         self._plot_data = None
         self._data_buffer = None
-        
-        # self._listening_process = mp.Process(target=CCU._listen_and_plot, args=(conn_to_self, self.port, self.baud, raw_data_csv, ignore))
-        # self._listening_process.start()
+
+        # initialize the subprocess
+        self._listener = mp.Process(target=self._listening_subprocess)
+        self._listener.start()
 
     def __repr__(self) -> str:
         return 'SerialMonitor'
@@ -98,7 +98,7 @@ class SerialMonitor:
         # close the pipe
         self._main_pipe.close()
         # wait for the process to close
-        self._listening_process.join()
+        self._listener.join()
         # close the plot
         plt.close()
 
@@ -120,24 +120,9 @@ class SerialMonitor:
             self._conn.reset_input_buffer()
         # skip all data until next termination
         all_read = b''
-        while self._conn.read()[-len(self._term_seq)] != self._term_seq:
+        while all_read[-len(self._term_seq):] != self._term_seq:
             all_read += self._conn.read()
-    
-    def _read_packet(self) -> np.ndarray:
-        ''' Reads a packet of data from the serial connection.
 
-        Returns
-        -------
-        np.ndarray
-            The array containing the data for each channel from this packet.
-        '''
-
-        # check that there is a connection
-        if self._conn is None:
-            raise RuntimeError('Attempted to read packet from non-existent connection! Did you call this method outside of the listening process?')
-        return self.__read_packet()
-    
-    
     def _grab_data(self) -> None:
         ''' Reads all of the packets from the serial connection and updates the data buffer. '''
         # check that there is a connection
@@ -163,13 +148,13 @@ class SerialMonitor:
     
     def _listening_subprocess(self) -> None:
         # initialize the stuff for this process alone
-        self._conn = serial.Serial(self._port, self._baud)
+        self._conn = serial.Serial(self._port, self._baud, timeout=2)
         self._request = 0
-        self._plot_data = list(np.zeros((self._num_plot_xlim, self._num_chan)))
+        self._plot_data = np.zeros((self._num_plot_xlim, self._num_chan))
         self._data_buffer = []
 
         # initialize plots
-        self.__init_plots()
+        self._init_plots()
 
         # flush the buffer once before jumping into the main loop
         self._flush()
@@ -189,17 +174,19 @@ class SerialMonitor:
                     break
             
             # smoothing the data
+            new_datas = []
             while len(self._data_buffer) > self._plot_smoothing:
                 # get smoothed data
-                self._plot_data.append(np.mean(self._data_buffer[:self._plot_smoothing]))
+                new_datas.append(np.mean(self._data_buffer[:self._plot_smoothing], axis=0).reshape(1, self._num_chan))
                 # trim the data buffer
                 self._data_buffer = self._data_buffer[self._plot_smoothing:]
-            
+            self._plot_data = np.concatenate([self._plot_data] + new_datas, axis=0)
+
             # trim the plot data
             self._plot_data = self._plot_data[-self._num_plot_xlim:]
 
             # update the plots with the new data
-            self.__update_plots()
+            self._update_plots()
 
         # outside of the loop, close the connection to CCU and pipe
         self._conn.close()
@@ -209,7 +196,7 @@ class SerialMonitor:
 
     # +++ METHODS TO BE OVERRIDDEN +++ 
     
-    def __read_packet(self) -> np.ndarray:
+    def _read_packet(self) -> np.ndarray:
         ''' Method to read a packet of data from the serial connection to be overridden by subclasses.
 
         Returns
@@ -219,10 +206,10 @@ class SerialMonitor:
         '''
         raise NotImplementedError()
     
-    def __init_plots(self) -> None:
+    def _init_plots(self) -> None:
         raise NotImplementedError()
 
-    def __update_plots(self) -> None:
+    def _update_plots(self) -> None:
         raise NotImplementedError()
 
     # +++ PUBLIC METHODS +++
@@ -243,7 +230,7 @@ class SerialMonitor:
             The data from the SerialMonitor's connection.
         '''
         # sample period # of data points
-        samp_period = max(samp_period // self._update_period, 1)
+        samp_period = max(int(samp_period / self._update_period), 1)
         # total number of data points needed
         num_data = num_samp * samp_period
         # send a request for all the data
@@ -255,7 +242,7 @@ class SerialMonitor:
             data_out.append(self._main_pipe.recv())
         
         # reshape and accumulate the data
-        data_out = np.array(data_out).reshape(num_samp, samp_period, CCU.NUM_CHANNEL)
+        data_out = np.array(data_out).reshape(num_samp, samp_period, self._num_chan)
         
         if self._rate_data:
             # convert to rate data
@@ -293,8 +280,8 @@ class CCU(SerialMonitor):
     
     # +++ BASIC METHODS +++
 
-    def __init__(self, port:str, baud:int, plot_xlim:float, plot_smoothing:float, ignore:list[str]) -> None:
-        super().__init__(
+    def __init__(self, port:str, baud:int, plot_xlim:float, plot_smoothing:float, ignore:List[str]) -> None:
+        super(CCU, self).__init__(
             port=port,
             baud=baud,
             update_period=0.1, # from device documentation
@@ -307,7 +294,7 @@ class CCU(SerialMonitor):
 
     # +++ OVERRIDE METHODS +++
 
-    def __read_packet(self) -> Union[np.ndarray,None]:
+    def _read_packet(self) -> Union[np.ndarray,None]:
         ''' Read a packet from the serial connection to the CCU.
         
         Returns
@@ -332,10 +319,12 @@ class CCU(SerialMonitor):
         else:
             return out
 
-    def __init_plots(self) -> None:
+    def _init_plots(self) -> None:
         ''' Initialize the live plots that go with this. '''
         # initialize the figure with the four subplots
-        self._fig, axes = plt.subplots(2,2)
+        self._fig = plt.figure(figsize=(8,8))
+        axes = self._fig.subplots(2,2)
+
         # setup titles and such
         self._fig.suptitle('CCU Monitor')
 
@@ -356,16 +345,14 @@ class CCU(SerialMonitor):
         self._axes['coin_lines'].set_xlabel('Time (s)')
 
         self._axes['count_bars'].set_ylabel('Coincidence Count Rates (#/s)')
-        self._axes['count_bars'].set_xlabel('Time (s)')
-
         self._axes['coin_bars'].set_ylabel('Coincidence Count Rates (#/s)')
-        self._axes['coin_bars'].set_xlabel('Time (s)')
 
         # set limits on the x axes
         self._axes['count_lines'].set_xlim(-self._plot_xlim, 0)
         self._axes['coin_lines'].set_xlim(-self._plot_xlim, 0)
 
         # turn interactions on and show the plot without blocking
+        self._fig.tight_layout()
         plt.ion()
         plt.show(False)
 
@@ -388,8 +375,8 @@ class CCU(SerialMonitor):
                 self._artists['coin_lines'][k], = self._axes['coin_lines'].plot(self._x_values, np.zeros_like(self._x_values), label=k)
         
         # bar charts
-        self._artists['count_bars'], = self._axes['count_bars'].bar(self._channel_keys[:4], np.zeros((4,)))
-        self._artists['coin_bars'], = self._axes['coin_bars'].bar(self._channel_keys[4:], np.zeros((4,)))
+        self._artists['count_bars'] = self._axes['count_bars'].bar(self._channel_keys[:4], np.ones((4,))*1e-5)
+        self._artists['coin_bars'] = self._axes['coin_bars'].bar(self._channel_keys[4:], np.ones((4,))*1e-5)
         
         # show the figure
         self._fig.show()
@@ -402,17 +389,19 @@ class CCU(SerialMonitor):
 
         return
     
-    def __update_plots(self) -> None:
+    def _update_plots(self) -> None:
         # restore the backgrounds
         for k in self._axes:
             self._fig.canvas.restore_region(self._axbgs[k])
         
-        # convert plot data to a numpy array
-        data = np.array(self._plot_data)
+        # convert plot data to counts/second 
+        data = self._plot_data/self._update_period
 
         # update plot limits
-        self._axes['count_lines'].set_ylim(np.min(data[:,:4])*0.9, np.max(data[:,:4])*1.1)
-        self._axes['coin_lines'].set_ylim(np.min(data[:,4:])*0.9, np.max(data[:,4:])*1.1)
+        self._axes['count_lines'].set_ylim(np.min(data[:,:4])*0.9, np.max(data[:,:4])*1.1+1e-5)
+        self._axes['coin_lines'].set_ylim(np.min(data[:,4:])*0.9, np.max(data[:,4:])*1.1+1e-5)
+        self._axes['count_bars'].set_ylim(0, np.max(data[-1,:4])*1.1+1e-5)
+        self._axes['coin_bars'].set_ylim(0, np.max(data[-1,4:])*1.1+1e-5)
 
         # update count lines
         for i, k in enumerate(self._channel_keys[:4]):
@@ -427,16 +416,26 @@ class CCU(SerialMonitor):
                 self._axes['coin_lines'].draw_artist(self._artists['coin_lines'][k])
 
         # update count bars
-        self._artists['count_bars'].set_height(data[-1,:4])
-        self._axes['count_bars'].draw_artist(self._artists['count_bars'])
-        self._artists['coin_bars'].set_height(data[-1,4:])
-        self._axes['coin_bars'].draw_artist(self._artists['coin_bars'])
+        for rect, h in zip(self._artists['count_bars'].patches, data[-1,:4]):
+            rect.set_height(max(h,1e-5))
+        for rect, h in zip(self._artists['coin_bars'].patches, data[-1,4:]):
+            rect.set_height(max(h,1e-5))
+
+        # update count labels
+        self._axes['count_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[:4], self._plot_data[-1,:4])])
+        self._axes['coin_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[4:], self._plot_data[-1,4:])])
 
         # blit the figure
+        self._fig.tight_layout()
         self._fig.canvas.blit(self._axes['count_lines'].bbox)
         self._fig.canvas.blit(self._axes['coin_lines'].bbox)
         self._fig.canvas.blit(self._axes['count_bars'].bbox)
         self._fig.canvas.blit(self._axes['coin_bars'].bbox)
 
         # flush events
-        self._fig.canvas.flush_events()       
+        self._fig.canvas.flush_events()
+
+if __name__ == '__main__':
+    import time
+    ccu = CCU('COM4', 19200, 60, 1, [])
+    x = ccu.acquire_data(5, 1)
