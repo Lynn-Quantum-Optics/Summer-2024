@@ -12,10 +12,9 @@ Author(s)
 # python imports
 from typing import Union, List
 import functools as ft
+import struct
 import serial
 import multiprocessing as mp
-import datetime
-import csv
 
 # package imports
 import numpy as np
@@ -326,7 +325,7 @@ class CCU(SerialMonitor):
         axes = self._fig.subplots(2,2)
 
         # setup titles and such
-        self._fig.suptitle('CCU Monitor')
+        self._fig.canvas.manager.set_window_title('CCU Monitor')
 
         # setup all of the plot titles/axes
 
@@ -434,3 +433,142 @@ class CCU(SerialMonitor):
 
         # flush events
         self._fig.canvas.flush_events()
+
+# laser monitoring class
+
+class Laser(SerialMonitor):
+    ''' Interface for the Nucleo-32 Microcontroller that is monitoring our laser.
+
+    Parameters
+    ----------
+    port : str
+        Serial port to use (e.g. 'COM1' on windows, or
+        '/dev/ttyUSB1' on unix).
+    baud : int
+        Serial communication baud rate (19200 for the Altera DE2 FPGA CC, 9600 for Nucleo-32).
+    plot_xlim : float
+        The x limit for the plot (in seconds).
+    plot_smoothing : float
+        The smoothing factor for the plot (between 0 and 1).
+    '''
+    
+    # +++ BASIC METHODS +++
+
+    def __init__(self, port:str, baud:int, plot_xlim:float, plot_smoothing:float) -> None:
+        super(Laser, self).__init__(
+            port=port,
+            baud=baud,
+            update_period=0.1, # from device documentation
+            channel_keys=['pdv', 'ldc', 'temp'],
+            termination_seq=b'\xff\xff\xff\xff',
+            plot_xlim=plot_xlim,
+            plot_smoothing=plot_smoothing,
+            ignore=[],
+            rate_data=True)
+
+    # +++ OVERRIDE METHODS +++
+
+    def _read_packet(self) -> Union[np.ndarray,None]:
+        ''' Read a packet from the serial connection to the Nucleo-32 chip.
+        
+        Returns
+        -------
+        np.ndarray or None
+            The array containing the data for each channel from this packet, or None if tha attempt to read a packet failed.
+        '''
+        # initialize output array
+        out = np.zeros(self._num_chan)
+        
+        # read each 32 bit float
+        packet = self._conn.read(16)
+        for i, j in enumerate(range(0, 12, 4)):
+            out[i] = struct.unpack('<f', packet[j:j+4])[0]
+        
+        # read the termination character
+        if packet[-len(self._term_seq):] != self._term_seq:
+            return None
+        else:
+            return out
+
+    def _init_plots(self) -> None:
+        ''' Initialize the live plots that go with this. '''
+        # initialize the figure with the four subplots
+        self._fig = plt.figure(figsize=(6,8))
+        axes = self._fig.subplots(3,1)
+
+        # setup all of the plot titles/axes
+        self._axes = {
+            'pdv': axes[0],
+            'ldc': axes[1],
+            'temp': axes[2]}
+        
+        self._axes['pdv'].set_ylabel('Photodiode Voltage (V)')
+        self._axes['pdv'].set_xlabel('Time (s)')
+        
+        self._axes['ldc'].set_ylabel('Laser Diode Current (mA)')
+        self._axes['ldc'].set_xlabel('Time (s)')
+        
+        self._axes['temp'].set_ylabel('Temperature (C)')
+        self._axes['temp'].set_xlabel('Time (s)')
+        
+        # set limits on the x axes
+        self._axes['pdv'].set_xlim(-self._plot_xlim, 0)
+        self._axes['ldc'].set_xlim(-self._plot_xlim, 0)
+        self._axes['temp'].set_xlim(-self._plot_xlim, 0)
+
+        # turn interactions on and show the plot without blocking
+        self._fig.tight_layout()
+        plt.ion()
+        plt.show(False)
+
+        # initialize all of the lines and such
+        self._x_values = np.linspace(-self._plot_xlim, 0, self._num_plot_xlim)
+        self._artists = {
+            'pdv': self._axes['pdv'].plot(self._x_values, np.zeros_like(self._x_values))[0],
+            'ldc': self._axes['ldc'].plot(self._x_values, np.zeros_like(self._x_values))[0],
+            'temp': self._axes['temp'].plot(self._x_values, np.zeros_like(self._x_values))[0]}
+        
+        # show the figure
+        self._fig.canvas.manager.set_window_title('Laser Monitor')
+        self._fig.show()
+        self._fig.canvas.draw()
+
+        # save the backgrounds
+        self._axbgs = {}
+        for k in self._axes:
+            self._axbgs[k] = self._fig.canvas.copy_from_bbox(self._axes[k].bbox)
+
+        return
+    
+    def _update_plots(self) -> None:
+        # restore the backgrounds
+        for k in self._axes:
+            self._fig.canvas.restore_region(self._axbgs[k])
+        
+        # convert plot data to counts/second 
+        data = self._plot_data/self._update_period
+
+        # update plot limits
+        self._axes['pdv'].set_ylim(np.min(data[:,0])*0.9, np.max(data[:,0])*1.1+1e-5)
+        self._axes['ldc'].set_ylim(np.min(data[:,1])*0.9, np.max(data[:,1])*1.1+1e-5)
+        self._axes['temp'].set_ylim(np.min(data[:,2])*0.9, np.max(data[:,2])*1.1+1e-5)
+
+        # update stuff
+        for i, k in enumerate(self._channel_keys):
+            # set limits
+            self._axes[k].set_ylim(np.min(data[:,i])*0.9, np.max(data[:,i])*1.1+1e-5)
+            # update artist
+            self._artists[k].set_ydata(data[:,i])
+            # draw artist
+            self._axes[k].draw_artist(self._artists[k])
+
+        # blit the figure
+        self._fig.tight_layout()
+        for k in self._channel_keys:
+            self._fig.canvas.blit(self._axes[k].bbox)
+        
+        # flush events
+        self._fig.canvas.flush_events()
+
+if __name__ == '__main__':
+    l = Laser('COM10', 9600, 60, 0.5)

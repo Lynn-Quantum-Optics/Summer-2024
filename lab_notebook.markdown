@@ -1,3 +1,14 @@
+## 6/16/23
+MP: A
+
+I did a bunch of coding from home, came in at 10 or 11 to get everything up and running. Switching to using blit for plotting and a generalized `SerialMonitor` class that is extended by `CCU` and `Laser`. Tested `CCU` class it's all working now! It's a little bit faster than it used to be too. Now installing mbed OS serial drivers to get the laser monitor up and running.
+
+Oh god I hate windows 7. To get the mbed controller working on USB we need to install
+- ST-Link Driver
+- ST-Link/V2-1 Firmware Upgrades
+- 
+
+
 ## 6/15/23
 MP: A
 
