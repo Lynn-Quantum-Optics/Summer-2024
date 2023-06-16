@@ -43,6 +43,14 @@ def is_valid_rho(rho, verbose=True):
     if not(np.all(np.greater_equal(eig_val,np.zeros(len(eig_val))) | np.isclose(eig_val,np.zeros(len(eig_val)), rtol=1e-5))):
         if verbose: print('rho is not positive semidefinite')
         return False
+    # square root of rho must exist
+    if np.isnan(rho).any() or np.isinf(rho).any():
+        if verbose: 
+            print('rho has infs or nans')
+            print('nan', np.isnan(rho))
+            print('inf', np.isinf(rho))
+            print(rho)
+        return False
     return True
 
 def get_purity(rho):
