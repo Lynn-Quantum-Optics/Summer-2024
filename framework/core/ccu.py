@@ -10,6 +10,7 @@ Author(s)
 '''
 
 # python imports
+from typing import Union
 import functools as ft
 import serial
 import multiprocessing as mp
@@ -21,9 +22,258 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 
+# base class for hardware monitoring interface
+
+
+class SerialMonitor:
+    ''' Base class for all serial monitors.
+
+    Parameters
+    ----------
+    port : str
+        Serial port to use (e.g. 'COM1' on windows, or
+        '/dev/ttyUSB1' on unix).
+    baud : int
+        Serial communication baud rate (19200 for the Altera DE2 FPGA CC, 9600 for Nucleo-32).
+    update_period : float
+        How often the hardware will be sending new data (in seconds).
+    channel_keys : list[str]
+        List of channel keys associated with the data.
+    termination_seq : bytes
+        The byte termination sequence for each packet.
+    plot_xlim : float
+        The x limit for the plot (in seconds).
+    plot_smoothing : float
+        The smoothing factor for the plot (between 0 and 1).
+    ignore : list[str]
+        Any channels that should be ignored.
+    rate_data : bool
+        If true, then data returned by SerialMonitor.acquire_data will be rate data (i.e. measurements/second) and if false, then it will be a simple average over the sample period.
+    '''
+
+    # +++ BASIC METHODS +++
+
+    def __init__(self, port:str, baud:int, update_period:float, channel_keys:'list[str]', termination_seq:bytes, plot_xlim:float, plot_smoothing:float, ignore:list[str], rate_data:bool) -> None:
+        # set local vars
+        self._port = port
+        self._baud = baud
+        self._update_period = update_period
+        self._channel_keys = channel_keys
+        self._num_chan = len(self._channel_keys)
+        self._term_seq = termination_seq
+        self._ignore = ignore
+        self._rate_data = rate_data
+
+        # put plot vars in terms of update period
+        self._plot_smoothing = max(plot_smoothing//self._update_period, 1)
+        # make sure xlim / smoothing is an integer
+        self._num_plot_xlim = self._plot_smoothing*((plot_xlim/self._update_period)//self._plot_smoothing)
+        self._plot_xlim = self._num_plot_xlim*self._update_period
+
+        # open a pipeline for the listening process
+        self._main_pipe, self._listener_pipe = mp.Pipe()
+
+        # initialize a bunch of variables that only get set inside the listening process
+        self._listeing_process = None
+        self._conn = None
+        self._request = None
+        self._plot_data = None
+        self._data_buffer = None
+        
+        # self._listening_process = mp.Process(target=CCU._listen_and_plot, args=(conn_to_self, self.port, self.baud, raw_data_csv, ignore))
+        # self._listening_process.start()
+
+    def __repr__(self) -> str:
+        return 'SerialMonitor'
+    
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    # +++ CLEANUP +++
+    
+    def shutdown(self) -> None:
+        ''' Terminates the listening process, closes the serial connections, and closes the plot. '''
+        # send close notice
+        self._main_pipe.send('close')
+        # close the pipe
+        self._main_pipe.close()
+        # wait for the process to close
+        self._listening_process.join()
+        # close the plot
+        plt.close()
+
+    # +++ SERIAL INTERFACING +++
+
+    def _flush(self, one=False) -> None:
+        ''' Flushes the serial input buffer.
+        
+        Parameters
+        ----------
+        one : bool, optional
+            If True, flushes current data until the next termination byte. Defaults to false, flushing all data.
+        '''
+        # check that there is a connection
+        if self._conn is None:
+            raise RuntimeError('Attempted to flush a connection that was never initialized! Did you call this method outside of the listening process?')
+        # flush the whole buffer if one is false
+        if not one:
+            self._conn.reset_input_buffer()
+        # skip all data until next termination
+        all_read = b''
+        while self._conn.read()[-len(self._term_seq)] != self._term_seq:
+            all_read += self._conn.read()
+    
+    def _read_packet(self) -> np.ndarray:
+        ''' Reads a packet of data from the serial connection.
+
+        Returns
+        -------
+        np.ndarray
+            The array containing the data for each channel from this packet.
+        '''
+
+        # check that there is a connection
+        if self._conn is None:
+            raise RuntimeError('Attempted to read packet from non-existent connection! Did you call this method outside of the listening process?')
+        return self.__read_packet()
+    
+    
+    def _grab_data(self) -> None:
+        ''' Reads all of the packets from the serial connection and updates the data buffer. '''
+        # check that there is a connection
+        if self._conn is None:
+            raise RuntimeError('Attempted to grab data from non-existent connection. Did you call this method outside of the listening process?')
+        # grab all packets in waiting
+        while self._conn.in_waiting:
+            # read next packet
+            pkt = self._read_packet()
+            # check valididty
+            if pkt is None:
+                # invalid packet, flush the buffer
+                print(f'Invalid packet detected from {self}! Flushing buffer...')
+                self._flush(one=True)
+            else:
+                # valid, add to buffer
+                self._data_buffer.append(pkt)
+                # if there is an active request, send it
+                if self._request > 0:
+                    self._listener_pipe.send(pkt)
+                    self._request -= 1
+        return
+    
+    def _listening_subprocess(self) -> None:
+        # initialize the stuff for this process alone
+        self._conn = serial.Serial(self._port, self._baud)
+        self._request = 0
+        self._plot_data = list(np.zeros((self._num_plot_xlim, self._num_chan)))
+        self._data_buffer = []
+
+        # initialize plots
+        self.__init_plots()
+
+        # flush the buffer once before jumping into the main loop
+        self._flush()
+
+        # main loop!
+        while True:
+            # grab all the data that is in waiting, sending packets if there is an active request
+            self._grab_data()
+
+            # take any requests
+            if self._request == 0 and self._listener_pipe.poll():
+                # get request
+                self._request = self._listener_pipe.recv()
+                
+                # close if requested
+                if self._request == 'close':
+                    break
+            
+            # smoothing the data
+            while len(self._data_buffer) > self._plot_smoothing:
+                # get smoothed data
+                self._plot_data.append(np.mean(self._data_buffer[:self._plot_smoothing]))
+                # trim the data buffer
+                self._data_buffer = self._data_buffer[self._plot_smoothing:]
+            
+            # trim the plot data
+            self._plot_data = self._plot_data[-self._num_plot_xlim:]
+
+            # update the plots with the new data
+            self.__update_plots()
+
+        # outside of the loop, close the connection to CCU and pipe
+        self._conn.close()
+        self._listener_pipe.close()
+
+        return
+
+    # +++ METHODS TO BE OVERRIDDEN +++ 
+    
+    def __read_packet(self) -> np.ndarray:
+        ''' Method to read a packet of data from the serial connection to be overridden by subclasses.
+
+        Returns
+        -------
+        np.ndarray
+            The array containing the data for each channel from this packet.
+        '''
+        raise NotImplementedError()
+    
+    def __init_plots(self) -> None:
+        raise NotImplementedError()
+
+    def __update_plots(self) -> None:
+        raise NotImplementedError()
+
+    # +++ PUBLIC METHODS +++
+
+    def acquire_data(self, num_samp:int, samp_period:float) -> np.ndarray:
+        ''' Acquires the data from this SerialMonitor's connection.
+
+        Parameters
+        ----------
+        num_samp : int
+            The number of samples to take from the data.
+        samp_period : float
+            How long to sample the data per sample. Note that this will be rounded to the nearest multiple of the update period.
+
+        Returns
+        -------
+        np.ndarray (num_chan,)
+            The data from the SerialMonitor's connection.
+        '''
+        # sample period # of data points
+        samp_period = max(samp_period // self._update_period, 1)
+        # total number of data points needed
+        num_data = num_samp * samp_period
+        # send a request for all the data
+        self._main_pipe.send(num_data)
+
+        # wait for data
+        data_out = []
+        while len(data_out) < num_data:
+            data_out.append(self._main_pipe.recv())
+        
+        # reshape and accumulate the data
+        data_out = np.array(data_out).reshape(num_samp, samp_period, CCU.NUM_CHANNEL)
+        
+        if self._rate_data:
+            # convert to rate data
+            data_out /= self._update_period
+        
+        # average across each sample
+        data_out = np.mean(data_out, axis=1)
+
+        # take means and sems across samples
+        data_avgs = np.mean(data_out, axis=0)
+        data_sems = stats.sem(data_out, axis=0)
+        
+        # return the means and SEMs
+        return data_avgs, data_sems
+
 # ccu class
 
-class CCU:
+class CCU(SerialMonitor):
     ''' Interface for the Altera DE2 FPGA CCU.
 
     Parameters
@@ -32,437 +282,161 @@ class CCU:
         Serial port to use (e.g. 'COM1' on windows, or
         '/dev/ttyUSB1' on unix).
     baud : int
-        Serial communication baud rate (19200 for the Altera DE2 FPGA CC).
-    raw_data_csv : str
-        Path to the raw data csv file to write to. If None, no file is written.
+        Serial communication baud rate (19200 for the Altera DE2 FPGA CC, 9600 for Nucleo-32).
+    plot_xlim : float
+        The x limit for the plot (in seconds).
+    plot_smoothing : float
+        The smoothing factor for the plot (between 0 and 1).
     ignore : list[str]
         Any channels that should be ignored.
     '''
-
-    # +++ class variables +++
-    UPDATE_PERIOD = 0.1 # from device documentation
-    CHANNEL_KEYS = ['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'] # for our setup
-    NUM_CHANNEL = len(CHANNEL_KEYS)
-    TERMINATION_BYTE = 0xff # from device documentation
-
-    # +++ plotting parameters +++
-    # all in units of 0.1s
-    PLOT_XLIM = 600
-    PLOT_SMOOTHING = 5
     
     # +++ BASIC METHODS +++
 
-    def __init__(self, port:str, baud:int, raw_data_csv=None, ignore:'list[str]'=[]) -> None:
-        # set local vars
-        self.port = port
-        self.baud = baud
+    def __init__(self, port:str, baud:int, plot_xlim:float, plot_smoothing:float, ignore:list[str]) -> None:
+        super().__init__(
+            port=port,
+            baud=baud,
+            update_period=0.1, # from device documentation
+            channel_keys=['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'],
+            termination_seq=b'\xff',
+            plot_xlim=plot_xlim,
+            plot_smoothing=plot_smoothing,
+            ignore=ignore,
+            rate_data=True)
+
+    # +++ OVERRIDE METHODS +++
+
+    def __read_packet(self) -> Union[np.ndarray,None]:
+        ''' Read a packet from the serial connection to the CCU.
         
-        # open pipeline
-        self._pipe, conn_to_self = mp.Pipe()
-
-        # start listening process
-        self._listening_process = mp.Process(target=CCU._listen_and_plot, args=(conn_to_self, self.port, self.baud, raw_data_csv, ignore))
-        self._listening_process.start()
-
-    # +++ CLEANUP +++
-    
-    def shutdown(self) -> None:
-        ''' Closes the connection to the CCU and terminates the listening process. '''
-        # send close notice
-        self._pipe.send('close')
-        # close the pipe
-        self._pipe.close()
-        # wait for the process to close
-        self._listening_process.join()
-        # close the plot
-        plt.close()
-
-    # +++ ALL INTERFACING WITH CCU +++
-
-    @staticmethod
-    def _flush(conn, one=False) -> None:
-        ''' Flushes the input buffer from the CCU. 
-        
-        Parameters
-        ----------
-        conn : serial.Serial
-            Serial connection to the FPGA CCU.
-        one : bool, optional
-            If True, flushes current data until the next termination byte. Defaults to false, flushing all data.
-        '''
-        if not one:
-            conn.reset_input_buffer()
-
-        # skip all data until next termination
-        while conn.read()[0] != CCU.TERMINATION_BYTE:
-            pass
-    
-    @staticmethod
-    def _read_packet(conn) -> np.ndarray:
-        ''' Reads a packet of data from the FPGA CCU.
-
-        Parameters
-        ----------
-        conn : serial.Serial
-            Serial connection to the FPGA CCU.
-
         Returns
         -------
-        np.ndarray
-            8-counter measurements from the FPGA CCU.
+        np.ndarray or None
+            The array containing the data for each channel from this packet, or None if tha attempt to read a packet failed.
         '''
-
-        out = np.zeros(8)
+        # initialize output array
+        out = np.zeros(self._num_chan)
 
         # read 8-counter measurements
         for i in range(8):
             # read in 5 bytes from the port
-            packet = conn.read(size=5)
+            packet = self._conn.read(size=5)
             # reduce to single unsigned integer
             # only bitshift by 7 to cut off the zero bit in each byte
-            out[i] = ft.reduce(lambda v, b: (v << 7) + b,
-                                  reversed(packet))
-
+            out[i] = ft.reduce(lambda v, b: (v << 7) + b, reversed(packet))
+        
         # read the termination character
-        if conn.read()[0] != CCU.TERMINATION_BYTE:
-            print('Misplaced termination byte! Skipping to next packet.')
+        if self._conn.read(len(self._term_seq)) != self._term_seq:
             return None
-
-        return out
-    
-    @staticmethod
-    def _grab_data(conn:serial.Serial, current_index:int, writer:csv.writer=None) -> 'tuple[list[np.ndarray], int]':
-        ''' Collects all data packets waiting in the buffer from connection.
-
-        Parameters
-        ----------
-        conn : serial.Serial
-            Serial connection to the FPGA CCU.
-        current_index : int
-            The index of the next packet to be collected.
-        writer : csv.writer, optional
-            If specified, writes the data to a csv file. Defaults to None.
-
-        Returns
-        -------
-        list[np.ndarray]
-            List of all packets collected.
-        int
-            The index of the next packet to be collected.
-        '''
-        # get the collection time for all these packets
-        collection_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        
-        # initialize list for output packets
-        out_packets = []
-
-        # loop through all packets waiting in the buffer
-        while conn.in_waiting:
-                # read a packet
-                packet = CCU._read_packet(conn)
-                # if the packet is valid, add it to the buffer
-                if packet is not None: # valid packet
-                    out_packets.append(packet)
-                    # write to csv if specified
-                    if writer:
-                        writer.writerow([current_index, collection_time] + packet.tolist())
-                    current_index += 1
-                else: # invalid packet, flush to next termination
-                    CCU._flush(conn, one=True)
-                    if writer:
-                        writer.writerow(['invalid packet encountered, buffer flushed', collection_time] + [0]*8)
-        # return the packets and the next data index
-        return out_packets, current_index
-
-    @staticmethod
-    def _send_data(pipe:mp.Pipe, data_packets:'list[np.ndarray]', current_index:int, next_to_send:int, request:int) -> 'tuple[int, int]':
-        ''' Retrieves all data from from the data packets.
-        
-        Parameters
-        ----------
-        pipe : mp.Pipe
-            Serial connection to the main process.
-        data_packets : list[np.ndarray]
-            List of the most recent packets collected.
-        current_index : int
-            The data index of the next data packet that will be collected.
-        next_to_send : int
-            The data index of the next data packet that will be sent.
-        request : int
-            The number of packet requests that are still outstanding.
-
-        Returns
-        -------
-        int : next_to_send
-            The data index of the next data packet that has not been sent.
-        int : request
-            The number of packet requests that are still outstanding after this method.
-
-        '''
-        # number of data packets
-        data_len = len(data_packets)
-        # number of packets that could be send (haven't been sent yet)
-        num_valid_packets = current_index - max(next_to_send, current_index - data_len)
-        # actual start index of the next valid packet to send
-        i = data_len - num_valid_packets
-
-        # start sending until we fulfill the request or run out of packets
-        while (i < data_len) and request > 0:
-            pipe.send(data_packets[i])
-            # increment counters
-            next_to_send += 1
-            i += 1
-            request -= 1
-        
-        # return the updated counters
-        return next_to_send, request
-    
-    @staticmethod
-    def _init_plots():
-        # initialize the plot
-        fig = plt.figure(figsize=(8,8))
-        ax_count_lines = fig.add_subplot(221)
-        ax_coin_lines = fig.add_subplot(222)
-        ax_count_bars = fig.add_subplot(223)
-        ax_coin_bars = fig.add_subplot(224)
-
-        # autoscaling
-        ax_count_lines.autoscale(enable=True, axis='both')
-        ax_coin_lines.autoscale(enable=True, axis='both')
-
-        # title plots and such
-        CCU._title_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig)
-
-        # open the plots
-        plt.ion()
-        plt.show()
-
-        # return axes for plotting on
-        return ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig
-    
-    @staticmethod
-    def _title_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig):
-        # set axis labels
-        ax_count_lines.set_title('Count rates for Detectors')
-        ax_count_lines.set_xlabel('Data Index')
-        ax_count_lines.set_ylabel('Counts / Second')
-
-        ax_coin_lines.set_title('Coincidence Count Rates')
-        ax_coin_lines.set_xlabel('Data Index')
-        ax_coin_lines.set_ylabel('Counts / Second')
-
-        ax_count_bars.set_title('Count Rates')
-        ax_count_bars.set_xlabel('Channel')
-        ax_count_bars.set_xlabel('Counts / Second')
-
-        ax_coin_bars.set_title('Coincidence Count Rates')
-        ax_coin_bars.set_xlabel('Channel')
-        ax_coin_bars.set_ylabel('Counts / Second')
-
-        # pack
-        fig.tight_layout()
-
-    @staticmethod
-    def _update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig, plot_data_packets, current_index, ignore):
-        # get the xdata
-        xdata = np.arange(current_index - CCU.PLOT_XLIM, current_index, CCU.PLOT_SMOOTHING)
-
-        # plot all lines
-        for k_idx, ax in zip([0, 4], [ax_count_lines, ax_coin_lines]):
-            # clear the axes
-            ax.cla()
-            # plot the current set of lines
-            for i, k in enumerate(
-                CCU.CHANNEL_KEYS[k_idx:k_idx+4]):
-                # skip if ignored
-                if k in ignore:
-                    continue
-                # collect ydata as counts/second
-                ydata = np.array([packet[i+k_idx] for packet in plot_data_packets])
-                # plot the data
-                ax.plot(xdata, ydata, label=k)
-            ax.legend()
-        
-        # plot the bar charts
-        for k_idx, ax in zip([0,4], [ax_count_bars, ax_coin_bars]):
-            # clear the axes
-            ax.cla()
-            # collect the most recent ydata as counts/second
-            ydata = plot_data_packets[-1][k_idx:k_idx+4]
-            # make names
-            names = [f'{k}\n{y:.2f}' for k, y in zip(CCU.CHANNEL_KEYS[k_idx:k_idx+4], ydata)]
-            # plot the bars
-            ax.bar(names, ydata)
-        
-        # title plots
-        CCU._title_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig)
- 
-        # update the plots
-        plt.pause(0.01)
-
-    @staticmethod
-    def _listen_and_plot(p:mp.Pipe, port:str, baud:int, csv_out:str=None, ignore:'list[str]'=[]) -> None:
-        ''' Listens to the CCU and plots the data in real time.
-        This method is intended to be run once in a seperate process.
-        
-        Parameters
-        ----------
-        p : mp.Pipe
-            Pipe for communication with the main process.
-        port : str
-            The serial port to connect to.
-        baud : int
-            The baud rate to use.
-        csv_out : str, optional
-            If specified, writes the data to a csv file. Defaults to None.
-        ignore : list[str], optional
-            List of channels to ignore. Defaults to [].
-        '''
-        # create output csv if specified
-        if csv_out is not None:
-            csvfile = open(csv_out, 'w+', newline='')
-            writer = csv.writer(csvfile)
-            writer.writerow(['idx', 'collection time'] + CCU.CHANNEL_KEYS)
         else:
-            writer = None
+            return out
+
+    def __init_plots(self) -> None:
+        ''' Initialize the live plots that go with this. '''
+        # initialize the figure with the four subplots
+        self._fig, axes = plt.subplots(2,2)
+        # setup titles and such
+        self._fig.suptitle('CCU Monitor')
+
+        # setup all of the plot titles/axes
+
+        self._axes = {
+            'count_lines': axes[0][0],
+            'coin_lines': axes[0][1],
+            'count_bars': axes[1][0],
+            'coin_bars': axes[1][1]}
         
-        # open the serial connection
-        conn = serial.Serial(port, baud)
+        self._axes['count_lines'].set_title('Count Rates by Channel')
+        self._axes['count_lines'].set_ylabel('Count Rates (#/s)')
+        self._axes['count_lines'].set_xlabel('Time (s)')
 
-        # initialize data buffer
-        data_packets = []
-        current_index = 0
+        self._axes['coin_lines'].set_title('Coincidence Count Rates')
+        self._axes['coin_lines'].set_ylabel('Coincidence Count Rates')
+        self._axes['coin_lines'].set_xlabel('Time (s)')
 
-        # initialize plot variables
-        ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig = CCU._init_plots()
+        self._axes['count_bars'].set_ylabel('Coincidence Count Rates (#/s)')
+        self._axes['count_bars'].set_xlabel('Time (s)')
 
-        # index of last plot
-        # counts up by 1 for every CCU.PLOT_SMOOTHING packets
-        last_plot = 0
+        self._axes['coin_bars'].set_ylabel('Coincidence Count Rates (#/s)')
+        self._axes['coin_bars'].set_xlabel('Time (s)')
 
-        # number of data points that will be in each plot
-        PLOT_DATA_LIM = CCU.PLOT_XLIM // CCU.PLOT_SMOOTHING
+        # set limits on the x axes
+        self._axes['count_lines'].set_xlim(-self._plot_xlim, 0)
+        self._axes['coin_lines'].set_xlim(-self._plot_xlim, 0)
 
-        # initialize plot data
-        plot_data = list(np.zeros((PLOT_DATA_LIM, len(CCU.CHANNEL_KEYS))))
+        # turn interactions on and show the plot without blocking
+        plt.ion()
+        plt.show(False)
 
-        # initialize requests
-        request = 0 # number of data points to send
-        next_to_send = 0 # index of next valid packet to send
-
-        # flush the buffer once before beginning
-        CCU._flush(conn)
-
-
-        # main loop!
-        while True:
-            # get the current time for this collection period
-            new_packets, current_index = CCU._grab_data(conn, current_index, writer)
-            
-            # update and trim the data buffer
-            data_packets += new_packets
-            if len(data_packets) > CCU.PLOT_XLIM:
-                data_packets = data_packets[-CCU.PLOT_XLIM:]
-
-            # take any requests
-            if request == 0 and p.poll():
-                # get request
-                request = p.recv()
-                
-                # check if it's a close request
-                if request == 'close':
-                    # break out of the loop
-                    break
-                else:
-                    # reset the last sent index
-                    # this ensures we only send data collected AFTER the request came in
-                    next_to_send = current_index - 1
-            
-            # attempt to fulfull requests
-            if request:
-                # use the method for sending data
-                next_to_send, request = CCU._send_data(p, data_packets, current_index, next_to_send, request)
-
-            # +++ PLOTTING THE DATA +++
-
-            # check if there is plot data to update
-            if last_plot < (current_index-CCU.PLOT_SMOOTHING) // CCU.PLOT_SMOOTHING:
-                # smallest index not included in plot
-                last_plot_i = len(data_packets) + last_plot*CCU.PLOT_SMOOTHING - current_index
-                num_to_add = (current_index - last_plot*CCU.PLOT_SMOOTHING)//CCU.PLOT_SMOOTHING
-                # loop through new data to add
-                for i in range(num_to_add):
-                    # grab the data
-                    start = last_plot_i + i*CCU.PLOT_SMOOTHING
-                    new_data = np.array(data_packets[start:start+CCU.PLOT_SMOOTHING])
-                    # convert to count/sec and smooth
-                    new_data = np.mean(np.array(new_data),axis=0) / CCU.UPDATE_PERIOD
-                    # add to plot data
-                    plot_data.append(new_data)
-                # +++ update plots +++
-                plot_data = plot_data[-PLOT_DATA_LIM:]
-                c_idx = current_index - (current_index % CCU.PLOT_SMOOTHING)
-                CCU._update_plots(ax_count_lines, ax_coin_lines, ax_count_bars, ax_coin_bars, fig, plot_data, c_idx, ignore)
-                # +++ update last_plot +++
-                last_plot += num_to_add
-
-        # outside of the loop, close the connection to CCU and pipe
-        conn.close()
-        p.close()
+        # initialize all of the lines and such
+        self._x_values = np.linspace(-self._plot_xlim, 0, self._num_plot_xlim)
+        self._artists = {
+            'count_lines': {},
+            'coin_lines': {},
+            'count_bars': None,
+            'coin_bars': None}
         
-        # close csv file
-        if csv_out is not None:
-            csvfile.close()
+        # count lines
+        for k in self._channel_keys[:4]:
+            if not k in self._ignore:
+                self._artists['count_lines'][k], = self._axes['count_lines'].plot(self._x_values, np.zeros_like(self._x_values), label=k)
+
+        # coin lines
+        for k in self._channel_keys[4:]:
+            if not k in self._ignore:
+                self._artists['coin_lines'][k], = self._axes['coin_lines'].plot(self._x_values, np.zeros_like(self._x_values), label=k)
         
+        # bar charts
+        self._artists['count_bars'], = self._axes['count_bars'].bar(self._channel_keys[:4], np.zeros((4,)))
+        self._artists['coin_bars'], = self._axes['coin_bars'].bar(self._channel_keys[4:], np.zeros((4,)))
+        
+        # show the figure
+        self._fig.show()
+        self._fig.canvas.draw()
+
+        # save the backgrounds
+        self._axbgs = {}
+        for k in self._axes:
+            self._axbgs[k] = self._fig.canvas.copy_from_bbox(self._axes[k].bbox)
+
         return
+    
+    def __update_plots(self) -> None:
+        # restore the backgrounds
+        for k in self._axes:
+            self._fig.canvas.restore_region(self._axbgs[k])
+        
+        # convert plot data to a numpy array
+        data = np.array(self._plot_data)
 
-    # +++ PUBLIC METHODS +++
-    '''
-    def count_rates(self, period:float) -> np.ndarray:
-        '' Acquires the coincidence count rates from the CCU over the specified period.
+        # update plot limits
+        self._axes['count_lines'].set_ylim(np.min(data[:,:4])*0.9, np.max(data[:,:4])*1.1)
+        self._axes['coin_lines'].set_ylim(np.min(data[:,4:])*0.9, np.max(data[:,4:])*1.1)
 
-        Parameters
-        ----------
-        period : float
-            Time to collect data for, in seconds.
+        # update count lines
+        for i, k in enumerate(self._channel_keys[:4]):
+            if not k in self._ignore:
+                self._artists['count_lines'][k].set_ydata(data[:,i])
+                self._axes['count_lines'].draw_artist(self._artists['count_lines'][k])
         
-        Returns
-        -------
-        np.ndarray of size (8,)
-            Coincidence count RATES from the CCU. Each element corresponds to a detector/coincidence [A, B, A', B', C4, C5, C6, C7] (in order).
-        ''
-        # calculate number of data points to collect
-        num_data = max(int(period / self.UPDATE_PERIOD), 1)
-        # request data
-        self._pipe.send(num_data)
-        # wait for data
-        data_out = []
-        while len(data_out) < num_data:
-            data_out.append(self._pipe.recv())
-        # accumulate data and convert to rate
-        actual_period = num_data * self.UPDATE_PERIOD # may be different from period
-        return np.sum(data_out, axis=0) / actual_period
-    '''
-    def acquire_data(self, num_samp:int, samp_period:float) -> np.ndarray:
-        '''
-        
-        '''
-        # calculate sample period in number of data points
-        samp_period = max(int(samp_period / CCU.UPDATE_PERIOD), 1)
-        # calculate total number of data points needed
-        num_data = num_samp * samp_period
-        # request data
-        self._pipe.send(num_data)
-        # wait for data
-        data_out = []
-        while len(data_out) < num_data:
-            data_out.append(self._pipe.recv())
-        # reshape and accumulate data, converting it to a count rate
-        data_out = np.array(data_out).reshape(num_samp, samp_period, CCU.NUM_CHANNEL)
-        actual_period = samp_period * self.UPDATE_PERIOD # may be different from period
-        data_out = np.sum(data_out, axis=1)/actual_period # aggregate by sample
-        # put together the output
-        data_avgs = np.mean(data_out, axis=0)
-        data_sems = stats.sem(data_out, axis=0)
-        return data_avgs, data_sems
-        
+        # update coincidence count lines
+        for i, k in enumerate(self._channel_keys[4:]):
+            if not k in self._ignore:
+                self._artists['coin_lines'][k].set_ydata(data[:,i+4])
+                self._axes['coin_lines'].draw_artist(self._artists['coin_lines'][k])
+
+        # update count bars
+        self._artists['count_bars'].set_height(data[-1,:4])
+        self._axes['count_bars'].draw_artist(self._artists['count_bars'])
+        self._artists['coin_bars'].set_height(data[-1,4:])
+        self._axes['coin_bars'].draw_artist(self._artists['coin_bars'])
+
+        # blit the figure
+        self._fig.canvas.blit(self._axes['count_lines'].bbox)
+        self._fig.canvas.blit(self._axes['coin_lines'].bbox)
+        self._fig.canvas.blit(self._axes['count_bars'].bbox)
+        self._fig.canvas.blit(self._axes['coin_bars'].bbox)
+
+        # flush events
+        self._fig.canvas.flush_events()       
