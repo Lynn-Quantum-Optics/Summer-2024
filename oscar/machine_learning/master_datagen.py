@@ -26,12 +26,16 @@ def gen_rand_info(func, prob_type, verbose=True):
     concurrence = get_concurrence(rho)
     purity = get_purity(rho)
     print(f'made state with concurrence {concurrence} and purity {purity}')
-    if prob_type=='standard':
+    if prob_type=='all':
+        II, IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ = np.real(get_expec_vals(rho).reshape(16,))
+        return IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
+    elif prob_type=='standard':
         HH, HV, VV, DD, DA, AA, RR, RL, LL = get_9s_projections(rho)
         return HH, HV, VV, DD, DA, AA, RR, RL, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
     elif prob_type=='roik_like':
         HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV = get_16s_projections(rho)
         return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
+    
 
 def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False):
     ''' Fuction to build a dataset of randomly generated states.
@@ -47,11 +51,13 @@ def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False)
     assert random_method in ['simplex', 'jones_I','jones_C', 'hurwitz'], f'Invalid random method. You have {random_method}.'
         
     # confirm valid prob_type
-    assert prob_type in ['standard', 'roik_like'], f'Invalid prob_type. You have {prob_type}.'
+    assert prob_type in ['standard', 'roik_like', 'all'], f'Invalid prob_type. You have {prob_type}.'
 
     ## initialize dataframe to hold states ##
     # because of my Hoppy model in jones.py, we no longer need to save the generating angles; we can determine them!! :)) This doesn't work with mixed states, but we can still get a closest aproximation.
-    if prob_type == 'standard':
+    if prob_type == 'all':
+        df_cols = ['IX', 'IY', 'IZ', 'XI', 'XX', 'XY', 'XZ', 'YI', 'YX', 'YY', 'YZ', 'ZI', 'ZX', 'ZY', 'ZZ', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity']
+    elif prob_type == 'standard':
         df_cols = ['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity']
     elif prob_type == 'roik_like':
         df_cols = ['HH', 'VV', 'HV', 'DD', 'AA', 'RR', 'LL', 'DL', 'AR', 'DH', 'AV', 'LH', 'RV', 'DR', 'DV', 'LV' ,'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity']
@@ -65,7 +71,8 @@ def build_dataset(random_method, prob_type, num_to_gen, savename, verbose=False)
         func = get_random_jones(setup='I')
     elif random_method=='hurwitz':
         method = int(input('which method for phi random gen do you want? 0, 1, 2'))
-        assert method in [1, 2, 3], f'Invalid method. You have {method}.'
+        assert method in [0, 1, 2], f'Invalid method. You have {method}.'
+        savename+=f'_method_{method}'
         func = partial(get_random_hurwitz, method=method)
 
     # build multiprocessing pool ##

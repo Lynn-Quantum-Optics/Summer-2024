@@ -175,7 +175,7 @@ def get_random_Jangles(setup):
             # UV HWP
             theta_UV = np.random.rand()*np.pi/4
             # QP
-            phi = np.random.rand()*np.pi/2
+            phi = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
             angles= [theta_UV, phi, theta_B]
@@ -202,7 +202,7 @@ def get_random_jones(setup='C', return_params=False):
     if not(return_params): return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 1000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 10000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -228,13 +228,17 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
     if setup=='C':
         zeta=0.07
 
+    elif setup=='Ca':
+        frac=.02
+        zeta=1
+
     def decompose():
         func = lambda angles: get_Jrho(angles=angles, setup=setup)
 
         # iset bounds for guesses
         H_bound = (0, np.pi/4)
         Q_bound = (0, np.pi/2)
-        QP_bound = (0, np.pi/2)
+        QP_bound = (0, 2*np.pi)
         if setup=='C':
             # theta_0, phi, theta_B, alpha_B1, alpha_B2
             # bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
@@ -459,10 +463,10 @@ if __name__=='__main__':
         decomp_ls = []
         for i in trange(len(states)):
             if setup=='B':
-                for option in ['C','I']:
+                for option in ['Ca', 'C','I']:
                     decomp_ls.append((i, option, adapt))
             else:
-                decomp_ls.append((i, option, adapt))
+                decomp_ls.append((i, setup, adapt))
         
         print(decomp_ls)
 
@@ -480,7 +484,7 @@ if __name__=='__main__':
         results = [result for result in results if result is not None] 
 
         ## save to df ##
-        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'projH&V_pred', 'projH&V_targ', 'projD&A_pred',  'projD&A_targ','projR&L_pred', 'projR&L_targ']
+        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
         decomp_df = pd.DataFrame.from_records(results, columns=columns)
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
@@ -500,7 +504,7 @@ if __name__=='__main__':
         '''
         assert do_compute or do_plot, 'must do at least one of compute or plot'
 
-        savename=f'gd_tune_{f_min}_{f_max}_{f_it}_{zeta_min}_{zeta_max}_{zeta_it}_{num_to_avg}'
+        savename=f'gd_tune_{f_min}_{f_max}_{f_it}_{zeta_min}_{zeta_max}_{zeta_it}_{num_to_avg}_all'
 
         f_ls = np.logspace(np.log10(f_min), np.log10(f_max), f_it)
         zeta_ls = np.logspace(np.log10(zeta_min), np.log10(zeta_max), zeta_it)
@@ -512,10 +516,13 @@ if __name__=='__main__':
             for zeta in zeta_ls:
                 f_plot_ls.append(frac)
                 zeta_plot_ls.append(zeta)
-                for setup in ['C', 'I']:
+                for setup in ['Ca', 'C', 'I']:
                     sfz_unique.append([setup, frac, zeta]) # get unique configs
                     for j in range(num_to_avg): # repeat each config num_to_avg times
                         sfz_ls.append([setup, frac, zeta])
+                # sfz_unique.append(['Ca', frac, zeta]) # get unique configs
+                # for j in range(num_to_avg): # repeat each config num_to_avg times
+                #     sfz_ls.append(['Ca', frac, zeta])
         
         print(sfz_ls, len(sfz_ls))
         print(savename)
@@ -541,6 +548,10 @@ if __name__=='__main__':
             df.to_csv(join('decomp', savename+'.csv'))
 
         def plot():
+            n_Ca_ls =[]
+            n_Ca_sem_ls = []
+            fidelity_Ca_ls = []
+            fidelity_Ca_sem_ls = []
             n_C_ls = []
             n_C_sem_ls = []
             fidelity_C_ls = []
@@ -552,7 +563,7 @@ if __name__=='__main__':
 
             for sfz in sfz_unique:
                 setup = sfz[0]
-                df_sfz = df.loc[(df['setup'] == setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4) & (df['n'] > 0)]
+                df_sfz = df.loc[(df['setup'] == setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4) & (df['n'] > 0) & ((np.isclose(df['fidelity'], 1, rtol=1e-4)) | (df['fidelity']<1))]
                 df_test = df.loc[(df['setup']==setup) & np.isclose(df['frac'], sfz[1], rtol=1e-4) & np.isclose(df['zeta'], sfz[2], rtol=1e-4)]
                 df_test_n = df_test.loc[df_test['n'] != 0]
                 assert len(df_sfz) > 0, f'no results for this config {sfz}_{df_test_n}'
@@ -562,12 +573,17 @@ if __name__=='__main__':
                 fidelity_avg = np.mean(df_sfz['fidelity'].to_numpy())
                 fidelity_sem = np.std(df_sfz['fidelity'].to_numpy())/np.sqrt(len(df_sfz['fidelity'].to_numpy()))
 
-                if setup=='C':
+                if setup=='Ca':
+                    n_Ca_ls.append(n_avg)
+                    n_Ca_sem_ls.append(n_sem)
+                    fidelity_Ca_ls.append(fidelity_avg)
+                    fidelity_Ca_sem_ls.append(fidelity_sem)
+                elif setup=='C':
                     n_C_ls.append(n_avg)
                     n_C_sem_ls.append(n_sem)
                     fidelity_C_ls.append(fidelity_avg)
                     fidelity_C_sem_ls.append(fidelity_sem)
-                else:
+                elif setup=='I':
                     n_I_ls.append(n_avg)
                     n_I_sem_ls.append(n_sem)
                     fidelity_I_ls.append(fidelity_avg)
@@ -577,23 +593,38 @@ if __name__=='__main__':
             summary = pd.DataFrame()
             summary['frac'] = f_plot_ls
             summary['zeta'] = zeta_plot_ls
+            summary['n_Ca'] = n_Ca_ls
+            summary['n_Ca_sem'] = n_Ca_sem_ls
+            summary['fidelity_Ca'] = fidelity_Ca_ls
+            summary['fidelity_Ca_sem'] = fidelity_Ca_sem_ls
             summary['n_C'] = n_C_ls
             summary['n_C_sem'] = n_C_sem_ls
-            summary['n_I'] = n_I_ls
-            summary['n_I_sem'] = n_I_sem_ls
             summary['fidelity_C'] = fidelity_C_ls
             summary['fidelity_C_sem'] = fidelity_C_sem_ls
+            summary['n_I'] = n_I_ls
+            summary['n_I_sem'] = n_I_sem_ls
             summary['fidelity_I'] = fidelity_I_ls
             summary['fidelity_I_sem'] = fidelity_I_sem_ls
             summary.to_csv(join('decomp', savename+'_summary.csv'))
-
+            
+            pd.set_option('display.max_columns', None)
             # print best configurations #
+            print('best Ca config:\n', summary.sort_values(['n_Ca', 'fidelity_Ca'], ascending=[True, False]).head())
             print('best C config:\n', summary.sort_values(['n_C', 'fidelity_C'], ascending=[True, False]).head())
             print('------------')
             print('best I config:\n', summary.sort_values(['n_I', 'fidelity_I'], ascending=[True, False]).head())
 
             fig= plt.figure()
-            ax1 = fig.add_subplot(211, projection='3d')
+            ax0 = fig.add_subplot(311, projection='3d')
+            sc0= ax0.scatter(f_plot_ls, zeta_plot_ls, n_Ca_ls, marker='o', c=np.array(fidelity_Ca_ls), cmap=plt.cm.viridis)
+            cb0 = fig.colorbar(sc0, ax=ax0, shrink=1)
+            cb0.ax.set_position(cb0.ax.get_position().translated(0.09, 0))
+            ax0.set_xlabel('$f$')
+            ax0.set_ylabel('$\zeta$')
+            ax0.set_zlabel('$\overline{n}$')
+            ax0.set_title('Ca setup')
+
+            ax1 = fig.add_subplot(312, projection='3d')
             sc1= ax1.scatter(f_plot_ls, zeta_plot_ls, n_C_ls, marker='o', c=np.array(fidelity_C_ls), cmap=plt.cm.viridis)
             cb1 = fig.colorbar(sc1, ax=ax1, shrink=1)
             cb1.ax.set_position(cb1.ax.get_position().translated(0.09, 0))
@@ -602,7 +633,7 @@ if __name__=='__main__':
             ax1.set_zlabel('$\overline{n}$')
             ax1.set_title('C setup')
 
-            ax2 = fig.add_subplot(212, projection='3d')
+            ax2 = fig.add_subplot(313, projection='3d')
             sc2= ax2.scatter(f_plot_ls, zeta_plot_ls, n_I_ls, marker='o', c=np.array(fidelity_I_ls), cmap=plt.cm.viridis)
             cb2 = fig.colorbar(sc2, ax=ax2, shrink=1)
             cb2.ax.set_position(cb2.ax.get_position().translated(0.09, 0))
@@ -611,7 +642,8 @@ if __name__=='__main__':
             ax2.set_zlabel('$\overline{n}$')
             ax2.set_title('I setup')
 
-            fig.set_size_inches(7, 10)
+            # fig.set_size_inches(6, 15)
+            # plt.tight_layout()
 
             plt.savefig(join('decomp', savename+'.pdf'))
             plt.show()
@@ -627,7 +659,7 @@ if __name__=='__main__':
     ## test states and get average fidelity ##
     if resp == 0:
         setup = input('Enter setup: C or I, or B for both')
-        assert setup in ['C', 'I', 'B'], f'invalid setup. you have {setup}'
+        assert setup in ['C', 'I', 'B', 'Ca'], f'invalid setup. you have {setup}'
         adapt = int(input('0 for random hop, 1 for random fan, 2 for gradient descent'))
         assert adapt in [0, 1, 2], f'invalid adapt. you have {adapt}'
         bell = bool(int(input('include bell states?')))
@@ -652,29 +684,32 @@ if __name__=='__main__':
 
     
     elif resp==2:
-        eta_ls = np.linspace(0, np.pi/2, 4)
-        chi_ls = np.linspace(0, 2*np.pi,4)
+        # eta_ls = np.linspace(0, np.pi/2, 3)
+        # chi_ls = np.linspace(0, 2*np.pi,3)
+        eta_ls = np.random.rand(3)*np.pi/2
+        chi_ls = np.random.rand(3)*2*np.pi
         E0_states = []
         E1_states = []
         state_angles = []
         for eta in eta_ls:
             for chi in chi_ls:
                 E0_states.append(get_E0(eta, chi))
+                E1_states.append(get_E1(eta, chi))
                 state_angles.append([eta, chi])
 
-        e_df = pd.DataFrame({'state': [], 'eta, chi':[], 'fidelity':[],'angles':[], 'projH&V_pred':[], 'projH&V_targ':[], 'projD&A_pred':[], 'projD&A_targ':[], 'projR&L_pred':[], 'projR&L_targ':[]})
+        e_df = pd.DataFrame({'state': [], 'eta, chi':[], 'fidelity':[],'angles':[], 'pred rho':[], 'targ rho':[]})
 
         
         for i, E0_state in enumerate(tqdm(E0_states)):
-            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E0', setup = 'Ca', debug=True)
+            targ_name, setup, adapt, n, fidelity, angles, pred_rho, targ_rho = jones_decompose(E0_state, targ_name='E0', setup = 'Ca')
 
-            e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E0', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'projH&V_pred':proj_H_V_pred, 'projH&V_targ':proj_H_V_targ, 'projD&A_pred':proj_D_A_pred, 'projD&A_targ':proj_D_A_targ, 'projR&L_pred':proj_R_L_pred, 'projR&L_targ':proj_R_L_targ}])])
+            e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E0', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'pred rho':pred_rho, 'targ rho':targ_rho}])])
 
 
         for i, E1_state in enumerate(tqdm(E1_states)):
-            targ_name, setup, adapt, n, fidelity, angles, proj_H_V_pred, proj_H_V_targ, proj_D_A_pred,  proj_D_A_targ,proj_R_L_pred, proj_R_L_targ = jones_decompose(E0_state, targ_name='E1', setup = 'Ca', debug=True)
+            targ_name, setup, adapt, n, fidelity, angles, pred_rho, targ_rho = jones_decompose(E0_state, targ_name='E1', setup = 'Ca')
 
-            e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E1', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'projH&V_pred':proj_H_V_pred, 'projH&V_targ':proj_H_V_targ, 'projD&A_pred':proj_D_A_pred, 'projD&A_targ':proj_D_A_targ, 'projR&L_pred':proj_R_L_pred, 'projR&L_targ':proj_R_L_targ}])])
+            e_df = pd.concat([e_df, pd.DataFrame.from_records([{'state': 'E1', 'eta, chi':state_angles[i], 'fidelity':fidelity,'angles':angles, 'pred rho':pred_rho, 'targ rho':targ_rho}])])
 
         e_df.to_csv(join('decomp', 'eritas_states.csv'))
         print(e_df)
