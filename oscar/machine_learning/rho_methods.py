@@ -26,21 +26,22 @@ def is_valid_rho(rho, verbose=True):
         rho: density matrix to check
         verbose: bool, whether to print out what is wrong with rho
     '''
+    tolerance = 1e-17
     # make sure not a 0 matrix
-    if np.all(np.isclose(rho, np.zeros((4,4)), rtol=1e-5)):
+    if np.all(np.isclose(rho, np.zeros((4,4)), rtol=tolerance)):
         if verbose: print('rho is 0 matrix')
         return False
     # check if Hermitian
-    if not(np.all(np.isclose(rho,adjoint(rho), rtol=1e-5))):
+    if not(np.all(np.isclose(rho,adjoint(rho), rtol=tolerance))):
         if verbose: print('rho is not Hermitian')
         return False
     # check if trace 1, within tolerance. can use param rtol to change tolerance
-    if not(np.isclose(np.trace(rho), 1, rtol=1e-5)):
+    if not(np.isclose(np.trace(rho), 1, tolerance)):
         if verbose: print('rho trace is not 1')
         return False
     # check if positive semidefinite
     eig_val = la.eigvals(rho)
-    if not(np.all(np.greater_equal(eig_val,np.zeros(len(eig_val))) | np.isclose(eig_val,np.zeros(len(eig_val)), rtol=1e-5))):
+    if not(np.all(np.greater_equal(eig_val,np.zeros(len(eig_val))) | np.isclose(eig_val,np.zeros(len(eig_val)), rtol=tolerance))):
         if verbose: print('rho is not positive semidefinite')
         return False
     # square root of rho must exist
