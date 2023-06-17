@@ -7,50 +7,9 @@ from keras import layers
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
-## compute accuracy ##
-def evaluate_perf(model, X_train, Y_train, X_test, Y_test):
-    ''' Function to measure accuracy on both train and test data.
-    Params:
-        model: trained model
-        method: 'witness' or 'entangled' for prediction method
-        data: 'train' or 'test' for which data to evaluate on
-        '''
-    Y_pred_test = model.predict(X_test)
-    Y_pred_train = model.predict(X_train)
-
-    N_correct_test = 0
-    N_correct_train = 0
-    for i, y_pred in enumerate(Y_pred_test):
-        if Y_test[i][np.argmax(y_pred)]==1: # if the witness is negative, i.e. detects entanglement
-            N_correct_test+=1
-    
-    for i, y_pred in enumerate(Y_pred_train):
-        if Y_train[i][np.argmax(y_pred)]==1: # if the witness is negative, i.e. detects entanglement
-            N_correct_train+=1
-
-    # if method == 'witness':
-    #     Ud = Y_test.sum(axis=1) # undetectables: count the number of states w negative witness value
-    #     return [N_correct_test / (len(Y_pred_test) - len(Ud[Ud==0])), N_correct_train / (len(Y_pred_train) - len(Ud[Ud==0]))]
-    # elif method == 'entangled':
-    #     return [N_correct_test / len(Y_pred_test), N_correct_train / len(Y_pred_train)]
-    return [N_correct_test / len(Y_pred_test), N_correct_train / len(Y_pred_train)]
-
-
 #######################################################
 ## XGBOOST ##
 ''' Total list of params: https://xgboost.readthedocs.io/en/stable/parameter.html'''
-
-xgb_sweep_config = {
-    "method": "bayes",
-    "metric": {"name": "val_loss", "goal": "minimize"},
-    "parameters": {
-        "max_depth": {"distribution": "int_uniform", "min":  1, "max": 10},
-        "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.9},
-        "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 5000},
-        "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
-    },
-    }
-
 def train_xgb():
     ''' Function to run wandb sweep for XGBOOST. 
     Adapted from https://github.com/wandb/examples/blob/master/examples/wandb-sweeps/sweeps-xgboost/xgboost_tune.py 
@@ -70,9 +29,10 @@ def train_xgb():
     # fit the model
     model.fit(X_train, Y_train, early_stopping_rounds = wandb.config.early_stopping, eval_set=[(X_test, Y_test)], callbacks=[wandb.xgboost.WandbCallback(log_model=True)])
     # early_stopping_rounds = int(wandb.config.early_stopping)
+
     # log test accuracy to wandb
-    val_acc = evaluate_perf(model, X_train, Y_train, X_test, Y_test)[0]
-    wandb.log({"val_acc": val_acc})
+    # val_acc = evaluate_perf(model, X_train, Y_train, X_test, Y_test)[0]
+    # wandb.log({"val_acc": val_acc})
 
 def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, learning_rate=0.3, n_estimators=1000, early_stopping=10):
     ''' Function to run XGBOOST with custom hyperparameters.
@@ -91,105 +51,11 @@ def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, lear
     model.fit(X_train, Y_train, tree_method='hist', early_stopping_rounds = early_stopping, random_state=42, eval_set=[(X_test, Y_test)])
 
     # print results
-    acc = evaluate_perf(model, method, X_train, Y_train, X_test, Y_test)
-    print('Accuracy on test, train', acc)
+    # acc = evaluate_perf(model, method, X_train, Y_train, X_test, Y_test)
+    # print('Accuracy on test, train', acc)
 
 #######################################################
 ## NN ##
-nn3h_sweep_config = {
-    'method': 'random',
-    'name': 'val_accuracy',
-    'goal': 'maximize',
-'parameters':{
-    'epochs': {
-       'distribution': 'int_uniform',
-       'min': 20,
-       'max': 100
-    },
-    # for build_dataset
-     'batch_size': {
-       'values': [x for x in range(32, 161, 32)]
-    },
-    'size_1': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },
-    'size_2': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },'size_3': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256,
-    },
-    'dropout': {
-      'distribution': 'uniform',
-       'min': 0,
-       'max': 0.6
-    },
-    'learning_rate':{
-         #uniform distribution between 0 and 1
-         'distribution': 'uniform', 
-         'min': 1e-5,
-         'max': 0.5
-     }
-},
-}
-
-
-nn5h_sweep_config = {
-    'method': 'random',
-    'name': 'val_accuracy',
-    'goal': 'maximize',
-    'metric':'val_accuracy',
-'parameters':{
-    'epochs': {
-       'distribution': 'int_uniform',
-       'min': 20,
-       'max': 100
-    },
-    # for build_dataset
-     'batch_size': {
-       'values': [x for x in range(32, 161, 32)]
-    },
-    'size_1': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },
-    'size_2': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },'size_3': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },'size_4': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },'size_5': {
-       'distribution': 'int_uniform',
-       'min': 64,
-       'max': 256
-    },
-    'dropout': {
-      'distribution': 'uniform',
-       'min': 0,
-       'max': 0.6
-    },
-    'learning_rate':{
-         #uniform distribution between 0 and 1
-         'distribution': 'uniform', 
-         'min': 1e-5,
-         'max': 0.5
-     }
-},
-}
-
 def train_nn3h():
     ''' Function to run wandb sweep for NN.'''
     
@@ -280,6 +146,218 @@ if __name__=='__main__':
     DATA_PATH = 'random_gen/data'
     X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, savename=savename, input_method=input_method, task=task)
 
+    ## sweep configs ##
+    if task=='witness':
+        xgb_sweep_config = {
+        "method": "bayes",
+        "metric": {"name": "val_loss", "goal": "minimize"},
+        "parameters": {
+            "max_depth": {"distribution": "int_uniform", "min":  10, "max": 20},
+            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
+            "n_estimators": {"distribution": "int_uniform", "min":  4500, "max": 10000},
+            "early_stopping": {"distribution": "int_uniform", "min": 25, "max": 45}
+        },
+        }
+
+        nn3h_sweep_config = {
+        'method': 'random',
+        'name': 'val_accuracy',
+        'goal': 'maximize',
+        'parameters':{
+        'epochs': {
+        'distribution': 'int_uniform',
+        'min': 20,
+        'max': 100
+        },
+        # for build_dataset
+        'batch_size': {
+        'values': [x for x in range(160, 513, 32)]
+        },
+        'size_1': {
+        'distribution': 'int_uniform',
+        'min': 64,
+        'max': 256
+        },
+        'size_2': {
+        'distribution': 'int_uniform',
+        'min': 64,
+        'max': 256
+        },'size_3': {
+        'distribution': 'int_uniform',
+        'min': 64,
+        'max': 256,
+        },
+        'dropout': {
+        'distribution': 'uniform',
+        'min': 0,
+        'max': 0.6
+        },
+        'learning_rate':{
+            #uniform distribution between 0 and 1
+            'distribution': 'uniform', 
+            'min': 1e-5,
+            'max': 0.1
+        }
+        },
+        }
+
+        nn5h_sweep_config = {
+            'method': 'random',
+            'name': 'val_accuracy',
+            'goal': 'maximize',
+            'metric':'val_accuracy',
+        'parameters':{
+            'epochs': {
+            'distribution': 'int_uniform',
+            'min': 20,
+            'max': 100
+            },
+            # for build_dataset
+            'batch_size': {
+            'values': [x for x in range(32, 161, 32)]
+            },
+            'size_1': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },
+            'size_2': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },'size_3': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },'size_4': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },'size_5': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },
+            'dropout': {
+            'distribution': 'uniform',
+            'min': 0,
+            'max': 0.6
+            },
+            'learning_rate':{
+                #uniform distribution between 0 and 1
+                'distribution': 'uniform', 
+                'min': 1e-5,
+                'max': 0.3
+            }
+        },
+        }
+
+    elif task=='entangled':
+        xgb_sweep_config = {
+        "method": "bayes",
+        "metric": {"name": "val_loss", "goal": "minimize"},
+        "parameters": {
+            "max_depth": {"distribution": "int_uniform", "min":  10, "max": 20},
+            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.9},
+            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 5000},
+            "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
+        },
+        }
+
+        nn3h_sweep_config = {
+        'method': 'random',
+        'name': 'val_accuracy',
+        'goal': 'maximize',
+        'parameters':{
+        'epochs': {
+        'distribution': 'int_uniform',
+        'min': 20,
+        'max': 100
+        },
+        # for build_dataset
+        'batch_size': {
+        'values': [x for x in range(160, 513, 32)]
+        },
+        'size_1': {
+        'distribution': 'int_uniform',
+        'min': 64,
+        'max': 256
+        },
+        'size_2': {
+        'distribution': 'int_uniform',
+        'min': 64,
+        'max': 256
+        },'size_3': {
+        'distribution': 'int_uniform',
+        'min': 64,
+        'max': 256,
+        },
+        'dropout': {
+        'distribution': 'uniform',
+        'min': 0,
+        'max': 0.6
+        },
+        'learning_rate':{
+            #uniform distribution between 0 and 1
+            'distribution': 'uniform', 
+            'min': 1e-5,
+            'max': 0.1
+        }
+        },
+        }
+
+        nn5h_sweep_config = {
+            'method': 'random',
+            'name': 'val_accuracy',
+            'goal': 'maximize',
+            'metric':'val_accuracy',
+        'parameters':{
+            'epochs': {
+            'distribution': 'int_uniform',
+            'min': 20,
+            'max': 100
+            },
+            # for build_dataset
+            'batch_size': {
+            'values': [x for x in range(161, 513, 32)]
+            },
+            'size_1': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },
+            'size_2': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },'size_3': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },'size_4': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },'size_5': {
+            'distribution': 'int_uniform',
+            'min': 64,
+            'max': 256
+            },
+            'dropout': {
+            'distribution': 'uniform',
+            'min': 0,
+            'max': 0.6
+            },
+            'learning_rate':{
+                #uniform distribution between 0 and 1
+                'distribution': 'uniform', 
+                'min': 1e-5,
+                'max': 0.3
+            }
+        },
+        }
+
+
     def run_sweep(wtr=0):
         ''' Function to run hyperparam sweep.
         Params:
@@ -292,7 +370,7 @@ if __name__=='__main__':
             sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn5h)
         elif wtr==2:
-            sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN3H_'+savename)
+            sweep_id = wandb.sweep(nn3h_sweep_config, project='LQO-NN3H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn3h)
         else:
             raise ValueError('wtr must be 0, 1, or 2.')
