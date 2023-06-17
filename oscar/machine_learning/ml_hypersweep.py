@@ -65,9 +65,6 @@ def train_xgb():
         max_depth=wandb.config.max_depth,
         learning_rate=wandb.config.learning_rate,
         n_estimators=wandb.config.n_estimators,
-        # max_depth=int(wandb.config.max_depth),
-        # learning_rate=wandb.config.learning_rate,
-        # n_estimators=int(wandb.config.n_estimators),
     )
 
     # fit the model
@@ -135,8 +132,8 @@ nn3h_sweep_config = {
     'learning_rate':{
          #uniform distribution between 0 and 1
          'distribution': 'uniform', 
-         'min': 0,
-         'max': 0.1
+         'min': 1e-5,
+         'max': 0.5
      }
 },
 }
@@ -187,8 +184,8 @@ nn5h_sweep_config = {
     'learning_rate':{
          #uniform distribution between 0 and 1
          'distribution': 'uniform', 
-         'min': 0,
-         'max': 0.1
+         'min': 1e-5,
+         'max': 0.5
      }
 },
 }
@@ -271,28 +268,31 @@ def train_nn5h():
 
 ## run on our data ##
 if __name__=='__main__':
-    import pandas as pd
-    from os.path import join
-
     from train_prep import prepare_data
 
+    file = input('Enter file name: ')
+    input_method = input('Enter input method: ')
+    task = input('Enter task: ')
+    identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
+    savename= identifier+'_'+task+'_'+input_method
+
     # load data here
-    JS_DATA_PATH = 'jones_simplex_data'
-    X_train, Y_train, X_test, Y_test, _ , _ = prepare_data(datapath=join(JS_DATA_PATH, 'simplex_100000_0.csv'), savename='simp_100k', method='witness_s')
-    
+    DATA_PATH = 'random_gen/data'
+    X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, savename=savename, input_method=input_method, task=task)
+
     def run_sweep(wtr=0):
         ''' Function to run hyperparam sweep.
         Params:
             wtr: int, 0 for XGB, 1 for NN5H, 2 for NN3H
         '''
         if wtr==0:
-            sweep_id = wandb.sweep(xgb_sweep_config, project="Lynn Quantum Optics3")
+            sweep_id = wandb.sweep(xgb_sweep_config, project='LQO-XGB_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_xgb)
         elif wtr==1:
-            sweep_id = wandb.sweep(nn5h_sweep_config, project="Lynn Quantum Optics-NN5h")
+            sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn5h)
         elif wtr==2:
-            sweep_id = wandb.sweep(nn5h_sweep_config, project="Lynn Quantum Optics-NN3h")
+            sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN3H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn3h)
         else:
             raise ValueError('wtr must be 0, 1, or 2.')
