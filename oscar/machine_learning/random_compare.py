@@ -89,6 +89,7 @@ def compare_hurwitz(size=100):
     print('mean concurrence method 2:', np.mean(concurrence2_ls))
     print('sem concurrence method 2:', np.std(concurrence2_ls)/np.sqrt(size))
     
-compare_hurwitz(100000)
+size = int(input('Enter size of random sample: '))
+compare_hurwitz(size)
     
 

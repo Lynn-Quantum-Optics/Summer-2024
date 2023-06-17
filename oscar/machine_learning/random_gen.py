@@ -40,7 +40,7 @@ def get_random_simplex(return_params=False):
     if return_params: return [rho, params]
     else: return rho
 
-def get_random_hurwitz(method=0, purity_cond = 1):
+def get_random_hurwitz(method=2, purity_cond = 1):
     ''' Function to generate random density matrix with roik method.
     params:
         method: int, 0, 1, 2 for whether to use 
@@ -72,43 +72,72 @@ def get_random_hurwitz(method=0, purity_cond = 1):
     ## part 2: random unitary trans ##
     def rand_unitary():
         # need to first generate 6 other smaller unitaries
-        def get_rand_elems(k):
-            alpha = np.random.rand()*2*np.pi
-            psi = np.random.rand()*2*np.pi
-            chi = np.random.rand()*2*np.pi
-            if method==0:
-                phi = np.arcsin((np.random.rand())**1/(2*(k+1)))
-            elif method==1:
-                phi = np.arcsin((np.random.rand())**1/2)
-            else: # method==2
-                phi = np.random.rand()*np.pi/2
-            return np.matrix([
-                [np.e**(psi*1j)*np.cos(phi), np.e**(chi*1j)*np.sin(phi)],
-                [-np.e**(-chi*1j)*np.sin(phi), np.e**(-psi*1j)*np.cos(phi)]
-            ])*np.e**(alpha*1j)
+        if method==1 or method==2:
+            def get_rand_elems(k):
+                alpha = np.random.rand()*2*np.pi
+                psi = np.random.rand()*2*np.pi
+                chi = np.random.rand()*2*np.pi
+                if method==1:
+                    phi = np.arcsin((np.random.rand())**1/2)
+                else: # method==2
+                    phi = np.random.rand()*np.pi/2
+                return np.matrix([
+                    [np.e**(psi*1j)*np.cos(phi), np.e**(chi*1j)*np.sin(phi)],
+                    [-np.e**(-chi*1j)*np.sin(phi), np.e**(-psi*1j)*np.cos(phi)]
+                ])*np.e**(alpha*1j)
 
-        # loop and create unitaries from blocks
-        unitary_final = np.eye(4)
-        for k in range(5, -1, -1): # count down to do multiplicatiom from right to left
-            sub_unitary_k = get_rand_elems(k)
-            if k==0 or k==3 or k==5:
-                unitary_k = np.matrix(np.block([[np.eye(2), np.zeros((2,2))], [np.zeros((2,2)), sub_unitary_k]]))
-            elif k==1 or k==4:
-                ul = np.matrix([[1,0], [0, sub_unitary_k[0, 0]]])# upper left
-                ur = np.matrix([[0,0], [sub_unitary_k[0, 1], 0]])# upper right
-                ll = np.matrix([[0,sub_unitary_k[1,0]], [0, 0]])# lower left
-                lr = np.matrix([[sub_unitary_k[1,1], 0], [0, 1]])# lower right
-                unitary_k = np.matrix(np.block([[ul, ur],[ll, lr]]))
-            else: # k==2
-                unitary_k = np.matrix(np.block([[sub_unitary_k, np.zeros((2,2))], [np.zeros((2,2)), np.eye(2)]]))
+            # loop and create unitaries from blocks
+            unitary_final = np.eye(4, dtype=np.complex)
+            for k in range(5, -1, -1): # count down to do multiplicatiom from right to left
+                sub_unitary_k = get_rand_elems(k)
+                if k==0 or k==3 or k==5:
+                    unitary_k = np.matrix(np.block([[np.eye(2), np.zeros((2,2))], [np.zeros((2,2)), sub_unitary_k]]))
+                elif k==1 or k==4:
+                    ul = np.matrix([[1,0], [0, sub_unitary_k[0, 0]]])# upper left
+                    ur = np.matrix([[0,0], [sub_unitary_k[0, 1], 0]])# upper right
+                    ll = np.matrix([[0,sub_unitary_k[1,0]], [0, 0]])# lower left
+                    lr = np.matrix([[sub_unitary_k[1,1], 0], [0, 1]])# lower right
+                    unitary_k = np.matrix(np.block([[ul, ur],[ll, lr]]))
+                else: # k==2
+                    unitary_k = np.matrix(np.block([[sub_unitary_k, np.zeros((2,2))], [np.zeros((2,2)), np.eye(2)]]))
+                
+                unitary_final = unitary_final @ unitary_k
+        else: # method==0
+            def get_U(i, j, k):
+                # get i phi and psi
+                phi = np.arcsin((np.random.rand(i+1))**(1/(i+1)))
+                psi = np.random.rand(i+1)*2*np.pi
+                # get 1 random chi
+                if k==0:
+                    chi = 0
+                else:
+                    chi = np.random.rand()*2*np.pi
+
+                # start with identity
+                U_k = np.eye(4, dtype=np.complex)
+                # fill in the entries
+                U_k[i][i]=np.e**(psi[i]*1j)*np.cos(phi[i])
+                U_k[i][j]=np.e**(chi*1j)*np.sin(phi[i])
+                U_k[j][i]=-np.e**(-chi*1j)*np.sin(phi[i])
+                U_k[j][j]=np.e**(-psi[i]*1j)*np.cos(phi[i])
+
+                return U_k
+
+            unitary_final = np.eye(4, dtype=np.complex)
+            for l in range(2, -1, -1): # outer loop for the 3 unitaries
+                U_l = np.eye(4)
+                for k in range(l, -1, -1): # build the unitary from right to left
+                    U_l = U_l @ get_U(k, l+1, l)
+                unitary_final = unitary_final @ U_l
             
-            unitary_final = unitary_final @ unitary_k
+            alpha = np.random.rand()*2*np.pi
+            unitary_final = unitary_final * np.e**(alpha*1j)
 
         return unitary_final
 
     ## combine M and U as follows: U M U^\dagger
     def combine_rand(): 
-        return U @ M @ U.H # .H does conjugate transpose
+        return U @ M @ adjoint(U) # calling adjoint method from rho_methods
 
     M = rand_diag()
     U = rand_unitary()
