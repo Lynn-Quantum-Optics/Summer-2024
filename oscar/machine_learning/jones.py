@@ -181,7 +181,7 @@ def get_random_Jangles(setup):
             angles= [theta_UV, phi, theta_B]
 
         else:
-            raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
+            raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I" or "Ca".')
 
         return angles
 
@@ -199,7 +199,7 @@ def get_random_jones(setup='C', return_params=False):
     # get density matrix
     rho = get_Jrho(setup=setup, angles=angles)
 
-    if not(return_params): return [rho, angles]
+    if return_params: return [rho, angles]
     else: return rho
 
 def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 10000):
@@ -272,7 +272,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
         best_angles, fidelity, rho = minimize_angles(x0)
         
         # iterate eiher until we hit max bound or we get a valid rho with fidelity above the min
-        if is_valid_rho(rho):
+        if is_valid_rho(rho) and (fidelity < 1 or np.isclose(fidelity, 1, rtol=1e-9)):
             max_best_fidelity = fidelity
             max_best_angles = best_angles
         else:
@@ -322,7 +322,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
 
                 best_angles, fidelity, rho = minimize_angles(x0)
 
-                if fidelity > max_best_fidelity and is_valid_rho(rho):
+                if fidelity > max_best_fidelity and is_valid_rho(rho) and (fidelity < 1 or np.isclose(fidelity, 1, rtol=1e-9)):
                     max_best_fidelity = fidelity
                     max_best_angles = best_angles
                     index_since_improvement = 0
@@ -531,8 +531,14 @@ if __name__=='__main__':
 
             ## build multiprocessing pool ##
             pool = Pool(cpu_count())
+
             # targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug
-            inputs = [(PhiM, 'PhiM', sfz[0], 2, sfz[1], sfz[2], True) for  sfz in sfz_ls]        
+
+            # old: use PhiM
+            # inputs = [(PhiM, 'PhiM', sfz[0], 2, sfz[1], sfz[2], True) for  sfz in sfz_ls]        
+
+            # new: use random states
+            inputs = [(get_random_simplex(), 'RS', sfz[0], 2, sfz[1], sfz[2], True) for  sfz in sfz_ls]
             results = pool.starmap_async(jones_decompose, inputs).get()
 
             # end multiprocessing
@@ -678,9 +684,10 @@ if __name__=='__main__':
 
     elif resp==1:
          ## optimize gradient descent params, f and zeta ##
-        do_compute = bool(int(input('run computation?')))
-        do_plot = bool(int(input('plot results?')))
-        tune_gd(do_compute=do_compute, do_plot=do_plot, f_it=20, zeta_it=20, num_to_avg=10)
+        do_compute = bool(int(input('run computation? ')))
+        do_plot = bool(int(input('plot results? ')))
+        num_to_avg= int(input('number of times to average? '))
+        tune_gd(do_compute=do_compute, do_plot=do_plot, f_it=20, zeta_it=20, num_to_avg=num_to_avg)
 
     
     elif resp==2:
