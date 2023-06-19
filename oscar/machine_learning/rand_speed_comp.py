@@ -363,5 +363,5 @@ def test_alec(size=1000):
 
 # test_roik()
 # test_roik_actual()
-# test_hurwitz(10000)
-test_alec()
+test_hurwitz(1000)
+# test_alec()

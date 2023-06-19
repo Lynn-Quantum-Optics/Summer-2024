@@ -234,6 +234,26 @@ def get_all_roik_projections(M0):
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
+def get_all_projs(rho):
+    ''' Computes all 27 unique projections for a given density matrix rho'''
+
+    # define the single bases for projection
+    H = np.array([[1,0],[0,0]])
+    V = np.array([[0,0],[0,1]])    
+    D = np.array([[1/2,1/2],[1/2,1/2]])
+    A = np.array([[1/2,-1/2],[-1/2,1/2]])
+    R = np.array([[1/2,1j/2],[-1j/2,1/2]])
+    L = np.array([[1/2,-1j/2],[1j/2,1/2]])
+
+    basis_ls =[H, V, D, A, R, L]
+    all_projs =[]
+    for basis in basis_ls:
+        for basis2 in basis_ls:
+            all_projs.append(compute_proj(basis, basis2, rho))
+
+    return np.array(all_projs).reshape(6,6)
+
+
 def compute_witnesses(rho):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. '''
     expec_vals = get_expec_vals(rho)
