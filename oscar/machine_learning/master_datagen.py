@@ -27,7 +27,7 @@ def gen_rand_info(func, return_prob, verbose=True):
     purity = get_purity(rho)
     if verbose: print(f'made state with concurrence {concurrence} and purity {purity}')
 
-    if return_prob:
+    if not(return_prob): # if we want to return stokes's parameters
         II, IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ = np.real(get_expec_vals(rho).reshape(16,))
         return IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
     else:
@@ -85,7 +85,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=Fals
 
     ## initialize dataframe to hold states ##
     # because of my Hoppy model in jones.py, we no longer need to save the generating angles; we can determine them!! :)) This doesn't work with mixed states, but we can still get a closest aproximation.
-    if return_prob:
+    if not(return_prob):
         columns = ['IX', 'IY', 'IZ', 'XI', 'XX', 'XY', 'XZ', 'YI', 'YX', 'YY', 'YZ', 'ZI', 'ZX', 'ZY', 'ZZ', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity']
     else:
         columns = ['HH', 'HV', 'HD', 'HA', 'HR', 'HL', 'VH', 'VV', 'VD', 'VA', 'VR', 'VL', 'DH', 'DV', 'DD', 'DA', 'DR', 'DL', 'AH', 'AV', 'AD', 'AA', 'AR', 'AL', 'RH', 'RV', 'RD', 'RA', 'RR', 'RL', 'LH', 'LV', 'LD', 'LA', 'LR', 'LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity']
@@ -98,14 +98,14 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=Fals
     elif random_method=='jones_I':
         func = get_random_jones(setup='I')
     elif random_method=='hurwitz':
-        method = int(input('which method for phi random gen do you want? 0, 1, 2'))
+        method = int(input('which method for phi random gen do you want? 0, 1, 2: '))
         assert method in [0, 1, 2], f'Invalid method. You have {method}.'
         savename+=f'_method_{method}'
         func = partial(get_random_hurwitz, method=method)
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
-    inputs = [(func, return_type, verbose) for _ in range(num_to_gen)]
+    inputs = [(func, return_prob, verbose) for _ in range(num_to_gen)]
     results = pool.starmap_async(gen_rand_info, inputs).get()
 
     ## end multiprocessing ##
@@ -121,7 +121,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=Fals
 
 ## ask user for info ##
 if __name__=='__main__':
-    # random_method, return_type, num_to_gen, savename
+    # random_method, return_prob, num_to_gen, savename
     preset = bool(int(input('Use preset (1) or custom (0): ')))
     if preset:
         random_method = 'hurwitz'
