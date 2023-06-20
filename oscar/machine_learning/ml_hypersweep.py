@@ -140,7 +140,8 @@ if __name__=='__main__':
     input_method = input('Enter input method: ')
     task = input('Enter task: ')
     identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
-    savename= identifier+'_'+task+'_'+input_method
+    return_type = input('Enter return type (Prob or Stokes): ')
+    savename= identifier+'_'+task+'_'+input_method+'_'+return_type
 
     # load data here
     DATA_PATH = 'random_gen/data'

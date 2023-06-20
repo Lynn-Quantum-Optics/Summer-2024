@@ -32,6 +32,7 @@ def prepare_data(datapath, file, savename, input_method, task, split=True, p=0.8
     elif input_method=='stokes_diag':
         inputs=['XX', 'YY', 'ZZ']
 
+
     if task=='witness':
         df_full = df.copy()
         df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
