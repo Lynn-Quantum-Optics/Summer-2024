@@ -40,13 +40,14 @@ def get_random_simplex(return_params=False):
     if return_params: return [rho, params]
     else: return rho
 
-def get_random_hurwitz(method=2, purity_cond = 1):
+def get_random_hurwitz(method=0, purity_cond = 1):
     ''' Function to generate random density matrix with roik method.
     params:
         method: int, 0, 1, 2 for whether to use 
             (0) phi = arcsin(xi^1/n) for n in 1 to 6 with xi : [0,1) or
             (1) phi = arcsin(xi^1/2) for n in 1 to 6 or
             (2) phi = rand in [0, pi/2] for n in 1 to 6
+            default is 0.
         purity_condition: if not None, will generate random density matrix until purity is less than this value
     '''
     ## part 1: random diagonal elements ##

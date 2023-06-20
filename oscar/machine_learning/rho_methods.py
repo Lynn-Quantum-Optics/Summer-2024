@@ -60,7 +60,7 @@ def get_purity(rho):
 
 def get_fidelity(rho1, rho2):
     '''Compute fidelity of 2 density matrices'''
-    return (np.real(np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1)))))**2
+    return np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
 
 def Bures_distance(rho1, rho2):
     '''Compute the distance between 2 density matrices'''
@@ -95,6 +95,124 @@ def compute_proj(basis1, basis2, rho):
 
     # print(np.kron(proj1, proj2))
     return np.real(np.trace(np.kron(proj1, proj2)@rho))
+
+def get_all_projs(rho):
+    ''' Computes all 36 projections for a given density matrix rho'''
+
+    # define the single bases for projection
+    H = np.array([[1,0],[0,0]])
+    V = np.array([[0,0],[0,1]])    
+    D = np.array([[1/2,1/2],[1/2,1/2]])
+    A = np.array([[1/2,-1/2],[-1/2,1/2]])
+    R = np.array([[1/2,-1j/2],[1j/2,1/2]])
+    L = np.array([[1/2,1j/2],[-1j/2,1/2]])
+
+    basis_ls =[H, V, D, A, R, L]
+    all_projs =[]
+    for basis in basis_ls:
+        for basis2 in basis_ls:
+            all_projs.append(compute_proj(basis, basis2, rho))
+
+    return np.array(all_projs).reshape(6,6)
+
+def reconstruct_rho(all_projs):
+    ''' Takes in all 36 projections and reconstructs the density matrix. Based on Beili Hu's thesis.'''
+    # define the projections
+    HH = all_projs[0,0]
+    HV = all_projs[0,1]
+    HD = all_projs[0,2]
+    HA = all_projs[0,3]
+    HR = all_projs[0,4]
+    HL = all_projs[0,5]
+    VH = all_projs[1,0]
+    VV = all_projs[1,1]
+    VD = all_projs[1,2]
+    VA = all_projs[1,3]
+    VR = all_projs[1,4]
+    VL = all_projs[1,5]
+    DH = all_projs[2,0]
+    DV = all_projs[2,1]
+    DD = all_projs[2,2]
+    DA = all_projs[2,3]
+    DR = all_projs[2,4]
+    DL = all_projs[2,5]
+    AH = all_projs[3,0]
+    AV = all_projs[3,1]
+    AD = all_projs[3,2]
+    AA = all_projs[3,3]
+    AR = all_projs[3,4]
+    AL = all_projs[3,5]
+    RH = all_projs[4,0]
+    RV = all_projs[4,1]
+    RD = all_projs[4,2]
+    RA = all_projs[4,3]
+    RR = all_projs[4,4]
+    RL = all_projs[4,5]
+    LH = all_projs[5,0]
+    LV = all_projs[5,1]
+    LD = all_projs[5,2]
+    LA = all_projs[5,3]
+    LR = all_projs[5,4]
+    LL = all_projs[5,5]
+
+    # build the stokes's parameters
+    S = np.zeros((4,4))
+    S[0,0]=1
+    S[0,1] = DD - DA + AD - AA
+    S[0,2] = RR - LR + RL - LL
+    S[0,3] = HH - HV + VH - VV
+    S[1,0] = DD + DA - AD - AA
+    S[1,1] = DD - DA  - AD + AA
+    S[1,2] = DR - DL - AR + AL
+    S[1,3] = DH - DV - AH + AV
+    S[2,0] = RR - LR + RL - LL
+    S[2,1] = RD - RA - LD + LA
+    S[2,2] = RR - RL - LR + LL
+    S[2,3] = RH - RV - LH + LV
+    S[3,0] = HH + HV - VH - VV
+    S[3,1] = HD - HA - VD + VA
+    S[3,2] = HR - HL - VR + VL
+    S[3,3] = HH - HV - VH + VV
+
+
+    # define pauli matrices
+    I = np.eye(2)
+    X = np.matrix([[0, 1], [1, 0]])
+    Y = np.matrix([[0, -1j], [1j, 0]])
+    Z = np.matrix([[1, 0], [0, -1]])
+    P = [I, X, Y, Z]
+
+    # compute rho
+    rho = np.zeros((4,4), dtype=complex)
+    for i1 in range(4):
+        for i2 in range(4):
+            rho+= S[i1,i2]*np.kron(P[i1],P[i2])
+
+    return rho/4 # scale by 4 to get the correct density matrix
+
+        # for i in trange(100):
+        #     rho = get_random_hurwitz()
+        #     rho_prob= get_all_projs(rho)
+        #     rho_recon = reconstruct_rho(rho_prob)
+        #     fidelity_ls.append(get_fidelity(rho, rho_recon))
+
+def test_reconstruct_rho(rho):
+    ''' Test the reconstruction of the density matrix using the stokes parameters calculated directly from the density matrix.'''
+    S = get_expec_vals(rho)
+    # define pauli matrices
+    I = np.eye(2)
+    X = np.matrix([[0, 1], [1, 0]])
+    Y = np.matrix([[0, -1j], [1j, 0]])
+    Z = np.matrix([[1, 0], [0, -1]])
+    P = [I, X, Y, Z]
+
+    # compute rho
+    rho = np.zeros((4,4), dtype=complex)
+    for i1 in range(4):
+        for i2 in range(4):
+            rho+= S[i1,i2]*np.kron(P[i1],P[i2])
+
+    return rho/4 # scale by 4 to get the correct density matrix
 
 def get_9s_projections(rho):
     ''' Computes 9 projections based on the standard projection'''
@@ -233,26 +351,6 @@ def get_all_roik_projections(M0):
     LV = compute_roik_proj(L,V, M0)
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
-
-def get_all_projs(rho):
-    ''' Computes all 27 unique projections for a given density matrix rho'''
-
-    # define the single bases for projection
-    H = np.array([[1,0],[0,0]])
-    V = np.array([[0,0],[0,1]])    
-    D = np.array([[1/2,1/2],[1/2,1/2]])
-    A = np.array([[1/2,-1/2],[-1/2,1/2]])
-    R = np.array([[1/2,1j/2],[-1j/2,1/2]])
-    L = np.array([[1/2,-1j/2],[1j/2,1/2]])
-
-    basis_ls =[H, V, D, A, R, L]
-    all_projs =[]
-    for basis in basis_ls:
-        for basis2 in basis_ls:
-            all_projs.append(compute_proj(basis, basis2, rho))
-
-    return np.array(all_projs).reshape(6,6)
-
 
 def compute_witnesses(rho):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. '''
