@@ -689,6 +689,7 @@ if __name__=='__main__':
         do_compute = bool(int(input('run computation? ')))
         do_plot = bool(int(input('plot results? ')))
         num_to_avg= int(input('number of times to average? '))
+        if not(isdir('decomp')): os.makedirs('decomp')
         tune_gd(do_compute=do_compute, do_plot=do_plot, f_it=20, zeta_it=20, num_to_avg=num_to_avg)
 
     

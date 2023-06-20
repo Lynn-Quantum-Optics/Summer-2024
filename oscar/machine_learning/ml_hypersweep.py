@@ -140,8 +140,7 @@ if __name__=='__main__':
     input_method = input('Enter input method: ')
     task = input('Enter task: ')
     identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
-    return_type = input('Enter return type (Prob or Stokes): ')
-    savename= identifier+'_'+task+'_'+input_method+'_'+return_type
+    savename= identifier+'_'+task+'_'+input_method
 
     # load data here
     DATA_PATH = 'random_gen/data'
@@ -153,10 +152,10 @@ if __name__=='__main__':
         "method": "bayes",
         "metric": {"name": "val_loss", "goal": "minimize"},
         "parameters": {
-            "max_depth": {"distribution": "int_uniform", "min":  10, "max": 20},
+            "max_depth": {"distribution": "int_uniform", "min":  3, "max": 10},
             "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
-            "n_estimators": {"distribution": "int_uniform", "min":  4500, "max": 10000},
-            "early_stopping": {"distribution": "int_uniform", "min": 25, "max": 45}
+            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 8500},
+            "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
         },
         }
 
@@ -166,27 +165,27 @@ if __name__=='__main__':
         'goal': 'maximize',
         'parameters':{
         'epochs': {
-        'distribution': 'int_uniform',
-        'min': 20,
-        'max': 100
+            'distribution': 'int_uniform',
+            'min': 20,
+            'max': 100
         },
         # for build_dataset
         'batch_size': {
-        'values': [x for x in range(160, 513, 32)]
+        'values': [x for x in range(256, 513, 32)]
         },
         'size_1': {
         'distribution': 'int_uniform',
         'min': 64,
-        'max': 256
+        'max': 512
         },
         'size_2': {
         'distribution': 'int_uniform',
         'min': 64,
-        'max': 256
+        'max': 512
         },'size_3': {
         'distribution': 'int_uniform',
         'min': 64,
-        'max': 256,
+        'max': 512,
         },
         'dropout': {
         'distribution': 'uniform',
@@ -197,7 +196,7 @@ if __name__=='__main__':
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.1
+            'max': 0.04
         }
         },
         }
@@ -215,29 +214,29 @@ if __name__=='__main__':
             },
             # for build_dataset
             'batch_size': {
-            'values': [x for x in range(32, 161, 32)]
+            'values': [x for x in range(256, 513, 32)]
             },
             'size_1': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },
             'size_2': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },'size_3': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },'size_4': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },'size_5': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },
             'dropout': {
             'distribution': 'uniform',
@@ -248,7 +247,7 @@ if __name__=='__main__':
                 #uniform distribution between 0 and 1
                 'distribution': 'uniform', 
                 'min': 1e-5,
-                'max': 0.3
+                'max': 0.04
             }
         },
         }
@@ -258,9 +257,9 @@ if __name__=='__main__':
         "method": "bayes",
         "metric": {"name": "val_loss", "goal": "minimize"},
         "parameters": {
-            "max_depth": {"distribution": "int_uniform", "min":  10, "max": 20},
-            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.9},
-            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 5000},
+            "max_depth": {"distribution": "int_uniform", "min":  3, "max": 10},
+            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
+            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 8500},
             "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
         },
         }
@@ -277,21 +276,21 @@ if __name__=='__main__':
         },
         # for build_dataset
         'batch_size': {
-        'values': [x for x in range(160, 513, 32)]
+        'values': [x for x in range(256, 513, 32)]
         },
         'size_1': {
         'distribution': 'int_uniform',
         'min': 64,
-        'max': 256
+        'max': 512
         },
         'size_2': {
         'distribution': 'int_uniform',
         'min': 64,
-        'max': 256
+        'max': 512
         },'size_3': {
         'distribution': 'int_uniform',
         'min': 64,
-        'max': 256,
+        'max': 512,
         },
         'dropout': {
         'distribution': 'uniform',
@@ -302,7 +301,7 @@ if __name__=='__main__':
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.1
+            'max': 0.04
         }
         },
         }
@@ -320,29 +319,29 @@ if __name__=='__main__':
             },
             # for build_dataset
             'batch_size': {
-            'values': [x for x in range(161, 513, 32)]
+            'values': [x for x in range(256, 513, 32)]
             },
             'size_1': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },
             'size_2': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },'size_3': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },'size_4': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },'size_5': {
             'distribution': 'int_uniform',
             'min': 64,
-            'max': 256
+            'max': 512
             },
             'dropout': {
             'distribution': 'uniform',
@@ -353,11 +352,12 @@ if __name__=='__main__':
                 #uniform distribution between 0 and 1
                 'distribution': 'uniform', 
                 'min': 1e-5,
-                'max': 0.3
+                'max': 0.04
             }
         },
         }
 
+    
 
     def run_sweep(wtr=0):
         ''' Function to run hyperparam sweep.
