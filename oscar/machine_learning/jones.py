@@ -202,7 +202,7 @@ def get_random_jones(setup='C', return_params=False):
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 10000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, state_num=0, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 10000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -211,6 +211,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
         adapt: 0: random hop, 1: random fan, 2: gradient descent
         frac: what percentage of the domain of the angles to change each time in adapt
         zeta: learning rate for gradient descent
+        state_num: number of the state to decompose for progress tracking
         gd_tune: whether to output parameters for gd tuning
         save_rho: whether to save the density matrix
         verbose: whether to include print statements.
@@ -343,6 +344,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
         proj_targ = get_12s_redundant_projections(targ_rho)
 
         # if verbose:
+        print('index of state generated', i)
         print('actual state', targ_rho)
         print('predicted state', func(max_best_angles) )
         print('num iterations', n)
@@ -473,7 +475,7 @@ if __name__=='__main__':
         ## build multiprocessing pool ##
         pool = Pool(cpu_count())
 
-        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1], decomp_in[2]) for  decomp_in in decomp_ls]        
+        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1], decomp_in[2], i) for  i, decomp_in in enumerate(decomp_ls)]        
         results = pool.starmap_async(jones_decompose, inputs).get()
 
         ## end multiprocessing ##
@@ -532,13 +534,13 @@ if __name__=='__main__':
             ## build multiprocessing pool ##
             pool = Pool(cpu_count())
 
-            # targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, gd_tune=False, debug
+            # targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.1, zeta = 0, state_num = 0, gd_tune=False, debug
 
             # old: use PhiM
             # inputs = [(PhiM, 'PhiM', sfz[0], 2, sfz[1], sfz[2], True) for  sfz in sfz_ls]        
 
             # new: use random states
-            inputs = [(get_random_simplex(), 'RS', sfz[0], 2, sfz[1], sfz[2], True) for  sfz in sfz_ls]
+            inputs = [(get_random_simplex(), 'RS', sfz[0], 2, sfz[1], sfz[2], i, True) for i, sfz in enumerate(sfz_ls)]
             results = pool.starmap_async(jones_decompose, inputs).get()
 
             # end multiprocessing
