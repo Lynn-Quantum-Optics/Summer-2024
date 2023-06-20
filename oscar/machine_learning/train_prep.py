@@ -16,8 +16,21 @@ def prepare_data(datapath, file, savename, input_method, task, p=0.8):
     print(join(datapath, file))
     df= pd.read_csv(join(datapath, file))
 
-    if input_method=='diag':
+    if input_method == 'prob_3':
+        inputs = ['HH', 'VV', 'HV']
+    elif input_method=='prob_5':
+        inputs = ['HH', 'HV', 'VV', 'DD', 'AA']
+    elif input_method=='prob_6':
+        inputs = ['HH', 'HV', 'VV', 'DD', 'RR', 'LL']
+    elif input_method=='prob_9': 
+        inputs = ['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL']
+    elif input_method=='prob_12':
+        inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV']
+    elif input_method=='prob_15':
+        inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV', 'DR', 'DV', 'LV']
+    elif input_method=='stokes_diag':
         inputs=['XX', 'YY', 'ZZ']
+
 
     if task=='witness':
         df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
