@@ -71,7 +71,7 @@ def gen_rand_info(func, return_prob, verbose=True):
 
         return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
 
-def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=False):
+def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=True):
     ''' Fuction to build a dataset of randomly generated states.
     params:
         random_method: string, either 'simplex', 'jones_I','jones_C' or 'random'
