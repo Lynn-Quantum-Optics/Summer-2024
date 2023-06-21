@@ -1,6 +1,6 @@
 from core import Manager, analysis
 import numpy as np
-import math as m
+import math
 
 
 """
@@ -14,53 +14,57 @@ use ratio of sin and cos to create initial guess for UVHWP and QP range to guess
 Check with full tomography at the very end (look into previous scripts)
 """
 
-# # read user input to determine preset angles for state in radians
-# alpha = float(input("Alpha = "))
-# beta = float(input("Beta = "))
-    
+# read user input to determine preset angles for state in radians
+alpha = float(input("Alpha = "))
+beta = float(input("Beta = "))
+
 # calculate phi for different cases of alpha and beta
 
-def QP_sweep(m:Manager, alpha, beta):
+if alpha <= math.pi/2 and beta <= math.pi/2:
+    r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+    r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+    delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+    gamma = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
+    phi = gamma + delta
 
-    if alpha <= m.pi/2 and beta <= m.pi/2:
-        r1 = m.sqrt(((1+m.sin(2*alpha)*m.cos(beta))/2))
-        r2 = m.sqrt(((1-m.sin(2*alpha)*m.cos(beta))/2))
-        delta = m.asin((m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r1))
-        gamma = m.asin((m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r2))
-        phi = gamma + delta
+if alpha >= math.pi/2 and beta >= math.pi/2:
+    r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+    r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+    delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+    gamma = math.pi + math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
+    phi = gamma - delta
 
-    if alpha >= m.pi/2 and beta >= m.pi/2:
-        r1 = m.sqrt(((1-m.sin(2*alpha)*m.cos(beta))/2))
-        r2 = m.sqrt(((1+m.sin(2*alpha)*m.cos(beta))/2))
-        delta = m.asin((m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r1))
-        gamma = m.pi + m.asin((m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r2))
-        phi = gamma - delta
+if alpha <= math.pi/2 and beta >= math.pi/2:
+    r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+    r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+    delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
+    gamma = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+    phi = gamma + delta
+    
+if alpha >= math.pi/2 and beta <= math.pi/2:
+    r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+    r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+    delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
+    gamma = math.pi + (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+    phi = gamma - delta
 
-    if alpha <= m.pi/2 and beta >= m.pi/2:
-        r1 = m.sqrt(((1+m.sin(2*alpha)*m.cos(beta))/2))
-        r2 = m.sqrt(((1-m.sin(2*alpha)*m.cos(beta))/2))
-        delta = (m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r1)
-        gamma = (m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r2)
-        phi = gamma + delta
-        
-    if alpha >= m.pi/2 and beta <= m.pi/2:
-        r1 = m.sqrt(((1-m.sin(2*alpha)*m.cos(beta))/2))
-        r2 = m.sqrt(((1+m.sin(2*alpha)*m.cos(beta))/2))
-        delta = (m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r1)
-        gamma = m.pi + (m.sin(alpha)*m.sin(beta))/(m.sqrt(2)*r2)
-        phi = gamma - delta
+# calculate theta based on alpha and beta
+theta = math.sqrt(math.acos((1+math.cos(beta)*math.sin(2*alpha))/2))
 
-    # calculate theta based on alpha and beta
-    theta = m.sqrt(m.acos((1+m.cos(beta)*m.sin(2*alpha))/2))
+# find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
+b = np.pi/4
+u = phi/2
 
-    # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
-    b = np.pi/4
-    u = phi/2
+meas_HWP_angle = b + u / 2
+meas_QWP_angle = u + math.pi/2
 
-    HWP_angle = b + u / 2
-    QWP_angle = u + m.pi/2
+rate_ratio = (math.tan(theta))**2
 
-    rate_ratio = (m.tan(theta))**2
+"""
+Note these angles are all in radians, not degrees.
+"""
+
+def QP_sweep(m:Manager, u1, b1):
 
     # set the creation state to phi plus
     m.make_state('phi_plus')
@@ -70,14 +74,24 @@ def QP_sweep(m:Manager, alpha, beta):
     m.configure_motors("A_HWP" = np.rad2deg(np.pi/4), "A_QWP" = np.rad2deg(np.pi*3/4))
 
     # turn bob's measurement plates to measure H/sqrt(2) - (e^i*phi)*V/sqrt(2)
-    m.configure_motors("B_HWP" = np.rad2deg((b+u)/2), "B_QWP" = np.rad2deg(u + np.pi/2)
+    m.configure_motors("B_HWP" = np.rad2deg((b1+u1)/2), "B_QWP" = np.rad2deg(u1 + np.pi/2)
 
-    # sweep the AP to determine the minimum count angle
+    # sweep the QP to determine the minimum count angle
     m.sweep("QP", 0, 25, 25, 5, 0.1)
 
     data = m.close_output()
+    
+    # find new method for shutting down in alec's code
 
-    m.shutdown()
+    QP_counts = data["C4"]
+
+    new_guess = min(QP_counts)
+
+    m.sweep("QP", new_guess - 3, new_guess + 3, 25, 5, 0.1)
+
+    # refine analysis and fitting since we don't know what the function will look like
+    # find the lowest data point and then resweep near the guessed minimum to fit a function
+    # write own fit function in analysis maybe
 
     args1, unc1, _ = analysis.fit('quadratic', data.QP, data.C4, data.C4_sem)
 
@@ -94,18 +108,25 @@ def QP_sweep(m:Manager, alpha, beta):
     HWP = b + u / 2 from horizontal
     QWP = u + pi/2 from horizontal
 
-
     N vv/sec is the number of vv counts per second, same with HH
     """
 
-def UVHWP_sweep(m:Manager, alpha, beta):
+def UVHWP_sweep(m:Manager, u1, b1):
+    """
+    Adapted from Alec's code in balance.py
+    """
 
     COMPONENT = 'C_UV_HWP'
     BASIS1 = 'HH'
     BASIS2 = 'VV'
     STATE = 'phi_plus'
 
-    PCT1 = 0.50
+    GUESS = 22.28
+    RANGE = 24.0
+    N = 20
+    SAMP = (5, 3)
+
+    PCT1 = rate_ratio
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -128,7 +149,6 @@ def UVHWP_sweep(m:Manager, alpha, beta):
 
     print(m.time, 'Data collected, shutting down...')
     data2 = m.close_output()
-    m.shutdown()
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
 
@@ -150,5 +170,18 @@ def UVHWP_sweep(m:Manager, alpha, beta):
     plt.legend()
     plt.show()
 
+def full_tomography(m:Manager):
+    """
+    Full_tomography: [ "LA", "RA", "VA", "HA", "DA", "AA",
+        "AD", "DD", "HD", "VD", "RD",  "LD",
+        "LH", "RH", "VH", "HH", "DH", "AH", 
+        "AV", "DV", "HV", "VV", "RV", "LV",
+        "LL", "RL", "VL", "HL", "DL", "AL",
+        "AR", "DR", "HR", "VR", "RR", "LR"]
+    """
 
 
+    for state in m._config['Full_tomography']
+
+if __name__ == '__main__':
+    m = Manager()
