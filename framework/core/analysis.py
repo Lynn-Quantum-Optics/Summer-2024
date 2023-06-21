@@ -1,20 +1,19 @@
 # +++ imports +++
 
-from typing import Union
+from typing import Union, Tuple
 import numpy as np
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
-import pandas as pd
 
 # +++ basic functions for fitting +++
 
-def line(x:np.ndarray, m:float, b:float):
+def line(x:np.ndarray, m:float, b:float) -> np.ndarray:
     return m*x + b
 
-def quadratic(x:np.ndarray, x_ext:float, a:float, b:float):
+def quadratic(x:np.ndarray, x_ext:float, a:float, b:float) -> np.ndarray:
     return a*(x-x_ext)**2 + b
 
-def sin(x:np.ndarray, a:float, b:float, c:float):
+def sin(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     ''' A general sine funcition for fitting. Note that both parameters x and b are in degrees.
 
     Returns
@@ -24,7 +23,7 @@ def sin(x:np.ndarray, a:float, b:float, c:float):
     '''
     return a * np.sin(np.deg2rad(x + b)) + c
 
-def sin_sq(x:np.ndarray, a:float, b:float, c:float):
+def sin_sq(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     ''' A general sine squared funcition for fitting. Note that both parameters x and b are in degrees.
 
     Returns
@@ -34,7 +33,7 @@ def sin_sq(x:np.ndarray, a:float, b:float, c:float):
     '''
     return a * np.sin(np.deg2rad(x + b))**2 + c
 
-def sin2(x:np.ndarray, a:float, b:float, c:float):
+def sin2(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     ''' A general sine(2x) funcition for fitting. Note that both parameters x and b are in degrees.
 
     Returns
@@ -44,7 +43,7 @@ def sin2(x:np.ndarray, a:float, b:float, c:float):
     '''
     return a * np.sin(np.deg2rad(2*x + b)) + c
 
-def cos(x:np.ndarray, a:float, b:float, c:float):
+def cos(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     ''' A general cosine funcition for fitting. Note that both parameters x and b are in degrees.
 
     Returns
@@ -54,7 +53,7 @@ def cos(x:np.ndarray, a:float, b:float, c:float):
     '''
     return a * np.cos(np.deg2rad(x + b)) + c
 
-def cos_sq(x:np.ndarray, a:float, b:float, c:float):
+def cos_sq(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     ''' A general cosine squared funcition for fitting. Note that both parameters x and b are in degrees.
 
     Returns
@@ -64,7 +63,7 @@ def cos_sq(x:np.ndarray, a:float, b:float, c:float):
     '''
     return a * np.cos(np.deg2rad(x + b))**2 + c
 
-def cos2(x:np.ndarray, a:float, b:float, c:float):
+def cos2(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     ''' A general cosine(2x) funcition for fitting. Note that both parameters x and b are in degrees.
 
     Returns
@@ -91,7 +90,7 @@ FIT_FUNCS = {
 
 # +++ functions for fitting +++
 
-def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray, **kwargs) -> 'tuple[np.ndarray, np.ndarray]':
+def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray, full_covm:bool=False, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
     ''' Fit data to a sine function
 
     Parameters
@@ -102,22 +101,29 @@ def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarra
         Y values
     y_err : np.ndarray
         Y errors
+    full_covm : bool, optional (default=False)
+        If true, a full covariance matrix will be returned rather than individual SEMs.
     **kwargs
         Get passed to scipy.optimize.curve_fit
     
     Returns
     -------
-    tuple[np.ndarray, np.ndarray]
-        (fit parameters, uncertainties, covariance matrix)
+    np.ndarray
+        Fit parameters.
+    np.ndarray
+        SEM uncertainties, or if full_covm=True, the full covariance matrix.
     '''
     # get the function to fit
     if isinstance(func, str):
         func = FIT_FUNCS[func]
     # fit the function
     popt, pcov = opt.curve_fit(func, x, y, sigma=y_err, absolute_sigma=True, **kwargs)
-    return popt, np.sqrt(np.diag(pcov)), pcov
+    if full_covm:
+        return popt, pcov
+    else:
+        return popt, np.sqrt(np.diag(pcov))
 
-def plot_func(func:Union[str,'function'], args:tuple, x:np.ndarray, ax:plt.Axes=None, num_points:int=300, **kwargs):
+def plot_func(func:Union[str,'function'], args:np.ndarray, x:Union[tuple,np.ndarray], ax:plt.Axes=None, num_points:int=300, **kwargs) -> None:
     ''' Plot a function
     
     Parameters
@@ -145,23 +151,23 @@ def plot_func(func:Union[str,'function'], args:tuple, x:np.ndarray, ax:plt.Axes=
     x = np.linspace(np.min(x), np.max(x), num_points)
     ax.plot(x, func(x, *args), **kwargs)
 
-def find_ratio(func1:Union[str,'function'], args1:tuple, func2:Union[str,'function'], args2:tuple, pct_1:float, x:np.ndarray, guess:float=None):
+def find_ratio(func1:Union[str,'function'], args1:np.ndarray, func2:Union[str,'function'], args2:np.ndarray, pct_1:float, x:Union[tuple,np.ndarray], guess:float=None):
     ''' Find where the two functions satisfy func1(x) / (func1(x) + func2(x)) = pct_1
 
     Parameters
     ----------
     func1 : Union[str,function]
         First function.
-    args1 : tuple
+    args1 : np.ndarray
         Additional arguments for the first function.
     func2 : Union[str,function]
         Second function.
-    args2 : tuple
+    args2 : np.ndarray
         Additional arguments for the second function.
     pct_1 : float
         Percentage of the first function.
-    x : np.ndarray
-        X values, the search will be limitted to between the minimum and maximum of this range.
+    x : Union[tuple,np.ndarray]
+        X values, the search will be limited within the minimum and maximum of this range.
     guess : float, optional
         Initial guess for the x value, by default average of the minimum and maximum of x.
     '''
