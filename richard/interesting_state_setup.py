@@ -11,6 +11,7 @@ Procedure:
 4. turn BCHWP to flip H and V
 
 use ratio of sin and cos to create initial guess for UVHWP and QP range to guess phi
+check first on alpha = 0 so that the state is psi plus
 Check with full tomography at the very end (look into previous scripts)
 """
 
@@ -66,37 +67,49 @@ Note these angles are all in radians, not degrees.
 
 def QP_sweep(m:Manager, u1, b1):
 
+    # set the output file for manager
+    m.new_output("QP_sweep.csv")
+
     # set the creation state to phi plus
+    print(m.time, "Setting creation state to phi plus")
     m.make_state('phi_plus')
     m.log(f'configured phi_plus: {m._config["state_presets"]["phi_plus"]}')
 
     # turn alice's measurement plates to measure (H+V)/sqrt(2)
-    m.configure_motors("A_HWP" = np.rad2deg(np.pi/4), "A_QWP" = np.rad2deg(np.pi*3/4))
+    print(m.time, "Turning Alice's measurement plates")
+    m.configure_motors(A_HWP = np.rad2deg(np.pi/4), A_QWP = np.rad2deg(np.pi*3/4))
 
     # turn bob's measurement plates to measure H/sqrt(2) - (e^i*phi)*V/sqrt(2)
-    m.configure_motors("B_HWP" = np.rad2deg((b1+u1)/2), "B_QWP" = np.rad2deg(u1 + np.pi/2)
+    print(m.time, "Turning Bob's measurement plates")
+    m.configure_motors(B_HWP = np.rad2deg((b1+u1)/2), B_QWP = np.rad2deg(u1 + np.pi/2)
 
     # sweep the QP to determine the minimum count angle
+    input("Ready to sweep. Press Enter to continue")
     m.sweep("QP", 0, 25, 25, 5, 0.1)
 
+    print(m.time, "Sweep complete")
+
+    # read the data into a dataframe
     data = m.close_output()
     
     # find new method for shutting down in alec's code
 
+    # take the counts of the quartz sweep at each angle and find the minimum data point
     QP_counts = data["C4"]
+    new_guess = data["QP"][min(QP_counts)]
+    RANGE = 5
 
-    new_guess = min(QP_counts)
-
-    m.sweep("QP", new_guess - 3, new_guess + 3, 25, 5, 0.1)
+    # perform a new sweep around the previous minimum data point
+    m.sweep("QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
 
     # refine analysis and fitting since we don't know what the function will look like
     # find the lowest data point and then resweep near the guessed minimum to fit a function
     # write own fit function in analysis maybe
 
-    args1, unc1, _ = analysis.fit('quadratic', data.QP, data.C4, data.C4_sem)
+    args1, unc1, _ = core.analysis.fit('quadratic', data.QP, data.C4, data.C4_sem)
 
     plt.title('Angle of QP to minimize counts')
-    plt.xlabel('QP angle (rad)')
+    plt.xlabel('QP angle ())')
     plt.ylabel('Count rates (#/s)')
     plt.errorbar(data.QP, data.C4, yerr=data.C4_sem, fmt='o', label="Measurement Basis")
     analysis.plot_func('quadratic', args1, data.QP, label='Measurement fit function')
@@ -180,8 +193,12 @@ def full_tomography(m:Manager):
         "AR", "DR", "HR", "VR", "RR", "LR"]
     """
 
+    
 
     for state in m._config['Full_tomography']
 
 if __name__ == '__main__':
+
     m = Manager()
+
+    
