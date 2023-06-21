@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix, multilabel_confusion_matrix
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from train_prep import prepare_data
 
@@ -25,17 +26,17 @@ def evaluate_perf(model,split, datapath, file, savename, input_method, task, thr
         Y_pred_train = model.predict(X_train)
 
         # make confusion matrix
-        if task=='witness':
-            # cm_test = multilabel_confusion_matrix(Y_test, Y_pred_test)
-            # cm_train = multilabel_confusion_matrix(Y_train, Y_pred_train)
-            cm_test = []
-            cm_train = []
+        if task=='w':
+            cm_test = multilabel_confusion_matrix(Y_test, Y_pred_test)
+            cm_train = multilabel_confusion_matrix(Y_train, Y_pred_train)
+            # cm_test = []
+            # cm_train = []
             class_labels = ['Wp_t1', 'Wp_t2', 'Wp_t3']
-        elif task=='entangled':
-            # cm_test = confusion_matrix(Y_test, Y_pred_test)
-            # cm_train = confusion_matrix(Y_train, Y_pred_train)
-            cm_test = []
-            cm_train =[]
+        elif task=='e':
+            cm_test = confusion_matrix(Y_test, Y_pred_test)
+            cm_train = confusion_matrix(Y_train, Y_pred_train)
+            # cm_test = []
+            # cm_train =[]
             class_labels = ['entangled', 'separable']
         
         # fig, axes = plt.subplots(1,2, figsize=(12,6))
@@ -63,21 +64,34 @@ def evaluate_perf(model,split, datapath, file, savename, input_method, task, thr
     else:
         X, Y = prepare_data(datapath, file, savename, input_method, task, split, p)
         Y_pred = model.predict(X)
-        Y_pred_labels = Y_pred > threshold
-        Y_pred_labels = Y_pred_labels.astype(int)
-        print(Y_pred_labels)
-        print('----------------')
-        print(Y)
+        # Y_pred_labels = Y_pred > threshold
+        # Y_pred_labels = Y_pred_labels.astype(int)
+        # print(Y_pred_labels)
+        # print('----------------')
+        # print(Y)
 
         # make confusion matrix
-        if task=='witness':
-            # cm = multilabel_confusion_matrix(Y, Y_pred_labels)
-            cm =[]
+        if task=='w':
+            cm = multilabel_confusion_matrix(Y, Y_pred)
+            # cm =[]
             class_labels = ['Wp_t1', 'Wp_t2', 'Wp_t3']
-        elif task=='entangled':
-            # cm = confusion_matrix(Y, Y_pred_labels)
+        elif task=='e':
+            # print(Y)
+            # Y_sum = Y.sum(axis=1)
+            # print(np.min(Y_sum))
+            # print(np.max(Y_sum))
+            Y_argmax = np.argmax(Y, axis=1)
+            print('--------')
+            Y_pred_argmax = np.argmax(Y_pred, axis=1)
+            # print(argmax_indices)
+            # Y_pred_labels = np.zeros(Y_pred.shape)
+            # Y_pred_labels[np.arange(Y_pred.shape[0]), argmax_indices] = 1
+            # Y_pred_labels = Y_pred_labels.astype(int)
+            # Y_pred_sum = Y_pred_labels.sum(axis=1)
+            # print(np.min(Y_pred_sum))
+            cm = confusion_matrix(Y_argmax, Y_pred_argmax)
             class_labels = ['entangled', 'separable']
-            cm= []
+            # cm= []
         
         # plot confusion matrix
         # fig, ax = plt.subplots(figsize=(6,6))
@@ -96,52 +110,60 @@ def evaluate_perf(model,split, datapath, file, savename, input_method, task, thr
     # elif method == 'entangled':
     #     return [N_correct_test / len(Y_pred_test), N_correct_train / len(Y_pred_train)]
 
-def evaluate_perf_multiple(models,names, title_name, split, datapath, file, savename, input_method, task, p=0.8):
+def evaluate_perf_multiple(models,title_name, split, datapath, file, savename, input_method, task, names= ['XGB', 'NN3', 'NN5'], p=0.8):
     ''' Function to build table of 3d confusion matrices for multiple models.
     Params:
         models: list of models already properly loaded
-        names: list of names for each model
         title_name: string for overall title
         split: boolean for whether to split data into train and test
         datapath: path to csv
         savename: what to name the prepped data
         input_method: how to prepare the input data: e.g., diag for XX, YY, ZZ
         task: 'witness' or 'entangled' for prediction method
+        names: list of names for each model
         p: fraction of data to use for training
         '''
     if not(split):
         acc_df = pd.DataFrame(columns=['Model', 'Accuracy'])
-        fig, axes = plt.subplots(len(models), 1, figsize=(12,6))
+        fig, axes = plt.subplots(len(models), 1, figsize=(12,6), subplot_kw={'projection': '3d'})
         for i, model in enumerate(models):
             acc, cm, class_labels = evaluate_perf(model, split, datapath, file, savename, input_method, task, p)
             acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'Model': names[i], 'Accuracy':acc}])])
-        #     print(names[i], acc)
-        #     print(cm)
-        #     cm_norm =cm /  np.linalg.norm(cm, axis=0) # normalize confusion matrix
-        #     # plot confusion matrix--map predicted and actual targs to their height and color 
-        #     z, c = [], []
-        #     for j in range(len(class_labels)):
-        #         for k in range(len(class_labels)):
-        #             z.append(cm[j, k])
-        #             c.append(cm_norm[j,k])
-        #     z = np.array(z).shape((len(class_labels), len(class_labels)))
-        #     c = np.array(c)
+            print(names[i], acc)
+            print(cm.shape)
+            cm_norm =cm /  np.linalg.norm(cm, axis=0) # normalize confusion matrix
+            # plot confusion matrix--map predicted and actual targs to their height and color 
+            z, c = [], []
+            for j in range(len(class_labels)):
+                for k in range(len(class_labels)):
+                    z.append(cm[j, k])
+                    c.append(cm_norm[j,k])
+            z = np.array(z).resize((len(class_labels), len(class_labels)))
+            dz = np.zeros((len(class_labels), len(class_labels)))
+            c = np.array(c)
+            x = np.arange(0, len(class_labels), 1)
+            y = np.arange(0, len(class_labels), 1)
 
-        #     b3d = axes[i].bar3d(np.arange(0, len(class_labels), 1), np.arange(0, len(class_labels), 1), np.zeros(len(class_labels)), 1, 1, z, shade=True, color=c)
-        #     axes[i].set_title(f'{names[i]}: {acc}')
-        #     axes[i].set_xticks(np.arange(0, len(class_labels), 1))
-        #     axes[i].set_xticklabels(labels + '_true' for labels in class_labels)
-        #     axes[i].set_yticks(np.arange(0, len(class_labels), 1))
-        #     axes[i].set_yticklabels(labels + '_pred' for labels in class_labels)
-        #     axes[i].set_zlabel('Count')
-        #     cb = fig.colorbar(b3d, plt.cm.ScalarMappable(norm=None, cmap='viridis'), vmin = np.min(c), vmax=np.max(c), ax=axes[i], shrink=0.6)
-        #     cb.set_label('Normalized Count')
-        #     cb.ax.set_position(cb.ax.get_position().translated(0.09, 0))
-        # plt.suptitle('Confusion matrices for ', title_name)
-        # plt.tight_layout()
-        # # plt.savefig(join(datapath, f'confusion_matrix_{title_name}.pdf'))
-        # plt.show()
-        acc_df.to_csv(join(datapath, f'accuracy_{title_name}.csv'))
+            print('class labels', class_labels)
+            print('z', z)
+            print('x', x)
+
+
+            b3d = axes[i].bar3d(x, y, z, dz, 1, 1, z, shade=True, color=c)
+            axes[i].set_title(f'{names[i]}: {acc}')
+            axes[i].set_xticks(np.arange(0, len(class_labels), 1))
+            axes[i].set_xticklabels(labels + '_true' for labels in class_labels)
+            axes[i].set_yticks(np.arange(0, len(class_labels), 1))
+            axes[i].set_yticklabels(labels + '_pred' for labels in class_labels)
+            axes[i].set_zlabel('Count')
+            cb = fig.colorbar(b3d, plt.cm.ScalarMappable(norm=None, cmap='viridis'), vmin = np.min(c), vmax=np.max(c), ax=axes[i], shrink=0.6)
+            cb.set_label('Normalized Count')
+            cb.ax.set_position(cb.ax.get_position().translated(0.09, 0))
+        plt.suptitle('Confusion matrices for ', title_name)
+        plt.tight_layout()
+        # plt.savefig(join(datapath, f'confusion_matrix_{title_name}.pdf'))
+        plt.show()
+        acc_df.to_csv(join(datapath, f'accuracy_{savename}.csv'))
     else:
         acc_df = pd.DataFrame(columns=['Model', 'Test Accuracy', 'Train Accuracy'])
         for i, model in enumerate(models):
@@ -152,10 +174,68 @@ def evaluate_perf_multiple(models,names, title_name, split, datapath, file, save
 if __name__ == '__main__':
     from xgboost import XGBRegressor
     import keras
-    MODEL_PATH = 'random_gen/models/6_18'
 
-    s_h2_xgb = XGBRegressor()
-    s_h2_xgb.load_model(join(MODEL_PATH, 'xgb_e_h2_0.json'))
-    s_h2_3nn = keras.models.load_model(join(MODEL_PATH, 'nn3_e_h2_0.h5'))
-    s_h2_5nn = keras.models.load_model(join(MODEL_PATH, 'nn5_e_h2_0.h5'))
-    evaluate_perf_multiple(models=[s_h2_xgb, s_h2_3nn, s_h2_5nn],names=['XGB', 'NN3', 'NN5'], title_name='Entangled, Train on Stokes Hurwitz Method 2, Evaluating Method 0', split=True, datapath='random_gen/data', file='hurwitz_all_4400000_b0_method_0.csv', savename='test', input_method='stokes_diag', task='entangled')
+    ## load models ##
+    SH0_PATH = 'random_gen/models/stokes_h0'
+    SH2_PATH = 'random_gen/models/stokes_h2'
+    MPATHS = [SH0_PATH, SH2_PATH]
+    DATA_PATH = 'random_gen/data'
+
+    def load_perf(debug=False):
+        if not(debug):
+            mtl = int(input('Enter 0 for s_h0, 1 for s_h2: '))
+            m = ['s_h0', 's_h2']
+            ew = input('Enter w for witness, e for entangled: ')
+
+            assert mtl in [0,1], f'Invalid input. Must be 0 or 1. You entered {mtl}'
+            assert ew in ['w', 'e'], f'Invalid input. Must be w or e. You entered {ew}'
+
+            xgb = XGBRegressor()
+            xgb.load_model(join(MPATHS[mtl], 'xgb_'+ew+'_'+m[mtl]+'.json'))
+            nn3 = keras.models.load_model(join(MPATHS[mtl], 'nn3_'+ew+'_'+m[mtl]+'.h5'))
+            nn5 = keras.models.load_model(join(MPATHS[mtl], 'nn5_'+ew+'_'+m[mtl]+'.h5'))
+            models = [xgb, nn3, nn5]
+
+            if mtl < 2: # stokes
+                im = int(input(f'You have loaded stokes model {m[mtl]}. What input_method? Enter 0 for stokes_diag: '))
+                ftl = int(input('Load test data, enter 0 for method 0, 1 for method 1, 2 for method 2: '))
+
+                assert im in [0], f'Invalid input. Must be 0. You entered {im}'
+                assert ftl in [0,1,2], f'Invalid input. Must be 0, 1, or 2. You entered {ftl}'
+
+                file = 'hurwitz_all_4400000_b0_method_%i.csv'%ftl
+                input_method = 'stokes_%i'%im
+                split = bool(int(input('Enter 1 to split data, 0 to not split: ')))
+
+            else: # prob
+                im = int(input('You have loaded stokes model {m[mtl]}. What input_method? Enter the num of probabilities: '))
+                ftl = int(input(f'You have loaded prob model {m[mtl]}. To load test data, enter 0 for method 0, 1 for method 1, 2 for method 2: '))
+
+                assert im in [3, 5, 6, 9, 12, 15], f'Invalid input. You entered {im}'
+                assert ftl in [0,1,2], f'Invalid input. Must be 0, 1, or 2. You entered {ftl}'
+
+                file = 'hurwitz_True_all_4400000_b0_method_%i.csv'%ftl
+                input_method = 'prob_%i'%im
+                split = bool(int(input('Enter 1 to split data, 0 to not split: ')))
+
+            title_name = f'Model Trained on {m[mtl]}, Testing on {ftl}, {ew}'
+            save_name = f'{m[mtl]}_{ftl}_{ew}'
+        else: # debug mode: s_h2 loaded on method 0
+            xgb= XGBRegressor()
+            xgb.load_model(join(MPATHS[1], 'xgb_e_s_h2.json'))
+            nn3 = keras.models.load_model(join(MPATHS[1], 'nn3_e_s_h2.h5'))
+            nn5 = keras.models.load_model(join(MPATHS[1], 'nn5_e_s_h2.h5'))
+            models = [xgb, nn3, nn5]
+            ew = 'e'
+            im = 0
+            ftl = 0 # test on method 0
+            file = 'hurwitz_all_4400000_b0_method_%i.csv'%ftl
+            input_method = 'stokes_%i'%im
+            split = False
+            title_name = f'Model Trained on s_h2, Testing on {ftl}, {ew}'
+            save_name = f's_h2_{ftl}_{ew}'
+
+        evaluate_perf_multiple(models=models, title_name=title_name, split=split, datapath=DATA_PATH, file=file, savename=save_name, input_method=input_method, task=ew)
+
+if __name__ == '__main__':
+    load_perf(True)

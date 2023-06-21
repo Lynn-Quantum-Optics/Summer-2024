@@ -29,11 +29,11 @@ def prepare_data(datapath, file, savename, input_method, task, split=True, p=0.8
         inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV']
     elif input_method=='prob_15':
         inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV', 'DR', 'DV', 'LV']
-    elif input_method=='stokes_diag':
+    elif input_method=='stokes_0': # diag
         inputs=['XX', 'YY', 'ZZ']
 
 
-    if task=='witness':
+    if task=='w':
         df_full = df.copy()
         df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
         outputs=['Wp_t1', 'Wp_t2', 'Wp_t3']
@@ -44,7 +44,7 @@ def prepare_data(datapath, file, savename, input_method, task, split=True, p=0.8
             output_df= df.applymap(lambda x: 1 if x < 0 else 0)
             return output_df
 
-    elif task=='entangled':
+    elif task=='e':
         outputs=['concurrence']
         # randomly remove some entangled states to balance the dataset 2/3 entangled, 1/3 separable
         alpha = 2*len(df.loc[np.isclose(df['concurrence'], 0, rtol=1e-9)]) / len(df.loc[df['concurrence']>0])

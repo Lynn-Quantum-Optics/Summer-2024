@@ -56,6 +56,37 @@ def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, lear
 
 #######################################################
 ## NN ##
+def train_nn1h():
+    ''' Function to run wandb sweep for NN.'''
+    
+    wandb.init(config=nn1h_sweep_config) # initialize wandb client
+
+    
+    def build_model(size, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('softmax'))
+
+        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(wandb.config.size,wandb.config.learning_rate)
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = wandb.config.batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=wandb.config.epochs,
+        callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
+      )
+
 def train_nn3h():
     ''' Function to run wandb sweep for NN.'''
     
@@ -156,6 +187,34 @@ if __name__=='__main__':
             "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
             "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 8500},
             "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
+        },
+        }
+
+        nn1h_sweep_config = {
+        'method': 'random',
+        'name': 'val_accuracy',
+        'goal': 'maximize',
+        'parameters':{
+        'epochs': {
+        'distribution': 'int_uniform',
+        'min': 20,
+        'max': 100
+        },
+        # for build_dataset
+        'batch_size': {
+        'values': [x for x in range(256, 513, 32)]
+        },
+        'size': {
+        'distribution': 'int_uniform',
+        'min': 0,
+        'max': 50
+        },
+        'learning_rate':{
+            #uniform distribution between 0 and 1
+            'distribution': 'uniform', 
+            'min': 1e-5,
+            'max': 0.04
+        }
         },
         }
 
@@ -264,6 +323,34 @@ if __name__=='__main__':
         },
         }
 
+        nn1h_sweep_config = {
+        'method': 'random',
+        'name': 'val_accuracy',
+        'goal': 'maximize',
+        'parameters':{
+        'epochs': {
+        'distribution': 'int_uniform',
+        'min': 20,
+        'max': 100
+        },
+        # for build_dataset
+        'batch_size': {
+        'values': [x for x in range(256, 513, 32)]
+        },
+        'size': {
+        'distribution': 'int_uniform',
+        'min': 0,
+        'max': 50
+        },
+        'learning_rate':{
+            #uniform distribution between 0 and 1
+            'distribution': 'uniform', 
+            'min': 1e-5,
+            'max': 0.04
+        }
+        },
+        }
+
         nn3h_sweep_config = {
         'method': 'random',
         'name': 'val_accuracy',
@@ -368,12 +455,15 @@ if __name__=='__main__':
             sweep_id = wandb.sweep(xgb_sweep_config, project='LQO-XGB_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_xgb)
         elif wtr==1:
+            sweep_id = wandb.sweep(nn1h_sweep_config, project='LQO-NN1H_'+savename)
+            wandb.agent(sweep_id=sweep_id, function=train_nn1h)
+        elif wtr==3:
             sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn5h)
-        elif wtr==2:
+        elif wtr==5:
             sweep_id = wandb.sweep(nn3h_sweep_config, project='LQO-NN3H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn3h)
         else:
-            raise ValueError('wtr must be 0, 1, or 2.')
+            raise ValueError('wtr must be 0, 1, 3, or 5.')
     wtr = int(input('Enter 0 for XGB, 1 for NN5H, 2 for NN3H:'))
     run_sweep(wtr)
