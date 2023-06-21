@@ -66,7 +66,7 @@ def hone_pct(m:Manager, component:str, target_pct_1:float, guess:float, delta:fl
     while loop_count < 10:
         m.log(f'Iterative regression, round {loop_count+1}.')
         # do a linear regression to find the angle that gives the target percentage
-        (slope,intercept), _, _ = analysis.fit('line', angles, pct_datas, pct_errs)
+        (slope, intercept), _ = analysis.fit('line', angles, pct_datas, pct_errs)
         target_angle = (target_pct_1 - intercept) / slope
         m.log(f'Calculated best angle: {target_angle} deg')
         
@@ -113,7 +113,7 @@ def min_det(m:Manager, component:str, basis:str, guess:float, delta:float, num_s
     
     # fit a quadratic expression
     m.log('Fitting ')
-    (ang_ext, a, b), (ang_ext_err, _, _), _ = analysis.fit('quadratic', angles, rates, rate_errs)
+    (ang_ext, a, b), (ang_ext_err, _, _) = analysis.fit('quadratic', angles, rates, rate_errs)
 
     m.log('END ROUTINE: min_det')
     return (ang_ext, ang_ext_err), (angles, rates, rate_errs), (ang_ext, a, b)
