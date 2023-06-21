@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix, multilabel_confusion_matrix
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import seaborn as sns
 
 from train_prep import prepare_data
 
@@ -72,8 +73,9 @@ def evaluate_perf(model,split, datapath, file, savename, input_method, task, thr
 
         # make confusion matrix
         if task=='w':
-            cm = multilabel_confusion_matrix(Y, Y_pred)
-            # cm =[]
+            Y_pred_labels = Y_pred > .34
+            Y_pred_labels = Y_pred_labels.astype(int)
+            cm = multilabel_confusion_matrix(Y, Y_pred_labels)
             class_labels = ['Wp_t1', 'Wp_t2', 'Wp_t3']
         elif task=='e':
             # print(Y)
@@ -125,43 +127,46 @@ def evaluate_perf_multiple(models,title_name, split, datapath, file, savename, i
         '''
     if not(split):
         acc_df = pd.DataFrame(columns=['Model', 'Accuracy'])
-        fig, axes = plt.subplots(len(models), 1, figsize=(12,6), subplot_kw={'projection': '3d'})
+        # fig, axes = plt.subplots(len(models), 1, figsize=(12,6), subplot_kw={'projection': '3d'})
+        fig, axes = plt.subplots(len(models), 1, figsize=(6,12))
         for i, model in enumerate(models):
             acc, cm, class_labels = evaluate_perf(model, split, datapath, file, savename, input_method, task, p)
             acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'Model': names[i], 'Accuracy':acc}])])
             print(names[i], acc)
-            print(cm.shape)
-            cm_norm =cm /  np.linalg.norm(cm, axis=0) # normalize confusion matrix
+            # print(cm.shape)
+            # print(cm)
+            cm_norm =cm /  np.sum(cm) #normalize confusion matrix
             # plot confusion matrix--map predicted and actual targs to their height and color 
-            z, c = [], []
-            for j in range(len(class_labels)):
-                for k in range(len(class_labels)):
-                    z.append(cm[j, k])
-                    c.append(cm_norm[j,k])
-            z = np.array(z).resize((len(class_labels), len(class_labels)))
-            dz = np.zeros((len(class_labels), len(class_labels)))
-            c = np.array(c)
-            x = np.arange(0, len(class_labels), 1)
-            y = np.arange(0, len(class_labels), 1)
-
-            print('class labels', class_labels)
-            print('z', z)
-            print('x', x)
-
-
-            b3d = axes[i].bar3d(x, y, z, dz, 1, 1, z, shade=True, color=c)
-            axes[i].set_title(f'{names[i]}: {acc}')
-            axes[i].set_xticks(np.arange(0, len(class_labels), 1))
-            axes[i].set_xticklabels(labels + '_true' for labels in class_labels)
-            axes[i].set_yticks(np.arange(0, len(class_labels), 1))
-            axes[i].set_yticklabels(labels + '_pred' for labels in class_labels)
-            axes[i].set_zlabel('Count')
-            cb = fig.colorbar(b3d, plt.cm.ScalarMappable(norm=None, cmap='viridis'), vmin = np.min(c), vmax=np.max(c), ax=axes[i], shrink=0.6)
-            cb.set_label('Normalized Count')
-            cb.ax.set_position(cb.ax.get_position().translated(0.09, 0))
-        plt.suptitle('Confusion matrices for ', title_name)
+            # print(cm_norm)
+            # z, c = [], []
+            # for j in range(len(class_labels)):
+            #     for k in range(len(class_labels)):
+            #         z.append(cm[j, k])
+            #         c.append(cm_norm[j,k])
+            # print('z', z)
+            # print('c', c)
+            # z = np.array(z).resize((len(class_labels), len(class_labels)))
+            # dz = np.zeros((len(class_labels), len(class_labels)))
+        
+            # b3d = axes[i].bar3d(x, y, np.zeros_like(cm), 1, 1, cm, shade=True, color=cm_norm.flatten(), alpha=0.8)
+            # axes[i].set_title(f'{names[i]}: {acc}')
+            # axes[i].set_xticks(np.arange(0, len(class_labels), 1))
+            # axes[i].set_xticklabels(labels + '_true' for labels in class_labels)
+            # axes[i].set_yticks(np.arange(0, len(class_labels), 1))
+            # axes[i].set_yticklabels(labels + '_pred' for labels in class_labels)
+            # axes[i].set_zlabel('Count')
+            # cb = fig.colorbar(b3d, plt.cm.ScalarMappable(norm=None, cmap='viridis'), vmin = np.min(c), vmax=np.max(c), ax=axes[i], shrink=0.6)
+            # cb.set_label('Normalized Count')
+            # cb.ax.set_position(cb.ax.get_position().translated(0.09, 0))
+            sns.heatmap(cm_norm, annot=True, ax=axes[i], fmt='g', xticklabels=class_labels, yticklabels=class_labels)
+            axes[i].xaxis.set_ticklabels(class_labels)
+            axes[i].yaxis.set_ticklabels(class_labels)
+            axes[i].set_xlabel('Predicted')
+            axes[i].set_ylabel('Actual')
+            axes[i].set_title('%s: %.3g' % (names[i], acc))
+        plt.suptitle(f'Confusion matrices for {title_name}')
         plt.tight_layout()
-        # plt.savefig(join(datapath, f'confusion_matrix_{title_name}.pdf'))
+        plt.savefig(join(datapath, f'confusion_matrix_{savename}.pdf'))
         plt.show()
         acc_df.to_csv(join(datapath, f'accuracy_{savename}.csv'))
     else:
@@ -221,18 +226,18 @@ if __name__ == '__main__':
             title_name = f'Model Trained on {m[mtl]}, Testing on {ftl}, {ew}'
             save_name = f'{m[mtl]}_{ftl}_{ew}'
         else: # debug mode: s_h2 loaded on method 0
+            ew = 'w'
             xgb= XGBRegressor()
-            xgb.load_model(join(MPATHS[1], 'xgb_e_s_h2.json'))
-            nn3 = keras.models.load_model(join(MPATHS[1], 'nn3_e_s_h2.h5'))
-            nn5 = keras.models.load_model(join(MPATHS[1], 'nn5_e_s_h2.h5'))
+            xgb.load_model(join(MPATHS[1], 'xgb_'+ew+'_s_h2.json'))
+            nn3 = keras.models.load_model(join(MPATHS[1], 'nn3_'+ew+'_s_h2.h5'))
+            nn5 = keras.models.load_model(join(MPATHS[1], 'nn5_'+ew+'_s_h2.h5'))
             models = [xgb, nn3, nn5]
-            ew = 'e'
             im = 0
             ftl = 0 # test on method 0
             file = 'hurwitz_all_4400000_b0_method_%i.csv'%ftl
             input_method = 'stokes_%i'%im
             split = False
-            title_name = f'Model Trained on s_h2, Testing on {ftl}, {ew}'
+            title_name = f'Trained on s_h2, Testing on {ftl}, {ew}'
             save_name = f's_h2_{ftl}_{ew}'
 
         evaluate_perf_multiple(models=models, title_name=title_name, split=split, datapath=DATA_PATH, file=file, savename=save_name, input_method=input_method, task=ew)
