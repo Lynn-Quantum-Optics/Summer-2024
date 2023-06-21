@@ -178,7 +178,7 @@ if __name__=='__main__':
     X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, savename=savename, input_method=input_method, task=task)
 
     ## sweep configs ##
-    if task=='witness':
+    if task=='w':
         xgb_sweep_config = {
         "method": "bayes",
         "metric": {"name": "val_loss", "goal": "minimize"},
@@ -311,7 +311,7 @@ if __name__=='__main__':
         },
         }
 
-    elif task=='entangled':
+    elif task=='e':
         xgb_sweep_config = {
         "method": "bayes",
         "metric": {"name": "val_loss", "goal": "minimize"},
@@ -456,14 +456,14 @@ if __name__=='__main__':
             wandb.agent(sweep_id=sweep_id, function=train_xgb)
         elif wtr==1:
             sweep_id = wandb.sweep(nn1h_sweep_config, project='LQO-NN1H_'+savename)
-            wandb.agent(sweep_id=sweep_id, function=train_nn1h)
+            wandb.agent(sweep_id=sweep_id, function=train_nn1h) 
         elif wtr==3:
-            sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
-            wandb.agent(sweep_id=sweep_id, function=train_nn5h)
-        elif wtr==5:
             sweep_id = wandb.sweep(nn3h_sweep_config, project='LQO-NN3H_'+savename)
             wandb.agent(sweep_id=sweep_id, function=train_nn3h)
+        elif wtr==5:
+            sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
+            wandb.agent(sweep_id=sweep_id, function=train_nn5h)
         else:
             raise ValueError('wtr must be 0, 1, 3, or 5.')
-    wtr = int(input('Enter 0 for XGB, 1 for NN5H, 2 for NN3H:'))
+    wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
     run_sweep(wtr)
