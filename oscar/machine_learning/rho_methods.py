@@ -491,6 +491,28 @@ def check_conc_min_eig(rho, printf=False):
         print('Min eigenvalue: ', min_eig)
     return concurrence, min_eig
 
+def get_rel_entropy_concurrence(basis_key, rho):
+    ''' Based on the paper Asif et al 2023. 
+    Params:
+        basis: two character string identifer
+        rho: density matrix
+    Returns: the relative entropy of coherence'''
+
+    # store basis elements in dictionary
+    bases = {}
+    basis = bases[basis_key]
+    def get_rho_diag(rho):
+        rho_d = np.zeros_like(rho)
+        for s in basis:
+            rho_d += adjoint(s) @ rho @ s @ s @ adjoint(s)
+    def get_entropy(rho):
+        return -np.trace(rho @ np.log(rho))
+    rho_diag = get_rho_diag(rho)
+    
+    return get_entropy(rho_diag) - get_entropy(rho)
+
+
+
 
 
 
