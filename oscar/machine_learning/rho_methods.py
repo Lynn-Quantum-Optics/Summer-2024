@@ -100,12 +100,19 @@ def get_all_projs(rho):
     ''' Computes all 36 projections for a given density matrix rho'''
 
     # define the single bases for projection
-    H = np.array([[1,0],[0,0]])
-    V = np.array([[0,0],[0,1]])    
-    D = np.array([[1/2,1/2],[1/2,1/2]])
-    A = np.array([[1/2,-1/2],[-1/2,1/2]])
-    R = np.array([[1/2,-1j/2],[1j/2,1/2]])
-    L = np.array([[1/2,1j/2],[-1j/2,1/2]])
+    # H = np.array([[1,0],[0,0]])
+    # V = np.array([[0,0],[0,1]])    
+    # D = np.array([[1/2,1/2],[1/2,1/2]])
+    # A = np.array([[1/2,-1/2],[-1/2,1/2]])
+    # R = np.array([[1/2,-1j/2],[1j/2,1/2]])
+    # L = np.array([[1/2,1j/2],[-1j/2,1/2]])
+
+    H = np.array([[1], [0]])
+    V = np.array([[0], [1]])
+    D = np.array([[1], [1]])/np.sqrt(2)
+    A = np.array([[1], [-1]])/np.sqrt(2)
+    R = np.array([[1], [1j]])/np.sqrt(2)
+    L = np.array([[1], [-1j]])/np.sqrt(2)
 
     basis_ls =[H, V, D, A, R, L]
     all_projs =[]
@@ -159,7 +166,7 @@ def reconstruct_rho(all_projs):
     S = np.zeros((4,4))
     S[0,0]=1
     S[0,1] = DD - DA + AD - AA
-    S[0,2] = RR - LR + RL - LL
+    S[0,2] = RR + LR - RL - LL
     S[0,3] = HH - HV + VH - VV
     S[1,0] = DD + DA - AD - AA
     S[1,1] = DD - DA  - AD + AA
@@ -490,93 +497,107 @@ def check_conc_min_eig(rho, printf=False):
 ##############################################
 ## for testing ##
 if __name__ == '__main__':
-    ## testing randomization processes ##
-    # random state gen imports #
-    from jones import get_random_jones
-    from random_gen import get_random_simplex, get_random_roik
+    from random_gen import *
+    import matplotlib.pyplot as plt
+    def sample_reconstruct(num=100):
+        ''' Samples random density matrices and reconstructs them using the 36 projections. Returns the average fidelity.'''
+        fidelity_ls =[]
+        for i in trange(num):
+            rho = get_random_hurwitz()
+            rho_prob= get_all_projs(rho)
+            rho_recon = reconstruct_rho(rho_prob)
+            print(is_valid_rho(rho_recon))
+            fidelity_ls.append(get_fidelity(rho, rho_recon))
+        plt.hist(fidelity_ls, bins=20)
+        plt.show()
+        print(np.mean(fidelity_ls), np.std(fidelity_ls) / np.sqrt(num))
+    sample_reconstruct(100)
+#     ## testing randomization processes ##
+#     # random state gen imports #
+#     from jones import get_random_jones
+#     from random_gen import get_random_simplex, get_random_roik
 
-    def check_conc_min_eig_sample(N=10000, conditions=None, func=get_random_simplex, method_name='Simplex', savedir='rho_test_plots', special_name='0', display=False, fit=False):
-        ''' Checks random sample of N simplex generated matrices. 
-        params:
-            N: number of random states to check
-            conditions: list of conditions to check for: tuple of tuple for min max bounds for concurrence and min eigenvalue. e.g. ((0, .5), (0, -.5)) will ensure states have concurrence between 0 and 0.5 and min eigenvalue between 0 and -0.5
-            func: function to generate random state
-            method_name: name of method used to generate random state
-            savedir: directory to save plots
-            special_name: if searching with specific conditions, add a unique name to the plot
-            display: whether to display plot
-            fit: whether to fit a func to the data
-        '''
-        concurrence_ls = []
-        min_eig_ls = []
-        for n in trange(N):
-        # for n in range(N):
-            # get state
-            def get_state():
-                if func.__name__ == 'get_random_jones' or func.__name__ == 'get_random_simplex':
-                    rho = func()[0]
-                else:
-                    rho=func()
-                return rho
-            # impose conditions
-            if conditions != None:
-                go=False
-                while not(go):
-                    rho = get_state()
-                    concurrence, min_eig = check_conc_min_eig(rho)
-                    if conditions[0][0] <= concurrence <= conditions[0][1] and conditions[1][0] <= min_eig <= conditions[1][1]:
-                        # print(is_valid_rho(state))
-                        go=True
-                    else:
-                        concurrence, min_eig = check_conc_min_eig(get_state())
-            else:
-                # check if entangled
-                concurrence, min_eig = check_conc_min_eig(get_state())
-            # plot
-            concurrence_ls.append(concurrence)
-            min_eig_ls.append(min_eig)
+#     def check_conc_min_eig_sample(N=10000, conditions=None, func=get_random_simplex, method_name='Simplex', savedir='rho_test_plots', special_name='0', display=False, fit=False):        ''' Checks random sample of N simplex generated matrices. 
+#         params:
+#             N: number of random states to check
+#             conditions: list of conditions to check for: tuple of tuple for min max bounds for concurrence and min eigenvalue. e.g. ((0, .5), (0, -.5)) will ensure states have concurrence between 0 and 0.5 and min eigenvalue between 0 and -0.5
+#             func: function to generate random state
+#             method_name: name of method used to generate random state
+#             savedir: directory to save plots
+#             special_name: if searching with specific conditions, add a unique name to the plot
+#             display: whether to display plot
+#             fit: whether to fit a func to the data
+#         '''
+#         concurrence_ls = []
+#         min_eig_ls = []
+#         for n in trange(N):
+#         # for n in range(N):
+#             # get state
+#             def get_state():
+#                 if func.__name__ == 'get_random_jones' or func.__name__ == 'get_random_simplex':
+#                     rho = func()[0]
+#                 else:
+#                     rho=func()
+#                 return rho
+#             # impose conditions
+#             if conditions != None:
+#                 go=False
+#                 while not(go):
+#                     rho = get_state()
+#                     concurrence, min_eig = check_conc_min_eig(rho)
+#                     if conditions[0][0] <= concurrence <= conditions[0][1] and conditions[1][0] <= min_eig <= conditions[1][1]:
+#                         # print(is_valid_rho(state))
+#                         go=True
+#                     else:
+#                         concurrence, min_eig = check_conc_min_eig(get_state())
+#             else:
+#                 # check if entangled
+#                 concurrence, min_eig = check_conc_min_eig(get_state())
+#             # plot
+#             concurrence_ls.append(concurrence)
+#             min_eig_ls.append(min_eig)
 
-        # fig, axes = plt.subplots(2,1, figsize=(10,5))
-        # axes[0].hist(concurrence_ls, bins=100)
-        # axes[1].hist(min_eig_ls, bins=100)
-        # plt.show()
-        plt.figure(figsize=(10,7))
-        plt.plot(concurrence_ls, min_eig_ls, 'o', label='Random states')
-        plt.xlabel('Concurrence')
-        plt.ylabel('Min eigenvalue')
-        plt.title('Concurrence vs. PT Min Eigenvalue for %s'%method_name)
+#         # fig, axes = plt.subplots(2,1, figsize=(10,5))
+#         # axes[0].hist(concurrence_ls, bins=100)
+#         # axes[1].hist(min_eig_ls, bins=100)
+#         # plt.show()
+#         plt.figure(figsize=(10,7))
+#         plt.plot(concurrence_ls, min_eig_ls, 'o', label='Random states')
+#         plt.xlabel('Concurrence')
+#         plt.ylabel('Min eigenvalue')
+#         plt.title('Concurrence vs. PT Min Eigenvalue for %s'%method_name)
         
-        if fit: # fit exponential!
-            from scipy.optimize import curve_fit
-            def func(x, a, b,c, d, e, f, g):
-                # return a*np.exp(-b*(x+c)) + d*x**3 + e*x**2 +f*x+g
-                return a + b*x + c*x**2 + d*x**3 + e*x**4 + f*x**5 + g*x**6
-            popt, pcov = curve_fit(func, concurrence_ls, min_eig_ls)
-            perr = np.sqrt(np.diag(pcov))
-            conc_lin = np.linspace(min(concurrence_ls), max(concurrence_ls), 1000)
+#         if fit: # fit exponential!
+#             from scipy.optimize import curve_fit
+#             def func(x, a, b,c, d, e, f, g):
+#                 # return a*np.exp(-b*(x+c)) + d*x**3 + e*x**2 +f*x+g
+#                 return a + b*x + c*x**2 + d*x**3 + e*x**4 + f*x**5 + g*x**6
+#             popt, pcov = curve_fit(func, concurrence_ls, min_eig_ls)
+#             perr = np.sqrt(np.diag(pcov))
+#             conc_lin = np.linspace(min(concurrence_ls), max(concurrence_ls), 1000)
 
-            # calculate chi2red
-            # chi2red= np.sum((np.array(min_eig_ls) - func(np.array(concurrence_ls), *popt))**2)/(len(min_eig_ls) - len(pcov))
-            # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-')
-            # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)}+ %5.3fx^3 + %5.3fx^2 + %5.3fx + %5.3f \pm (%5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f), \chi^2_\\nu = %5.3f$'%(*popt, *perr, chi2red))
-            # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)} %5.3fx^3  +%5.3fx^2  %5.3fx  %5.3f$'%(*popt,))
-            plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f + %5.3fx + %5.3fx^2 + %5.3fx^3 + %5.3fx^4 + %5.3fx^5 + %5.3fx^6$'%(*popt,))
-            plt.legend()
+#             # calculate chi2red
+#             # chi2red= np.sum((np.array(min_eig_ls) - func(np.array(concurrence_ls), *popt))**2)/(len(min_eig_ls) - len(pcov))
+#             # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-')
+#             # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)}+ %5.3fx^3 + %5.3fx^2 + %5.3fx + %5.3f \pm (%5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f), \chi^2_\\nu = %5.3f$'%(*popt, *perr, chi2red))
+#             # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)} %5.3fx^3  +%5.3fx^2  %5.3fx  %5.3f$'%(*popt,))
+#             plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f + %5.3fx + %5.3fx^2 + %5.3fx^3 + %5.3fx^4 + %5.3fx^5 + %5.3fx^6$'%(*popt,))
+#             plt.legend()
 
-        plt.savefig('%s/conc_min_eig_%s_%s.pdf'%(savedir, method_name, special_name))
+#         plt.savefig('%s/conc_min_eig_%s_%s.pdf'%(savedir, method_name, special_name))
 
-        if display:
-            plt.show()
+#         if display:
+#             plt.show()
 
-    # no conditions
-    # check_conc_min_eig_sample(fit=True, method_name='Simplex', func=get_random_simplex, special_name='fit')
-    check_conc_min_eig_sample(fit=True, method_name='Roik', func=get_random_roik, special_name='fit')
-    # check_conc_min_eig_sample(fit=True, method_name='Jones', func=get_random_jones, special_name='fit')
-    # check_conc_min_eig_sample(func=get_random_roik, method_name='roik')
-    # check_conc_min_eig_sample(func=get_random_jones, method_name='jones')
+#     # no conditions
+#     # check_conc_min_eig_sample(fit=True, method_name='Simplex', func=get_random_simplex, special_name='fit')
+#     check_conc_min_eig_sample(fit=True, method_name='Roik', func=get_random_roik, special_name='fit')
+#     # check_conc_min_eig_sample(fit=True, method_name='Jones', func=get_random_jones, special_name='fit')
+#     # check_conc_min_eig_sample(func=get_random_roik, method_name='roik')
+#     # check_conc_min_eig_sample(func=get_random_jones, method_name='jones')
 
-    # conditions:
-        # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
-    # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
-    # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
-    pass
+#     # conditions:
+#         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
+#     # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
+#     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
+    # pass

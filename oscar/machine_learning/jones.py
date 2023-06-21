@@ -202,7 +202,7 @@ def get_random_jones(setup='C', return_params=False):
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, state_num=0, gd_tune=False, save_rho = False, debug=False, verbose=False, epsilon=0.999, N = 10000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=True, epsilon=0.999, N = 10000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -344,7 +344,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
         proj_targ = get_12s_redundant_projections(targ_rho)
 
         # if verbose:
-        print('index of state generated', i)
+        # print('index of state generated', i)
         print('actual state', targ_rho)
         print('predicted state', func(max_best_angles) )
         print('num iterations', n)

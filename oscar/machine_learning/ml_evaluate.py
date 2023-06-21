@@ -144,7 +144,10 @@ def evaluate_perf_multiple(models,names, title_name, split, datapath, file, save
         acc_df.to_csv(join(datapath, f'accuracy_{title_name}.csv'))
     else:
         acc_df = pd.DataFrame(columns=['Model', 'Test Accuracy', 'Train Accuracy'])
-            
+        for i, model in enumerate(models):
+            acc, cm, class_labels = evaluate_perf(model, split, datapath, file, savename, input_method, task, p)
+            acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'Model': names[i], 'Test Accuracy':acc[0], 'Train Accuracy':acc[1]}])])
+        acc_df.to_csv(join(datapath, f'accuracy_{title_name}.csv'))  
             
 if __name__ == '__main__':
     from xgboost import XGBRegressor
