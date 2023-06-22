@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ## load models ##
     SH0_PATH = 'random_gen/models/stokes_h0'
     SH2_PATH = 'random_gen/models/stokes_h2'
-    PH0_PATH = 'random_gen/models/stokes_h0'
+    PH0_PATH = 'random_gen/models/prob_h0'
     PH2_PATH = 'random_gen/models/prob_h2'
     MPATHS = [SH0_PATH, SH2_PATH, PH0_PATH, PH2_PATH]
     DATA_PATH = 'random_gen/data'
