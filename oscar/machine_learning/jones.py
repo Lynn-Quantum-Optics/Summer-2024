@@ -64,8 +64,9 @@ def get_Jrho(angles, setup = 'C', check=False):
         H_B = H(B_theta)
         Q_B = Q(B_alpha)
         Q_A = Q(A_alpha)
-
-        P = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV @ Is0
+        
+        U = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV
+        P = U @ Is0 @ adjoint(U)
         rho = P @ adjoint(P)
 
     elif setup == 'I':
@@ -99,7 +100,8 @@ def get_Jrho(angles, setup = 'C', check=False):
         Q_A1 = Q(alpha_A_ls[0])
         Q_A2 = Q(alpha_A_ls[1])
 
-        P = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV @ Is0
+        U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV
+        P = U @ Is0 @ adjoint(U)
 
         rho = P @ adjoint(P)
 
@@ -123,7 +125,8 @@ def get_Jrho(angles, setup = 'C', check=False):
         QP = get_QP(phi)
         H_B = H(B_theta)
 
-        P = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV @ Is0
+        U = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV
+        P = U @ Is0 @ adjoint(U)
         rho = P @ adjoint(P)
 
     else:
