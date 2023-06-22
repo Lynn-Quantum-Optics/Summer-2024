@@ -71,21 +71,22 @@ if __name__ == '__main__':
 
     def load_perf():
        
-        mtl = int(input('Enter 0 for s_h0, 1 for s_h2, 3 for p_h2, 4 for p_h0: '))
-        m = ['s_h0', 's_h2', 'p_h2', 'p_h0']
+        mtl = int(input('Enter 0 for s_h0, 1 for s_h2, 2 for p_h0, 3 for p_h2: '))
+        m = ['s_h0', 's_h2', 'p_h0', 'p_h2']
         ew = input('Enter w for witness, e for entangled: ')
 
         assert mtl in [0,1, 2, 3], f'Invalid input. Must be 0 or 1. You entered {mtl}'
         assert ew in ['w', 'e'], f'Invalid input. Must be w or e. You entered {ew}'
 
-        xgb = XGBRegressor()
-        xgb.load_model(join(MPATHS[mtl], 'xgb_'+ew+'_'+m[mtl]+'.json'))
-        nn1 = keras.models.load_model(join(MPATHS[mtl], 'nn1_'+ew+'_'+m[mtl]+'.h5'))
-        nn3 = keras.models.load_model(join(MPATHS[mtl], 'nn3_'+ew+'_'+m[mtl]+'.h5'))
-        nn5 = keras.models.load_model(join(MPATHS[mtl], 'nn5_'+ew+'_'+m[mtl]+'.h5'))
-        models = [xgb, nn1, nn3, nn5]
-
         if mtl < 2: # stokes
+
+            xgb = XGBRegressor()
+            xgb.load_model(join(MPATHS[mtl], 'xgb_'+ew+'_'+m[mtl]+'.json'))
+            nn1 = keras.models.load_model(join(MPATHS[mtl], 'nn1_'+ew+'_'+m[mtl]+'.h5'))
+            nn3 = keras.models.load_model(join(MPATHS[mtl], 'nn3_'+ew+'_'+m[mtl]+'.h5'))
+            nn5 = keras.models.load_model(join(MPATHS[mtl], 'nn5_'+ew+'_'+m[mtl]+'.h5'))
+            models = [xgb, nn1, nn3, nn5]
+
             im = int(input(f'You have loaded stokes model {m[mtl]}. What input_method? Enter 0 for stokes_diag: '))
             assert im in [0], f'Invalid input. Must be 0. You entered {im}'
 
@@ -99,7 +100,15 @@ if __name__ == '__main__':
         else: # prob
             im = int(input('You have loaded prob model {m[mtl]}. What input_method? Enter the num of probabilities: '))
             assert im in [3, 5, 6, 9, 12, 15], f'Invalid input. You entered {im}'
-    
+
+
+            xgb = XGBRegressor()
+            xgb.load_model(join(MPATHS[mtl], 'xgb_'+ew+'_prob_'+str(im)+'_'+m[mtl].split('_')[1]+'.json'))
+            nn1 = keras.models.load_model(join(MPATHS[mtl], 'nn1_'+ew+'_prob_'+str(im)+'_'+m[mtl].split('_')[1]+'.h5'))
+            nn3 = keras.models.load_model(join(MPATHS[mtl], 'nn3_'+ew+'_prob_'+str(im)+'_'+m[mtl].split('_')[1]+'.h5'))
+            nn5 = keras.models.load_model(join(MPATHS[mtl], 'nn5_'+ew+'_prob_'+str(im)+'_'+m[mtl].split('_')[1]+'.h5'))
+            models = [xgb, nn1, nn3, nn5]
+
             if m[mtl]=='p_h2':
                 file_split = [('hurwitz_True_all_4400000_b0_method_2.csv', 1), ('hurwitz_True_all_4400000_b0_method_0.csv', 0), ('hurwitz_True_all_4400000_b0_method_1.csv', 0)]
             elif m[mtl]=='p_h0':
@@ -111,17 +120,17 @@ if __name__ == '__main__':
         acc_df = pd.DataFrame({'model':[], 'data':[], 'acc_test':[], 'acc_train':[], 'acc_all':[]})
         for fs in file_split:
             for i, model in enumerate(models):
-                try:
-                    print('model', model_names[i], 'file', fs[0], 'split', fs[1])
-                    acc_ls = evaluate_perf(model=model, split=bool(fs[1]), datapath=DATA_PATH, file=fs[0], input_method=input_method, task=ew)
-                    if len(acc_ls)>1:
-                        acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':acc_ls[0], 'acc_train':acc_ls[1], 'acc_all':[]}])])
-                    else:
-                        acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':[], 'acc_train':[], 'acc_all':acc_ls[0]}])])
-                    
-                except:
-                    print('Failed to evaluate model %s on file %s'%(str(model), fs[0]))
-                    continue
+                # try:
+                print('model', model_names[i], 'file', fs[0], 'split', fs[1])
+                acc_ls = evaluate_perf(model=model, split=bool(fs[1]), datapath=DATA_PATH, file=fs[0], input_method=input_method, task=ew)
+                if len(acc_ls)>1:
+                    acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':acc_ls[0], 'acc_train':acc_ls[1], 'acc_all':[]}])])
+                else:
+                    acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':[], 'acc_train':[], 'acc_all':acc_ls[0]}])])
+                
+                # except:
+                #     print('Failed to evaluate model %s on file %s'%(str(model), fs[0]))
+                #     continue
 
                 
                 
