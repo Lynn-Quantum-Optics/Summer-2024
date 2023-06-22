@@ -34,14 +34,12 @@ class Manager:
     ----------
     out_file : str, optional
         The name of the output file to save the data to. If not specified, no output will be initialized.
-    raw_data_out_file : str, optional
-        The name of the output file to save the raw data to. If not specified, no raw data will be saved.
     config : str, optional
         The name of the configuration file to load. Defaults to 'config.json'.
     debug : bool, optional
         If True, the CCU and motors will not be initialized with the manager, and will have to be initialized later with the init_ccu and init_motors methods.
     '''
-    def __init__(self, out_file:str=None, raw_data_out_file:str=None, config:str='config.json', debug:bool=False):
+    def __init__(self, out_file:str=None, config:str='config.json', debug:bool=False):
         # get the time of initialization for file naming
         self._init_time = time.time()
         self._init_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -52,7 +50,6 @@ class Manager:
         
         # save all initilaization parameters
         self.config_file = config
-        self.raw_data_out_file = raw_data_out_file
 
         # initialize output file variables
         self.out_file = None
@@ -70,7 +67,7 @@ class Manager:
             os.remove('./mlog.txt')
         self._log_file = open('./mlog.txt', 'w+')
         self.log(f'Log file opened. Manager started at {self._init_time_str}.')
-                
+
         # intialize everything if not debugging
         if not debug:
             self.init_ccu()
