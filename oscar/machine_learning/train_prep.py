@@ -4,7 +4,7 @@ from os.path import join
 import pandas as pd
 import numpy as np
 
-def prepare_data(datapath, file, savename, input_method, task, split=True, p=0.8):
+def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
     ''' Function to prepare data for training.
     params:
         datapath: path to csv
@@ -15,6 +15,7 @@ def prepare_data(datapath, file, savename, input_method, task, split=True, p=0.8
         p: fraction of data to use for training
     '''
     print(join(datapath, file))
+    print('split', split)
     df= pd.read_csv(join(datapath, file))
 
     if input_method == 'prob_3':
@@ -78,10 +79,11 @@ def prepare_data(datapath, file, savename, input_method, task, split=True, p=0.8
         X_test = df_test[inputs]
         Y_test = simplify_targ(df_test[outputs])
 
-        np.save(join(datapath, savename+'_X_train.npy'), X_train.to_numpy())
-        np.save(join(datapath, savename+'_Y_train.npy'), Y_train.to_numpy())
-        np.save(join(datapath, savename+'_X_test.npy'), X_test.to_numpy())
-        np.save(join(datapath, savename+'_Y_test.npy'), Y_test.to_numpy())
+        # if savename != 'None':
+        #     np.save(join(datapath, savename+'_X_train.npy'), X_train.to_numpy())
+        #     np.save(join(datapath, savename+'_Y_train.npy'), Y_train.to_numpy())
+        #     np.save(join(datapath, savename+'_X_test.npy'), X_test.to_numpy())
+        #     np.save(join(datapath, savename+'_Y_test.npy'), Y_test.to_numpy())
         return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
 
     if split: return split_data()
