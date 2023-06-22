@@ -1,6 +1,7 @@
 from core import Manager, analysis
 import numpy as np
 import math
+import matplotlib as plt
 
 
 """
@@ -15,55 +16,7 @@ check first on alpha = 0 so that the state is psi plus
 Check with full tomography at the very end (look into previous scripts)
 """
 
-# read user input to determine preset angles for state in radians
-alpha = float(input("Alpha = "))
-beta = float(input("Beta = "))
 
-# calculate phi for different cases of alpha and beta
-
-if alpha <= math.pi/2 and beta <= math.pi/2:
-    r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-    r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-    delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
-    gamma = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
-    phi = gamma + delta
-
-if alpha >= math.pi/2 and beta >= math.pi/2:
-    r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-    r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-    delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
-    gamma = math.pi + math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
-    phi = gamma - delta
-
-if alpha <= math.pi/2 and beta >= math.pi/2:
-    r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-    r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-    delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
-    gamma = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
-    phi = gamma + delta
-    
-if alpha >= math.pi/2 and beta <= math.pi/2:
-    r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-    r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-    delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
-    gamma = math.pi + (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
-    phi = gamma - delta
-
-# calculate theta based on alpha and beta
-theta = math.sqrt(math.acos((1+math.cos(beta)*math.sin(2*alpha))/2))
-
-# find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
-b = np.pi/4
-u = phi/2
-
-meas_HWP_angle = b + u / 2
-meas_QWP_angle = u + math.pi/2
-
-rate_ratio = (math.tan(theta))**2
-
-"""
-Note these angles are all in radians, not degrees.
-"""
 
 def QP_sweep(m:Manager, u1, b1):
 
@@ -81,7 +34,7 @@ def QP_sweep(m:Manager, u1, b1):
 
     # turn bob's measurement plates to measure H/sqrt(2) - (e^i*phi)*V/sqrt(2)
     print(m.time, "Turning Bob's measurement plates")
-    m.configure_motors(B_HWP = np.rad2deg((b1+u1)/2), B_QWP = np.rad2deg(u1 + np.pi/2)
+    m.configure_motors(B_HWP = np.rad2deg((b1+u1)/2), B_QWP = np.rad2deg(u1 + np.pi/2))
 
     # sweep the QP to determine the minimum count angle
     input("Ready to sweep. Press Enter to continue")
@@ -106,7 +59,7 @@ def QP_sweep(m:Manager, u1, b1):
     # find the lowest data point and then resweep near the guessed minimum to fit a function
     # write own fit function in analysis maybe
 
-    args1, unc1, _ = core.analysis.fit('quadratic', data.QP, data.C4, data.C4_sem)
+    args1, unc1, _ = analysis.fit('quadratic', data.QP, data.C4, data.C4_sem)
 
     plt.title('Angle of QP to minimize counts')
     plt.xlabel('QP angle ())')
@@ -132,7 +85,6 @@ def UVHWP_sweep(m:Manager, u1, b1):
     COMPONENT = 'C_UV_HWP'
     BASIS1 = 'HH'
     BASIS2 = 'VV'
-    STATE = 'phi_plus'
 
     GUESS = 22.28
     RANGE = 24.0
@@ -183,22 +135,74 @@ def UVHWP_sweep(m:Manager, u1, b1):
     plt.legend()
     plt.show()
 
-def full_tomography(m:Manager):
-    """
-    Full_tomography: [ "LA", "RA", "VA", "HA", "DA", "AA",
-        "AD", "DD", "HD", "VD", "RD",  "LD",
-        "LH", "RH", "VH", "HH", "DH", "AH", 
-        "AV", "DV", "HV", "VV", "RV", "LV",
-        "LL", "RL", "VL", "HL", "DL", "AL",
-        "AR", "DR", "HR", "VR", "RR", "LR"]
-    """
+# def full_tomography(m:Manager):
+#     """
+#     Full_tomography: [ "LA", "RA", "VA", "HA", "DA", "AA",
+#         "AD", "DD", "HD", "VD", "RD",  "LD",
+#         "LH", "RH", "VH", "HH", "DH", "AH", 
+#         "AV", "DV", "HV", "VV", "RV", "LV",
+#         "LL", "RL", "VL", "HL", "DL", "AL",
+#         "AR", "DR", "HR", "VR", "RR", "LR"]
+#     """
 
     
 
-    for state in m._config['Full_tomography']
+#     for state in m._config['Full_tomography']
 
 if __name__ == '__main__':
 
+    # read user input to determine preset angles for state in radians
+    alpha = float(input("Alpha = "))
+    beta = float(input("Beta = "))
+
+    # calculate phi for different cases of alpha and beta
+
+    if alpha <= math.pi/2 and beta <= math.pi/2:
+        r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+        gamma = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
+        phi = gamma + delta
+
+    if alpha >= math.pi/2 and beta >= math.pi/2:
+        r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+        gamma = math.pi + math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
+        phi = gamma - delta
+
+    if alpha <= math.pi/2 and beta >= math.pi/2:
+        r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
+        gamma = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+        phi = gamma + delta
+        
+    if alpha >= math.pi/2 and beta <= math.pi/2:
+        r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
+        gamma = math.pi + (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+        phi = gamma - delta
+
+    # calculate theta based on alpha and beta
+    theta = math.sqrt(math.acos((1+math.cos(beta)*math.sin(2*alpha))/2))
+
+    # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
+    b = np.pi/4
+    u = phi/2
+
+    meas_HWP_angle = b + u / 2
+    meas_QWP_angle = u + math.pi/2
+
+    rate_ratio = (math.tan(theta))**2
+
+    """
+    Note these angles are all in radians, not degrees.
+    """
+
     m = Manager()
+
+    QP_sweep(m,u,b)
 
     
