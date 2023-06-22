@@ -7,6 +7,6 @@ Author(s):
 '''
 
 # import relevant objects
-from .ccu import CCU
+from .monitors import CCU, Laser
 from .motor_drivers import ElliptecMotor, ThorLabsMotor, MOTOR_DRIVERS
 from .manager import Manager

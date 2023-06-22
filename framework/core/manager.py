@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 # local imports
-from .ccu import CCU
+from .monitors import CCU # , Laser # soon!
 from .motor_drivers import MOTOR_DRIVERS
 
 # manager class
@@ -70,8 +70,7 @@ class Manager:
             os.remove('./mlog.txt')
         self._log_file = open('./mlog.txt', 'w+')
         self.log(f'Log file opened. Manager started at {self._init_time_str}.')
-            
-        
+                
         # intialize everything if not debugging
         if not debug:
             self.init_ccu()
@@ -102,22 +101,12 @@ class Manager:
         if self._ccu is not None:
             raise RuntimeError('CCU has already been initialized.')
         
-        # sort out raw data output
-        if self.raw_data_out_file is None or self.raw_data_out_file is False:
-            raw_data_csv = None
-        elif self.raw_data_out_file is True:
-            raw_data_csv = f'{self._init_time_str}_raw.csv'
-        elif os.path.isfile(self.raw_data_out_file):
-            raw_data_csv = f'{self._init_time_str}_raw.csv'
-            print(f'WARNING: raw data output file {self.raw_data_out_file} already exists. Raw data will be saved to {raw_data_csv} instead.')
-        else:
-            raw_data_csv = self.raw_data_out_file
-        
         # initialize the ccu
         self._ccu = CCU(
-            self._config['ccu']['port'],
-            self._config['ccu']['baudrate'],
-            raw_data_csv=raw_data_csv,
+            port=self._config['ccu']['port'],
+            baud=self._config['ccu']['baudrate'],
+            plot_xlim=self._config['ccu'].get('plot_xlim', 60),
+            plot_smoothing=self._config['ccu'].get('plot_smoothing', 0.5),
             ignore=self._config['ccu'].get('ignore', []))
     
     def init_motors(self) -> None:

@@ -2,7 +2,15 @@
     "ccu": {
         "port": "COM4",
         "baudrate": 19200,
-        "ignore": ["A'", "C5", "C7"]
+        "ignore": ["A'", "C5", "C7"],
+        "plot_xlim": 60,
+        "plot_smoothing": 0.5
+    },
+    "laser": {
+        "port": "COM10",
+        "baudrate": 9600,
+        "plot_xlim": 60,
+        "plot_smoothing": 0.5
     },
     "motors": {
         "C_UV_HWP": {
