@@ -41,7 +41,7 @@ def evaluate_perf(model,split, datapath, file, input_method, task, p=0.8):
         print(N_correct_test / len(Y_pred_test))
         print(N_correct_train / len(Y_pred_train))
 
-        return [N_correct_test / len(Y_pred_test), N_correct_train / len(Y_pred_train)]
+        return [[N_correct_test / len(Y_pred_test), N_correct_train / len(Y_pred_train)], [N_correct_test, N_correct_train], [len(Y_pred_test), len(Y_pred_train)]]
 
     else: # checking entirely new dataset
         print(prepare_data(datapath, file, input_method, task, split, p))
@@ -52,7 +52,7 @@ def evaluate_perf(model,split, datapath, file, input_method, task, p=0.8):
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
         print(N_correct / len(Y_pred))
-        return [N_correct / len(Y_pred)]
+        return [[N_correct / len(Y_pred)], [N_correct], [len(Y_pred)]]
       
             
 if __name__ == '__main__':
@@ -117,16 +117,16 @@ if __name__ == '__main__':
             input_method = 'prob_%i'%im
 
         # initialize df
-        acc_df = pd.DataFrame({'model':[], 'data':[], 'acc_test':[], 'acc_train':[], 'acc_all':[]})
+        acc_df = pd.DataFrame({'model':[], 'data':[], 'acc_test':[], 'acc_train':[], 'acc_all':[], 'num_test': [], 'num_train': [], 'num_all': [], 'N_correct_test':[], 'N_correct_train':[], 'N_correct_all':[]})
         for fs in file_split:
             for i, model in enumerate(models):
                 # try:
                 print('model', model_names[i], 'file', fs[0], 'split', fs[1])
                 acc_ls = evaluate_perf(model=model, split=bool(fs[1]), datapath=DATA_PATH, file=fs[0], input_method=input_method, task=ew)
-                if len(acc_ls)>1:
-                    acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':acc_ls[0], 'acc_train':acc_ls[1], 'acc_all':[]}])])
+                if len(acc_ls[0])>1:
+                    acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':acc_ls[0][0], 'acc_train':acc_ls[0][1], 'acc_all':[], 'num_test': acc_ls[2][0], 'num_train': acc_ls[2][1], 'num_all': [], 'N_correct_test':acc_ls[1][0], 'N_correct_train':acc_ls[1][1], 'N_correct_all':[]}])])
                 else:
-                    acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':[], 'acc_train':[], 'acc_all':acc_ls[0]}])])
+                    acc_df = pd.concat([acc_df, pd.DataFrame.from_records([{'model':model_names[i]+m[mtl], 'data':'h'+fs[0].split('_')[-1][0], 'acc_test':[], 'acc_train':[], 'acc_all':acc_ls[0][0], 'num_test': [], 'num_train': [], 'num_all': acc_ls[2][0], 'N_correct_test':[], 'N_correct_train':[], 'N_correct_all':acc_ls[1][0]}])])
                 
                 # except:
                 #     print('Failed to evaluate model %s on file %s'%(str(model), fs[0]))

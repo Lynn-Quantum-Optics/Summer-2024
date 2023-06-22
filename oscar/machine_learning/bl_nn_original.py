@@ -89,8 +89,10 @@ def witness_loss_fn(y_true, y_pred):
 
 def get_dataset(dataset):
     # split into input (X) and output (y) variables
-    X = dataset.loc[:,'HH probability':'LL probability']
-    y = dataset.loc[:,'XY min': 'XZ min']
+    # X = dataset.loc[:,'HH probability':'LL probability']
+    # y = dataset.loc[:,'XY min': 'XZ min']
+    X = dataset.loc[:, 'HH': 'LL']
+    y = dataset.loc[:, 'Wp_t1': 'Wp_t3']
     return X, y
 
 # get the model, in this case there n_inputs = 12, n_outputs = 3
@@ -172,15 +174,18 @@ this is a pretty big dataset but this technique can still be pretty useful
 # """
 
 # data_1 = 'all_qual_2000.csv'
-data_2 = 'S22_data/all_qual_20000_1.csv'
+# data_2 = 'S22_data/all_qual_20000_1.csv'
 # data_3 = 'all_qual_20000_2.csv'
 # data_4 = 'all_qual_20000_3.csv'
 # data_5 = 'all_qual_20000_4.csv'
 # data_6 = 'all_qual_20000_5.csv'
 
+data_method0 = 'random_gen/data/hurwitz_True_4400000_b0_method_0.csv'
+df= pd.read_csv(data_method0)
+df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
 
 # df_1 = pd.read_csv(data_1)
-df = pd.read_csv(data_2)
+# df = pd.read_csv(data_2)
 # df_3 = pd.read_csv(data_3)
 # df_4 = pd.read_csv(data_4)
 # df_5 = pd.read_csv(data_5)
@@ -202,13 +207,13 @@ tuner = keras_tuner.RandomSearch(
     # project_name="helloworld",
 )
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
-tuner.search(X_train, y_train, epochs=2, validation_data = (X_val, y_val))
+tuner.search(X_train, y_train, epochs=5, validation_data = (X_val, y_val))
 
-models = tuner.get_best_models(num_models=2)
-best_hps = tuner.get_best_hyperparameters(5)
+models = tuner.get_best_models(num_models=5)
+best_hps = tuner.get_best_hyperparameters(20)
 model = get_model(best_hps[0])
 
-model.fit(X,y, epochs=1)
+model.fit(X,y, epochs=100)
 
 
 
