@@ -136,5 +136,11 @@
             "C_PCC": 4.005,
             "B_C_HWP": 0.00
         }
-    }
+    },
+    "full_tomography": ["LA", "RA", "VA", "HA", "DA", "AA", 
+        "AD", "DD", "HD", "VD", "RD",  "LD",
+         "LH", "RH", "VH", "HH", "DH", "AH", 
+         "AV", "DV", "HV", "VV", "RV", "LV",
+         "LL", "RL", "VL", "HL", "DL", "AL",
+         "AR", "DR", "HR", "VR", "RR", "LR"]
 }

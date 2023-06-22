@@ -96,7 +96,7 @@ Interface for the Altera DE2 FPGA CCU.
     `'/dev/ttyUSB1'` on unix).
 - `baud : int` Serial communication baud rate (19200 for the Altera DE2 FPGA CC).
 - `raw_data_csv : str` Path to the raw data csv file to write to. If None, no file is written.
-- `ignore : list[str]` List of channel keys (from `CCU.CHANNEL_KEYS` to ignore in plots).
+- `ignore : list[str]` List of channel keys (from `CCU._channel_keys` to ignore in plots).
 
 ### (M) `CCU.count_rates(period:float) -> np.ndarray`
 Acquires the coincidence count rates from the CCU over the specified period.

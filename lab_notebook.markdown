@@ -1,3 +1,8 @@
+## 6/22/23
+MP: R
+
+Performed a preliminary test of the code to generate one of Eritas' interesting states. Arrived at around 9:40 and turned on laser to warm up. At around 1:30, came back to lab to begin testing. Encountered some errors in the process. Changed all instances of "CHANNEL_KEYS" in CCU code to correctly be "_channel_keys". There was an error with being unable to access COM9 but the error mysteriously resolved itself. Obtained a graph of the QP angle vs counts and determined that the minimum is around 17 degrees visually, but there are problems with the analysis code that I need to fix. Based on the graph, 10 degrees seems like a good range for the second QP sweep. This graph should in theory show the minimum when the state created is Psi plus, since I set both alpha and beta to be 0. Shutdown setup at around 3 pm to fix code.
+
 ## 6/16/23
 MP: A
 

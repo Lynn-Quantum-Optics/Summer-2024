@@ -162,8 +162,8 @@ class Manager:
             [f'start time (s)', 'stop time (s)'] + \
             ['num samples (#)', 'period per sample (s)'] + \
             [f'{m} position (deg)' for m in self._motors] + \
-            [f'{k} rate (#/s)' for k in self._ccu.CHANNEL_KEYS] + \
-            [f'{k} rate SEM (#/s)' for k in self._ccu.CHANNEL_KEYS])
+            [f'{k} rate (#/s)' for k in self._ccu._channel_keys] + \
+            [f'{k} rate SEM (#/s)' for k in self._ccu._channel_keys])
 
     def close_output(self, get_data:bool=True) -> Union[pd.DataFrame, None]:
         ''' Closes the output file
@@ -195,8 +195,8 @@ class Manager:
                 [f't_start', 't_end'] + \
                 ['num_samp', 'samp_period'] + \
                 [f'{m}' for m in self._motors] + \
-                [f'C{i}' for i in range(len(self._ccu.CHANNEL_KEYS))] + \
-                [f'C{i}_sem' for i in range(len(self._ccu.CHANNEL_KEYS))]
+                [f'C{i}' for i in range(len(self._ccu._channel_keys))] + \
+                [f'C{i}_sem' for i in range(len(self._ccu._channel_keys))]
         else:
             data = None
 
@@ -216,8 +216,8 @@ class Manager:
             [f't_start', 't_end'] + \
             ['num_samp', 'samp_period'] + \
             [f'{m}' for m in motors] + \
-            [f'C{i}' for i in range(len(CCU.CHANNEL_KEYS))] + \
-            [f'C{i}_sem' for i in range(len(CCU.CHANNEL_KEYS))]
+            [f'C{i}' for i in range(len(CCU._channel_keys))] + \
+            [f'C{i}_sem' for i in range(len(CCU._channel_keys))]
 
 
     # +++ methods +++
@@ -273,10 +273,10 @@ class Manager:
             return data_avg, data_unc
         elif len(keys) == 1:
             k = keys[0]
-            return data_avg[CCU.CHANNEL_KEYS.index(k)], data_unc[CCU.CHANNEL_KEYS.index(k)]
+            return data_avg[CCU._channel_keys.index(k)], data_unc[CCU._channel_keys.index(k)]
         else:
-            out_avgs = np.array([data_avg[CCU.CHANNEL_KEYS.index(k)] for k in keys])
-            out_uncs = np.array([data_unc[CCU.CHANNEL_KEYS.index(k)] for k in keys])
+            out_avgs = np.array([data_avg[CCU._channel_keys.index(k)] for k in keys])
+            out_uncs = np.array([data_unc[CCU._channel_keys.index(k)] for k in keys])
             return out_avgs, out_uncs
 
     def pct_det(self, basis1:str, basis2:str, num_samp:int, samp_period:float, chan:str='C4'):

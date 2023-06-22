@@ -38,7 +38,7 @@ def QP_sweep(m:Manager, u1, b1):
 
     # sweep the QP to determine the minimum count angle
     input("Ready to sweep. Press Enter to continue")
-    m.sweep("QP", 0, 25, 25, 5, 0.1)
+    m.sweep("C_QP", 0, 25, 25, 5, 0.1)
 
     print(m.time, "Sweep complete")
 
@@ -49,23 +49,23 @@ def QP_sweep(m:Manager, u1, b1):
 
     # take the counts of the quartz sweep at each angle and find the minimum data point
     QP_counts = data["C4"]
-    new_guess = data["QP"][min(QP_counts)]
+    new_guess = data["C_QP"][min(QP_counts)]
     RANGE = 5
 
     # perform a new sweep around the previous minimum data point
-    m.sweep("QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
+    m.sweep("C_QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
 
     # refine analysis and fitting since we don't know what the function will look like
     # find the lowest data point and then resweep near the guessed minimum to fit a function
     # write own fit function in analysis maybe
 
-    args1, unc1, _ = analysis.fit('quadratic', data.QP, data.C4, data.C4_sem)
+    args1, unc1, _ = analysis.fit('quadratic', data.C_QP, data.C4, data.C4_sem)
 
     plt.title('Angle of QP to minimize counts')
     plt.xlabel('QP angle ())')
     plt.ylabel('Count rates (#/s)')
-    plt.errorbar(data.QP, data.C4, yerr=data.C4_sem, fmt='o', label="Measurement Basis")
-    analysis.plot_func('quadratic', args1, data.QP, label='Measurement fit function')
+    plt.errorbar(data.C_QP, data.C4, yerr=data.C4_sem, fmt='o', label="Measurement Basis")
+    analysis.plot_func('quadratic', args1, data.C_QP, label='Measurement fit function')
     plt.legend()
     plt.show()
 

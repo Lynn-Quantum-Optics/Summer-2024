@@ -8,6 +8,14 @@
             "ignore": ["A'", "C5", "C7"]
         }
     },
+    "laser": {
+        "port": "COM10",
+        "baudrate": 9600,
+        "plot_settings": {
+            "xlim_sec": 60,
+            "smoothing_sec": 0.5
+        }
+    },
     "motors": {
         "C_UV_HWP": {
             "typ": "Elliptec",
