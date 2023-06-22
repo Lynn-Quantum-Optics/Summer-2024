@@ -83,7 +83,7 @@ def train_nn1h():
         X_train, Y_train,
         batch_size = wandb.config.batch_size,
         validation_data=(X_test,Y_test),
-        epochs=wandb.config.epochs,
+        epochs=100,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
@@ -93,14 +93,14 @@ def train_nn3h():
     wandb.init(config=nn3h_sweep_config) # initialize wandb client
 
     
-    def build_model(size1, size2, size3, dropout, learning_rate):
+    def build_model(size1, size2, size3, learning_rate):
         model = Sequential()
 
         model.add(layers.Dense(size1))
         model.add(layers.Dense(size2))
         model.add(layers.Dense(size3))
 
-        model.add(layers.Dropout(dropout))
+        # model.add(layers.Dropout(dropout))
 
         # return len of class size
         model.add(layers.Dense(len(Y_train[0])))
@@ -111,15 +111,14 @@ def train_nn3h():
 
         return model
     
-    model = build_model(wandb.config.size_1,  wandb.config.size_2, wandb.config.size_3, 
-              wandb.config.dropout, wandb.config.learning_rate)
+    model = build_model(wandb.config.size_1,  wandb.config.size_2, wandb.config.size_3, wandb.config.learning_rate)
     
     # now train
     history = model.fit(
         X_train, Y_train,
         batch_size = wandb.config.batch_size,
         validation_data=(X_test,Y_test),
-        epochs=wandb.config.epochs,
+        epochs=100,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
@@ -129,7 +128,7 @@ def train_nn5h():
     wandb.init(config=nn5h_sweep_config) # initialize wandb client
 
     
-    def build_model(size1, size2, size3, size4, size5, dropout, learning_rate):
+    def build_model(size1, size2, size3, size4, size5, learning_rate):
         model = Sequential()
 
         model.add(layers.Dense(size1))
@@ -138,7 +137,7 @@ def train_nn5h():
         model.add(layers.Dense(size4))
         model.add(layers.Dense(size5))
 
-        model.add(layers.Dropout(dropout))
+        # model.add(layers.Dropout(dropout))
 
         # return len of class size
         model.add(layers.Dense(len(Y_train[0])))
@@ -150,15 +149,14 @@ def train_nn5h():
         return model
     
     model = build_model(wandb.config.size_1,  wandb.config.size_2, wandb.config.size_3, 
-              wandb.config.size_4, wandb.config.size_5, 
-              wandb.config.dropout, wandb.config.learning_rate)
+              wandb.config.size_4, wandb.config.size_5, wandb.config.learning_rate)
     
     # now train
     history = model.fit(
         X_train, Y_train,
         batch_size = wandb.config.batch_size,
         validation_data=(X_test,Y_test),
-        epochs=wandb.config.epochs,
+        epochs=100,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
@@ -175,7 +173,7 @@ if __name__=='__main__':
 
     # load data here
     DATA_PATH = 'random_gen/data'
-    X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, savename=savename, input_method=input_method, task=task)
+    X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
 
     ## sweep configs ##
     if task=='w':
@@ -183,10 +181,10 @@ if __name__=='__main__':
         "method": "bayes",
         "metric": {"name": "val_loss", "goal": "minimize"},
         "parameters": {
-            "max_depth": {"distribution": "int_uniform", "min":  3, "max": 10},
-            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
-            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 8500},
-            "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
+            "max_depth": {"distribution": "int_uniform", "min":  3, "max": 20},
+            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.5},
+            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 10000},
+            "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 40}
         },
         }
 
@@ -195,11 +193,6 @@ if __name__=='__main__':
         'name': 'val_accuracy',
         'goal': 'maximize',
         'parameters':{
-        'epochs': {
-        'distribution': 'int_uniform',
-        'min': 20,
-        'max': 100
-        },
         # for build_dataset
         'batch_size': {
         'values': [x for x in range(256, 513, 32)]
@@ -213,7 +206,7 @@ if __name__=='__main__':
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.04
+            'max': 0.5
         }
         },
         }
@@ -223,39 +216,34 @@ if __name__=='__main__':
         'name': 'val_accuracy',
         'goal': 'maximize',
         'parameters':{
-        'epochs': {
-            'distribution': 'int_uniform',
-            'min': 20,
-            'max': 100
-        },
         # for build_dataset
         'batch_size': {
         'values': [x for x in range(256, 513, 32)]
         },
         'size_1': {
         'distribution': 'int_uniform',
-        'min': 64,
-        'max': 512
+        'min': 5,
+        'max': 300
         },
         'size_2': {
         'distribution': 'int_uniform',
-        'min': 64,
-        'max': 512
+        'min': 5,
+        'max': 300
         },'size_3': {
         'distribution': 'int_uniform',
-        'min': 64,
-        'max': 512,
+        'min': 5,
+        'max': 300,
         },
-        'dropout': {
-        'distribution': 'uniform',
-        'min': 0,
-        'max': 0.6
-        },
+        # 'dropout': {
+        # 'distribution': 'uniform',
+        # 'min': 0,
+        # 'max': 0.6
+        # },
         'learning_rate':{
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.04
+            'max': 0.5
         }
         },
         }
@@ -266,47 +254,42 @@ if __name__=='__main__':
             'goal': 'maximize',
             'metric':'val_accuracy',
         'parameters':{
-            'epochs': {
-            'distribution': 'int_uniform',
-            'min': 20,
-            'max': 100
-            },
             # for build_dataset
             'batch_size': {
             'values': [x for x in range(256, 513, 32)]
             },
             'size_1': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },
             'size_2': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },'size_3': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },'size_4': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },'size_5': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },
-            'dropout': {
-            'distribution': 'uniform',
-            'min': 0,
-            'max': 0.6
-            },
+            # 'dropout': {
+            # 'distribution': 'uniform',
+            # 'min': 0,
+            # 'max': 0.6
+            # },
             'learning_rate':{
                 #uniform distribution between 0 and 1
                 'distribution': 'uniform', 
                 'min': 1e-5,
-                'max': 0.04
+                'max': 0.5
             }
         },
         }
@@ -346,7 +329,7 @@ if __name__=='__main__':
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.04
+            'max': 0.5
         }
         },
         }
@@ -367,17 +350,17 @@ if __name__=='__main__':
         },
         'size_1': {
         'distribution': 'int_uniform',
-        'min': 64,
-        'max': 512
+        'min': 5,
+        'max': 300
         },
         'size_2': {
         'distribution': 'int_uniform',
-        'min': 64,
-        'max': 512
+        'min': 5,
+        'max': 300
         },'size_3': {
         'distribution': 'int_uniform',
-        'min': 64,
-        'max': 512,
+        'min': 5,
+        'max': 300,
         },
         'dropout': {
         'distribution': 'uniform',
@@ -388,7 +371,7 @@ if __name__=='__main__':
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.04
+            'max': 0.5
         }
         },
         }
@@ -410,25 +393,25 @@ if __name__=='__main__':
             },
             'size_1': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },
             'size_2': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },'size_3': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },'size_4': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },'size_5': {
             'distribution': 'int_uniform',
-            'min': 64,
-            'max': 512
+            'min': 5,
+            'max': 300
             },
             'dropout': {
             'distribution': 'uniform',

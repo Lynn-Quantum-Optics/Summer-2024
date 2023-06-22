@@ -67,7 +67,7 @@ if __name__ == '__main__':
     MPATHS = [SH0_PATH, SH2_PATH, PH0_PATH, PH2_PATH]
     DATA_PATH = 'random_gen/data'
 
-    model_names = ['XGB', 'NN3', 'NN5']
+    model_names = ['XGB', 'NN1', 'NN3', 'NN5']
 
     def load_perf():
        
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         m = ['s_h0', 's_h2', 'p_h0', 'p_h2']
         ew = input('Enter w for witness, e for entangled: ')
 
-        assert mtl in [0,1, 2, 3], f'Invalid input. Must be 0 or 1. You entered {mtl}'
+        assert mtl in [0,1, 2, 3], f'Invalid input. Must be 0, 1, 2, or 3. You entered {mtl}'
         assert ew in ['w', 'e'], f'Invalid input. Must be w or e. You entered {ew}'
 
         if mtl < 2: # stokes
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             input_method = 'stokes_%i'%im
 
         else: # prob
-            im = int(input('You have loaded prob model {m[mtl]}. What input_method? Enter the num of probabilities: '))
+            im = int(input(f'You have loaded prob model {m[mtl]}. What input_method? Enter the num of probabilities: '))
             assert im in [3, 5, 6, 9, 12, 15], f'Invalid input. You entered {im}'
 
 
@@ -110,9 +110,9 @@ if __name__ == '__main__':
             models = [xgb, nn1, nn3, nn5]
 
             if m[mtl]=='p_h2':
-                file_split = [('hurwitz_True_all_4400000_b0_method_2.csv', 1), ('hurwitz_True_all_4400000_b0_method_0.csv', 0), ('hurwitz_True_all_4400000_b0_method_1.csv', 0)]
+                file_split = [('hurwitz_True_4400000_b0_method_2.csv', 1), ('hurwitz_True_4400000_b0_method_0.csv', 0), ('hurwitz_True_4400000_b0_method_1.csv', 0)]
             elif m[mtl]=='p_h0':
-                file_split = [('hurwitz_True_all_4400000_b0_method_0.csv', 1), ('hurwitz_True_all_4400000_b0_method_1.csv', 0), ('hurwitz_True_all_4400000_b0_method_2.csv', 0)]
+                file_split = [('hurwitz_True_4400000_b0_method_0.csv', 1), ('hurwitz_True_4400000_b0_method_1.csv', 0), ('hurwitz_True_4400000_b0_method_2.csv', 0)]
 
             input_method = 'prob_%i'%im
 
