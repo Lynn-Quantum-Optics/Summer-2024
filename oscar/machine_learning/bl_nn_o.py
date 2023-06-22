@@ -16,7 +16,8 @@ def prepare_data(df_path_ls, random_seed, p): # do target prep is binary. p is w
     print('preparing data.....')
     df_ls = []
     for df_path in df_path_ls:
-        df_ls.append(pd.read_csv(join(DATA_PATH, df_path)))
+        if df_path.endswith('.csv'):
+            df_ls.append(pd.read_csv(join(DATA_PATH, df_path)))
     
     df = pd.concat(df_i for df_i in df_ls)
     df = df.sample(frac=1, random_state=random_seed).reset_index() # randomize rows
@@ -166,6 +167,9 @@ def evaluate_perf(model):
             N_correct_train+=1
     Ud = Y_test.sum(axis=1) # undetectables: count the number of states w negative witness value
     return [N_correct_test / (len(Y_pred_test) - len(Ud[Ud==0])), N_correct_train / (len(Y_pred_train) - len(Ud[Ud==0]))] # return both the test and train results
+
+
+df = prepare_data()
 
 ## for testing single state ##
 # prepare_data(df_path_ls, 0)

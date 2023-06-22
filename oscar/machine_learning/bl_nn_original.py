@@ -62,6 +62,9 @@ def witness_loss_fn(y_true, y_pred):
     # y_pred is a 1 by batch size tensor with all the predicted values for each state
     # y_true is a 3 by batch size tensor, with the three ground truth outputs per state
 
+    print(y_true, y_true.shape)
+    print(y_pred, y_pred.shape)
+
     batchsize = y_true.shape[0]
     
     
@@ -91,8 +94,11 @@ def get_dataset(dataset):
     # split into input (X) and output (y) variables
     # X = dataset.loc[:,'HH probability':'LL probability']
     # y = dataset.loc[:,'XY min': 'XZ min']
-    X = dataset.loc[:, 'HH': 'LL']
-    y = dataset.loc[:, 'Wp_t1': 'Wp_t3']
+    X = dataset[['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL']].to_numpy()
+    y = dataset[['Wp_t1', 'Wp_t2', 'Wp_t3']]
+    # y = y.applymap(lambda x: 1 if x < 0 else 0)
+    y = y.to_numpy()
+    print(X.shape, y.shape)
     return X, y
 
 # get the model, in this case there n_inputs = 12, n_outputs = 3
@@ -182,7 +188,7 @@ this is a pretty big dataset but this technique can still be pretty useful
 
 data_method0 = 'random_gen/data/hurwitz_True_4400000_b0_method_0.csv'
 df= pd.read_csv(data_method0)
-df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
+df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))].reset_index()
 
 # df_1 = pd.read_csv(data_1)
 # df = pd.read_csv(data_2)
@@ -195,6 +201,8 @@ df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']
 
 #load dataset
 X, y = get_dataset(df)
+print(X)
+print(y)
 
 
 tuner = keras_tuner.RandomSearch(
@@ -207,10 +215,12 @@ tuner = keras_tuner.RandomSearch(
     # project_name="helloworld",
 )
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
-tuner.search(X_train, y_train, epochs=5, validation_data = (X_val, y_val))
+print(y_train)
 
-models = tuner.get_best_models(num_models=5)
-best_hps = tuner.get_best_hyperparameters(20)
+tuner.search(X_train, y_train, epochs=2, validation_data = (X_val, y_val))
+
+models = tuner.get_best_models(num_models=2)
+best_hps = tuner.get_best_hyperparameters(2)
 model = get_model(best_hps[0])
 
 model.fit(X,y, epochs=100)
