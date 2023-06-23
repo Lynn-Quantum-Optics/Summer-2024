@@ -493,7 +493,7 @@ if __name__=='__main__':
         results = [result for result in results if result is not None] 
 
         ## save to df ##
-        columns = ['state', 'bad', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
+        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
         decomp_df = pd.DataFrame.from_records(results, columns=columns)
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
@@ -669,7 +669,7 @@ if __name__=='__main__':
             plot()
 
 
-    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2 to test eritas states on ca'))
+    resp = int(input('0 to run decomp_ex_all or 1 to tune gd '))
     
     ## test states and get average fidelity ##
     if resp == 0:
@@ -688,7 +688,7 @@ if __name__=='__main__':
         num_random = int(input('number of random states to generate? '))
         savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
         debug = bool(int(input('debug?')))
-        print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik, num_random)
+        print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik, num_random, debug)
 
         do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random, debug=debug, adapt=adapt)
 
