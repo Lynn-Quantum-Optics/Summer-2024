@@ -92,21 +92,21 @@ def compute_proj(basis1, basis2, rho):
     # get projection operators
     proj1 = basis1 @ adjoint(basis1)
     proj2 = basis2 @ adjoint(basis2)
-
-    # print(np.kron(proj1, proj2))
+    # compute projection
     return np.real(np.trace(np.kron(proj1, proj2)@rho))
 
 def get_all_projs(rho):
     ''' Computes all 36 projections for a given density matrix rho'''
 
     # define the single bases for projection
-    # H = np.array([[1,0],[0,0]])
+   # -- old -- #
+    # H = np.array([[1,0],[0,0]]) 
     # V = np.array([[0,0],[0,1]])    
     # D = np.array([[1/2,1/2],[1/2,1/2]])
     # A = np.array([[1/2,-1/2],[-1/2,1/2]])
     # R = np.array([[1/2,-1j/2],[1j/2,1/2]])
     # L = np.array([[1/2,1j/2],[-1j/2,1/2]])
-
+    # ------- #
     H = np.array([[1], [0]])
     V = np.array([[0], [1]])
     D = np.array([[1], [1]])/np.sqrt(2)
@@ -197,12 +197,6 @@ def reconstruct_rho(all_projs):
 
     return rho/4 # scale by 4 to get the correct density matrix
 
-        # for i in trange(100):
-        #     rho = get_random_hurwitz()
-        #     rho_prob= get_all_projs(rho)
-        #     rho_recon = reconstruct_rho(rho_prob)
-        #     fidelity_ls.append(get_fidelity(rho, rho_recon))
-
 def test_reconstruct_rho(rho):
     ''' Test the reconstruction of the density matrix using the stokes parameters calculated directly from the density matrix.'''
     S = get_expec_vals(rho)
@@ -221,102 +215,15 @@ def test_reconstruct_rho(rho):
 
     return rho/4 # scale by 4 to get the correct density matrix
 
-def get_9s_projections(rho):
-    ''' Computes 9 projections based on the standard projection'''
-    ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
-    H = np.array([[1,0]]).reshape(2,1) # ZP
-    V = np.array([[0,1]]).reshape(2,1) # ZM
-    D = 1/np.sqrt(2) * np.array([[1,1]]).reshape(2,1) # XP
-    A = 1/np.sqrt(2) * np.array([[1,-1]]).reshape(2,1) # XM
-    R = 1/np.sqrt(2) * np.array([[1,1j]]).reshape(2,1) # YP
-    L = 1/np.sqrt(2) * np.array([[1,-1j]]).reshape(2,1) # YM
-
-    HH = compute_proj(H, H, rho)
-    HV = compute_proj(H, V, rho)
-    # VH = compute_proj(V, H, rho)
-    VV = compute_proj(V, V, rho)
-    DD = compute_proj(D, D, rho)
-    DA = compute_proj(D, A, rho)
-    # AD = compute_proj(A, D, rho)
-    AA = compute_proj(A, A, rho)
-    RR = compute_proj(R, R, rho)
-    RL = compute_proj(R, L, rho)
-    # LR = compute_proj(L, R, rho)
-    LL = compute_proj(L, L, rho)
-
-    # return HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL
-    return HH, HV, VV, DD, DA, AA, RR, RL, LL
-
-def get_12s_redundant_projections(rho):
-    ''' Computes 12 projections based on the standard projection'''
-
-     ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
-    H = np.array([[1,0]]).reshape(2,1) # ZP
-    V = np.array([[0,1]]).reshape(2,1) # ZM
-    D = 1/np.sqrt(2) * np.array([[1,1]]).reshape(2,1) # XP
-    A = 1/np.sqrt(2) * np.array([[1,-1]]).reshape(2,1) # XM
-    R = 1/np.sqrt(2) * np.array([[1,1j]]).reshape(2,1) # YP
-    L = 1/np.sqrt(2) * np.array([[1,-1j]]).reshape(2,1) # YM
-
-    HH = compute_proj(H, H, rho)
-    HV = compute_proj(H, V, rho)
-    VH = compute_proj(V, H, rho)
-    VV = compute_proj(V, V, rho)
-    DD = compute_proj(D, D, rho)
-    DA = compute_proj(D, A, rho)
-    AD = compute_proj(A, D, rho)
-    AA = compute_proj(A, A, rho)
-    RR = compute_proj(R, R, rho)
-    RL = compute_proj(R, L, rho)
-    LR = compute_proj(L, R, rho)
-    LL = compute_proj(L, L, rho)
-
-    return HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL
-    
-
-def get_16s_projections(rho):
-    ''' Computes 16 projections based on the standard projection; choice of bases is motivated by Roik et al'''
-    ## define the single qubit bases for projection: still want our input vectors to be these probabilities ##
-    H = np.array([[1,0]]).reshape(2,1) # ZP
-    V = np.array([[0,1]]).reshape(2,1) # ZM
-    D = 1/np.sqrt(2) * np.array([[1,1]]).reshape(2,1) # XP
-    A = 1/np.sqrt(2) * np.array([[1,-1]]).reshape(2,1) # XM
-    R = 1/np.sqrt(2) * np.array([[1,1j]]).reshape(2,1) # YP
-    L = 1/np.sqrt(2) * np.array([[1,-1j]]).reshape(2,1) # YM
-
-    HH = compute_proj(H, H, rho)
-    VV = compute_proj(V, V, rho)
-    HV = compute_proj(H, V, rho)
-
-    DD = compute_proj(D, D,rho)
-    AA = compute_proj(A, A,rho)
-
-    RR = compute_proj(R,R, rho)
-    LL = compute_proj(L, L,rho)
-
-    DL = compute_proj(D,L, rho)
-    AR = compute_proj(A,R, rho)
-    DH = compute_proj(D,H, rho)
-    AV = compute_proj(A,V, rho)
-    LH = compute_proj(L,H, rho)
-    RV = compute_proj(R,V, rho)
-
-    DR = compute_proj(D,R, rho)
-    DV = compute_proj(D,V, rho)
-    LV = compute_proj(L,V, rho)
-
-    return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
-
-
-def compute_roik_proj(basis1, basis2, M0):
+def compute_roik_proj(basis1, basis2, rho):
         ''' Computes projection into desired bases as in the Roik et al paper'''
         Bell_singlet = np.matrix([[0, 0, 0, 0], [0, .5, -.5, 0], [0, -0.5, .5, 0], [0, 0, 0, 0]])
 
-        M0_swapped = M0.copy() # swap the subsystems A and B
-        M0_swapped[:, 1] = M0[:, 2]
-        M0_swapped[:, 2] = M0[:, 1]
+        rho_swapped = rho.copy() # swap the subsystems A and B
+        rho_swapped[:, 1] = rho[:, 2]
+        rho_swapped[:, 2] = rho[:, 1]
 
-        M_T = np.kron(M0, M0_swapped)
+        M_T = np.kron(rho, rho_swapped)
         num = M_T @ np.kron(np.kron(basis1, Bell_singlet), basis2)
         denom = M_T @ np.kron(np.kron(basis1, np.eye(4)), basis2)
 
@@ -325,7 +232,7 @@ def compute_roik_proj(basis1, basis2, M0):
         except ZeroDivisionError:
             return 0
 
-def get_all_roik_projections(M0):
+def get_all_roik_projections(rho):
     ''' Computes the 16 projections as defined in Roik et al'''
 
     # define the single bases for projection
@@ -336,26 +243,26 @@ def get_all_roik_projections(M0):
     R = np.array([[1/2,1j/2],[-1j/2,1/2]])
     L = np.array([[1/2,-1j/2],[1j/2,1/2]])
 
-    HH = compute_roik_proj(H, H, M0)
-    VV = compute_roik_proj(V, V, M0)
-    HV = compute_roik_proj(H, V, M0)
+    HH = compute_roik_proj(H, H, rho)
+    VV = compute_roik_proj(V, V, rho)
+    HV = compute_roik_proj(H, V, rho)
 
-    DD = compute_roik_proj(D, D, M0)
-    AA = compute_roik_proj(A, A, M0)
+    DD = compute_roik_proj(D, D, rho)
+    AA = compute_roik_proj(A, A, rho)
 
-    RR = compute_roik_proj(R,R, M0)
-    LL = compute_roik_proj(L, L, M0)
+    RR = compute_roik_proj(R,R, rho)
+    LL = compute_roik_proj(L, L, rho)
 
-    DL = compute_roik_proj(D,L, M0)
-    AR = compute_roik_proj(A,R, M0)
-    DH = compute_roik_proj(D,H, M0)
-    AV = compute_roik_proj(A,V, M0)
-    LH = compute_roik_proj(L,H, M0)
-    RV = compute_roik_proj(R,V, M0)
+    DL = compute_roik_proj(D,L, rho)
+    AR = compute_roik_proj(A,R, rho)
+    DH = compute_roik_proj(D,H, rho)
+    AV = compute_roik_proj(A,V, rho)
+    LH = compute_roik_proj(L,H, rho)
+    RV = compute_roik_proj(R,V, rho)
 
-    DR = compute_roik_proj(D,R, M0)
-    DV = compute_roik_proj(D,V, M0)
-    LV = compute_roik_proj(L,V, M0)
+    DR = compute_roik_proj(D,R, rho)
+    DV = compute_roik_proj(D,V, rho)
+    LV = compute_roik_proj(L,V, rho)
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
@@ -416,16 +323,12 @@ def compute_witnesses(rho, do_stokes=False):
             theta, alpha, beta = params[0], params[1], params[2]
             return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[0,1] + expec_vals[3,1]) + np.sin(theta)**2*np.sin(2*beta)*(expec_vals[0,1] - expec_vals[3,1]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[1,0] + expec_vals[1,3])+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[1,0] - expec_vals[1,3])))
 
-        # print('rho', rho)
-        # print('expec vals', expec_vals)
-        # print('testing W', get_W2(np.pi, expec_vals))
-
         # now perform optimization; break into three groups based on the number of params to optimize
         all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
         W_expec_vals = []
         for i, W in enumerate(all_W):
-            if i <= 5: # just theta optimization
-                W_expec_vals.append(minimize(W, x0=[0], args = (expec_vals,), bounds=[(0, np.pi/2)])['fun']) # gave an error with [0] after ['fun']
+            if i <= 5: # just theta optimization: the discrepancy was with the bound of theta being actally pi and not pi/2
+                W_expec_vals.append(minimize(W, x0=[0], args = (expec_vals,), bounds=[(0, np.pi)])['fun']) # gave an error with [0] after ['fun']
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     W_expec_vals.append(minimize(W, x0=[0, 0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
             else:# theta and alpha
@@ -443,29 +346,139 @@ def compute_witnesses(rho, do_stokes=False):
 
         return W_min, Wp_t1, Wp_t2, Wp_t3
 
-    else: # use operators instead
-        pass
+    else: # use operators instead like in eritas's matlab code
+        # bell states #
+        PHI_P = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
+        PHI_M = np.array([1/np.sqrt(2), 0, 0, -1/np.sqrt(2)]).reshape((4,1))
+        PSI_P = np.array([0, 1/np.sqrt(2),  1/np.sqrt(2), 0]).reshape((4,1))
+        PSI_M = np.array([0, 1/np.sqrt(2),  -1/np.sqrt(2), 0]).reshape((4,1))
+        # column vectors
+        HH = np.array([1, 0, 0, 0]).reshape((4,1))
+        HV = np.array([0, 1, 0, 0]).reshape((4,1))
+        VH = np.array([0, 0, 1, 0]).reshape((4,1))
+        VV = np.array([0, 0, 0, 1]).reshape((4,1))
+
+        # get the operators
+        # take rank 1 projector and return witness
+        def get_witness(phi):
+            ''' Helper function to compute the witness operator for a given state and return trace(W*rho) for a given state rho.'''
+            W = phi * adjoint(phi)
+            W = partial_transpose(W) # take partial transpose
+            return np.real(np.trace(W @ rho))
+
+        ## ------ for W ------ ##
+        def get_W1(param):
+            a,b = np.cos(param), np.sin(param)
+            phi1 = a*PHI_P + b*PHI_M
+            return get_witness(phi1)
+        def get_W2(param):
+            a,b = np.cos(param), np.sin(param)
+            phi2 = a*PSI_P + b*PSI_M
+            return get_witness(phi2)
+        def get_W3(param):
+            a,b = np.cos(param), np.sin(param)
+            phi3 = a*PHI_P + b*PSI_P
+            return get_witness(phi3)
+        def get_W4(param):
+            a,b = np.cos(param), np.sin(param)
+            phi4 = a*PHI_M + b*PSI_M
+            return get_witness(phi4)
+        def get_W5(param):
+            a,b = np.cos(param), np.sin(param)
+            phi5 = a*PHI_P + 1j*b*PSI_M
+            return get_witness(phi5)
+        def get_W6(param):
+            a,b = np.cos(param), np.sin(param)
+            phi6 = a*PHI_M + 1j*b*PSI_P
+            return get_witness(phi6)
+
+        ## ------ for W' ------ ##
+        def get_Wp1(params):
+            theta, alpha = params[0], params[1]
+            phi1_p = np.cos(theta)*PHI_P + np.exp(1j*alpha)*np.sin(theta)*PHI_M
+            return get_witness(phi1_p)
+        def get_Wp2(params):
+            theta, alpha = params[0], params[1]
+            phi2_p = np.cos(theta)*PSI_P + np.exp(1j*alpha)*np.sin(theta)*PSI_M
+            return get_witness(phi2_p)
+        def get_Wp3(params):
+            theta, alpha, beta = params[0], params[1], params[2]
+            phi3_p = 1/np.sqrt(2) * (np.cos(theta)*HH + np.exp(1j*(beta - alpha))*np.sin(theta)*HV + np.exp(1j*alpha)*np.sin(theta)*VH + np.exp(1j*beta)*np.cos(theta)*VV)
+            return get_witness(phi3_p)
+        def get_Wp4(params):
+            theta, alpha = params[0], params[1]
+            phi4_p = np.cos(theta)*PHI_P + np.exp(1j*alpha)*np.sin(theta)*PSI_P
+            return get_witness(phi4_p)
+        def get_Wp5(params):
+            theta, alpha = params[0], params[1]
+            phi5_p = np.cos(theta)*PHI_M + np.exp(1j*alpha)*np.sin(theta)*PSI_M
+            return get_witness(phi5_p)
+        def get_Wp6(params):
+            theta, alpha, beta = params[0], params[1], params[2]
+            phi6_p = np.cos(theta)*np.cos(alpha)*HH + 1j * np.cos(theta)*np.sin(alpha)*HV + 1j * np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
+            return get_witness(phi6_p)
+        def get_Wp7(params):
+            theta, alpha = params[0], params[1]
+            phi7_p = np.cos(theta)*PHI_P + np.exp(1j*alpha)*np.sin(theta)*PSI_M
+            return get_witness(phi7_p)
+        def get_Wp8(params):
+            theta, alpha = params[0], params[1]
+            phi8_p = np.cos(theta)*PHI_M + np.exp(1j*alpha)*np.sin(theta)*PSI_P
+            return get_witness(phi8_p)
+        def get_Wp9(params):
+            theta, alpha, beta = params[0], params[1], params[2]
+            phi9_p = np.cos(theta)*np.cos(alpha)*HH + np.cos(theta)*np.sin(alpha)*HV + np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
+            return get_witness(phi9_p)
+        
+        # get the witness values by minimizing the witness function
+        all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
+        W_expec_vals = []
+        for i, W in enumerate(all_W):
+            if i <= 5: # just theta optimization
+                W_expec_vals.append(minimize(W, x0=[0], bounds=[(0, np.pi)])['fun']) # gave an error with [0] after ['fun']
+            elif i==8 or i==11 or i==14: # theta, alpha, and beta
+                    W_expec_vals.append(minimize(W, x0=[0, 0, 0], bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
+            else:# theta and alpha
+                W_expec_vals.append(minimize(W, x0=[0, 0], bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
+        
+        # find min W expec value; this tells us if first 12 measurements are enough #
+        W_min = np.real(min(W_expec_vals[:6]))
+
+        Wp_t1 = np.real(min(W_expec_vals[6:9]))
+        Wp_t2 = np.real(min(W_expec_vals[9:12]))
+        Wp_t3 = np.real(min(W_expec_vals[12:15]))
+
+        return W_min, Wp_t1, Wp_t2, Wp_t3
 
 
 ##############################################
 ## for entanglement verification ##
+def partial_transpose(rho, subsys='B'):
+    ''' Helper function to compute the partial transpose of a density matrix. Useful for the Peres-Horodecki criterion, which states that if the partial transpose of a density matrix has at least one negative eigenvalue, then the state is entangled.
+    Params:
+        rho: density matrix
+        subsys: which subsystem to compute partial transpose wrt, i.e. 'A' or 'B'
+    '''
+    # decompose rho into blocks
+    b1 = rho[:2, :2]
+    b2 = rho[:2, 2:]
+    b3 = rho[2:, :2]
+    b4 = rho[2:, 2:]
 
-def get_min_eig(M0):
+    PT = np.matrix(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
+
+    if subsys=='B':
+        return PT
+    elif subsys=='A':
+        return PT.T
+
+def get_min_eig(rho):
     '''
     Computes the eigenvalues of the partial transpose; if at least one is negative, then state labeled as '0' for entangled; else, '1'. 
     '''
-    def partial_transpose():
-        # decompose M0 into blocks
-        b1 = M0[:2, :2]
-        b2 = M0[:2, 2:]
-        b3 = M0[2:, :2]
-        b4 = M0[2:, 2:]
-
-        PT = np.matrix(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
-        return PT
 
     # compute partial tranpose
-    PT = partial_transpose()
+    PT = partial_transpose(rho)
     eigenvals = la.eigvals(PT)
     eigenvals.sort() # sort
 

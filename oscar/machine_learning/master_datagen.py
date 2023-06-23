@@ -12,17 +12,18 @@ from rho_methods import *
 from random_gen import *
 from jones import *
 
-def gen_rand_info(func, return_prob, verbose=True):
+def gen_rand_info(func, return_prob, do_stokes=False, verbose=True):
     ''' Function to compute random state based on imput method and return measurement projections, witness values, concurrence, and purity.
         params:
             func: function to generate random state
             return_prob: bool, whether to return all 36 probabilities or 15 stokes's parameters
+            do_stokes: bool, whether to use stokes's params to calc witnesses or operator
             verbose: bool, whether to print progress
     '''
 
     # generate random state
     rho = func()
-    W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
+    W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho, do_stokes=do_stokes)
     concurrence = get_concurrence(rho)
     purity = get_purity(rho)
     if verbose: print(f'made state with concurrence {concurrence} and purity {purity}')
@@ -71,7 +72,7 @@ def gen_rand_info(func, return_prob, verbose=True):
 
         return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
 
-def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=True):
+def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=False, verbose=True):
     ''' Fuction to build a dataset of randomly generated states.
     params:
         random_method: string, either 'simplex', 'jones_I','jones_C' or 'random'
@@ -105,7 +106,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, verbose=True
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
-    inputs = [(func, return_prob, verbose) for _ in range(num_to_gen)]
+    inputs = [(func, return_prob, do_stokes, verbose) for _ in range(num_to_gen)]
     results = pool.starmap_async(gen_rand_info, inputs).get()
 
     ## end multiprocessing ##
@@ -132,6 +133,7 @@ if __name__=='__main__':
     else:
         random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', or 'hurwitz': ")
         return_prob = bool(int(input("Return probabilities (1) or stokes's parameters (0): ")))
+        do_stokes = bool(int(input("Do stokes's parameters (1) or operators (0) to calculate witnesses: ")))
         num_to_gen = int(input("Enter number of states to generate: "))
         special = input("Enter special name for file: ")
         datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
@@ -148,6 +150,6 @@ if __name__=='__main__':
     else:
         savename = join('random_gen', 'test', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
 
-    print(f'{random_method}, {return_prob}, {num_to_gen}, {special}')
+    print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {do_stokes}')
 
-    build_dataset(random_method, return_prob, num_to_gen, savename)
+    build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes)
