@@ -1,7 +1,7 @@
 from core import Manager, analysis
 import numpy as np
 import math
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 """
@@ -21,7 +21,7 @@ Check with full tomography at the very end (look into previous scripts)
 def QP_sweep(m:Manager, u1, b1):
 
     # set the output file for manager
-    m.new_output("QP_sweep1.csv")
+    m.new_output("QP_sweep.csv")
 
     # set the creation state to phi plus
     print(m.time, "Setting creation state to phi plus")
@@ -48,29 +48,29 @@ def QP_sweep(m:Manager, u1, b1):
     # find new method for shutting down in alec's code
 
     # take the counts of the quartz sweep at each angle and find the index of the minimum data point
-    QP_counts = data["C4 rate (#/s)"]
+    QP_counts = data["C4"]
     min_ind = 0
     for i in range(len(QP_counts)):
         if QP_counts[i] == min(QP_counts):
             min_ind = i
     
 
-    new_guess = data["C_QP position (deg)"][min_ind]
+    new_guess = data["C_QP"][min_ind]
     RANGE = 5
 
     min_bound = 0
     max_bound = len(QP_counts)
 
     for i in range(len(QP_counts)):
-        if data["C_QP position (deg)"][i] <= new_guess - RANGE:
+        if data["C_QP"][i] <= new_guess - RANGE:
             min_bound = i
-        if data["C_QP position (deg)"][i] <= new_guess + RANGE:
+        if data["C_QP"][i] <= new_guess + RANGE:
             max_bound = i
     
     # create new truncated data set using min_bound and max_bound
     fit_data = QP_counts[min_bound:max_bound]
-    fit_angles = data["C_QP position (deg)"][min_bound:max_bound]
-    fit_unc = data["C4 rate SEM (#/s)"][min_bound:max_bound]
+    fit_angles = data["C_QP"][min_bound:max_bound]
+    fit_unc = data["C4_sem"][min_bound:max_bound]
     # perform a new sweep around the previous minimum data point
     # m.new_output("QP_sweep2.csv")
     # m.sweep("C_QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
@@ -90,6 +90,7 @@ def QP_sweep(m:Manager, u1, b1):
     plt.legend()
     plt.show()
 
+    print(args1)
     """
     basis preset:
     HWP = b + u / 2 from horizontal
@@ -140,8 +141,8 @@ def UVHWP_sweep(m:Manager, ratio):
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
 
-    args1, unc1, _ = analysis.fit('sin2', data1.C_UV_HWP, data1.C4, data1.C4_sem)
-    args2, unc2, _ = analysis.fit('sin2', data2.C_UV_HWP, data2.C4, data2.C4_sem)
+    args1, unc1, = analysis.fit('sin2', data1.C_UV_HWP, data1.C4, data1.C4_sem)
+    args2, unc2, = analysis.fit('sin2', data2.C_UV_HWP, data2.C4, data2.C4_sem)
     x = analysis.find_ratio('sin2', args1, 'sin2', args2, PCT1, data1.C_UV_HWP, GUESS)
 
     # print result
@@ -227,7 +228,9 @@ if __name__ == '__main__':
 
     m = Manager()
 
-    QP_sweep(m,u,b)
+    # QP_sweep(m,u,b)
+
+    m.C_QP.goto(17.33075)
 
     UVHWP_sweep(m, rate_ratio)
 
