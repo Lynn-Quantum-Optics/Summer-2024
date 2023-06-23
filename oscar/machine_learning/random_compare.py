@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from tqdm import trange
 
 from random_gen import *
+from rho_methods import *
 
 def compare_hurwitz(size=100):
     ''' compare my old def with roik and maziero implementation of hurwitz: in particular, how they deal with phi'''

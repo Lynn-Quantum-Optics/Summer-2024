@@ -48,7 +48,7 @@ def get_random_hurwitz(method=0, purity_cond = 1):
             (1) phi = arcsin(xi^1/2) for n in 1 to 6 or
             (2) phi = rand in [0, pi/2] for n in 1 to 6
             default is 0.
-        purity_condition: if not None, will generate random density matrix until purity is less than this value
+        purity_condition: default is 1; will generate random density matrix until purity is less than this value
     '''
     ## part 1: random diagonal elements ##
     def rand_diag():
@@ -74,7 +74,7 @@ def get_random_hurwitz(method=0, purity_cond = 1):
     def rand_unitary():
         # need to first generate 6 other smaller unitaries
         if method==1 or method==2:
-            def get_rand_elems(k):
+            def get_rand_elems():
                 alpha = np.random.rand()*2*np.pi
                 psi = np.random.rand()*2*np.pi
                 chi = np.random.rand()*2*np.pi
@@ -90,7 +90,7 @@ def get_random_hurwitz(method=0, purity_cond = 1):
             # loop and create unitaries from blocks
             unitary_final = np.eye(4, dtype=np.complex)
             for k in range(5, -1, -1): # count down to do multiplicatiom from right to left
-                sub_unitary_k = get_rand_elems(k)
+                sub_unitary_k = get_rand_elems()
                 if k==0 or k==3 or k==5:
                     unitary_k = np.matrix(np.block([[np.eye(2), np.zeros((2,2))], [np.zeros((2,2)), sub_unitary_k]]))
                 elif k==1 or k==4:
@@ -102,7 +102,8 @@ def get_random_hurwitz(method=0, purity_cond = 1):
                 else: # k==2
                     unitary_k = np.matrix(np.block([[sub_unitary_k, np.zeros((2,2))], [np.zeros((2,2)), np.eye(2)]]))
                 
-                unitary_final = unitary_final @ unitary_k
+                unitary_final = unitary_k @ unitary_final # this way correctly builds right to left
+                # unitary_final =  unitary_final @ unitary_k
         else: # method==0
             def get_U(i, j, k):
                 # get i phi and psi
