@@ -29,15 +29,16 @@ def init_state_bg(beta, gamma):
     ''' Initial polarization state matrix for angles beta, gamma: |psi> = cos(beta)|H> + e^(gamma*i)sin(beta)|V>'''
     return np.array([[np.cos(2*beta),0],[0,np.e**(gamma*1j)*np.sin(2*beta)]])
 # initial state for simple=False
-Is0 = init_state_bg(0,0)
+S0 = init_state_bg(0,0)
 
-def get_Jrho(angles, setup = 'C', check=False):
+def get_Jrho(angles, setup = 'C', check=False, bad=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
         setup: either 'C' for current setup or 'I' for ideal setup
        (i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP for C and I respectively
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
+        bad: boolean for whether to return U*Is_0 or U*Is_0 @ adjoint(U*Is_0) -- set to False by default.
     '''
 
     if setup == 'C':
@@ -66,8 +67,6 @@ def get_Jrho(angles, setup = 'C', check=False):
         Q_A = Q(A_alpha)
         
         U = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV
-        P = U @ Is0 @ adjoint(U)
-        rho = P @ adjoint(P)
 
     elif setup == 'I':
         ''' Jones matrix method with Ideal setup. Computes the rotated polarization state using the following setup:
@@ -101,9 +100,6 @@ def get_Jrho(angles, setup = 'C', check=False):
         Q_A2 = Q(alpha_A_ls[1])
 
         U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV
-        P = U @ Is0 @ adjoint(U)
-
-        rho = P @ adjoint(P)
 
     elif setup=='Ca':
         ''' Jones matrix with *almost* current setup, just adding one QWP on Alice. Computes the rotated polarization state using the following setup:
@@ -126,11 +122,15 @@ def get_Jrho(angles, setup = 'C', check=False):
         H_B = H(B_theta)
 
         U = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV
-        P = U @ Is0 @ adjoint(U)
-        rho = P @ adjoint(P)
 
     else:
         raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
+
+
+    # apply unitary
+    rho = U @ S0 @ adjoint(U)
+    
+
 
     ## return density matrix ##
     if check:
@@ -145,9 +145,12 @@ def get_Jrho(angles, setup = 'C', check=False):
 
 
 
-def get_random_Jangles(setup):
+def get_random_Jangles(setup, bad=False):
     ''' Returns random angles for the Jrho_C setup. Confirms that the density matrix is valid.
-    params: setup: either 'C' for current setup or 'I' for ideal setup
+    params: 
+        setup: either 'C' for current setup or 'I' for ideal setup
+        bad: boolean for whether to return U*Is_0 or U*Is_0 @ adjoint(U*Is_0) -- set to False by default.
+
     '''
 
     def get_angles():
@@ -190,22 +193,22 @@ def get_random_Jangles(setup):
 
     # confirm angles are valid #
     angles = get_angles()
-    while not(is_valid_rho(get_Jrho(angles=angles, setup=setup))):
+    while not(is_valid_rho(get_Jrho(angles=angles, setup=setup, bad=bad))):
         angles = get_angles()
     return angles
 
 
-def get_random_jones(setup='C', return_params=False):
+def get_random_jones(setup='C', bad=False, return_params=False):
     ''' Computes random angles in the ranges specified and generates the resulting states'''
     # get random angles
-    angles = get_random_Jangles(setup=setup)
+    angles = get_random_Jangles(setup=setup, bad=bad)
     # get density matrix
     rho = get_Jrho(setup=setup, angles=angles)
 
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, debug=False, verbose=True, epsilon=0.999, N = 10000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, debug=False, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 10000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -314,7 +317,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
                         x0 = get_random_Jangles(setup=setup)
                     else:
                         gradient = approx_fprime(grad_angles, loss_fidelity, epsilon=1e-8) # epsilon is step size in finite difference
-                        if verbose: print(gradient)
+                        # if verbose: print(gradient)
                         # update angles
                         x0 = [max_best_angles[i] - zeta*gradient[i] for i in range(len(max_best_angles))]
                         grad_angles = x0
@@ -364,7 +367,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, frac = 0.0
                 np.save(join('decomp', targ_name, setup, f'pred_rho_{n}_{max_best_fidelity}'), best_pred_rho)
                 np.save(join('decomp', targ_name, setup, f'targ_rho'), targ_rho)
 
-            return targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, best_pred_rho, targ_rho
+            return targ_name,setup, adapt, n, max_best_fidelity, max_best_angles, best_pred_rho, targ_rho
 
         else:
             return setup, frac, zeta, n, max_best_fidelity
@@ -393,7 +396,7 @@ if __name__=='__main__':
     from random_gen import *
 
 
-    def do_full_ex_decomp(setup,adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, savename='test') :
+    def do_full_ex_decomp(setup,adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, debug=False, savename='test') :
         ''' Run example decompositions using the C setup.
         Params:
             setup: 'C' or 'I' or 'B' for both.
@@ -401,6 +404,7 @@ if __name__=='__main__':
             savename: name of file to save results to
             bell: whether to include bell states
             num_random: number of random states to decompose
+            debug: whether to run in debug mode
             (optional) num_random: number of random states to decompose
         '''
         
@@ -456,7 +460,7 @@ if __name__=='__main__':
             print('generating random separable roik states...')
             states_roik_all = []
             for i in trange(num_random):
-                states_roik_all.append(get_random_roik(.95))
+                states_roik_all.append(get_random_hurwitz(.95))
             states_roik = [states_roik_all[i][0] for i in range(num_random)]
             states_roik_names = [f'roik_{states_roik_all[i][1]}' for i in range(num_random)]
 
@@ -467,18 +471,18 @@ if __name__=='__main__':
         # list to hold the parameters (i, setup, simple) to pass to the pool multiprocessing object
         decomp_ls = []
         for i in trange(len(states)):
-            if setup=='B':
+            if setup=='A':
                 for option in ['Ca', 'C','I']:
-                    decomp_ls.append((i, option, adapt))
+                    decomp_ls.append((i, option, adapt, debug))
             else:
-                decomp_ls.append((i, setup, adapt))
+                decomp_ls.append((i, setup, adapt,debug))
         
         print(decomp_ls)
 
         ## build multiprocessing pool ##
         pool = Pool(cpu_count())
 
-        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1], decomp_in[2], i) for  i, decomp_in in enumerate(decomp_ls)]        
+        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1], decomp_in[2], decomp_in[3]) for  decomp_in in decomp_ls]        
         results = pool.starmap_async(jones_decompose, inputs).get()
 
         ## end multiprocessing ##
@@ -489,7 +493,7 @@ if __name__=='__main__':
         results = [result for result in results if result is not None] 
 
         ## save to df ##
-        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
+        columns = ['state', 'bad', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
         decomp_df = pd.DataFrame.from_records(results, columns=columns)
         decomp_df.to_csv(join('decomp', savename+'.csv'))
 
@@ -669,23 +673,24 @@ if __name__=='__main__':
     
     ## test states and get average fidelity ##
     if resp == 0:
-        setup = input('Enter setup: C or I, or B for both')
-        assert setup in ['C', 'I', 'B', 'Ca'], f'invalid setup. you have {setup}'
-        adapt = int(input('0 for random hop, 1 for random fan, 2 for gradient descent'))
+        setup = input('Enter setup: Ca, C, I, or A ') 
+        assert setup in ['C', 'I', 'Ca', 'A'], f'invalid setup. you have {setup} '
+        adapt = int(input('0 for random hop, 1 for random fan, 2 for gradient descent '))
         assert adapt in [0, 1, 2], f'invalid adapt. you have {adapt}'
-        bell = bool(int(input('include bell states?')))
-        e0 = bool(int(input('include eritas 0 state?')))
-        e1 = bool(int(input('include eritas 1 state?')))
+        bell = bool(int(input('include bell states? ')))
+        e0 = bool(int(input('include eritas 0 state? ')))
+        e1 = bool(int(input('include eritas 1 state? ')))
         random = bool(int(input('include random states?')))
-        jones_C = bool(int(input('include jones states in C setup?')))
-        jones_I = bool(int(input('include jones states in I setup?')))
-        roik = bool(int(input('include roik states?')))
-        special = input('special name to append to file?')
-        num_random = int(input('number of random states to generate?'))
+        jones_C = bool(int(input('include jones states in C setup? ')))
+        jones_I = bool(int(input('include jones states in I setup? ')))
+        roik = bool(int(input('include roik states? ')))
+        special = input('special name to append to file? ')
+        num_random = int(input('number of random states to generate? '))
         savename = f'decomp_all_{bell}_{e0}_{e1}_{random}_{special}'
-        print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik)
+        debug = bool(int(input('debug?')))
+        print(setup, adapt, bell, e0, e1, random, jones_C, jones_I, roik, num_random)
 
-        do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random)
+        do_full_ex_decomp(setup=setup, bell=bell, e0=e0, e1=e1,random=random, jones_C = jones_C, jones_I = jones_I, roik=roik, savename=savename, num_random=num_random, debug=debug, adapt=adapt)
 
     elif resp==1:
          ## optimize gradient descent params, f and zeta ##
