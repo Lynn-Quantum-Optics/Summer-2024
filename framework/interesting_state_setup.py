@@ -21,7 +21,7 @@ Check with full tomography at the very end (look into previous scripts)
 def QP_sweep(m:Manager, u1, b1):
 
     # set the output file for manager
-    m.new_output("QP_sweep.csv")
+    m.new_output("QP_sweep1.csv")
 
     # set the creation state to phi plus
     print(m.time, "Setting creation state to phi plus")
@@ -38,7 +38,7 @@ def QP_sweep(m:Manager, u1, b1):
 
     # sweep the QP to determine the minimum count angle
     input("Ready to sweep. Press Enter to continue")
-    m.sweep("C_QP", 0, 25, 25, 5, 0.1)
+    m.sweep("C_QP", 0, 25, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -47,25 +47,46 @@ def QP_sweep(m:Manager, u1, b1):
     
     # find new method for shutting down in alec's code
 
-    # take the counts of the quartz sweep at each angle and find the minimum data point
-    QP_counts = data["C4"]
-    new_guess = data["C_QP"][min(QP_counts)]
+    # take the counts of the quartz sweep at each angle and find the index of the minimum data point
+    QP_counts = data["C4 rate (#/s)"]
+    min_ind = 0
+    for i in range(len(QP_counts)):
+        if QP_counts[i] == min(QP_counts):
+            min_ind = i
+    
+
+    new_guess = data["C_QP position (deg)"][min_ind]
     RANGE = 5
 
+    min_bound = 0
+    max_bound = len(QP_counts)
+
+    for i in range(len(QP_counts)):
+        if data["C_QP position (deg)"][i] <= new_guess - RANGE:
+            min_bound = i
+        if data["C_QP position (deg)"][i] <= new_guess + RANGE:
+            max_bound = i
+    
+    # create new truncated data set using min_bound and max_bound
+    fit_data = QP_counts[min_bound:max_bound]
+    fit_angles = data["C_QP position (deg)"][min_bound:max_bound]
+    fit_unc = data["C4 rate SEM (#/s)"][min_bound:max_bound]
     # perform a new sweep around the previous minimum data point
-    m.sweep("C_QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
+    # m.new_output("QP_sweep2.csv")
+    # m.sweep("C_QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
+    # instead, performed one detailed sweep with data truncated for fitting and analysis
 
     # refine analysis and fitting since we don't know what the function will look like
     # find the lowest data point and then resweep near the guessed minimum to fit a function
     # write own fit function in analysis maybe
 
-    args1, unc1, _ = analysis.fit('quadratic', data.C_QP, data.C4, data.C4_sem)
+    args1, unc1 = analysis.fit('quadratic', fit_angles, fit_data, fit_unc)
 
     plt.title('Angle of QP to minimize counts')
-    plt.xlabel('QP angle ())')
+    plt.xlabel('QP angle (deg))')
     plt.ylabel('Count rates (#/s)')
-    plt.errorbar(data.C_QP, data.C4, yerr=data.C4_sem, fmt='o', label="Measurement Basis")
-    analysis.plot_func('quadratic', args1, data.C_QP, label='Measurement fit function')
+    plt.errorbar(fit_angles, fit_data, yerr=fit_unc, fmt='o', label="Measurement Basis")
+    analysis.plot_func('quadratic', args1, fit_angles, label='Measurement fit function')
     plt.legend()
     plt.show()
 
@@ -77,7 +98,7 @@ def QP_sweep(m:Manager, u1, b1):
     N vv/sec is the number of vv counts per second, same with HH
     """
 
-def UVHWP_sweep(m:Manager, u1, b1):
+def UVHWP_sweep(m:Manager, ratio):
     """
     Adapted from Alec's code in balance.py
     """
@@ -91,7 +112,9 @@ def UVHWP_sweep(m:Manager, u1, b1):
     N = 20
     SAMP = (5, 3)
 
-    PCT1 = rate_ratio
+    PCT1 = ratio
+
+    m.new_output("UVHWP_balance_sweep1.csv")
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -103,7 +126,7 @@ def UVHWP_sweep(m:Manager, u1, b1):
 
     # obtain the first round of data and switch to a new output file
     data1 = m.close_output()
-    m.new_output('balance_sweep_2.csv')
+    m.new_output('UVHWP_balance_sweep_2.csv')
 
     # sweep in the second basis
     print(m.time, f'Configuring measurement basis {BASIS2}')
@@ -135,19 +158,20 @@ def UVHWP_sweep(m:Manager, u1, b1):
     plt.legend()
     plt.show()
 
-# def full_tomography(m:Manager):
-#     """
-#     Full_tomography: [ "LA", "RA", "VA", "HA", "DA", "AA",
-#         "AD", "DD", "HD", "VD", "RD",  "LD",
-#         "LH", "RH", "VH", "HH", "DH", "AH", 
-#         "AV", "DV", "HV", "VV", "RV", "LV",
-#         "LL", "RL", "VL", "HL", "DL", "AL",
-#         "AR", "DR", "HR", "VR", "RR", "LR"]
-#     """
+def full_tomography(self):
 
-    
+    """
+    Full_tomography: [ "LA", "RA", "VA", "HA", "DA", "AA",
+        "AD", "DD", "HD", "VD", "RD",  "LD",
+        "LH", "RH", "VH", "HH", "DH", "AH", 
+        "AV", "DV", "HV", "VV", "RV", "LV",
+        "LL", "RL", "VL", "HL", "DL", "AL",
+        "AR", "DR", "HR", "VR", "RR", "LR"]
+    """
 
-#     for state in m._config['Full_tomography']
+    for basis in m._config['Full_tomography']:
+        m.meas_basis(basis)
+        m.take_data()
 
 if __name__ == '__main__':
 
@@ -204,5 +228,11 @@ if __name__ == '__main__':
     m = Manager()
 
     QP_sweep(m,u,b)
+
+    UVHWP_sweep(m, rate_ratio)
+
+
+
+
 
     
