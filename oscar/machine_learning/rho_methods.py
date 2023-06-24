@@ -169,7 +169,7 @@ def reconstruct_rho(all_projs):
     S[0,2] = RR + LR - RL - LL
     S[0,3] = HH - HV + VH - VV
     S[1,0] = DD + DA - AD - AA
-    S[1,1] = DD - DA  - AD + AA
+    S[1,1] = DD - DA - AD + AA
     S[1,2] = DR - DL - AR + AL
     S[1,3] = DH - DV - AH + AV
     S[2,0] = RR - LR + RL - LL
@@ -216,21 +216,21 @@ def test_reconstruct_rho(rho):
     return rho/4 # scale by 4 to get the correct density matrix
 
 def compute_roik_proj(basis1, basis2, rho):
-        ''' Computes projection into desired bases as in the Roik et al paper'''
-        Bell_singlet = np.matrix([[0, 0, 0, 0], [0, .5, -.5, 0], [0, -0.5, .5, 0], [0, 0, 0, 0]])
+    ''' Computes projection into desired bases as in the Roik et al paper'''
+    Bell_singlet = np.matrix([[0, 0, 0, 0], [0, .5, -.5, 0], [0, -0.5, .5, 0], [0, 0, 0, 0]])
 
-        rho_swapped = rho.copy() # swap the subsystems A and B
-        rho_swapped[:, 1] = rho[:, 2]
-        rho_swapped[:, 2] = rho[:, 1]
+    rho_swapped = rho.copy() # swap the subsystems A and B
+    rho_swapped[:, 1] = rho[:, 2]
+    rho_swapped[:, 2] = rho[:, 1]
 
-        M_T = np.kron(rho, rho_swapped)
-        num = M_T @ np.kron(np.kron(basis1, Bell_singlet), basis2)
-        denom = M_T @ np.kron(np.kron(basis1, np.eye(4)), basis2)
+    M_T = np.kron(rho, rho_swapped)
+    num = M_T @ np.kron(np.kron(basis1, Bell_singlet), basis2)
+    denom = M_T @ np.kron(np.kron(basis1, np.eye(4)), basis2)
 
-        try: # compute the projection as defined in Roik et al
-            return (np.trace(num) / np.trace(denom)).real
-        except ZeroDivisionError:
-            return 0
+    try: # compute the projection as defined in Roik et al
+        return (np.trace(num) / np.trace(denom)).real
+    except ZeroDivisionError:
+        return 0
 
 def get_all_roik_projections(rho):
     ''' Computes the 16 projections as defined in Roik et al'''
@@ -491,16 +491,16 @@ def get_concurrence(rho):
         def spin_flip(rho):
             ''' Returns the 'spin-flipped' (tilde) version of a density matrix rho.'''
             # define spin operators
-            sy = np.array([[0,-1j],[1j,0]])
-            sysy = np.kron(sy,sy)
+            Sy = np.array([[0,-1j],[1j,0]])
+            SySy = np.kron(Sy,Sy)
             # perform spin flipping
-            return sysy @ rho.conj() @ sysy
+            return SySy @ rho.conj() @ SySy
         sqrt_rho = la.sqrtm(rho)
         rho_tilde = spin_flip(rho)
-        return (sqrt_rho @ rho_tilde @ sqrt_rho)
+        return la.sqrtm(sqrt_rho @ rho_tilde @ sqrt_rho)
     R = R_matrix(rho)
     eig_vals = np.real(la.eigvals(R))
-    eig_vals = np.sort(eig_vals)[::-1] # reverse sort numpy array
+    eig_vals = np.sort(eig_vals)[::-1] # reverse sort array
     return np.max([0,eig_vals[0] - eig_vals[1] - eig_vals[2] - eig_vals[3]])
 
 def check_conc_min_eig(rho, printf=False):
