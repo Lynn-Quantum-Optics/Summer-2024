@@ -1,3 +1,8 @@
+## 6/26/23
+MP: R
+
+After updating the state setup program to correct the angles, ran the program and found that the data and graph did not match at all. The data did not fit to a quadratic and had no minimum. After checking the positions of the measurement wave plates using APT User, I found that the half wave plates were in the correct position while the quarter wave plates were not. I then manually moved the motors to be measuring in the AA basis since I believe that is what we want when the incoming state is Psi plus. The data did not change substantially after changing the basis to AA. The graph looks like it has a maximum, which might be where the minimum is supposed to be. I also added a very simple full tomography method to the manager.py file for later use to check the created states. Looking at the angles to make Phi plus, it looks like the angle for the QP occurs at the same spot the maximum occurs on the graph, meaning that currently the correct angle for the QP should maximize counts. I realized that I didn't turn B_C_HWP in order to make Psi plus instead of Phi plus, so that is likely why the counts are maximized. This suggests that the measurement wave plate angle calculations are correct. I can't seem to find an experiment to determine the angle that the B_C_HWP should be positioned at to flip H into V. It should in theory be 45 degrees, but I would like to run an experiment to be sure. The experiment confirms that the angle is 45 degrees. I am shutting down for today but will check the code for the U_V_HWP angle tomorrow.
+
 ## 6/23/23
 MP: R
 

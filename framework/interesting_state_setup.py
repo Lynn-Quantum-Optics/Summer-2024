@@ -217,6 +217,8 @@ if __name__ == '__main__':
 
     m = Manager()
 
+    m.B_C_HWP.goto(45)
+
     QP_sweep(m,u,b)
 
     # UVHWP_sweep(m, rate_ratio)

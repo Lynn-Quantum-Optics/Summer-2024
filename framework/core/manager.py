@@ -365,6 +365,18 @@ class Manager:
             self.configure_motors(**{component:pos})
             self.take_data(num_samp, samp_period)
 
+    def full_tomography(self):
+
+        self.new_output('Full_tomography.csv')
+
+        NUM_SAMP = 5
+        SAMP_PERIOD = 3
+
+        for basis in self._config['full_tomography']:
+            self.meas_basis(basis)
+            self.take_data(NUM_SAMP, SAMP_PERIOD)
+
+
     # +++ shutdown methods +++
 
     def shutdown(self) -> None:
