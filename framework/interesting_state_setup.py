@@ -9,11 +9,17 @@ Procedure:
 1. run this program to set creation state to phi plus and setup measurement polarizations for alice and bob
 2. sweep/use other optimization method to turn quartz plate to minimize counts <- **use a sweep for both QP and HWP**
 3. run program to alternate between HH and VV measurements then turn the UVHWP to give the correct rate ratio by sweeping **utilize balance.py for the UVHWP**
-4. turn BCHWP to flip H and V
+4. turn BCHWP to flip H and V <- in the very specific case where we make Psi plus, move BCHWP first, this issue will only be caused by Psi plus
 
 use ratio of sin and cos to create initial guess for UVHWP and QP range to guess phi
 check first on alpha = 0 so that the state is psi plus
 Check with full tomography at the very end (look into previous scripts)
+
+Specifically ONLY for psi plus
+1. make HH + e^(i*pi) VV with BCHWP at 0 degrees then set BCHWP to 45 degrees after setting QP and UVHWP
+
+any angle between 45 to 90 degrees is ok, in first octant between 0 and 45 degrees signs flip
+the octant alternate between flipping and not flipping
 """
 
 
@@ -203,7 +209,7 @@ if __name__ == '__main__':
 
     # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
     b = np.pi/4
-    u = phi/2
+    u = (phi + np.pi)/2
 
     """
     Error in measurement HWP and QWP angle settings. Double check all angle calculations.
