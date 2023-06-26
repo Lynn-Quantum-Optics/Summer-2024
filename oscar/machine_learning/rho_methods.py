@@ -447,12 +447,10 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                     w0 = min_W(x0)
                     x0 = [np.pi]
                     w1 = min_W(x0)
-                    print(i, w0, w1)
                     if w0 < w1:
                         w_min = w0
                     else:
                         w_min = w1
-                    print(i, w_min)
                     isi = 0 # index since last improvement
                     for j in range(num_reps): # repeat 10 times and take the minimum
                         if gd:
@@ -460,7 +458,10 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                                 x0 = [np.random.rand()*np.pi]
                             else:
                                 grad = approx_fprime(x0, min_W, 1e-6)
-                                x0 = x0 - zeta*grad
+                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                    break
+                                else:
+                                    x0 = x0 - zeta*grad
                         else:
                             x0 = [np.random.rand()*np.pi]
                         w = minimize(W, x0=x0, bounds=[(0, np.pi/2)])['fun']
