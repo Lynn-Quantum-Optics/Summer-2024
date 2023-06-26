@@ -30,22 +30,23 @@ def QP_sweep(m:Manager, u1, b1):
 
     # turn alice's measurement plates to measure (H+V)/sqrt(2)
     print(m.time, "Turning Alice's measurement plates")
-    m.configure_motors(A_HWP = np.rad2deg(np.pi/4), A_QWP = np.rad2deg(np.pi*3/4))
+    m.configure_motors(A_HWP = np.rad2deg(np.pi/8), A_QWP = np.rad2deg(np.pi/2))
 
     # turn bob's measurement plates to measure H/sqrt(2) - (e^i*phi)*V/sqrt(2)
     print(m.time, "Turning Bob's measurement plates")
     m.configure_motors(B_HWP = np.rad2deg((b1+u1)/2), B_QWP = np.rad2deg(u1 + np.pi/2))
 
     # sweep the QP to determine the minimum count angle
-    input("Ready to sweep. Press Enter to continue")
-    m.sweep("C_QP", 0, 25, 25, 5, 3)
+    # sweep through negative angles so that laser reflection points inward
+   
+    m.sweep("C_QP", -30, 0, 20, 5, 3)
 
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
     data = m.close_output()
     
-    # find new method for shutting down in alec's code
+    m.shutdown()
 
     # take the counts of the quartz sweep at each angle and find the index of the minimum data point
     QP_counts = data["C4"]
@@ -108,12 +109,13 @@ def UVHWP_sweep(m:Manager, ratio):
     BASIS1 = 'HH'
     BASIS2 = 'VV'
 
-    GUESS = 22.28
-    RANGE = 24.0
+    # sweep in second octant because the standard phi plus state setting for the UV_HWP is there
+    GUESS = 67.5
+    RANGE = 22.5
     N = 20
     SAMP = (5, 3)
 
-    PCT1 = ratio
+    PCT1 = 1/(1+ratio)
 
     m.new_output("UVHWP_balance_sweep1.csv")
 
@@ -140,6 +142,7 @@ def UVHWP_sweep(m:Manager, ratio):
     data2 = m.close_output()
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
+    m.shutdown()
 
     args1, unc1 = analysis.fit('sin2', data1.C_UV_HWP, data1.C4, data1.C4_sem)
     args2, unc2 = analysis.fit('sin2', data2.C_UV_HWP, data2.C4, data2.C4_sem)
@@ -150,7 +153,7 @@ def UVHWP_sweep(m:Manager, ratio):
     
     # plot the data and fit
     plt.title(f'Angle of {COMPONENT} to achieve {PCT1*100:.2f}% {BASIS1}\ncoincidences ({(1-PCT1)*100:.2f}% {BASIS2} coincidences): {x:.5f} degrees')
-    plt.xlabel(f'{COMPONENT} angle (rad)')
+    plt.xlabel(f'{COMPONENT} angle (deg)')
     plt.ylabel(f'Count rates (#/s)')
     plt.errorbar(data1.C_UV_HWP, data1.C4, yerr=data1.C4_sem, fmt='o', label=BASIS1)
     plt.errorbar(data2.C_UV_HWP, data2.C4, yerr=data2.C4_sem, fmt='o', label=BASIS2)
@@ -158,21 +161,6 @@ def UVHWP_sweep(m:Manager, ratio):
     analysis.plot_func('sin2', args2, data2.C_UV_HWP, label=f'{BASIS2} fit function')
     plt.legend()
     plt.show()
-
-def full_tomography(self):
-
-    """
-    Full_tomography: [ "LA", "RA", "VA", "HA", "DA", "AA",
-        "AD", "DD", "HD", "VD", "RD",  "LD",
-        "LH", "RH", "VH", "HH", "DH", "AH", 
-        "AV", "DV", "HV", "VV", "RV", "LV",
-        "LL", "RL", "VL", "HL", "DL", "AL",
-        "AR", "DR", "HR", "VR", "RR", "LR"]
-    """
-
-    for basis in m._config['Full_tomography']:
-        m.meas_basis(basis)
-        m.take_data()
 
 if __name__ == '__main__':
 
@@ -217,8 +205,9 @@ if __name__ == '__main__':
     b = np.pi/4
     u = phi/2
 
-    meas_HWP_angle = b + u / 2
-    meas_QWP_angle = u + math.pi/2
+    """
+    Error in measurement HWP and QWP angle settings. Double check all angle calculations.
+    """
 
     rate_ratio = (math.tan(theta))**2
 
@@ -228,11 +217,9 @@ if __name__ == '__main__':
 
     m = Manager()
 
-    # QP_sweep(m,u,b)
+    QP_sweep(m,u,b)
 
-    m.C_QP.goto(17.33075)
-
-    UVHWP_sweep(m, rate_ratio)
+    # UVHWP_sweep(m, rate_ratio)
 
 
 
