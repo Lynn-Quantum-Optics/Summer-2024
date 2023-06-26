@@ -6,7 +6,7 @@ from os.path import join
 import numpy as np
 import scipy.linalg as la
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
+from scipy.optimize import minimize, approx_fprime
 from tqdm import trange
 
 ##############################################
@@ -266,11 +266,15 @@ def get_all_roik_projections(rho):
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
-def compute_witnesses(rho, do_stokes=False):
+def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
-            do_stokes: whether to compute 
+            do_stokes: bool, whether to compute 
+            num_reps: int, number of times to run the optimization
+            gd: bool, whether to use gradient descent or brute random search
+            zeta: learning rate for gradient descent
+            ads_test: bool, whether to return w2 expec and sin (theta) for the amplitude damped states
     '''
     if do_stokes:
         expec_vals = get_expec_vals(rho)
@@ -328,11 +332,11 @@ def compute_witnesses(rho, do_stokes=False):
         W_expec_vals = []
         for i, W in enumerate(all_W):
             if i <= 5: # just theta optimization: the discrepancy was with the bound of theta being actally pi and not pi/2
-                W_expec_vals.append(minimize(W, x0=[0], args = (expec_vals,), bounds=[(0, np.pi)])['fun']) # gave an error with [0] after ['fun']
+                W_expec_vals.append(minimize(W, x0=[np.pi], args = (expec_vals,), bounds=[(0, np.pi)])['fun']) # gave an error with [0] after ['fun']
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
-                    W_expec_vals.append(minimize(W, x0=[0, 0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
+                    W_expec_vals.append(minimize(W, x0=[np.pi, np.pi, np.pi], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
             else:# theta and alpha
-                W_expec_vals.append(minimize(W, x0=[0, 0], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
+                W_expec_vals.append(minimize(W, x0=[np.pi, np.pi], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
         
         # find min W expec value; this tells us if first 12 measurements are enough #
         try:
@@ -431,24 +435,69 @@ def compute_witnesses(rho, do_stokes=False):
             return get_witness(phi9_p)
         
         # get the witness values by minimizing the witness function
-        all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
-        W_expec_vals = []
-        for i, W in enumerate(all_W):
-            if i <= 5: # just theta optimization
-                W_expec_vals.append(minimize(W, x0=[0], bounds=[(0, np.pi)])['fun']) # gave an error with [0] after ['fun']
-            elif i==8 or i==11 or i==14: # theta, alpha, and beta
-                    W_expec_vals.append(minimize(W, x0=[0, 0, 0], bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
-            else:# theta and alpha
-                W_expec_vals.append(minimize(W, x0=[0, 0], bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
-        
-        # find min W expec value; this tells us if first 12 measurements are enough #
-        W_min = np.real(min(W_expec_vals[:6]))
+        if not(ads_test): 
+            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
+            W_expec_vals = []
+            for i, W in enumerate(all_W):
+                if i <= 5: # just theta optimization
+                    # get initial guess at boundary
+                    def min_W(x0):
+                        return minimize(W, x0=x0, bounds=[(0, np.pi)])['fun']
+                    x0 = [0]
+                    w0 = min_W(x0)
+                    x0 = [np.pi]
+                    w1 = min_W(x0)
+                    print(i, w0, w1)
+                    if w0 < w1:
+                        w_min = w0
+                    else:
+                        w_min = w1
+                    print(i, w_min)
+                    isi = 0 # index since last improvement
+                    for j in range(num_reps): # repeat 10 times and take the minimum
+                        if gd:
+                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                x0 = [np.random.rand()*np.pi]
+                            else:
+                                grad = approx_fprime(x0, min_W, 1e-6)
+                                x0 = x0 - zeta*grad
+                        else:
+                            x0 = [np.random.rand()*np.pi]
+                        w = minimize(W, x0=x0, bounds=[(0, np.pi/2)])['fun']
+                        
+                        if w < w_min:
+                            w_min = w
+                            isi=0
+                        else:
+                            isi+=1
+                    print(i, w_min)
+                elif i==8 or i==11 or i==14: # theta, alpha, and beta
+                    for _ in range(num_reps):
+                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                        w = minimize(W, x0=x0, bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun']
+                        if w < w_min:
+                            w_min = w
+                else:# theta and alpha
+                    for _ in range(num_reps):
+                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                        w = minimize(W, x0=x0, bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun']
+                        if w < w_min:
+                            w_min = w                
+                W_expec_vals.append(w_min)
+            
+            # find min witness expectation values
+            W_min = min(W_expec_vals[:6])
+            Wp_t1 = min(W_expec_vals[6:9])
+            Wp_t2 = min(W_expec_vals[9:12])
+            Wp_t3 = min(W_expec_vals[12:15])
 
-        Wp_t1 = np.real(min(W_expec_vals[6:9]))
-        Wp_t2 = np.real(min(W_expec_vals[9:12]))
-        Wp_t3 = np.real(min(W_expec_vals[12:15]))
+            return W_min, Wp_t1, Wp_t2, Wp_t3
+        else: 
+            W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
+            W2_val = W2_main['fun']
+            W2_param = W2_main['x']
 
-        return W_min, Wp_t1, Wp_t2, Wp_t3
+            return W2_val, W2_param[0]
 
 
 ##############################################
