@@ -105,7 +105,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
         savename+=f'_method_{method}'
         func = partial(get_random_hurwitz, method=method)
     elif random_method=='roik': # from actual roik code
-        func = get_random_rho()
+        func = get_random_rho
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
