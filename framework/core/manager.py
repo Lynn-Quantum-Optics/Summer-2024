@@ -13,7 +13,7 @@ import csv
 import os
 import datetime
 import copy
-from typing import Union
+from typing import Union, List
 import serial
 
 # package imports
@@ -58,7 +58,7 @@ class Manager:
 
         # initialize ccu and motor class variables
         self._ccu = None
-        self._motors = []
+        self._motors = None
         self._active_ports = {}
         self.data = None # output data holding
 
@@ -66,7 +66,8 @@ class Manager:
         if os.path.isfile('./mlog.txt'):
             os.remove('./mlog.txt')
         self._log_file = open('./mlog.txt', 'w+')
-        self.log(f'Log file opened. Manager started at {self._init_time_str}.')
+        self.log(f'Manager started at {self._init_time_str}.')
+        self.log(f'Configuration file: "{config}".')
 
         # intialize everything if not debugging
         if not debug:
@@ -95,7 +96,10 @@ class Manager:
 
     def init_ccu(self) -> None:
         ''' Initialize the CCU which starts live plotting. '''
+        self.log('Initializing CCU.')
+
         if self._ccu is not None:
+            self.log('CCU already initialized; throwing error.')
             raise RuntimeError('CCU has already been initialized.')
         
         # initialize the ccu
@@ -108,6 +112,12 @@ class Manager:
     
     def init_motors(self) -> None:
         ''' Initialize and connect to all motors. '''
+        self.log('Initializing motors.')
+
+        if not self._motors is None:
+            self.log('Motors already initialized, throwing error.')
+            raise RuntimeError('Motors have already been initialized.')
+
         self._motors = list(self._config['motors'].keys())
         
         # loop to initialize all motors
@@ -146,13 +156,17 @@ class Manager:
         if len(self._motors) == 0:
             raise RuntimeError('Cannot initialize output file; No motors have been initialized.')
         
-        # check output file for collisions
+        # check that we don't currently have a file open
         if self._out_file is not None:
+            self.log('Output file already initialized; throwing error.')
             raise RuntimeError('Output file has already been initialized.')
-        elif os.path.isfile(out_file):
-            raise RuntimeError(f'Output file {out_file} already exists.')
+        # check that the file doesn't already exist
+        if os.path.isfile(out_file):
+            self.log(f'Given output file "{out_file}" already exists; throwing error.')
+            raise RuntimeError(f'Output file "{out_file}" already exists.')
         
         # open output file and setup output file writer
+        self.log(f'Opening new output file "{out_file}".')
         self.out_file = out_file
         self._out_file = open(self.out_file, 'w+', newline='')
         self._out_writer = csv.writer(self._out_file)
@@ -181,8 +195,10 @@ class Manager:
         '''
         # output file
         if self.out_file is None:
+            self.log('Called close_output without an output file open; throwing error.')
             raise RuntimeError('Cannot close output, output has not been initialized.')
         else:
+            self.log(f'Closing output file "{self.out_file}".')
             # close the output file (writes lines)
             self._out_file.close()
             self._out_file = None
@@ -190,6 +206,7 @@ class Manager:
 
         # grab the data
         if get_data:
+            self.log(f'Retreiving data from "{self.out_file}".')
             data = pd.read_csv(self.out_file)
             # convert columns to be useful
             data.columns = \
@@ -247,9 +264,18 @@ class Manager:
         data_unc : np.ndarray
             The standard error of the mean for each channel.
         '''
+        # log the data taking
+        self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
+
+        # check for note to log
+        if note != "":
+            self.log(f'\tNote: "{note}"')
+        
         # check for output file
         if self.out_file == None:
-            self.log('Warning: Collecting data without writing to output file.')
+            self.log('\tWarning: taking data with no active output file.')
+        else:
+            self.log(f'\tData will be written to "{self.out_file}".')
         
         # record all motor positions
         motor_positions = [self.__dict__[m].pos for m in self._motors]
@@ -297,26 +323,52 @@ class Manager:
         return pct, unc
 
     def log(self, note:str):
+        ''' Log a note to the manager's log file.
+
+        All notes in the file are timestamped from the manager's initialization.
+        '''
         line = self.time + f'\t{note}'
         print(line)
         self._log_file.write(line + '\n')
 
-    def configure_motors(self, **kwargs) -> None:
+    def configure_motors(self, **kwargs) -> List[float]:
         ''' Configure the position of multiple motors at a time
 
         Parameters
         ----------
         **kwargs : <NAME OF MOTOR> = <GOTO POSITION DEGREES>
             Assign each motor name that you wish to move the absolute angle to which you want it to move, in degrees.
+        
+        Returns
+        -------
+        list[float]
+            The actual positions of the motors after the move, in the order provided.
         '''
+        out = []
+        # loop to configure each motor individually
         for motor_name, position in kwargs.items():
-            # check motor exists
-            if not motor_name in self._motors:
-                raise ValueError(f'Attempted to reference unknown motor \"{motor_name}\".')
-            # set motor position
-            self.__dict__[motor_name].goto(position)
+            out.append(self.configure_motor(motor_name, position))
+        return out
 
     def configure_motor(self, motor:str, pos:float) -> float:
+        ''' Configure a single motor using a string key.
+        
+        Parameters
+        ----------
+        motor : str
+            The name of the motor, provided as a string.
+        pos : float
+            The target position for the motor in degrees.
+        
+        Returns
+        -------
+        float
+            The actual position of the motor after the move.
+        '''
+        self.log(f'Moving motor {motor} to {pos} degrees.')
+        if not motor in self._motors:
+            self.log(f'Unknown motor "{motor}"; throwing error.')
+            raise ValueError(f'Attempted to reference unknown motor "{motor}".')
         return self.__dict__[motor].goto(pos)
 
     def meas_basis(self, basis:str) -> None:
@@ -327,6 +379,7 @@ class Manager:
         basis : str
             The measurement basis to set, should have length two. All options are listed in the config.
         '''
+        self.log(f'Loading measurement basis "{basis}" from config file.')
         # setup the basis
         A, B = basis
         self.configure_motors(
@@ -344,7 +397,7 @@ class Manager:
             The state to create, one of the presets from the config file.
         '''
         # setup the state
-        self.log(f'Loading state preset for {state} -> {self._config["state_presets"][state]}')
+        self.log(f'Loading state preset "{state}" from config file.')
         self.configure_motors(**self._config['state_presets'][state])
 
     def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> None:
@@ -365,6 +418,7 @@ class Manager:
         samp_period : float
             The period of each sample, in seconds (rounds down to nearest 0.1s, min 0.1s).
         '''
+        self.log(f'Sweeping {component} from {pos_min} to {pos_max} degrees in {num_steps} steps.')
         # loop to perform the sweep
         for pos in tqdm(np.linspace(pos_min, pos_max, num_steps)):
             self.configure_motors(**{component:pos})
