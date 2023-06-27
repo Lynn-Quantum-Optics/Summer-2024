@@ -74,6 +74,11 @@ class Motor:
         return self._pos
     
     @property
+    def true_position(self) -> float:
+        ''' The true position of this motor, in degrees. '''
+        return self._pos + self._offset
+
+    @property
     def is_active(self) -> bool:
         ''' Whether or not the motor is currently active. '''
         return self._is_active()
