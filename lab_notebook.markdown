@@ -1,3 +1,17 @@
+## 6/27/23
+MP: A, R
+
+Laser warmed up this morning. So I am assuming that it's already warmed up lol. Not that it's super important. I'm just going to be testing my measurement script :) 
+
+Just had so much trouble with the CCU. No matter what I did it just appeared to be sending blank info. Turned it off and on, checked the COM port, nothing! Then I just unplugged and plugged back in the USB and boom. Works again.
+
+Measurement script looks great! The previously "calibrated" phi_plus state came in with
+- $\alpha=45.70\pm 0.21^\circ$
+- $\beta=5.39\pm 0.21^\circ$
+- $\phi=10.10\pm ?^\circ$ (Uncertainty calculation broke... got like 1500 degrees)
+
+Nominal shutdown.
+
 ## 6/26/23
 MP: R
 
