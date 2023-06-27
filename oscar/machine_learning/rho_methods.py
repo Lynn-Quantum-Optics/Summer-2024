@@ -452,7 +452,7 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                     else:
                         w_min = w1
                     isi = 0 # index since last improvement
-                    for j in range(num_reps): # repeat 10 times and take the minimum
+                    for _ in range(num_reps): # repeat 10 times and take the minimum
                         if gd:
                             if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                 x0 = [np.random.rand()*np.pi]
@@ -464,26 +464,81 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                                     x0 = x0 - zeta*grad
                         else:
                             x0 = [np.random.rand()*np.pi]
-                        w = minimize(W, x0=x0, bounds=[(0, np.pi/2)])['fun']
+
+                        w = min_W(x0)
                         
                         if w < w_min:
                             w_min = w
                             isi=0
                         else:
                             isi+=1
-                    print(i, w_min)
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
-                    for _ in range(num_reps):
-                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
-                        w = minimize(W, x0=x0, bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun']
+                    def min_W(x0):
+                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
+
+                    x0 = [0, 0, 0]
+                    w0 = min_W(x0)
+                    x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
+                    w1 = min_W(x0)
+                    if w0 < w1:
+                        w_min = w0
+                    else:
+                        w_min = w1
+                    isi = 0 # index since last improvement
+                    for _ in range(num_reps): # repeat 10 times and take the minimum
+                        if gd:
+                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                            else:
+                                grad = approx_fprime(x0, min_W, 1e-6)
+                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                                else:
+                                    x0 = x0 - zeta*grad
+                        else:
+                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+
+                        w = min_W(x0)
+                        
                         if w < w_min:
                             w_min = w
+                            isi=0
+                        else:
+                            isi+=1
                 else:# theta and alpha
-                    for _ in range(num_reps):
-                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
-                        w = minimize(W, x0=x0, bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun']
+                    def min_W(x0):
+                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
+                        
+                    x0 = [0, 0]
+                    w0 = min_W(x0)
+                    x0 = [np.pi/2 , 2*np.pi]
+                    w1 = min_W(x0)
+                    if w0 < w1:
+                        w_min = w0
+                    else:
+                        w_min = w1
+                    isi = 0 # index since last improvement
+                    for _ in range(num_reps): # repeat 10 times and take the minimum
+                        if gd:
+                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                            else:
+                                grad = approx_fprime(x0, min_W, 1e-6)
+                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                else:
+                                    x0 = x0 - zeta*grad
+                        else:
+                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+
+                        w = min_W(x0)
+                        
                         if w < w_min:
-                            w_min = w                
+                            w_min = w
+                            isi=0
+                        else:
+                            isi+=1
+
                 W_expec_vals.append(w_min)
             
             # find min witness expectation values
