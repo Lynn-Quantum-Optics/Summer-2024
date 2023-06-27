@@ -163,7 +163,8 @@ class Manager:
             ['num samples (#)', 'period per sample (s)'] + \
             [f'{m} position (deg)' for m in self._motors] + \
             [f'{k} rate (#/s)' for k in self._ccu._channel_keys] + \
-            [f'{k} rate SEM (#/s)' for k in self._ccu._channel_keys])
+            [f'{k} rate SEM (#/s)' for k in self._ccu._channel_keys] + \
+            ['note'])
 
     def close_output(self, get_data:bool=True) -> Union[pd.DataFrame, None]:
         ''' Closes the output file
@@ -196,7 +197,8 @@ class Manager:
                 ['num_samp', 'samp_period'] + \
                 [f'{m}' for m in self._motors] + \
                 [f'C{i}' for i in range(len(self._ccu._channel_keys))] + \
-                [f'C{i}_sem' for i in range(len(self._ccu._channel_keys))]
+                [f'C{i}_sem' for i in range(len(self._ccu._channel_keys))] + \
+                ['note']
         else:
             data = None
 
@@ -217,12 +219,12 @@ class Manager:
             ['num_samp', 'samp_period'] + \
             [f'{m}' for m in motors] + \
             [f'C{i}' for i in range(len(CCU._channel_keys))] + \
-            [f'C{i}_sem' for i in range(len(CCU._channel_keys))]
-
+            [f'C{i}_sem' for i in range(len(CCU._channel_keys))] + \
+            ['note']
 
     # +++ methods +++
 
-    def take_data(self, num_samp:int, samp_period:float, *keys:str) -> 'tuple[np.ndarray, np.ndarray]':
+    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> 'tuple[np.ndarray, np.ndarray]':
         ''' Take detector data
 
         The data is written to the csv output table.
@@ -235,6 +237,8 @@ class Manager:
             Collection time for each sample, in seconds. Note that this will be rounded to the nearest 0.1 seconds (minimum 0.1 seconds).
         *keys : str
             The CCU channel keys to return data for. All rates will be taken and written to the output file, only these rates will be returned. If no keys are given, all rates will be returned.
+        note : str, optional (default "")
+            A note can be provided to be written to this row in the output table which can help you remember why you took this data.
         
         Returns
         -------
@@ -266,7 +270,8 @@ class Manager:
                 [num_samp, samp_period] + \
                 motor_positions + \
                 list(data_avg) + \
-                list(data_unc))
+                list(data_unc) + \
+                [note])
         
         # return the right rates
         if len(keys) == 0:
