@@ -67,7 +67,7 @@ def get_random_hurwitz(method=0, purity_cond = 1):
         while N ==0:
             N, M11, M22, M33, M44 = get_rand_elems()
             # define new 4x4 matrix; cast the diagonal array as matrix for more convienient fnuctionality
-        M = np.matrix(np.diag([M11/N, M22/N, M33/N, M44/N]))
+        M = np.matrix(np.diag([M11, M22, M33, M44]))*(1/N)
         return M
 
     ## part 2: random unitary trans ##
@@ -102,8 +102,9 @@ def get_random_hurwitz(method=0, purity_cond = 1):
                 else: # k==2
                     unitary_k = np.matrix(np.block([[sub_unitary_k, np.zeros((2,2))], [np.zeros((2,2)), np.eye(2)]]))
                 
-                unitary_final = unitary_k @ unitary_final # this way correctly builds right to left
-                # unitary_final =  unitary_final @ unitary_k
+                # print(np.all(np.isclose(unitary_k@np.linalg.inv(unitary_k), np.eye(4), atol=1e-9)))
+                
+                unitary_final =  unitary_k @ unitary_final# this way correctly builds right to left
         else: # method==0
             def get_U(i, j, k):
                 # get i phi and psi

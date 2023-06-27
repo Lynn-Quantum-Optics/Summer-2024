@@ -9,6 +9,7 @@ from multiprocessing import cpu_count, Pool
 from functools import partial
 
 from rho_methods import *
+from roik_gen import * # actual roik code
 from random_gen import *
 from jones import *
 
@@ -82,7 +83,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
     '''
 
     # confirm valid random method
-    assert random_method in ['simplex', 'jones_I','jones_C', 'hurwitz'], f'Invalid random method. You have {random_method}.'
+    # assert random_method in ['simplex', 'jones_I','jones_C', 'hurwitz'], f'Invalid random method. You have {random_method}.'
 
     ## initialize dataframe to hold states ##
     # because of my Hoppy model in jones.py, we no longer need to save the generating angles; we can determine them!! :)) This doesn't work with mixed states, but we can still get a closest aproximation.
@@ -103,6 +104,8 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
         assert method in [0, 1, 2], f'Invalid method. You have {method}.'
         savename+=f'_method_{method}'
         func = partial(get_random_hurwitz, method=method)
+    elif random_method=='roik': # from actual roik code
+        func = get_random_rho()
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
@@ -120,16 +123,28 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
     df = pd.DataFrame.from_records(results, columns = columns)
     df.to_csv(savename+'.csv', index=False)
 
+def comp_me_roik():
+    ''' Function to compare the states I generate using Roik's method to the ones generated with my method. 
+    '''
+    num_to_gen = 100000
+    run_me = bool(int(input('Run my or Roik code? (1 or 0): ')))
+    if run_me:
+        savename = '6_27_me'
+        rtype='hurwitz'
+    else:
+        savename = '6_27_roik'
+        rtype='roik'
+
+    build_dataset(rtype, True, num_to_gen, savename)
+
+
+
 ## ask user for info ##
 if __name__=='__main__':
     # random_method, return_prob, num_to_gen, savename
-    preset = bool(int(input('Use preset (1) or custom (0): ')))
-    if preset:
-        random_method = 'hurwitz'
-        return_prob = True
-        num_to_gen = 100
-        special = 'preset'
-        datadir = False
+    do_roik = bool(int(input('Custom (0) or Compare with actual Roik (1): ')))
+    if do_roik:
+        comp_me_roik()
     else:
         random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', or 'hurwitz': ")
         return_prob = bool(int(input("Return probabilities (1) or stokes's parameters (0): ")))
