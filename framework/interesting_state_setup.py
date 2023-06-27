@@ -208,6 +208,7 @@ if __name__ == '__main__':
     theta = math.sqrt(math.acos((1+math.cos(beta)*math.sin(2*alpha))/2))
 
     # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
+    phi = phi + np.pi
     b = np.pi/4
     u = (phi + np.pi)/2
 
@@ -222,8 +223,6 @@ if __name__ == '__main__':
     """
 
     m = Manager()
-
-    m.B_C_HWP.goto(45)
 
     QP_sweep(m,u,b)
 
