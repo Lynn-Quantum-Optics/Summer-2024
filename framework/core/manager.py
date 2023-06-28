@@ -378,7 +378,7 @@ class Manager:
             The state to create, one of the presets from the config file.
         '''
         # setup the state
-        self.log(f'Loading state preset "{state}" from config file.')
+        self.log(f'Loading state preset "{state}" from config file -> {self._config["state_presets"][state]}.')
         self.configure_motors(**self._config['state_presets'][state])
 
     def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> np.ndarray:
