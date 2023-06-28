@@ -1,3 +1,14 @@
+## 6/28/23
+MP: A
+
+Started laser warming up at 0934. My state measurement script is working _swimmingly_ now! I loaded up the calibrated "phi_plus" state and recorded the values
+
+- $\alpha=44.55\pm 0.26^\circ$
+- $\beta=5.77 \pm 0.24^\circ$
+- $\phi = 10.75\pm 0.85^\circ$
+
+Pretty close to phi+ if I do say so myself! Super normal day otherwise. Left everything setup all day, taking it down right now (1530).
+
 ## 6/27/23
 MP: A, R
 

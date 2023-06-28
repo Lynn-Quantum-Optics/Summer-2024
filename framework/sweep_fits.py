@@ -59,19 +59,22 @@ def sweep_uvhwp_alph(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
     '''
     Sweep the UVHWP while collecting alpha data.
     '''
+    # overall collection parameters
+    pos_min = -20
+    pos_max = 50
+
+    # array of angles (mostly for plotting later)
+    angles = np.linspace(pos_min, pos_max, num_step)
 
     # gather coincidence data in the four relevant bases
-    pos_min = 0
-    pos_max = 50
-    angles = np.linspace(pos_min, pos_max, num_step)
     m.meas_basis('HH')
-    HH, HHu = m.sweep('UVHWP', pos_min, pos_max, num_step, *samp)
+    HH, HHu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('HV')
-    HV, HVu = m.sweep('UVHWP', pos_min, pos_max, num_step, *samp)
+    HV, HVu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('VH')
-    VH, VHu = m.sweep('UVHWP', pos_min, pos_max, num_step, *samp)
+    VH, VHu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('VV')
-    VV, VVu = m.sweep('UVHWP', pos_min, pos_max, num_step, *samp)
+    VV, VVu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
 
     # total count rates
     T = HH + HV + VH + VV
@@ -79,6 +82,10 @@ def sweep_uvhwp_alph(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
     # compute alpha
     alpha = np.arctan(np.sqrt((VH+VV)/(HH+HV)))
     alpha_unc = 1/(2*T) * np.sqrt((HHu**2 + HVu**2) * (VH+VV)/(HH+HV) + (VHu**2 + VVu**2) * (HH+HV)/(VH+VV))
+    
+    # using degrees from here on out
+    alpha = np.rad2deg(alpha)
+    alpha_unc = np.rad2deg(alpha_unc)
 
     # repackage data into a dataframe
     df = pd.DataFrame({'UVHWP':angles, 'alpha':alpha, 'unc':alpha_unc})
@@ -108,10 +115,12 @@ def sweep_uvhwp_alph(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
 if __name__ == '__main__':
     
     SAMP = (3,0.5)
-    NUM_STEP = 30
+    NUM_STEP =50
 
     m = Manager()
-
+    m.make_state("phi_plus")
     # sweep_qp_phi(None, SAMP, NUM_STEP, None)
     sweep_uvhwp_alph(m, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
+
+    m.shutdown()
     
