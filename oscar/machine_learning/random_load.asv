@@ -1,0 +1,16 @@
+%% load the states %%
+data = table();
+for i= 1:10000
+    disp(i)
+    rho = random_gen();
+    concurrence = Concurrence(rho);
+    purity = Purity(rho);
+    min_eig= MinEig(rho);
+%     [W_min, Wp_t1, Wp_t2, Wp_t3] = findW(rho);
+%     row = table(concurrence, purity, W_min, Wp_t1, Wp_t2, Wp_t3);
+    row = table(concurrence, purity);
+    data = [data; row];
+end
+% save states for processing
+cd('/Users/oscarscholin/Desktop/Pomona/Summer23/Summer-2023/oscar/machine_learning/random_gen/test')
+writetable(data, '100000_m.csv');

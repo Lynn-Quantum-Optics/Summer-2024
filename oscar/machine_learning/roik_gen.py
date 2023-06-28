@@ -3,6 +3,7 @@
 import random
 import decimal
 import numpy as np
+import pandas as pd
 import math
 from numpy.linalg import eig
 
@@ -49,10 +50,13 @@ def unitary_transform(p_1,p_2,p_3,p_4,p_5,p_6,p_7,p_8,p_9,p_10,p_11,p_12,p_13,p_
     Unitary = np.matrix([[p_1,p_2,p_3,p_4],[p_5,p_6,p_7,p_8],[p_9,p_10,p_11,p_12],[p_13,p_14,p_15,p_16]])    
     return Unitary
 
-def get_random_rho():
+def get_random_rho(log_params=False):
+    ''' Main function from Roik et al's source code to generate random density matrices.
+    Params: 
+        log_params: if True, we save the generating parameters for the 3rd unitary
+    '''
     matrix = matrix_generation()
     #print(matrix)
-
     ########## 1 unit ##########
     alpha = random.randint(0,1000)/1000*ale
     phi = random.randint(0,1000)/1000*ale
@@ -97,6 +101,9 @@ def get_random_rho():
     unitary_3 = unitary_transform(u_1,u_2,zero,zero,u_3,u_4,zero,zero,zero,zero,one,zero,zero,zero,zero,one)
     #print(unitary_3)
     Unitary_3_herm = unitary_3.transpose().conjugate()
+
+    # params correspondong to alpha, psi, chi, phi in my code
+    params = [alpha, phi, ksi, theta]
 
     ########## 4 unit ##########
     alpha = random.randint(0,1000)/1000*ale
@@ -145,6 +152,8 @@ def get_random_rho():
     Unitary_fin = unitary_1 @ unitary_2 @ unitary_3 @ unitary_4 @ unitary_5 @ unitary_6 
     Unitary_fin_herm = Unitary_fin.transpose().conjugate()
 
+
     resoult = np.matrix(Unitary_fin @ matrix @ Unitary_fin_herm)
 
-    return resoult
+    if not(log_params): return resoult
+    else: return [resoult, params]
