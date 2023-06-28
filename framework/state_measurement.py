@@ -12,7 +12,6 @@ In terms of those parameters. See the confluence page for more information about
 
 from typing import Tuple
 import numpy as np
-import pandas as pd
 from core import Manager
 
 
@@ -64,10 +63,10 @@ def meas_DRL_RRL(m:Manager, samp:Tuple[int,float]):
     DR, DR_unc = m.take_data(*samp, "C4")
     m.meas_basis("DL")
     DL, DL_unc = m.take_data(*samp, "C4")
-    m.meas_basis("RR")
-    RR, RR_unc = m.take_data(*samp, "C4")
     m.meas_basis("RL")
     RL, RL_unc = m.take_data(*samp, "C4")
+    m.meas_basis("RR")
+    RR, RR_unc = m.take_data(*samp, "C4")
     return [DR, DL, RR, RL], [DR_unc, DL_unc, RR_unc, RL_unc]
 
 def meas_DA_RL(m:Manager, samp:Tuple[int,float]):
@@ -129,7 +128,7 @@ def meas_ab(m:Manager, samp:Tuple[int, float]) -> Tuple[Tuple[float, float], Tup
     beta_unc = 1/(2*T_hv) * np.sqrt((HHu**2 + VVu**2) * (VH+HV)/(HH+VV) + (HVu**2 + VHu**2) * (HH+VV)/(HV+VH))
 
     # return it all!
-    return (alpha, beta), (alpha_unc, beta_unc)
+    return (np.rad2deg(alpha), np.rad2deg(beta)), (np.rad2deg(alpha_unc), np.rad2deg(beta_unc))
 
 def meas_phi(m:Manager, samp:Tuple[int, float]) -> Tuple[float, float]:
     ''' Measure phi parameter of the state.
@@ -153,12 +152,12 @@ def meas_phi(m:Manager, samp:Tuple[int, float]) -> Tuple[float, float]:
 
     # compute phi
     u = (DL-DR)/(RR-RL)
-    phi = np.arctan(u)
+    phi = np.arctan2((DL-DR),(RR-RL))
 
     # compute uncertainty in phi
-    unc = 1/(1+u**2) * 1/(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
+    unc = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
 
-    return phi, unc
+    return np.rad2deg(phi), np.rad2deg(unc)
 
 def meas_all(m:Manager, samp:Tuple[int, float]) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
     ''' Measure alpha, beta, and phi parameters of the state.
