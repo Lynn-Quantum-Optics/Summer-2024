@@ -178,12 +178,13 @@ if __name__=='__main__':
     if do_roik:
         comp_me_roik()
     else:
-        random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', or 'hurwitz': ")
+        random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', 'hurwitz', or 'roik': ")
         return_prob = bool(int(input("Return probabilities (1) or stokes's parameters (0): ")))
         do_stokes = bool(int(input("Do stokes's parameters (1) or operators (0) to calculate witnesses: ")))
         num_to_gen = int(input("Enter number of states to generate: "))
         special = input("Enter special name for file: ")
         datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
+        log_params = bool(int(input('Log parameters (1) or not (0): ')))
 
         if not(isdir('random_gen')):
             os.makedirs('random_gen')
@@ -199,4 +200,4 @@ if __name__=='__main__':
 
         print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {do_stokes}')
 
-        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes)
+        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes, log_params=log_params)
