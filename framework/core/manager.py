@@ -250,17 +250,14 @@ class Manager:
             The standard error of the mean for each channel.
         '''
         # log the data taking
-        self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
+        if self.out_file is not None:
+            self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
+        else:
+            self.log(f'Taking data; sampling {num_samp} x {samp_period} s. No output file active.')
 
         # check for note to log
         if note != "":
             self.log(f'\tNote: "{note}"')
-        
-        # check for output file
-        if self.out_file == None:
-            self.log('\tWarning: taking data with no active output file.')
-        else:
-            self.log(f'\tData will be written to "{self.out_file}".')
         
         # record all motor positions
         motor_positions = [self.__dict__[m].pos for m in self._motors]
@@ -385,7 +382,7 @@ class Manager:
         self.log(f'Loading state preset "{state}" from config file.')
         self.configure_motors(**self._config['state_presets'][state])
 
-    def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> None:
+    def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> np.ndarray:
         ''' Sweeps a component of the setup while collecting data
         
         Parameters
@@ -404,10 +401,16 @@ class Manager:
             The period of each sample, in seconds (rounds down to nearest 0.1s, min 0.1s).
         '''
         self.log(f'Sweeping {component} from {pos_min} to {pos_max} degrees in {num_steps} steps.')
+        # open output
+        out = []
+        unc = []
         # loop to perform the sweep
         for pos in tqdm(np.linspace(pos_min, pos_max, num_steps)):
             self.configure_motors(**{component:pos})
-            self.take_data(num_samp, samp_period)
+            x, u = self.take_data(num_samp, samp_period, 'C4')
+            out.append(x)
+            unc.append(u)
+        return np.array(out), np.array(unc)
 
     def full_tomography(self):
 
