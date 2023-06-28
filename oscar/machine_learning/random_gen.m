@@ -1,15 +1,14 @@
 function [rho, params] = random_gen(log_params)
-r = rand(1,4);
+r = rand(1,3);
 M11 = r(1,1);
 M22 = r(1,2)*(1-M11);
 M33 = r(1,3)*(1-M11-M22);
-M44 = r(1,4)*(1-M11-M22-M33);
+M44 = 1-M11-M22-M33;
 
 dia = [M11 M22 M33 M44];
 dia = dia(1,randperm(4));
 
 M = diag(dia);
-M = M / trace(M);
 
 U = zeros(0);
 params = zeros(0);
