@@ -83,7 +83,7 @@ def get_random_hurwitz(method=1, log_params=False, conc_cond = 0, purity_cond = 
                 psi = np.random.rand()*2*np.pi
                 chi = np.random.rand()*2*np.pi
                 if method==1:
-                    phi = np.arcsin((np.random.rand())**1/2)
+                    phi = np.arcsin((np.random.rand())**(1/2))
                 else: # method==2
                     phi = np.random.rand()*np.pi/2
                 return np.matrix([

@@ -266,12 +266,13 @@ def get_all_roik_projections(rho):
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
-def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, do_stokes=False, num_reps = 10, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
             do_stokes: bool, whether to compute 
             num_reps: int, number of times to run the optimization
+            optimize: bool, whether to optimize the Ws with random or gradient descent or to just check bounds
             gd: bool, whether to use gradient descent or brute random search
             zeta: learning rate for gradient descent
             ads_test: bool, whether to return w2 expec and sin (theta) for the amplitude damped states
@@ -451,27 +452,28 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                         w_min = w0
                     else:
                         w_min = w1
-                    isi = 0 # index since last improvement
-                    for _ in range(num_reps): # repeat 10 times and take the minimum
-                        if gd:
-                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
-                                x0 = [np.random.rand()*np.pi]
-                            else:
-                                grad = approx_fprime(x0, min_W, 1e-6)
-                                if np.all(grad < 1e-5*np.ones(len(grad))):
-                                    break
+                    if optimize:
+                        isi = 0 # index since last improvement
+                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                            if gd:
+                                if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                    x0 = [np.random.rand()*np.pi]
                                 else:
-                                    x0 = x0 - zeta*grad
-                        else:
-                            x0 = [np.random.rand()*np.pi]
+                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    if np.all(grad < 1e-5*np.ones(len(grad))):
+                                        break
+                                    else:
+                                        x0 = x0 - zeta*grad
+                            else:
+                                x0 = [np.random.rand()*np.pi]
 
-                        w = min_W(x0)
-                        
-                        if w < w_min:
-                            w_min = w
-                            isi=0
-                        else:
-                            isi+=1
+                            w = min_W(x0)
+                            
+                            if w < w_min:
+                                w_min = w
+                                isi=0
+                            else:
+                                isi+=1
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     def min_W(x0):
                         return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
@@ -484,27 +486,28 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                         w_min = w0
                     else:
                         w_min = w1
-                    isi = 0 # index since last improvement
-                    for _ in range(num_reps): # repeat 10 times and take the minimum
-                        if gd:
-                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
-                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
-                            else:
-                                grad = approx_fprime(x0, min_W, 1e-6)
-                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                    if optimize:
+                        isi = 0 # index since last improvement
+                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                            if gd:
+                                if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                 else:
-                                    x0 = x0 - zeta*grad
-                        else:
-                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    if np.all(grad < 1e-5*np.ones(len(grad))):
+                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                                    else:
+                                        x0 = x0 - zeta*grad
+                            else:
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                        w = min_W(x0)
-                        
-                        if w < w_min:
-                            w_min = w
-                            isi=0
-                        else:
-                            isi+=1
+                            w = min_W(x0)
+                            
+                            if w < w_min:
+                                w_min = w
+                                isi=0
+                            else:
+                                isi+=1
                 else:# theta and alpha
                     def min_W(x0):
                         return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
@@ -517,27 +520,28 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 10, gd=True, zeta=0.7, ad
                         w_min = w0
                     else:
                         w_min = w1
-                    isi = 0 # index since last improvement
-                    for _ in range(num_reps): # repeat 10 times and take the minimum
-                        if gd:
-                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
-                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
-                            else:
-                                grad = approx_fprime(x0, min_W, 1e-6)
-                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                    if optimize:
+                        isi = 0 # index since last improvement
+                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                            if gd:
+                                if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                                 else:
-                                    x0 = x0 - zeta*grad
-                        else:
-                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    if np.all(grad < 1e-5*np.ones(len(grad))):
+                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                    else:
+                                        x0 = x0 - zeta*grad
+                            else:
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                        w = min_W(x0)
-                        
-                        if w < w_min:
-                            w_min = w
-                            isi=0
-                        else:
-                            isi+=1
+                            w = min_W(x0)
+                            
+                            if w < w_min:
+                                w_min = w
+                                isi=0
+                            else:
+                                isi+=1
 
                 W_expec_vals.append(w_min)
             
