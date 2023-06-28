@@ -1,4 +1,6 @@
-''' full tomography script
+''' full_tomo.py
+
+This file contains functions for executing a full tomographic measurement of any state that one configures. The function that completes the tomography itself is get_rho.
 
 authors: Alec Roberson (aroberson@hmc.edu), Oscar Scholin (osscholin@hmc.edu)
 '''
@@ -6,11 +8,10 @@ from typing import Tuple
 import numpy as np
 from core import Manager
 
-
 def reconstruct_rho(all_projs:np.ndarray, all_proj_uncs:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     ''' Takes in all 36 projections and reconstructs the density matrix. Based on Beili Hu's thesis.
     
-    This function written by Oscar.
+    Adapted from Oscar's version of the same function.
 
     Parameters
     ----------
