@@ -9,6 +9,8 @@ Started laser warming up at 0934. My state measurement script is working _swimmi
 
 Pretty close to phi+ if I do say so myself! Super normal day otherwise. Left everything setup all day, taking it down right now (1530).
 
+AHHH! In my hurry to be on time I accidentally turned on the room lights for ~30 seconds before turning off the detectors so I had to boot up the CCU monitor again. Nothing is broken it looks like! THANK GOD!
+
 ## 6/27/23
 MP: A, R
 
