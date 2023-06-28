@@ -57,10 +57,10 @@ def get_random_hurwitz(method=1, log_params=False, conc_cond = 0, purity_cond = 
     def rand_diag():
         # get 4 random params
         def get_rand_elems():
-            M11 = np.random.rand()
-            M22 = np.random.rand()*(1-M11)
-            M33 = np.random.rand()*(1-M11 - M22)
-            M44 = np.random.rand()*(1-M11-M22-M33)
+            M11 = np.random.randint(0, 100000) / 100000
+            M22 = np.random.randint(0, 100000) / 100000*(1-M11)
+            M33 = np.random.randint(0, 100000) / 100000*(1-M11 - M22)
+            M44 = np.random.randint(0, 100000) / 100000*(1-M11-M22-M33)
             
             # shuffle the entries
             rand_elems = np.array([M11, M22, M33, M44])
@@ -79,11 +79,11 @@ def get_random_hurwitz(method=1, log_params=False, conc_cond = 0, purity_cond = 
         # need to first generate 6 other smaller unitaries
         if method==1 or method==2:
             def get_rand_elems():
-                alpha = np.random.rand()*2*np.pi
-                psi = np.random.rand()*2*np.pi
-                chi = np.random.rand()*2*np.pi
+                alpha = np.random.randint(0, 200000*np.pi) / 100000
+                psi = np.random.randint(0, 200000*np.pi) / 100000
+                chi = np.random.randint(0, 200000*np.pi) / 100000
                 if method==1:
-                    phi = np.arcsin((np.random.rand())**(1/2))
+                    phi = np.arcsin((np.random.randint(0, 100000)/100000)**(1/2))
                 else: # method==2
                     phi = np.random.rand()*np.pi/2
                 return np.matrix([
