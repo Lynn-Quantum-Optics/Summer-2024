@@ -101,6 +101,12 @@ FIT_FUNCS = {
 
 # +++ functions for fitting +++
 
+def eval(func:Union[str, 'function'], **kwargs):
+    ''' Evaluate a fit function with given arguments. '''
+    if isinstance(func, str):
+        func = FIT_FUNCS[func]
+    return func(**kwargs)
+
 def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray, full_covm:bool=False, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
     ''' Fit data to a sine function
 
@@ -198,4 +204,14 @@ def find_ratio(func1:Union[str,'function'], args1:np.ndarray, func2:Union[str,'f
     # minimize
     res = opt.minimize(min_me, guess, args=(args1, args2), bounds=((x_min, x_max),))
     # obtain the result
+    return res.x[0]
+
+def find_value(func:Union[str,'function'], kwargs:dict, target:float):
+
+    # define a function to minimize
+    def min_me(x_:np.ndarray) -> float:
+        return np.abs(eval(func, x=x_, **kwargs) - target)
+    # minimize it
+    res = opt.minimize(min_me, 10)
+    # return the x value that minimizes it
     return res.x[0]

@@ -55,9 +55,6 @@ def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=No
     print(f'b = {params[1]} ± {uncs[1]}')
     plt.show()
 
-
-
-
 if __name__ == '__main__':
     
     SAMP = (3,0.5)
