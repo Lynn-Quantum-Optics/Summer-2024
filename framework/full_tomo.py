@@ -86,7 +86,7 @@ def reconstruct_rho(all_projs:np.ndarray, all_proj_uncs:np.ndarray) -> Tuple[np.
 
     # build the stokes's parameter uncertainties
     Su = np.zeros((4,4))
-    Su[0,0]=1
+    Su[0,0] = 0
     Su[0,1] = np.sqrt(DDu**2 + DAu**2 + ADu**2 + AAu**2)
     Su[0,2] = np.sqrt(RRu**2 + LRu**2 + RLu**2 + LLu**2)
     Su[0,3] = np.sqrt(HHu**2 + HVu**2 + VHu**2 + VVu**2)
@@ -185,3 +185,29 @@ def get_rho(m:Manager, samp:Tuple[int, float]) -> Tuple[np.ndarray, np.ndarray]:
     '''
     return reconstruct_rho(*get_projections(m, samp))
 
+if __name__ == '__main__':
+    SAMP = (5, 1)
+
+    # open manager
+    m = Manager()
+    m.new_output('tomography_data.csv')
+    
+    # load configured state
+    m.make_state('phi_plus')
+
+    # get the density matrix
+    rho, unc = get_rho(m, SAMP)
+
+    # print results
+    print('RHO\n---')
+    print(rho)
+    print('UNC\n---')
+    print(unc)
+
+    # save results
+    with open('rho_out.npy', 'wb') as f:
+        np.save(f, (rho, unc))
+
+    # close out
+    m.close_output()
+    m.shutdown()
