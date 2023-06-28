@@ -73,6 +73,16 @@ def cos2(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
     '''
     return a * np.cos(np.deg2rad(2*x + b)) + c
 
+def sec(x:np.ndarray, a:float, b:float) -> np.ndarray:
+    ''' Secant fit function.
+
+    Returns
+    -------
+    float
+        a / cos(x) + b
+    '''
+    return a / np.cos(np.deg2rad(x)) + b
+
 # dictionary
 
 FIT_FUNCS = {
@@ -85,7 +95,8 @@ FIT_FUNCS = {
     'sin2': sin2,
     'cos': cos,
     'cos_sq': cos_sq,
-    'cos2': cos2
+    'cos2': cos2,
+    'sec': sec
 }
 
 # +++ functions for fitting +++
