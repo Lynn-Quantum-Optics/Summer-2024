@@ -9,7 +9,7 @@ Procedure:
 1. run this program to set creation state to phi plus and setup measurement polarizations for alice and bob
 2. sweep/use other optimization method to turn quartz plate to minimize counts <- **use a sweep for both QP and HWP**
 3. run program to alternate between HH and VV measurements then turn the UVHWP to give the correct rate ratio by sweeping **utilize balance.py for the UVHWP**
-4. turn BCHWP to flip H and V
+4. turn BCHWP to flip H and V <- in the very specific case where we make Psi plus, move BCHWP first, this issue will only be caused by Psi plus
 
 use ratio of sin and cos to create initial guess for UVHWP and QP range to guess phi
 check first on alpha = 0 so that the state is psi plus
@@ -17,8 +17,6 @@ Check with full tomography at the very end (look into previous scripts)
 
 Specifically ONLY for psi plus
 1. make HH + e^(i*pi) VV with BCHWP at 0 degrees then set BCHWP to 45 degrees after setting QP and UVHWP
-
-counts are now minimized at correct angle, basis looks like DA
 
 any angle between 45 to 90 degrees is ok, in first octant between 0 and 45 degrees signs flip
 the octant alternate between flipping and not flipping
@@ -47,7 +45,7 @@ def QP_sweep(m:Manager, u1, b1):
     # sweep the QP to determine the minimum count angle
     # sweep through negative angles so that laser reflection points inward
    
-    m.sweep("C_QP", -30, 0, 20, 5, 3)
+    m.sweep("C_QP", -30, 5, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -65,7 +63,7 @@ def QP_sweep(m:Manager, u1, b1):
     
 
     new_guess = data["C_QP"][min_ind]
-    RANGE = 5
+    RANGE = 4
 
     min_bound = 0
     max_bound = len(QP_counts)
@@ -123,7 +121,7 @@ def UVHWP_sweep(m:Manager, ratio):
     N = 20
     SAMP = (5, 3)
 
-    PCT1 = 1/(1+ratio)
+    PCT1 = ratio
 
     m.new_output("UVHWP_balance_sweep1.csv")
 
@@ -207,12 +205,13 @@ if __name__ == '__main__':
         phi = gamma - delta
 
     # calculate theta based on alpha and beta
-    theta = math.sqrt(math.acos((1+math.cos(beta)*math.sin(2*alpha))/2))
+    HH_frac = (1+math.cos(beta)*math.sin(2*alpha))/2
+    theta = math.acos(math.sqrt((1+math.cos(beta)*math.sin(2*alpha))/2))
 
     # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
     phi = phi + np.pi
     b = np.pi/4
-    u = (phi+np.pi)/2
+    u = (phi + np.pi)/2
 
     """
     Error in measurement HWP and QWP angle settings. Double check all angle calculations.
@@ -226,9 +225,9 @@ if __name__ == '__main__':
 
     m = Manager()
 
-    # QP_sweep(m,u,b)
+    QP_sweep(m,u,b)
 
-    # UVHWP_sweep(m, rate_ratio)
+    # UVHWP_sweep(m, HH_frac)
 
 
 
