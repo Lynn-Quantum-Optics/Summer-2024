@@ -1,5 +1,6 @@
 # file to hold methods for random generation of density matrices
 import numpy as np
+import pandas as pd
 
 ## note: get_random_jones is in jones.py ##
 from rho_methods import *
@@ -40,7 +41,7 @@ def get_random_simplex(return_params=False):
     if return_params: return [rho, params]
     else: return rho
 
-def get_random_hurwitz(method=0, purity_cond = 1):
+def get_random_hurwitz(method=1, log_params=False, conc_cond = 0, purity_cond = 1):
     ''' Function to generate random density matrix with roik method.
     params:
         method: int, 0, 1, 2 for whether to use 
@@ -48,6 +49,8 @@ def get_random_hurwitz(method=0, purity_cond = 1):
             (1) phi = arcsin(xi^1/2) for n in 1 to 6 or
             (2) phi = rand in [0, pi/2] for n in 1 to 6
             default is 0.
+        log_params: bool, whether to return the parameters used to generate the 3rd unitary matrix
+        conc_cond: default is 0, will generate random density matrix until concurrence is >= than this value
         purity_condition: default is 1; will generate random density matrix until purity is less than this value
     '''
     ## part 1: random diagonal elements ##
@@ -71,6 +74,7 @@ def get_random_hurwitz(method=0, purity_cond = 1):
         return M
 
     ## part 2: random unitary trans ##
+    global params
     def rand_unitary():
         # need to first generate 6 other smaller unitaries
         if method==1 or method==2:
@@ -85,14 +89,17 @@ def get_random_hurwitz(method=0, purity_cond = 1):
                 return np.matrix([
                     [np.e**(psi*1j)*np.cos(phi), np.e**(chi*1j)*np.sin(phi)],
                     [-np.e**(-chi*1j)*np.sin(phi), np.e**(-psi*1j)*np.cos(phi)]
-                ])*np.e**(alpha*1j)
+                ])*np.e**(alpha*1j), alpha, psi, chi, phi
 
             # loop and create unitaries from blocks
             unitary_final = np.eye(4, dtype=np.complex)
             for k in range(5, -1, -1): # count down to do multiplicatiom from right to left
-                sub_unitary_k = get_rand_elems()
+                sub_unitary_k,   alpha, psi, chi, phi = get_rand_elems()
                 if k==0 or k==3 or k==5:
                     unitary_k = np.matrix(np.block([[np.eye(2), np.zeros((2,2))], [np.zeros((2,2)), sub_unitary_k]]))
+                    if log_params and k==3:
+                        global params
+                        params = [alpha, psi, chi, phi]
                 elif k==1 or k==4:
                     ul = np.matrix([[1,0], [0, sub_unitary_k[0, 0]]])# upper left
                     ur = np.matrix([[0,0], [sub_unitary_k[0, 1], 0]])# upper right
@@ -146,7 +153,7 @@ def get_random_hurwitz(method=0, purity_cond = 1):
     U = rand_unitary()
     M0 = combine_rand()
 
-    while not(is_valid_rho(M0)) or get_purity(M0)>purity_cond: # if not valid density matrix, keep generating
+    while not(is_valid_rho(M0)) or (get_purity(M0)>purity_cond and get_concurrence(M) >= conc_cond): # if not valid density matrix, keep generating
         print('invalid!!!')
         print(M0)
         M = rand_diag()
@@ -154,7 +161,8 @@ def get_random_hurwitz(method=0, purity_cond = 1):
         M0 = combine_rand()
 
     # return M0, get_purity(M0)
-    return M0
+    if not(log_params): return M0
+    else: return [M0, params]
 
 def get_random_werner_simplex():
     ''' Function to generate mixed random density matrix by mixing a random pure state with a maximally mixed one.'''
