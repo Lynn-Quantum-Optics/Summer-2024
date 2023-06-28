@@ -347,7 +347,6 @@ class Manager:
         float
             The actual position of the motor after the move.
         '''
-        self.log(f'Moving motor {motor} to {pos} degrees.')
         if not motor in self._motors:
             self.log(f'Unknown motor "{motor}"; throwing error.')
             raise ValueError(f'Attempted to reference unknown motor "{motor}".')
