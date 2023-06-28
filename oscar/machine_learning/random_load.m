@@ -1,6 +1,8 @@
 %% load the states %%
 data = table();
-for i= 1:1000
+n = 100000
+parpool(); 
+parfor i= 1:n
     disp(i)
     [rho, params] = random_gen(true);
     alpha = params(1);
@@ -17,4 +19,5 @@ for i= 1:1000
 end
 % save states for processing
 cd('/Users/oscarscholin/Desktop/Pomona/Summer23/Summer-2023/oscar/machine_learning/random_gen/test')
-writetable(data, '1000_m.csv');
+writetable(data, sprintf('%d_m.csv', n));
+delete(gcp);
