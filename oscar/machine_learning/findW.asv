@@ -30,7 +30,8 @@ for i = 0:len-1
     w_val(i+1,1) = fval;
 end
 minW = min(w_val(1:6));
+disp(w_val(7:9))
 minWp_t1 = min(w_val(7:9));
-minWp_t2 = min(w_val(10:12));
-minWp_t3 = min(w_val(13:15));
+minWp_t2 = min(w_val(10:15));
+minWp_t3 = min(w_val(12:15));
 end

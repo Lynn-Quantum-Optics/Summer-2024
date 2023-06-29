@@ -1,6 +1,6 @@
 %% load the states %%
 data = table();
-n = 100000
+n = 10000;
 parpool(); 
 parfor i= 1:n
     disp(i)
@@ -13,11 +13,11 @@ parfor i= 1:n
     purity = Purity(rho);
     min_eig= MinEig(rho);
      [W_min, Wp_t1, Wp_t2, Wp_t3] = findW(rho);
-     row = table(concurrence, purity, W_min, Wp_t1, Wp_t2, Wp_t3, alpha, chi, psi, phi);
+     row = table(concurrence, purity, W_min, Wp_t1, Wp_t2, Wp_t3, min_eig, alpha, chi, psi, phi);
 %     row = table(concurrence, purity);
     data = [data; row];
 end
 % save states for processing
 cd('/Users/oscarscholin/Desktop/Pomona/Summer23/Summer-2023/oscar/machine_learning/random_gen/test')
-writetable(data, sprintf('%d_m.csv', n));
+writetable(data, sprintf('%d_conc_comp_m.csv', n));
 delete(gcp);

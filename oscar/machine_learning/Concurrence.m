@@ -1,8 +1,10 @@
 function concurrence = Concurrence(rho)
-vars;
-R = sqrtm(sqrtm(rho) * sig * conj(rho) * sig * sqrtm(rho));
+sy = [0 -1i;1i 0];
+sig = kron(sy, sy);
+R = sqrtm(sqrtm(rho) * sig * conj(rho) * sig * sqrtm(rho)); % correct defintion
+    
 evals = eig(R);
 evals = sort(evals, 'descend');
-% disp(evals);
-concurrence = real(max(0, evals(1)-evals(2)-evals(3)-evals(4)));
+concurrence = max(0, real(evals(1)-evals(2)-evals(3)-evals(4)));
+
 end
