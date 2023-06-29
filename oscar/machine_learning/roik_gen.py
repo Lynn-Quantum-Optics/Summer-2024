@@ -19,31 +19,32 @@ def matrix_generation():
     eList.append(np.random.rand())
     eList.append(np.random.rand()*(1-eList[0]))
     eList.append(np.random.rand()*(1-eList[0]-eList[1]))
-    eList.append(np.random.rand()*(1-eList[0]-eList[1]-eList[2]))
+    # eList.append(np.random.rand()*(1-eList[0]-eList[1]-eList[2])) # their code, which was incorrect
+    eList.append(1-eList[0]-eList[1]-eList[2]) # my correction
     eList = np.random.permutation(eList)
     A = eList[0]
     B = eList[1]
     C = eList[2]
-    D = eList[3]
-    N = A + B + C + D
-    if N == 0:
-        eList = []
-        eList.append(np.random.rand())
-        eList.append(np.random.rand()*(1-eList[0]))
-        eList.append(np.random.rand()*(1-eList[0]-eList[1]))
-        eList.append(np.random.rand()*(1-eList[0]-eList[1]-eList[2]))
-        eList = np.random.permutation(eList)
-        A = eList[0]
-        B = eList[1]
-        C = eList[2]
-        D = eList[3]
-        N_new =  A + B + C + D              
-        M = np.matrix([[A/N_new,0,0,0],[0,B/N_new,0,0],[0,0,C/N_new,0],[0,0,0,D/N_new]])    
-    else:
-        M = np.matrix([[A/N,0,0,0],[0,B/N,0,0],[0,0,C/N,0],[0,0,0,D/N]])    
-    matrix_trace = M.trace()
+    D = eList[3]                                
+    # if N == 0:
+    #     eList = []
+    #     eList.append(np.random.rand())
+    #     eList.append(np.random.rand()*(1-eList[0]))
+    #     eList.append(np.random.rand()*(1-eList[0]-eList[1]))
+    #     eList.append(np.random.rand()*(1-eList[0]-eList[1]-eList[2]))
+    #     eList = np.random.permutation(eList)
+    #     A = eList[0]
+    #     B = eList[1]
+    #     C = eList[2]
+    #     D = eList[3]
+    #     N_new =  A + B + C + D              
+        # M = np.matrix([[A/N_new,0,0,0],[0,B/N_new,0,0],[0,0,C/N_new,0],[0,0,0,D/N_new]])    
+    # else:
+        # M = np.matrix([[A/N,0,0,0],[0,B/N,0,0],[0,0,C/N,0],[0,0,0,D/N]])    
+    # matrix_trace = M.trace()
 #    print (M)
 #    print (matrix_trace)
+    M = np.diag([A,B,C,D])
     return M
 
 def unitary_transform(p_1,p_2,p_3,p_4,p_5,p_6,p_7,p_8,p_9,p_10,p_11,p_12,p_13,p_14,p_15,p_16):
