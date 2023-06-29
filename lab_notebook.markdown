@@ -1,3 +1,7 @@
+## 6/29/23
+MP: A
+Started the laser warming up at 0827.
+
 ## 6/28/23
 MP: A
 
