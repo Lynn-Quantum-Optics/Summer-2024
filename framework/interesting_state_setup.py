@@ -3,7 +3,6 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-
 """
 Procedure:
 1. run this program to set creation state to phi plus and setup measurement polarizations for alice and bob
@@ -22,9 +21,58 @@ any angle between 45 to 90 degrees is ok, in first octant between 0 and 45 degre
 the octant alternate between flipping and not flipping
 """
 
+def get_params(alpha, beta):
+
+    if alpha <= math.pi/2 and beta <= math.pi/2:
+        r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+        gamma = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
+        phi = gamma + delta
+
+    if alpha >= math.pi/2 and beta >= math.pi/2:
+        r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+        gamma = math.pi + math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
+        phi = gamma - delta
+
+    if alpha <= math.pi/2 and beta >= math.pi/2:
+        r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
+        gamma = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+        phi = gamma + delta
+        
+    if alpha >= math.pi/2 and beta <= math.pi/2:
+        r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
+        r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
+        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
+        gamma = math.pi + (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+        phi = gamma - delta
+
+    # calculate theta based on alpha and beta
+    HH_frac = (1+math.cos(beta)*math.sin(2*alpha))/2
+    theta = math.acos(math.sqrt((1+math.cos(beta)*math.sin(2*alpha))/2))
+
+    # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
+    phi = phi + np.pi
+    b = np.pi/4
+    u = (phi + np.pi)/2
+
+    rate_ratio = (math.tan(theta))**2
+
+    meas_HWP_angle = (b + u) / 2
+    meas_QWP_angle = u + math.pi/2
+
+    return [meas_HWP_angle,meas_QWP_angle,HH_frac]
 
 
-def QP_sweep(m:Manager, u1, b1):
+def QP_sweep(m:Manager, HWP_angle, QWP_angle):
+    '''
+
+    '''
+
 
     # set the output file for manager
     m.new_output("QP_sweep.csv")
@@ -40,12 +88,12 @@ def QP_sweep(m:Manager, u1, b1):
 
     # turn bob's measurement plates to measure H/sqrt(2) - (e^i*phi)*V/sqrt(2)
     print(m.time, "Turning Bob's measurement plates")
-    m.configure_motors(B_HWP = np.rad2deg((b1+u1)/2), B_QWP = np.rad2deg(u1 + np.pi/2))
+    m.configure_motors(B_HWP = np.rad2deg(HWP_angle), B_QWP = np.rad2deg(QWP_angle))
 
     # sweep the QP to determine the minimum count angle
     # sweep through negative angles so that laser reflection points inward
    
-    m.sweep("C_QP", -30, 5, 25, 5, 3)
+    m.sweep("C_QP", -30, 0, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -168,64 +216,53 @@ def UVHWP_sweep(m:Manager, ratio):
     plt.legend()
     plt.show()
 
+def ket(data):
+    return np.array(data, dtype=complex).reshape(-1,1)
+
+def get_rho(alpha, beta):
+
+    H = ket([1,0])
+    V = ket([0,1])
+
+    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
+    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
+
+    psi = np.cos(alpha)*PSI_PLUS + np.exp(1j*beta)*np.sin(alpha)*PSI_MINUS
+
+    rho = psi @ psi.conj().T
+
+    return rho
+
 if __name__ == '__main__':
 
     # read user input to determine preset angles for state in radians
     alpha = float(input("Alpha = "))
     beta = float(input("Beta = "))
 
-    # calculate phi for different cases of alpha and beta
-
-    if alpha <= math.pi/2 and beta <= math.pi/2:
-        r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-        r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
-        gamma = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
-        phi = gamma + delta
-
-    if alpha >= math.pi/2 and beta >= math.pi/2:
-        r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-        r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
-        gamma = math.pi + math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
-        phi = gamma - delta
-
-    if alpha <= math.pi/2 and beta >= math.pi/2:
-        r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-        r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
-        gamma = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
-        phi = gamma + delta
-        
-    if alpha >= math.pi/2 and beta <= math.pi/2:
-        r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-        r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
-        gamma = math.pi + (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
-        phi = gamma - delta
-
-    # calculate theta based on alpha and beta
-    HH_frac = (1+math.cos(beta)*math.sin(2*alpha))/2
-    theta = math.acos(math.sqrt((1+math.cos(beta)*math.sin(2*alpha))/2))
-
-    # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
-    phi = phi + np.pi
-    b = np.pi/4
-    u = (phi + np.pi)/2
-
     """
     Error in measurement HWP and QWP angle settings. Double check all angle calculations.
     """
-
-    rate_ratio = (math.tan(theta))**2
 
     """
     Note these angles are all in radians, not degrees.
     """
 
+    meas_HWP_angle, meas_QWP_angle, HH_frac = get_params(alpha, beta)
+
     m = Manager()
 
-    QP_sweep(m,u,b)
+    QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
+
+    """
+    If the minimum is 0, we need to compare it to other plot to see the counts to see if the counts are the same as another minimum since 0 is always
+    a local minimum. If 0 isn't a minimum, we don't need to worry about this.
+
+    this means that for psi_plus, likely will have to manually set the QP to 0 before running the UVHWP sweep
+
+    Comparing full tomography density matrix and theoretical density matrix:
+    diagonal elements should be very close to one another, off diagonals will be close but with a smaller magnitude (around 95% of the value), if diagonals are 0
+    they might be nonzero
+    """
 
     # UVHWP_sweep(m, HH_frac)
 
