@@ -2,9 +2,11 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from core import Manager
+# from core import Manager
 # from measurement import meas_ab, meas_phi, meas_all
 from core import analysis
+
+class Manager: pass
 
 def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=None):
     '''
@@ -153,7 +155,7 @@ def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
     '''
     Sweep Bob's creation HWP while collecting beta data.
     '''
-    
+    '''
     # overall collection parameters
     pos_min = -10
     pos_max = 50
@@ -190,10 +192,13 @@ def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
         df.to_csv(out_file, index=False)
     
     '''
+
     # use this block comment for re-running analysis
     # load the data from a file
     df = pd.read_csv(out_file)
-    '''
+    
+    df['beta'] = df['alpha']
+    df = df[['BCHWP', 'beta', 'unc']]
 
     # error bar plot of the data
     plt.errorbar(df['BCHWP'], df['beta'], df['unc'], fmt='ro', ms=0.1)
@@ -231,16 +236,90 @@ def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
     print(f'"alph_min": {alph_min}')
     plt.show()
 
+def show_data(fp:str):
+    ''' Show the data that was collected using one of the sweep methods.
+    
+    Displays a basic errorbar plot with no fitting.
+
+    Parameters
+    ----------
+    fp : str
+        Path to the data file.
+    '''
+
+    # open data frame
+    df = pd.read_csv(fp)
+
+    # get component and parameter
+    comp, param, _ = df.columns
+
+    plt.errorbar(df[comp], df[param], df['unc'], fmt='ro', ms=0.1)
+    plt.title(f'{param} as {comp} is\nswept from {df[comp].min():.1f} to {df[comp].max():.1f}')
+    plt.xlabel(f'{comp} position (degrees)')
+    plt.xlabel(f'{param} parameter (degrees)')
+    plt.show()
+
+def fit_ab(fp:str, linear_region:Tuple[float, float]):
+    ''' Perform linear fits for alpha/beta data.
+    
+    Parameters
+    ----------
+    fp : str
+        Path to the data file.
+    linear_region : Tuple[float, float]
+        Ordered pair of angles that define the linear region of the plot.
+    '''
+    # open data frame
+    df = pd.read_csv(fp)
+
+    # get component and parameter
+    comp, param, _ = df.columns
+
+    # fit a line in the linear region
+    dfl = df[(linear_region[0] < df[comp])*(df[comp] < linear_region[1])]
+    fit_params, fit_uncs = analysis.fit('line', dfl[comp], dfl[param], dfl['unc'])
+    
+    # find extremal values
+    max_i = df[param].idxmax()
+    max_x = df[comp][max_i]
+    max_y = df[param][max_i]
+    min_i = df[param].idxmin()
+    min_x = df[comp][min_i]
+    min_y = df[param][min_i]
+
+    # plot stuff
+    analysis.plot_func('line', fit_params, df[comp], label=f'$y={fit_params[0]:.2f}x + {fit_params[1]:.2f}$', color='b')
+    plt.errorbar(df[comp], df[param], df['unc'], ms=0.1, label='Data', fmt='ro')
+    
+    plt.title(f'{param} as {comp} is\nswept from {df[comp].min():.1f} to {df[comp].max():.1f}')
+    plt.xlabel(f'{comp} position (degrees)')
+    plt.xlabel(f'{param} parameter (degrees)')
+    plt.legend()
+
+    print(f'"m": {fit_params[0]}')
+    print(f'"b": {fit_params[1]}')
+    print(f'"{comp}_min": {min_x}')
+    print(f'"{param}_min": {min_y}')
+    print(f'"{comp}_max": {max_x}')
+    print(f'"{param}_max": {max_y}')
+
+    plt.show()
+
 if __name__ == '__main__':
     
     SAMP = (5, 0.5)
     NUM_STEP = 50
 
-    m = Manager()
-    m.make_state("phi_plus")
+    # m = Manager()
+    # m.make_state("phi_plus")
     # sweep_qp_phi(None, SAMP, NUM_STEP, 'qp_phi_sweep_no_discontinuities.csv')
     # sweep_uvhwp_alph(m, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
     # sweep_uvhwp_alph(None, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
-    sweep_bchwp_beta(m, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
-    m.shutdown()
-    
+    # sweep_bchwp_beta(m, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
+    # sweep_bchwp_beta(None, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
+    # m.shutdown()
+
+    # show_data('bchwp_beta_sweep.csv')
+    fit_ab('bchwp_beta_sweep.csv', (10, 35))
+    # fit_ab('uvhwp_alph_sweep.csv', (5, 35))
+
