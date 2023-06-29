@@ -1,0 +1,14 @@
+function [concurrence_c, concurrece_b] = Concurrence(rho)
+vars;
+R_c = sqrtm(sqrtm(rho) * sig * conj(rho) * sig * sqrtm(rho)); % correct defintion
+R_b = sqrtm(sqrtm(rho) * sig * rho * sig * sqrtm(rho)); % bad definition
+    function conc = compute(R)
+    evals = eig(R);
+    evals = sort(evals, 'descend');
+    disp(evals);
+    disp(evals(1)-evals(2)-evals(3)-evals(4));
+    conc = max(0, real(evals(1)-evals(2)-evals(3)-evals(4)));
+    end
+concurrence_c = compute(R_c);
+concurrence_b = compute(R_b);
+end

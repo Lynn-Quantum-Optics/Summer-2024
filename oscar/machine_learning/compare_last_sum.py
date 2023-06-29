@@ -343,7 +343,7 @@ def comp_info(data_ls, names, savename, titlename, do_entangled):
 def comp_undetected(data_ls, names, savename, titlename):
     ''' Function to just compare the undetected fraction of states and distr of concurrence'''
 
-    fig, ax = plt.subplots(1,3, figsize=(10,5))
+    fig, ax = plt.subplots(1,3, figsize=(12,5))
     for i in range(len(data_ls)):
         df = pd.read_csv(join(DATA_PATH, data_ls[i]))
         # print(df.head())
@@ -358,10 +358,10 @@ def comp_undetected(data_ls, names, savename, titlename):
 
             def get_frac_undet_W(threshold=0):
                 ''' Gets fraction of UD states by W given concurrence threshold'''
-                return len(undet_W_df.loc[undet_W_df['concurrence']>threshold])/len(ent_df)
+                return len(undet_W_df.loc[undet_W_df['concurrence']>threshold])/len(df.loc[df['concurrence']>threshold])
             def get_frac_undet_Wp(threshold=0):
                 ''' Gets fraction of UD states by Wp witnesses given concurrence threshold'''
-                return len(undet_Wp_df.loc[undet_Wp_df['concurrence']>threshold])/len(ent_df)
+                return len(undet_Wp_df.loc[undet_Wp_df['concurrence']>threshold])/len(df.loc[df['concurrence']>threshold])
 
             conc_threshold_ls = np.linspace(0,.25,5)
             frac_ud_W_ls = [get_frac_undet_W(threshold) for threshold in conc_threshold_ls]
@@ -437,15 +437,20 @@ def comp_undetected(data_ls, names, savename, titlename):
     plt.savefig(join(DATA_PATH, savename + '.pdf'))
 
 
-data_ls = ['10000_conc_comp_m.csv', 'hurwitz_True_10000_grad_method_1.csv', 'roik_True_10000_grad.csv']
-names = ['Matlab', 'Me', 'Roik']
-savename = 'mat_me_roik_comp_10000_grad'
-titlename = 'Comparison of Concurrence Calculations for 10,000 States'
+data_ls = ['hurwitz_True_10000_grad_20_s_mac_method_1.csv', 'roik_True_10000_20_correc.csv']
+names = ['Me', 'Roik']
+savename = 'me_roik_10000'
+titlename = 'Witness Calculations for 10,000 States'
+
 for do_entangled in [False, True]:
     comp_info(data_ls, names, savename+'_'+str(do_entangled), titlename, do_entangled)
 
+# data_ls = ['1000_conc_comp_m.csv']
+# names = ['Matlab']
+# savename = 'mat_1000'  
+# titlename = 'Witness Calculations for 1,000 States'
 
-# comp_undetected(data_ls, names, savename, titlename)
+comp_undetected(data_ls, names, savename, titlename)
 
 def get_random_dist(mfile):
     '''Plots np.random.rand dist against matlab'''
