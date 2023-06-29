@@ -2,13 +2,9 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# from core import Manager
+from core import Manager
 # from measurement import meas_ab, meas_phi, meas_all
 from core import analysis
-
-class Manager:
-    pass
-
 
 def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=None):
     '''
@@ -32,14 +28,11 @@ def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=No
 
     # compute phi
     u = (DL-DR)/(RR-RL)
-    phis = np.arctan2((DL-DR), (RR-RL))
-    phi_uncs = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
+    phis = np.rad2deg(np.arctan2((DL-DR), (RR-RL)))
+    phi_uncs = np.rad2deg(1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2)))
     
     # repackage data into a dataframe
     df = pd.DataFrame({'QP':angles, 'phi':phis, 'unc':phi_uncs})
-
-    # make phi > 0 at 0 degrees
-    df['phi'] += 360
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
@@ -170,18 +163,18 @@ def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
 
     # gather coincidence data in the four relevant bases
     m.meas_basis('HH')
-    HH, HHu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    HH, HHu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('HV')
-    HV, HVu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    HV, HVu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('VH')
-    VH, VHu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    VH, VHu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('VV')
-    VV, VVu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    VV, VVu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
     
     # total count rates
     T = HH + HV + VH + VV
 
-    # compute alpha
+    # compute beta
     beta = np.arctan(np.sqrt((HV+VH)/(HH+VV)))
     beta_unc = 1/(2*T) * np.sqrt((HHu**2 + VVu**2) * (VH+HV)/(HH+VV) + (HVu**2 + VHu**2) * (HH+VV)/(HV+VH))
     
@@ -240,14 +233,14 @@ def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
 
 if __name__ == '__main__':
     
-    SAMP = (3,0.5)
-    NUM_STEP =50
+    SAMP = (5, 0.5)
+    NUM_STEP = 50
 
-    # m = Manager()
-    # m.make_state("phi_plus")
+    m = Manager()
+    m.make_state("phi_plus")
     # sweep_qp_phi(None, SAMP, NUM_STEP, 'qp_phi_sweep_no_discontinuities.csv')
     # sweep_uvhwp_alph(m, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
-    sweep_uvhwp_alph(None, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
-
-    # m.shutdown()
+    # sweep_uvhwp_alph(None, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
+    sweep_bchwp_beta(m, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
+    m.shutdown()
     

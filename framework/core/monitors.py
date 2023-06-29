@@ -350,10 +350,6 @@ class CCU(SerialMonitor):
         self._axes['count_lines'].set_xlim(-self._plot_xlim, 0)
         self._axes['coin_lines'].set_xlim(-self._plot_xlim, 0)
 
-        # add legends
-        self._axes['count_lines'].legend()
-        self._axes['coin_lines'].legend()
-
         # turn interactions on and show the plot without blocking
         self._fig.tight_layout()
         plt.ion()
@@ -381,6 +377,10 @@ class CCU(SerialMonitor):
         self._artists['count_bars'] = self._axes['count_bars'].bar(self._channel_keys[:4], np.ones((4,))*1e-5)
         self._artists['coin_bars'] = self._axes['coin_bars'].bar(self._channel_keys[4:], np.ones((4,))*1e-5)
         
+        # add legends
+        self._axes['count_lines'].legend()
+        self._axes['coin_lines'].legend()
+
         # show the figure
         self._fig.show()
         self._fig.canvas.draw()
@@ -425,8 +425,8 @@ class CCU(SerialMonitor):
             rect.set_height(max(h,1e-5))
 
         # update count labels
-        self._axes['count_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[:4], data[-1,:4])])
-        self._axes['coin_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[4:], data[-1,4:])])
+        self._axes['count_bars'].set_xticklabels([f'{k}\n{n:.2f}' for k, n in zip(self._channel_keys[:4], data[-1,:4])])
+        self._axes['coin_bars'].set_xticklabels([f'{k}\n{n:.2f}' for k, n in zip(self._channel_keys[4:], data[-1,4:])])
 
         # blit the figure
         self._fig.tight_layout()
