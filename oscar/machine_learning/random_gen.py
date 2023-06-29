@@ -56,21 +56,16 @@ def get_random_hurwitz(method=1, log_params=False, conc_cond = 0, purity_cond = 
     ## part 1: random diagonal elements ##
     def rand_diag():
         # get 4 random params
-        def get_rand_elems():
-            M11 = np.random.randint(0, 100000) / 100000
-            M22 = np.random.randint(0, 100000) / 100000*(1-M11)
-            M33 = np.random.randint(0, 100000) / 100000*(1-M11 - M22)
-            M44 = np.random.randint(0, 100000) / 100000*(1-M11-M22-M33)
-            
-            # shuffle the entries
-            rand_elems = np.array([M11, M22, M33, M44])
-            np.random.shuffle(rand_elems)
-            return M11+M22+M33+M44, rand_elems[0], rand_elems[1], rand_elems[2], rand_elems[3]
-        N = 0 # set to 0 initially
-        while N ==0:
-            N, M11, M22, M33, M44 = get_rand_elems()
-            # define new 4x4 matrix; cast the diagonal array as matrix for more convienient fnuctionality
-        M = np.matrix(np.diag([M11, M22, M33, M44]))*(1/N)
+        
+        M11 = np.random.randint(0, 100000) / 100000
+        M22 = np.random.randint(0, 100000) / 100000*(1-M11)
+        M33 = np.random.randint(0, 100000) / 100000*(1-M11 - M22)
+        M44 = 1-M11-M22-M33
+        
+        # shuffle the entries
+        rand_elems = np.array([M11, M22, M33, M44])
+        np.random.shuffle(rand_elems)
+        M = np.matrix(np.diag([rand_elems[0], rand_elems[1], rand_elems[2], rand_elems[3]]))
         return M
 
     ## part 2: random unitary trans ##
