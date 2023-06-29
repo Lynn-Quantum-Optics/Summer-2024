@@ -1,4 +1,4 @@
-function [rho, params] = random_gen(log_params)
+function [rho, params] = Random(log_params)
 r = rand(1,3);
 M11 = r(1,1);
 M22 = r(1,2)*(1-M11);
