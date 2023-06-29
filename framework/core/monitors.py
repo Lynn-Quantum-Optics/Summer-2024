@@ -350,6 +350,10 @@ class CCU(SerialMonitor):
         self._axes['count_lines'].set_xlim(-self._plot_xlim, 0)
         self._axes['coin_lines'].set_xlim(-self._plot_xlim, 0)
 
+        # add legends
+        self._axes['count_lines'].legend()
+        self._axes['coin_lines'].legend()
+
         # turn interactions on and show the plot without blocking
         self._fig.tight_layout()
         plt.ion()
@@ -545,8 +549,8 @@ class Laser(SerialMonitor):
         for k in self._axes:
             self._fig.canvas.restore_region(self._axbgs[k])
         
-        # convert plot data to counts/second 
-        data = self._plot_data/self._update_period
+        # don't convert to counts/second
+        data = self._plot_data
 
         # update plot limits
         self._axes['pdv'].set_ylim(np.min(data[:,0])*0.9, np.max(data[:,0])*1.1+1e-5)
