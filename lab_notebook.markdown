@@ -1,6 +1,10 @@
 ## 6/29/23
 MP: A
-Started the laser warming up at 0827.
+Started the laser warming up at 0827. Returning now at 1037 to finish setting up.
+
+Starting today with a renewed and revised quartz plate sweep! The improvement in speed to the quartz plate sweep script cannot be overstated. With sampling at 3x0.5s old script took ~30 min, the new one is more like 10 min. I did a quick sweep then spent a while fuffing with the data until I ultimately messed it up beyond repair. Now I'm going to run a more precise sweep with sampling at 5x1s.
+
+Performed sweeps for all of the components that I wanted to today! Yay! Cleanup went normally :)
 
 ## 6/28/23
 MP: A
