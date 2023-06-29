@@ -425,8 +425,8 @@ class CCU(SerialMonitor):
             rect.set_height(max(h,1e-5))
 
         # update count labels
-        self._axes['count_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[:4], self._plot_data[-1,:4])])
-        self._axes['coin_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[4:], self._plot_data[-1,4:])])
+        self._axes['count_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[:4], data[-1,:4])])
+        self._axes['coin_bars'].set_xticklabels([f'{k}\n{n}' for k, n in zip(self._channel_keys[4:], data[-1,4:])])
 
         # blit the figure
         self._fig.tight_layout()
