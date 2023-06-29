@@ -13,7 +13,7 @@ import csv
 import os
 import datetime
 import copy
-from typing import Union, List
+from typing import Union, List, Tuple
 import serial
 
 # package imports
@@ -292,18 +292,6 @@ class Manager:
             out_uncs = np.array([data_unc[self._ccu._channel_keys.index(k)] for k in keys])
             return out_avgs, out_uncs
 
-    def pct_det(self, basis1:str, basis2:str, num_samp:int, samp_period:float, chan:str='C4'):
-        # take first measurement
-        self.meas_basis(basis1)
-        rate1, unc1 = self.get_rate(num_samp, samp_period, chan)
-        # take first measurement
-        self.meas_basis(basis2)
-        rate2, unc2 = self.get_rate(num_samp, samp_period, chan)
-        # get percentage and uncertainty
-        pct = rate1 / (rate1 + rate2)
-        unc = (rate2/(rate1+rate2)**2)*unc1 + (rate1/(rate1+rate2)**2)*unc2
-        return pct, unc
-
     def log(self, note:str):
         ''' Log a note to the manager's log file.
 
@@ -381,7 +369,7 @@ class Manager:
         self.log(f'Loading state preset "{state}" from config file -> {self._config["state_presets"][state]}.')
         self.configure_motors(**self._config['state_presets'][state])
 
-    def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> np.ndarray:
+    def sweep(self, component:str, pos_min:float, pos_max:float, num_steps:int, num_samp:int, samp_period:float) -> Tuple[np.ndarray, np.ndarray]:
         ''' Sweeps a component of the setup while collecting data
         
         Parameters
@@ -398,6 +386,13 @@ class Manager:
             Number of samples to take at each step.
         samp_period : float
             The period of each sample, in seconds (rounds down to nearest 0.1s, min 0.1s).
+        
+        Returns
+        -------
+        np.ndarray
+            Coincidence count rates over the sweep.
+        np.ndarray
+            Uncertainties in said coincidence count rates.
         '''
         self.log(f'Sweeping {component} from {pos_min} to {pos_max} degrees in {num_steps} steps.')
         # open output
