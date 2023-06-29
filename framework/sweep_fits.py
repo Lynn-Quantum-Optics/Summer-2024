@@ -11,22 +11,31 @@ def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=No
     Sweep the quartz-plate to record the phi parameter as a function of angle.
     '''
 
-    # array of angles
-    angles = np.linspace(0, 45, num_step)
-    
-    # loop to gather phi data
-    phis = []
-    phi_uncs = []
-    for i, x in enumerate(angles):
-        m.log(f'Moving QP to {x} degrees (iteration {i+1}/{num_step})')
-        m.C_QP.goto(x)
-        p, pu = meas_phi(m, SAMP)
-        phis.append(p)
-        phi_uncs.append(pu)
+    # array of angles (mostly for plotting)
+    pos_min = 0
+    pos_max = 45
+    angles = np.linspace(pos_min, pos_max, num_step)
+
+    # sweeps in different bases
+    m.meas_basis('DR')
+    DR, DRu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('DL')
+    DL, DLu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('RR')
+    RR, RRu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('RL')
+    RL, RLu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+
+    # compute phi
+    u = (DL-DR)/(RR-RL)
+    phis = np.arctan2((DL-DR), (RR-RL))
+    phi_uncs = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
     
     # repackage data into a dataframe
     df = pd.DataFrame({'QP':angles, 'phi':phis, 'unc':phi_uncs})
-    df['phi'] += 360 # from experience, we want to start with phi > 0
+
+    # make phi > 0 at 0 degrees
+    df['phi'] += 360
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
