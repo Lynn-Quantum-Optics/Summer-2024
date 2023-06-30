@@ -124,44 +124,14 @@ def get_all_projs(rho):
 
 def reconstruct_rho(all_projs):
     ''' Takes in all 36 projections and reconstructs the density matrix. Based on Beili Hu's thesis.'''
-    # define the projections
-    HH = all_projs[0,0]
-    HV = all_projs[0,1]
-    HD = all_projs[0,2]
-    HA = all_projs[0,3]
-    HR = all_projs[0,4]
-    HL = all_projs[0,5]
-    VH = all_projs[1,0]
-    VV = all_projs[1,1]
-    VD = all_projs[1,2]
-    VA = all_projs[1,3]
-    VR = all_projs[1,4]
-    VL = all_projs[1,5]
-    DH = all_projs[2,0]
-    DV = all_projs[2,1]
-    DD = all_projs[2,2]
-    DA = all_projs[2,3]
-    DR = all_projs[2,4]
-    DL = all_projs[2,5]
-    AH = all_projs[3,0]
-    AV = all_projs[3,1]
-    AD = all_projs[3,2]
-    AA = all_projs[3,3]
-    AR = all_projs[3,4]
-    AL = all_projs[3,5]
-    RH = all_projs[4,0]
-    RV = all_projs[4,1]
-    RD = all_projs[4,2]
-    RA = all_projs[4,3]
-    RR = all_projs[4,4]
-    RL = all_projs[4,5]
-    LH = all_projs[5,0]
-    LV = all_projs[5,1]
-    LD = all_projs[5,2]
-    LA = all_projs[5,3]
-    LR = all_projs[5,4]
-    LL = all_projs[5,5]
-
+    # unpack the projections
+    HH, HV, HD, HA, HR, HL = all_projs[0]
+    VH, VV, VD, VA, VR, VL = all_projs[1]
+    DH, DV, DD, DA, DR, DL = all_projs[2]
+    AH, AV, AD, AA, AR, AL = all_projs[3]
+    RH, RV, RD, RA, RR, RL = all_projs[4]
+    LH, LV, LD, LA, LR, LL = all_projs[5]
+    
     # build the stokes's parameters
     S = np.zeros((4,4))
     S[0,0]=1
