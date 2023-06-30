@@ -10,6 +10,24 @@ from scipy.optimize import minimize, approx_fprime
 from rho_methods import *
 from random_gen import *
 
+### experimental variables to reflect non-idealities in model ###
+# QP #
+l_p = 403 * 10**(-9) # wavelength of pump in m
+n_e_p = 1.56677 # extraordinary refractive index for 403 nm
+n_o_p = 1.55722 # ordinary refractive index for 403 nm
+d_QP = 0.5 * 10**(-3) # thickness of QP in m
+def phi_H_QP(phi_a): return (2*np.pi * d_QP * n_o_p**2) / (l_p*np.sqrt(n_o_p**2 - np.sin(phi_a)**2)) # phase shift for H polarization; note phi_a is the actual angle of the QP!
+def phi_V_QP(phi_a): return (2*np.pi * d_QP * n_e_p**2) / (l_p*np.sqrt(n_e_p**2 - np.sin(phi_a)**2)) # phase shift for V polarization; note phi_a is the actual angle of the QP!
+
+# PCC #
+d_PCC = 5.68 * 10**(-3) # thickness of PCC in m
+phi_H_PCC = (2*np.pi * d_PCC * n_o_p) / l_p # phase shift for H polarization
+phi_V_PCC = (2*np.pi * d_PCC * n_e_p) / l_p # phase shift for V polarization
+
+# BBO #
+a = 0.9 # ratio of max HH / max VV; determined by sweeping UV_HWP
+
+
 #### jones matrices ####
 def R(alpha): 
     ''' Rotation matrix for angle alpha'''
@@ -23,22 +41,25 @@ def Q(alpha):
 def get_QP(phi): 
     ''' QP matrix for angle phi'''
     return np.array(np.diag([1, np.e**(phi*1j)]))
-### BBO matrix ###
 BBO = np.array([[0, 0, 0, 1], [1, 0,0,0]]).T
-def init_state_bg(beta, gamma): 
-    ''' Initial polarization state matrix for angles beta, gamma: |psi> = cos(beta)|H> + e^(gamma*i)sin(beta)|V>'''
-    return np.array([[np.cos(2*beta),0],[0,np.e**(gamma*1j)*np.sin(2*beta)]])
-# initial state for simple=False
-S0 = init_state_bg(0,0)
+s0 = np.array([[1], [0]]) # initial |0> state
 
-def get_Jrho(angles, setup = 'C', check=False, bad=False):
+# experimental components #
+BBO_exp = np.array([[0, 0, 0, a], [1, 0,0,0]]).T # experimental BBO matrix
+def get_QP_exp(phi_a):
+    ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
+    return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
+PCC_exp = np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)]) # experimental PCC matrix
+
+#### calculations ####
+
+def get_Jrho(angles, setup = 'Ca', exp = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
-        setup: either 'C' for current setup or 'I' for ideal setup
-       (i*gamma)|1> or to use a combination of HWP and QP or HWP and 2x QP for C and I respectively
+        setup: 'Ca', 'C', 'I' respectively for current setup, current setup with one QWP on Alice, and ideal setup, replacing the QP with two QWPs and giving both A and B two QWPs and 1 HWP
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
-        bad: boolean for whether to return U*Is_0 or U*Is_0 @ adjoint(U*Is_0) -- set to False by default.
+        exp: boolean to use experimental components or not
     '''
 
     if setup == 'C':
@@ -61,7 +82,10 @@ def get_Jrho(angles, setup = 'C', check=False, bad=False):
         A_alpha = angles[4]
 
         H_UV = H(theta0)
-        QP = get_QP(phi)
+        if exp:
+            QP = PCC_exp @ get_QP_exp(phi)
+        else:
+            QP = get_QP(phi)
         H_B = H(B_theta)
         Q_B = Q(B_alpha)
         Q_A = Q(A_alpha)
@@ -110,15 +134,21 @@ def get_Jrho(angles, setup = 'C', check=False, bad=False):
         ''' Starts with input state with beta = gamma = 0. Input angles:
             UV_HWP, QP, Bob's HWP, Bob's QWP, Alice's QWP
         '''
-        # UVHWP 
+         # UVHWP 
         theta0 = angles[0]
         # QP
         phi = angles[1]
         # B HWP
         B_theta = angles[2]
-   
+
+        if exp:
+            # experimental QP #
+            QP = PCC_exp @ get_QP_exp(angles[1]) # combine QP and PCC
+
+        else:
+           QP = get_QP(phi)
+    
         H_UV = H(theta0)
-        QP = get_QP(phi)
         H_B = H(B_theta)
 
         U = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV
@@ -128,9 +158,8 @@ def get_Jrho(angles, setup = 'C', check=False, bad=False):
 
 
     # apply unitary
-    rho = U @ S0 @ adjoint(U)
-    
-
+    P = U @ s0
+    rho = P @ adjoint(P)
 
     ## return density matrix ##
     if check:
@@ -144,11 +173,10 @@ def get_Jrho(angles, setup = 'C', check=False, bad=False):
         return rho
 
 
-
-def get_random_Jangles(setup, bad=False):
+def get_random_Jangles(setup='Ca', exp=True, bad=False):
     ''' Returns random angles for the Jrho_C setup. Confirms that the density matrix is valid.
     params: 
-        setup: either 'C' for current setup or 'I' for ideal setup
+        setup: see get_Jrho
         bad: boolean for whether to return U*Is_0 or U*Is_0 @ adjoint(U*Is_0) -- set to False by default.
 
     '''
@@ -159,7 +187,10 @@ def get_random_Jangles(setup, bad=False):
             # UV HWP
             theta_UV = np.random.rand()*np.pi/4
             # QP
-            phi = np.random.rand()*np.pi/2
+            if exp:
+                phi = np.random.rand()*np.deg2rad(38.57) # 40 degrees is the max angle for the QP
+            else:
+                phi = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
             # QWPs
@@ -181,7 +212,10 @@ def get_random_Jangles(setup, bad=False):
             # UV HWP
             theta_UV = np.random.rand()*np.pi/4
             # QP
-            phi = np.random.rand()*2*np.pi
+            if exp: 
+                phi = np.random.rand()*np.deg2rad(38.57)
+            else:
+                phi = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
             angles= [theta_UV, phi, theta_B]
@@ -198,25 +232,26 @@ def get_random_Jangles(setup, bad=False):
     return angles
 
 
-def get_random_jones(setup='C', bad=False, return_params=False):
+def get_random_jones(setup='Ca', exp=True, return_params=False):
     ''' Computes random angles in the ranges specified and generates the resulting states'''
     # get random angles
-    angles = get_random_Jangles(setup=setup, bad=bad)
+    angles = get_random_Jangles(setup=setup, exp=exp)
     # get density matrix
-    rho = get_Jrho(setup=setup, angles=angles)
+    rho = get_Jrho(setup=setup, exp=exp, angles=angles)
 
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, debug=False, frac = 0.001, zeta = 0.01, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 10000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=False, frac = 0.001, zeta = 0.01, exp=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 10000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
         targ_name: name of target state
-        setup: either 'C' for current setup or 'I' for ideal setup
+        setup: see get_Jrho
         adapt: 0: random hop, 1: random fan, 2: gradient descent
         frac: what percentage of the domain of the angles to change each time in adapt
         zeta: learning rate for gradient descent
+        exp: whether to use experimental components
         state_num: number of the state to decompose for progress tracking
         gd_tune: whether to output parameters for gd tuning
         save_rho: whether to save the density matrix
@@ -245,7 +280,10 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, debug=Fals
         # iset bounds for guesses
         H_bound = (0, np.pi/4)
         Q_bound = (0, np.pi/2)
-        QP_bound = (0, 2*np.pi)
+        if exp:
+            QP_bound = (0, np.deg2rad(38.57))
+        else:
+            QP_bound = (0, 2*np.pi)
         if setup=='C':
             # theta_0, phi, theta_B, alpha_B1, alpha_B2
             # bounds = [(0, np.pi/4), (0, np.pi/2), (0, np.pi/4), (0, np.pi/2), (0, np.pi/2)]
@@ -346,8 +384,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C', adapt=0, debug=Fals
 
         # compute projections in 12 basis states
         best_pred_rho = func(max_best_angles)
-        proj_pred = get_12s_redundant_projections(func(max_best_angles))
-        proj_targ = get_12s_redundant_projections(targ_rho)
+        proj_pred = get_all_projs(func(max_best_angles))
+        proj_targ = get_all_projs(targ_rho)
 
         # if verbose:
         # print('index of state generated', i)
@@ -389,17 +427,19 @@ if __name__=='__main__':
     from multiprocessing import cpu_count, Pool
     # # for viewing arguments of function
     import matplotlib.pyplot as plt
-    from matplotlib import cm
+    # for using preset inputs in function
+    from functools import partial
 
     # import predefined states for testing
     from sample_rho import *
     from random_gen import *
 
 
-    def do_full_ex_decomp(setup,adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, debug=False, savename='test') :
+    def do_full_ex_decomp(setup,exp=True, adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, debug=False, savename='test') :
         ''' Run example decompositions using the C setup.
         Params:
-            setup: 'C' or 'I' or 'B' for both.
+            setup: 'C' or 'I' or 'Ca' or 'A' for all.
+            exp: whether to use experimental components
             adapt: 0 for no adaptation, 1 for random fan, 2 for gradient descent
             savename: name of file to save results to
             bell: whether to include bell states
@@ -473,17 +513,20 @@ if __name__=='__main__':
         for i in trange(len(states)):
             if setup=='A':
                 for option in ['Ca', 'C','I']:
-                    decomp_ls.append((i, option, adapt, debug))
+                    decomp_ls.append((i, option))
             else:
-                decomp_ls.append((i, setup, adapt,debug))
+                decomp_ls.append((i, setup))
         
         print(decomp_ls)
+
+        # get function with preset inputs
+        decomp = partial(jones_decompose, adapt=adapt, debug=debug, exp=exp)
 
         ## build multiprocessing pool ##
         pool = Pool(cpu_count())
 
-        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1], decomp_in[2], decomp_in[3]) for  decomp_in in decomp_ls]        
-        results = pool.starmap_async(jones_decompose, inputs).get()
+        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1]) for  decomp_in in decomp_ls]        
+        results = pool.starmap_async(decomp, inputs).get()
 
         ## end multiprocessing ##
         pool.close()
