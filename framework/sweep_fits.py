@@ -5,7 +5,203 @@ import matplotlib.pyplot as plt
 from core import Manager
 from core import analysis
 
+# +++ PARAMETER CALCULATION FUNCTIONS +++
+
+def calc_alpha(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], HD_HA_VD_VA_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    ''' Calculate the alpha parameter of a state.
+
+    Parameters
+    ----------
+    HD_HA_VD_VA : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of count rate measurments in the HD, HA, VD, and VA bases.
+    HD_HA_VD_VA_unc : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of uncertainties in the count rate measurments in the HD, HA, VD, and VA bases.
+    
+    Returns
+    -------
+    np.ndarray
+        The alpha parameter of the state.
+    np.ndarray
+        Uncertainty in the alpha parameter.
+    '''
+    # unpack the data
+    HD, HA, VD, VA = HD_HA_VD_VA
+    HDu, HAu, VDu, VAu = HD_HA_VD_VA_unc
+    
+    # get total count rates and convert everything to expectation values
+    T = HD + HA + VD + VA
+    HD, HA, VD, VA = HD/T, HA/T, VD/T, VA/T
+    HDu, HAu, VDu, VAu = HDu/T, HAu/T, VDu/T, VAu/T
+
+    # compute alpha
+    alpha = np.arctan(np.sqrt((VD + VA)/(HD + HA)))
+    # compute alpha uncertainty
+    unc = 1/(2) * np.sqrt((HDu**2 + HAu**2) * (VD+VA)/(HD+HA) + (VDu**2 + VAu**2) * (HD+HA)/(VD+VA))
+
+    return np.rad2deg(alpha), np.rad2deg(unc)
+
+def calc_beta(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], HD_HA_VD_VA_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    ''' Calculate the beta parameter of a state.
+
+    Parameters
+    ----------
+    HD_HA_VD_VA : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of count rate measurments in the HD, HA, VD, and VA bases.
+    HD_HA_VD_VA_unc : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of uncertainties in the count rate measurments in the HD, HA, VD, and VA bases.
+    
+    Returns
+    -------
+    np.ndarray
+        The beta parameter of the state.
+    np.ndarray
+        Uncertainty in the beta parameter.
+    '''
+    # unpack the data
+    HD, HA, VD, VA = HD_HA_VD_VA
+    HDu, HAu, VDu, VAu = HD_HA_VD_VA_unc
+    
+    # get total count rates and convert everything to expectation values
+    T = HD + HA + VD + VA
+    HD, HA, VD, VA = HD/T, HA/T, VD/T, VA/T
+    HDu, HAu, VDu, VAu = HDu/T, HAu/T, VDu/T, VAu/T
+
+    # compute beta
+    u = HD - HA - VD + VA
+    beta = np.arcsin(u)
+    # compute beta uncertainty
+    unc = 1/np.sqrt(1-u**2) * np.sqrt(HDu**2 + HAu**2 + VDu**2 + VAu**2)
+
+    return np.rad2deg(beta), np.rad2deg(unc)
+
+def calc_phi(DL_DR_RR_RL:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], DL_DR_RR_RL_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    ''' Measure phi parameter of the state.
+
+    Parameters
+    ----------
+    DL_DR_RR_RL : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of count rate measurments in the DL, DR, RR, and RL bases.
+    DL_DR_RR_RL_unc : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of uncertainties in the count rate measurments in the DL, DR, RR, and RL bases.
+    
+    Returns
+    -------
+    np.ndarray
+        The phi parameter of the state.
+    np.ndarray
+        Uncertainty in the phi parameter.
+    '''
+    # unpack the data
+    DL, DR, RR, RL = DL_DR_RR_RL
+    DLu, DRu, RRu, RLu = DL_DR_RR_RL_unc
+
+    # get total count rates and convert everything to expectation values
+    T = DL + DR + RR + RL
+    DL, DR, RR, RL = DL/T, DR/T, RR/T, RL/T
+    DLu, DRu, RRu, RLu = DLu/T, DRu/T, RRu/T, RLu/T
+
+    # calculate phi
+    phi = np.arctan2(DL-DR, RR-RL)
+    # calculate uncertainty in phi
+    u = (DL-DR)/(RR-RL)
+    unc = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
+
+    return np.rad2deg(phi), np.rad2deg(unc)
+
 # +++ DATA COLLECTION FUNCTIONS +++
+
+def sweep_uvhwp_alph(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
+    ''' Sweep the UVHWP across a range of angles while measuring the alpha parameter.
+    
+    The output of this function is a csv file with the columns:
+    - 'UVHWP' the angle of the UVHWP
+    - 'alpha' the alpha parameter
+    - 'unc' the uncertainty in the alpha parameter
+
+    Parameters
+    ----------
+    m : Manager
+        The manager object that is controlling the experiment.
+    pos_min : float
+        The minimum position of the UVHWP.
+    pos_max : float
+        The maximum position of the UVHWP.
+    num_step : int
+        The number of steps to take between pos_min and pos_max.
+    samp : Tuple[int,float]
+        The sample parameters for each measurement.
+    out_file : str
+        The name of the file to save the data to.
+    '''
+
+    # array of angles (mostly for plotting later)
+    angles = np.linspace(pos_min, pos_max, num_step)
+
+    # gather coincidence data in the four relevant bases
+    m.meas_basis('HD')
+    HD, HDu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('HA')
+    HA, HAu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('VD')
+    VD, VDu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('VA')
+    VA, VAu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+
+    # compute alpha
+    alpha, alpha_unc = calc_alpha((HD, HA, VD, VA), (HDu, HAu, VDu, VAu))
+
+    # repackage data into a dataframe
+    df = pd.DataFrame({'UVHWP':angles, 'alpha':alpha, 'unc':alpha_unc, 'HD':HD, 'HA':HA, 'VD':VD, 'VA':VA, 'HDu':HDu, 'HAu':HAu, 'VDu':VDu, 'VAu':VAu})
+
+    # save
+    df.to_csv(out_file, index=False)
+
+def sweep_bchwp_beta(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
+    '''Sweep Bob's HWP across a range of angles while measuring the beta parameter.
+    
+    The output of this function is a csv file with the columns:
+    - 'BCHWP' the angle of BCHWP
+    - 'beta' the beta parameter
+    - 'unc' the uncertainty in the beta parameter
+
+    Parameters
+    ----------
+    m : Manager
+        The manager object that is controlling the experiment.
+    pos_min : float
+        The minimum position of the UVHWP.
+    pos_max : float
+        The maximum position of the UVHWP.
+    num_step : int
+        The number of steps to take between pos_min and pos_max.
+    samp : Tuple[int,float]
+        The sample parameters for each measurement.
+    out_file : str
+        The name of the file to save the data to.
+    '''
+    # overall collection parameters
+
+    # array of angles (mostly for plotting later)
+    angles = np.linspace(pos_min, pos_max, num_step)
+
+    # gather coincidence data in the four relevant bases
+    m.meas_basis('HD')
+    HD, HDu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('HA')
+    HA, HAu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('VD')
+    VD, VDu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
+    m.meas_basis('VA')
+    VA, VAu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
+
+    # compute alpha
+    beta, beta_unc = calc_beta((HD, HA, VD, VA), (HDu, HAu, VDu, VAu))
+
+    # repackage data into a dataframe
+    df = pd.DataFrame({'BCHWP':angles, 'beta':beta, 'unc':beta_unc, 'HD':HD, 'HA':HA, 'VD':VD, 'VA':VA, 'HDu':HDu, 'HAu':HAu, 'VDu':VDu, 'VAu':VAu})
+
+    # save
+    df.to_csv(out_file, index=False)
 
 def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
     ''' Sweep the quartz-plate to record the phi parameter as a function of angle.
@@ -45,12 +241,10 @@ def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tup
     RL, RLu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
 
     # compute phi
-    u = (DL-DR)/(RR-RL)
-    phis = np.rad2deg(np.arctan2((DL-DR), (RR-RL)))
-    phi_uncs = np.rad2deg(1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2)))
-    
+    phis, phi_uncs = calc_phi((DL, DR, RR, RL), (DRu, DRu, RRu, RLu))
+
     # repackage data into a dataframe
-    df = pd.DataFrame({'QP':angles, 'phi':phis, 'unc':phi_uncs})
+    df = pd.DataFrame({'QP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':DL, 'DR':DR, 'RR':RR, 'RL':RL, 'DLu':DLu, 'DRu':DRu, 'RRu':RRu, 'RLu':RLu})
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
@@ -58,118 +252,6 @@ def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tup
             df['phi'][i:] += 360
 
     # save the data
-    df.to_csv(out_file, index=False)
-
-def sweep_uvhwp_alph(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
-    ''' Sweep the UVHWP across a range of angles while measuring the alpha parameter.
-    
-    The output of this function is a csv file with the columns:
-    - 'UVHWP' the angle of the UVHWP
-    - 'alpha' the alpha parameter
-    - 'unc' the uncertainty in the alpha parameter
-
-    Parameters
-    ----------
-    m : Manager
-        The manager object that is controlling the experiment.
-    pos_min : float
-        The minimum position of the UVHWP.
-    pos_max : float
-        The maximum position of the UVHWP.
-    num_step : int
-        The number of steps to take between pos_min and pos_max.
-    samp : Tuple[int,float]
-        The sample parameters for each measurement.
-    out_file : str
-        The name of the file to save the data to.
-    '''
-    
-    # overall collection parameters
-    pos_min = -10
-    pos_max = 50
-
-    # array of angles (mostly for plotting later)
-    angles = np.linspace(pos_min, pos_max, num_step)
-
-    # gather coincidence data in the four relevant bases
-    m.meas_basis('HH')
-    HH, HHu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
-    m.meas_basis('HV')
-    HV, HVu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
-    m.meas_basis('VH')
-    VH, VHu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
-    m.meas_basis('VV')
-    VV, VVu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
-    
-    # total count rates
-    T = HH + HV + VH + VV
-
-    # compute alpha
-    alpha = np.arctan(np.sqrt((VH+VV)/(HH+HV)))
-    alpha_unc = 1/(2*T) * np.sqrt((HHu**2 + HVu**2) * (VH+VV)/(HH+HV) + (VHu**2 + VVu**2) * (HH+HV)/(VH+VV))
-    
-    # using degrees from here on out
-    alpha = np.rad2deg(alpha)
-    alpha_unc = np.rad2deg(alpha_unc)
-
-    # repackage data into a dataframe
-    df = pd.DataFrame({'UVHWP':angles, 'alpha':alpha, 'unc':alpha_unc})
-
-    # save if requested
-    if out_file is not None:
-        df.to_csv(out_file, index=False)
-
-def sweep_bchwp_beta(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
-    '''Sweep Bob's HWP across a range of angles while measuring the beta parameter.
-    
-    The output of this function is a csv file with the columns:
-    - 'BCHWP' the angle of BCHWP
-    - 'beta' the beta parameter
-    - 'unc' the uncertainty in the beta parameter
-
-    Parameters
-    ----------
-    m : Manager
-        The manager object that is controlling the experiment.
-    pos_min : float
-        The minimum position of the UVHWP.
-    pos_max : float
-        The maximum position of the UVHWP.
-    num_step : int
-        The number of steps to take between pos_min and pos_max.
-    samp : Tuple[int,float]
-        The sample parameters for each measurement.
-    out_file : str
-        The name of the file to save the data to.
-    '''
-    # overall collection parameters
-    pos_min = -10
-    pos_max = 50
-
-    # array of angles (mostly for plotting later)
-    angles = np.linspace(pos_min, pos_max, num_step)
-
-    # gather coincidence data in the four relevant bases
-    m.meas_basis('HH')
-    HH, HHu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
-    m.meas_basis('HV')
-    HV, HVu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
-    m.meas_basis('VH')
-    VH, VHu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
-    m.meas_basis('VV')
-    VV, VVu = m.sweep('B_C_HWP', pos_min, pos_max, num_step, *samp)
-    
-    # total count rates
-    T = HH + HV + VH + VV
-
-    # compute beta
-    beta = np.rad2deg(np.arctan(np.sqrt((HV+VH)/(HH+VV))))
-    beta_unc = np.rad2deg(1/(2*T) * np.sqrt((HHu**2 + VVu**2) * (VH+HV)/(HH+VV) + (HVu**2 + VHu**2) * (HH+VV)/(HV+VH)))
-
-    # repackage data into a dataframe
-    df = pd.DataFrame({'BCHWP':angles, 'beta':beta, 'unc':beta_unc})
-
-    # save
     df.to_csv(out_file, index=False)
 
 # +++ DATA DISPLAY +++
@@ -189,7 +271,7 @@ def show_data(fp:str):
     df = pd.read_csv(fp)
 
     # get component and parameter
-    comp, param, _ = df.columns
+    comp, param = df.columns[:2]
 
     plt.errorbar(df[comp], df[param], df['unc'], fmt='ro', ms=0.1)
     plt.title(f'{param} as {comp} is\nswept from {df[comp].min():.1f} to {df[comp].max():.1f}')
