@@ -68,9 +68,9 @@ def calc_beta(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray],
 
     # compute beta
     u = HD - HA - VD + VA
-    beta = np.arcsin(u)
+    beta = np.arcsin(u)/2
     # compute beta uncertainty
-    unc = 1/np.sqrt(1-u**2) * np.sqrt(HDu**2 + HAu**2 + VDu**2 + VAu**2)
+    unc = 1/(2*np.sqrt(1-u**2)) * np.sqrt(HDu**2 + HAu**2 + VDu**2 + VAu**2)
 
     return np.rad2deg(beta), np.rad2deg(unc)
 
@@ -256,7 +256,7 @@ def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tup
 
 # +++ DATA DISPLAY +++
 
-def show_data(fp:str):
+def show_data(fp:str, plot_outfile:str=None):
     ''' Show the data that was collected using one of the sweep methods.
     
     Displays a basic errorbar plot with no fitting.
@@ -265,6 +265,8 @@ def show_data(fp:str):
     ----------
     fp : str
         Path to the data file.
+    plot_outfile : str (optional, default None)
+        Output file name for the plot created.
     '''
 
     # open data frame
@@ -277,17 +279,22 @@ def show_data(fp:str):
     plt.title(f'{param} as {comp} is\nswept from {df[comp].min():.1f} to {df[comp].max():.1f}')
     plt.xlabel(f'{comp} position (degrees)')
     plt.ylabel(f'{param} parameter (degrees)')
+
+    if plot_outfile:
+        plt.savefig(plot_outfile, dpi=600)
     plt.show()
 
 # +++ DATA FITTING +++
 
-def fit_phi(fp:str) -> None:
+def fit_phi(fp:str, plot_outfile:str=None) -> None:
     ''' Perform a secant fit for the quartz plate-phi sweep.
 
     Parameters
     ----------
     fp : str
         Path to the data file.
+    plot_outfile : str (optional, default None)
+        Output file name for the plot created.
     '''
     # load the data from a file
     df = pd.read_csv(fp)
@@ -311,9 +318,12 @@ def fit_phi(fp:str) -> None:
     print(f'"a": {params[0]} ± {uncs[0]}')
     print(f'"b": {params[1]} ± {uncs[1]}')
     print(f'"c": {params[2]} ± {uncs[2]}')
+
+    if plot_outfile:
+        plt.savefig(plot_outfile, dpi=600)
     plt.show()
 
-def fit_ab(fp:str, linear_region:Tuple[float, float]):
+def fit_ab(fp:str, linear_region:Tuple[float, float], plot_outfile:str=None):
     ''' Perform linear fits for alpha/beta data.
     
     Parameters
@@ -322,15 +332,17 @@ def fit_ab(fp:str, linear_region:Tuple[float, float]):
         Path to the data file.
     linear_region : Tuple[float, float]
         Ordered pair of angles that define the linear region of the plot.
+    plot_outfile : str (optional, default None)
+        Output file name for the plot created.
     '''
     # open data frame
     df = pd.read_csv(fp)
 
     # get component and parameter
-    comp, param, _ = df.columns
+    comp, param = df.columns[:2]
 
     # fit a line in the linear region
-    dfl = df[(linear_region[0] < df[comp])*(df[comp] < linear_region[1])]
+    dfl = df[(linear_region[0] < df[comp]) & (df[comp] < linear_region[1])]
     fit_params, fit_uncs = analysis.fit('line', dfl[comp], dfl[param], dfl['unc'])
     
     # find extremal values
@@ -350,31 +362,58 @@ def fit_ab(fp:str, linear_region:Tuple[float, float]):
     plt.ylabel(f'{param} parameter (degrees)')
     plt.legend()
 
-    print(f'"m": {fit_params[0]}')
-    print(f'"b": {fit_params[1]}')
+    print(f'"m": {fit_params[0]} ± {fit_uncs[0]}')
+    print(f'"b": {fit_params[1]} ± {fit_uncs[1]}')
     print(f'"{comp}_min": {min_x}')
     print(f'"{param}_min": {min_y}')
     print(f'"{comp}_max": {max_x}')
     print(f'"{param}_max": {max_y}')
-
+    
+    if plot_outfile:
+        plt.savefig(plot_outfile, dpi=600)
     plt.show()
 
 # +++ MAIN SCRIPT +++
 if __name__ == '__main__':
-    
-    SAMP = (5, 0.5)
+    # +++ hyper parameters
+    SAMP = (5, 1)
     NUM_STEP = 50
 
-    # m = Manager()
-    # m.make_state("phi_plus")
-    # sweep_qp_phi(None, SAMP, NUM_STEP, 'qp_phi_sweep_no_discontinuities.csv')
-    # sweep_uvhwp_alph(m, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
-    # sweep_uvhwp_alph(None, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
-    # sweep_bchwp_beta(m, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
-    # sweep_bchwp_beta(None, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
-    # m.shutdown()
+    # +++ UVHWP alpha sweep experiment
+    ''' 
+    m = Manager()
+    m.make_state("phi_plus")
+    sweep_uvhwp_alph(m, -10, 50, NUM_STEP, SAMP, 'uvhwp_alpha_sweep.csv')
+    m.shutdown()
+    show_data('uvhwp_alpha_sweep.csv', 'uvhwp_alpha_sweep_nofit2.png')
+    '''
 
-    # show_data('bchwp_beta_sweep.csv')
-    fit_ab('bchwp_beta_sweep.csv', (10, 35))
-    # fit_ab('uvhwp_alph_sweep.csv', (5, 35))
+    # +++ UVHWP data fitting
+    '''
+    fit_ab('uvhwp_alpha_sweep.csv', (3,40), 'uvhwp_alpha_sweep.png')
+    '''
+    
+    # +++ BCHWP beta sweep experiment
+    '''
+    m = Manager()
+    m.make_state("phi_plus")
+    sweep_bchwp_beta(m, -10, 50, NUM_STEP, SAMP, 'bchwp_beta_sweep.csv')
+    m.shutdown()
+    show_data('bchwp_beta_sweep.csv', 'bchwp_beta_sweep_nofit.png')
+    '''
+
+    # +++ QP phi sweep experiment
+    m = Manager()
+    m.make_state("phi_plus")
+    sweep_qp_phi(m, 0, 45, NUM_STEP, SAMP, 'qp_phi_sweep.csv')
+    m.shutdown()
+    show_data('qp_phi_sweep.csv', 'qp_phi_sweep_nofit.png')
+    
+    
+    # sweep_qp_phi(None, SAMP, NUM_STEP, 'qp_phi_sweep_no_discontinuities.csv')
+    # sweep_uvhwp_alph(None, SAMP, NUM_STEP, 'uvhwp_alph_sweep.csv')
+    # sweep_bchwp_beta(None, SAMP, NUM_STEP, 'bchwp_beta_sweep.csv')
+    
+
+    # show_data('uvhwp_alpha_sweep.csv')
 

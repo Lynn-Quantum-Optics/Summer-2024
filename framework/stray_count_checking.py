@@ -70,10 +70,10 @@ def make_plots(data:pd.DataFrame, plot_outfile:str=None) -> None:
     '''
     # calculate count rate ratios and uncertainties
     HH_VV = data['HH']/data['VV']
-    HH_VV_unc = np.sqrt((data['HH_unc']/data['VV'])**2 + (data['HH']*data['VV_unc']/data['VV']**2)**2)
+    HH_VV_unc = np.sqrt((data['HHu']/data['VV'])**2 + (data['HH']*data['VVu']/data['VV']**2)**2)
 
-    HV_VH = df['HV']/df['VH']
-    HV_VH_unc = np.sqrt((data['HV_unc']/data['VH'])**2 + (data['HV']*data['VH_unc']/data['VH']**2)**2)
+    HV_VH = data['HV']/data['VH']
+    HV_VH_unc = np.sqrt((data['HVu']/data['VH'])**2 + (data['HV']*data['VHu']/data['VH']**2)**2)
 
     # initialize the figure
     fig, ax = plt.subplots(2,1,sharex=True)
@@ -85,8 +85,7 @@ def make_plots(data:pd.DataFrame, plot_outfile:str=None) -> None:
     # titles and such
     ax[0].set_ylabel('HH/VV')
     ax[1].set_ylabel('HV/VH')
-    fig.supylabel('Count Rate Ratio')
-    fig.supxlabel('UVHWP Angle (degrees)')
+    ax[1].set_xlabel('UVHWP Angle (degrees)')
     fig.suptitle('HH/VV and HV/VH Count Rate Ratios\nas a Function of UVHWP Angle')
 
     # save plot if requested
@@ -97,12 +96,12 @@ def make_plots(data:pd.DataFrame, plot_outfile:str=None) -> None:
     plt.show()
 
 if __name__ == '__main__':
-    data = run_sweeps(
-        out_file='data/stray_count_checking/sweep_data.csv',
-        start_angle=-10,
-        end_angle=50,
-        num_steps=30,
-        samp=(5,1))
-    make_plots(data, 'data/stray_count_checking/count_ratio_plots.png')
+    # data = run_sweeps(
+    #     out_file='data/stray_count_checking/sweep_data.csv',
+    #     start_angle=-10,
+    #     end_angle=50,
+    #     num_steps=30,
+    #     samp=(5,1))
+    make_plots(pd.read_csv('data/stray_count_checking/sweep_data.csv'), 'data/stray_count_checking/count_ratio_plots.png')
 
 
