@@ -12,172 +12,104 @@ In terms of those parameters. See the confluence page for more information about
 
 from typing import Tuple
 import numpy as np
-from core import Manager
 
-
-def meas_HV(m:Manager, samp:Tuple[int,float]):
-    ''' Takes data in (HH, HV, VH, VV) basis.
-    
-    Parameters
-    ----------
-    m : Manager
-        The manager object that is controlling the experiment.
-    samp : Tuple[int,float]
-        The sample parameters for each measurement.
-    
-    Returns
-    -------
-    list
-        The count rates for HH, HV, VH, and VV coincidences, in order.
-    list
-        The uncertainties for HH, HV, VH, and VV coincidences, in order.
-    '''
-    m.meas_basis("HH")
-    HH, HH_unc = m.take_data(*samp, "C4")
-    m.meas_basis("HV")
-    HV, HV_unc = m.take_data(*samp, "C4")
-    m.meas_basis("VH")
-    VH, VH_unc = m.take_data(*samp, "C4")
-    m.meas_basis("VV")
-    VV, VV_unc = m.take_data(*samp, "C4")
-    return [HH, HV, VH, VV], [HH_unc, HV_unc, VH_unc, VV_unc]
-
-def meas_DRL_RRL(m:Manager, samp:Tuple[int,float]):
-    ''' Takes data in (DR, DL, RR, RL) bases.
-    
-    Parameters
-    ----------
-    m : Manager
-        The manager object that is controlling the experiment.
-    samp : Tuple[int,float]
-        The sample parameters for each measurement.
-    
-    Returns
-    -------
-    list
-        The count rates for DR, DL, RR, and RL coincidences, in order.
-    list
-        The uncertainties for DR, DL, RR, and RL coincidences, in order.
-    '''
-    m.meas_basis("DR")
-    DR, DR_unc = m.take_data(*samp, "C4")
-    m.meas_basis("DL")
-    DL, DL_unc = m.take_data(*samp, "C4")
-    m.meas_basis("RL")
-    RL, RL_unc = m.take_data(*samp, "C4")
-    m.meas_basis("RR")
-    RR, RR_unc = m.take_data(*samp, "C4")
-    return [DR, DL, RR, RL], [DR_unc, DL_unc, RR_unc, RL_unc]
-
-def meas_DA_RL(m:Manager, samp:Tuple[int,float]):
-    ''' Takes data in (DR, DL, AR, AL) basis.
-    
-    Parameters
-    ----------
-    m : Manager
-        The manager object that is controlling the experiment.
-    samp : Tuple[int,float]
-        The sample parameters for each measurement.
-    
-    Returns
-    -------
-    list
-        The count rates for DR, DL, AR, and AL coincidences, in order.
-    list
-        The uncertainties for DR, DL, AR, and AL coincidences, in order.
-    '''
-    m.meas_basis("DR")
-    DR, DR_unc = m.take_data(*samp, "C4")
-    m.meas_basis("DL")
-    DL, DL_unc = m.take_data(*samp, "C4")
-    m.meas_basis("AR")
-    AR, AR_unc = m.take_data(*samp, "C4")
-    m.meas_basis("AL")
-    AL, AL_unc = m.take_data(*samp, "C4")
-    return [DR, DL, AR, AL], [DR_unc, DL_unc, AR_unc, AL_unc]
-
-def meas_ab(m:Manager, samp:Tuple[int, float]) -> Tuple[Tuple[float, float], Tuple[float, float]]:
-    ''' Measure alpha and beta parameters of the state.
+def calc_alpha(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], HD_HA_VD_VA_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    ''' Calculate the alpha parameter of a state.
 
     Parameters
     ----------
-    m : Manager
-        The manager object running the experiment.
-    samp : Tuple[int, float]
-        The sampling parameters for measurements.
+    HD_HA_VD_VA : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of count rate measurments in the HD, HA, VD, and VA bases.
+    HD_HA_VD_VA_unc : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of uncertainties in the count rate measurments in the HD, HA, VD, and VA bases.
     
     Returns
     -------
-    Tuple[float, float]
-        The alpha and beta parameters of the state.
-    Tuple[float, float]
-        Uncertainties in the alpha and beta parameters.
+    np.ndarray
+        The alpha parameter of the state.
+    np.ndarray
+        Uncertainty in the alpha parameter.
     '''
-    # take data in H/V basis
-    (HH, HV, VH, VV), (HHu, HVu, VHu, VVu) = meas_HV(m, samp)
-    T_hv = HH + HV + VH + VV
+    # unpack the data
+    HD, HA, VD, VA = HD_HA_VD_VA
+    HDu, HAu, VDu, VAu = HD_HA_VD_VA_unc
+    
+    # get total count rates and convert everything to expectation values
+    T = HD + HA + VD + VA
+    HD, HA, VD, VA = HD/T, HA/T, VD/T, VA/T
+    HDu, HAu, VDu, VAu = HDu/T, HAu/T, VDu/T, VAu/T
 
     # compute alpha
-    alpha = np.arctan(np.sqrt((VH+VV)/(HH+HV)))
+    alpha = np.arctan(np.sqrt((VD + VA)/(HD + HA)))
     # compute alpha uncertainty
-    alpha_unc = 1/(2*T_hv) * np.sqrt((HHu**2 + HVu**2) * (VH+VV)/(HH+HV) + (VHu**2 + VVu**2) * (HH+HV)/(VH+VV))
+    unc = 1/(2) * np.sqrt((HDu**2 + HAu**2) * (VD+VA)/(HD+HA) + (VDu**2 + VAu**2) * (HD+HA)/(VD+VA))
+
+    return np.rad2deg(alpha), np.rad2deg(unc)
+
+def calc_beta(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], HD_HA_VD_VA_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    ''' Calculate the beta parameter of a state.
+
+    Parameters
+    ----------
+    HD_HA_VD_VA : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of count rate measurments in the HD, HA, VD, and VA bases.
+    HD_HA_VD_VA_unc : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of uncertainties in the count rate measurments in the HD, HA, VD, and VA bases.
+    
+    Returns
+    -------
+    np.ndarray
+        The beta parameter of the state.
+    np.ndarray
+        Uncertainty in the beta parameter.
+    '''
+    # unpack the data
+    HD, HA, VD, VA = HD_HA_VD_VA
+    HDu, HAu, VDu, VAu = HD_HA_VD_VA_unc
+    
+    # get total count rates and convert everything to expectation values
+    T = HD + HA + VD + VA
+    HD, HA, VD, VA = HD/T, HA/T, VD/T, VA/T
+    HDu, HAu, VDu, VAu = HDu/T, HAu/T, VDu/T, VAu/T
 
     # compute beta
-    beta = np.arctan(np.sqrt((HV+VH)/(HH+VV)))
-    # compute uncertainty in beta
-    beta_unc = 1/(2*T_hv) * np.sqrt((HHu**2 + VVu**2) * (VH+HV)/(HH+VV) + (HVu**2 + VHu**2) * (HH+VV)/(HV+VH))
+    u = HD - HA - VD + VA
+    beta = np.arcsin(u)
+    # compute beta uncertainty
+    unc = 1/np.sqrt(1-u**2) * np.sqrt(HDu**2 + HAu**2 + VDu**2 + VAu**2)
 
-    # return it all!
-    return (np.rad2deg(alpha), np.rad2deg(beta)), (np.rad2deg(alpha_unc), np.rad2deg(beta_unc))
+    return np.rad2deg(beta), np.rad2deg(unc)
 
-def meas_phi(m:Manager, samp:Tuple[int, float]) -> Tuple[float, float]:
+def calc_phi(DL_DR_RR_RL:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], DL_DR_RR_RL_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
     ''' Measure phi parameter of the state.
 
     Parameters
     ----------
-    m : Manager
-        The manager object running the experiment.
-    samp : Tuple[int, float]
-        The sampling parameters for measurements.
+    DL_DR_RR_RL : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of count rate measurments in the DL, DR, RR, and RL bases.
+    DL_DR_RR_RL_unc : Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        A tuple of uncertainties in the count rate measurments in the DL, DR, RR, and RL bases.
     
     Returns
     -------
-    float
+    np.ndarray
         The phi parameter of the state.
-    float
+    np.ndarray
         Uncertainty in the phi parameter.
     '''
-    # take data in the appropriate bases
-    (DR, DL, RR, RL), (DRu, DLu, RRu, RLu) = meas_DRL_RRL(m, samp)
+    # unpack the data
+    DL, DR, RR, RL = DL_DR_RR_RL
+    DLu, DRu, RRu, RLu = DL_DR_RR_RL_unc
 
-    # compute phi
+    # get total count rates and convert everything to expectation values
+    T = DL + DR + RR + RL
+    DL, DR, RR, RL = DL/T, DR/T, RR/T, RL/T
+    DLu, DRu, RRu, RLu = DLu/T, DRu/T, RRu/T, RLu/T
+
+    # calculate phi
+    phi = np.arctan2(DL-DR, RR-RL)
+    # calculate uncertainty in phi
     u = (DL-DR)/(RR-RL)
-    phi = np.arctan2((DL-DR),(RR-RL))
-
-    # compute uncertainty in phi
     unc = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
 
     return np.rad2deg(phi), np.rad2deg(unc)
-
-def meas_all(m:Manager, samp:Tuple[int, float]) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
-    ''' Measure alpha, beta, and phi parameters of the state.
-
-    Parameters
-    ----------
-    m : Manager
-        The manager object running the experiment.
-    samp : Tuple[int, float]
-        The sampling parameters for measurements.
-    
-    Returns
-    -------
-    Tuple[float, float, float]
-        The alpha, beta, and phi parameters of the state.
-    Tuple[float, float, float]
-        Uncertainties in the alpha, beta, and phi parameters.
-    '''
-    (a,b), (au, bu) = meas_ab(m, samp)
-    p, pu = meas_phi(m, samp)
-    return (a,b,p), (au, bu, pu)
-
-
