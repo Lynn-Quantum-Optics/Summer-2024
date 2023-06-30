@@ -1,5 +1,22 @@
+## 6/30/23
+MP: A
+
+Started laser warming up at 11:18. Going to get some lunch and come back to run my sweep tests in the afternoon.
+
+This is Richard. I came in to do a full tomography at 12:30. I noticed that the current on the 2V power source seems to be below the 1A it says on the sticky note. --> A: How much lower???
+
+Alec again, powered off detectors now using the voltmeter to check out the power supply voltages.
+- left 1.92 -> 2.00 V
+- right top 30.0 V
+- right bottom 4.94 -> 5.00 V
+
+Powered up the setup again and saw 1.5 A drop to 0.75 A 
+
+Normal cleanup at 1530.
+
 ## 6/29/23
 MP: A
+
 Started the laser warming up at 0827. Returning now at 1037 to finish setting up.
 
 Starting today with a renewed and revised quartz plate sweep! The improvement in speed to the quartz plate sweep script cannot be overstated. With sampling at 3x0.5s old script took ~30 min, the new one is more like 10 min. I did a quick sweep then spent a while fuffing with the data until I ultimately messed it up beyond repair. Now I'm going to run a more precise sweep with sampling at 5x1s.
