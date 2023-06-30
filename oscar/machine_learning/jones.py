@@ -25,8 +25,7 @@ phi_H_PCC = (2*np.pi * d_PCC * n_o_p) / l_p # phase shift for H polarization
 phi_V_PCC = (2*np.pi * d_PCC * n_e_p) / l_p # phase shift for V polarization
 
 # BBO #
-a = 0.9 # ratio of max HH / max VV; determined by sweeping UV_HWP
-
+a = 0.907 # ratio of max HH / max VV; determined by sweeping UV_HWP
 
 #### jones matrices ####
 def R(alpha): 
@@ -45,7 +44,7 @@ BBO = np.array([[0, 0, 0, 1], [1, 0,0,0]]).T
 s0 = np.array([[1], [0]]) # initial |0> state
 
 # experimental components #
-BBO_exp = np.array([[0, 0, 0, a], [1, 0,0,0]]).T # experimental BBO matrix
+BBO_exp = np.array([[0, 0, 0, 1], [a, 0,0,0]]).T # experimental BBO matrix
 def get_QP_exp(phi_a):
     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
@@ -227,7 +226,7 @@ def get_random_Jangles(setup='Ca', exp=True, bad=False):
 
     # confirm angles are valid #
     angles = get_angles()
-    while not(is_valid_rho(get_Jrho(angles=angles, setup=setup, bad=bad))):
+    while not(is_valid_rho(get_Jrho(angles=angles, setup=setup))):
         angles = get_angles()
     return angles
 
