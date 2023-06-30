@@ -2,20 +2,36 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# from core import Manager
-# from measurement import meas_ab, meas_phi, meas_all
+from core import Manager
 from core import analysis
 
-class Manager: pass
+# +++ DATA COLLECTION FUNCTIONS +++
 
-def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=None):
-    '''
-    Sweep the quartz-plate to record the phi parameter as a function of angle.
+def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
+    ''' Sweep the quartz-plate to record the phi parameter as a function of angle.
+
+    The output of this function is a csv file with the columns:
+    - 'QP' the angle of the quartz-plate
+    - 'phi' the phi parameter
+    - 'unc' the uncertainty in the phi parameter
+
+    Parameters
+    ----------
+    m : Manager
+        The manager object that is controlling the experiment.
+    pos_min : float
+        The minimum position of the quartz-plate.
+    pos_max : float
+        The maximum position of the quartz-plate.
+    num_step : int
+        The number of steps to take between pos_min and pos_max.
+    samp : Tuple[int,float]
+        The sample parameters for each measurement.
+    out_file : str
+        The name of the file to save the data to.
     '''
 
     # array of angles (mostly for plotting)
-    pos_min = 0
-    pos_max = 45
     angles = np.linspace(pos_min, pos_max, num_step)
 
     # sweeps in different bases
@@ -38,44 +54,34 @@ def sweep_qp_phi(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=No
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
-        if abs(df['phi'][i] - df['phi'][i-1]) > 180:
-            df['phi'][i:] -= 360
+        if abs(df['phi'][i-1] - df['phi'][i]) > 180:
+            df['phi'][i:] += 360
 
-    # save the data if an output file was provided
-    if out_file is not None:
-        df.to_csv(out_file, index=False)
+    # save the data
+    df.to_csv(out_file, index=False)
 
-    ''' 
-    # use this block comment for re-running analysis
-    # load the data from a file
-    df = pd.read_csv(out_file)
-    '''
-
-    # trim the data to only include up to phi(0)+360
-    df = df[df['phi'] <= df['phi'][0]+360]
+def sweep_uvhwp_alph(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
+    ''' Sweep the UVHWP across a range of angles while measuring the alpha parameter.
     
-    # error bar plot of the data
-    plt.errorbar(df['QP'], df['phi'], df['unc'], fmt='ro', ms=0.1)
+    The output of this function is a csv file with the columns:
+    - 'UVHWP' the angle of the UVHWP
+    - 'alpha' the alpha parameter
+    - 'unc' the uncertainty in the alpha parameter
 
-    # fit a secant function to the datas!
-    params, uncs = analysis.fit('sec', df['QP'], df['phi'], df['unc'], p0=[1000, 1, -1000], maxfev=10000)
-    analysis.plot_func('sec', params, df['QP'], label=f'${params[0]:.3f}\\sec({params[1]:.3f} x) + {params[2]:.3f}$')
-    
-    # plot axes and such
-    plt.xlabel('Quartz Plate Angle (degrees)')
-    plt.ylabel('Phi Parameter (degrees)')
-    plt.title(f'Phi parameter as quartz plate\nis swept from {df["QP"].min()} to {df["QP"].max()} degrees')
-    plt.legend()
-
-    # print the results and show the plot
-    print(f'a = {params[0]} ± {uncs[0]}')
-    print(f'b = {params[1]} ± {uncs[1]}')
-    print(f'c = {params[2]} ± {uncs[2]}')
-    plt.show()
-
-def sweep_uvhwp_alph(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=None):
-    '''
-    Sweep the UVHWP while collecting alpha data.
+    Parameters
+    ----------
+    m : Manager
+        The manager object that is controlling the experiment.
+    pos_min : float
+        The minimum position of the UVHWP.
+    pos_max : float
+        The maximum position of the UVHWP.
+    num_step : int
+        The number of steps to take between pos_min and pos_max.
+    samp : Tuple[int,float]
+        The sample parameters for each measurement.
+    out_file : str
+        The name of the file to save the data to.
     '''
     
     # overall collection parameters
@@ -112,49 +118,29 @@ def sweep_uvhwp_alph(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
     # save if requested
     if out_file is not None:
         df.to_csv(out_file, index=False)
-    '''
-    # use this block comment for re-running analysis
-    # load the data from a file
-    df = pd.read_csv(out_file)
-    '''
-    # error bar plot of the data
-    plt.errorbar(df['UVHWP'], df['alpha'], df['unc'], fmt='ro', ms=0.1)
 
-    # trim the data to the linear region
-    linear_region = (5, 35)
-    dfl = df.iloc[linear_region[0]:linear_region[1]]
+def sweep_bchwp_beta(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
+    '''Sweep Bob's HWP across a range of angles while measuring the beta parameter.
     
-    # fit a linear function to the datas!
-    params, uncs = analysis.fit('line', dfl['UVHWP'], dfl['alpha'], dfl['unc'])
-    analysis.plot_func('line', params, df['UVHWP'], label=f'${params[0]:.3f}x + {params[1]:.3f}$')
-    
-    # plot axes and such
-    plt.xlabel('UV Half Wave Plate Angle (degrees)')
-    plt.ylabel('Alpha Parameter (degrees)')
-    plt.title(f'Alpha parameter as UVHWP plate\nis swept from {df["UVHWP"].min()} to {df["UVHWP"].max()} degrees')
-    plt.legend()
+    The output of this function is a csv file with the columns:
+    - 'BCHWP' the angle of BCHWP
+    - 'beta' the beta parameter
+    - 'unc' the uncertainty in the beta parameter
 
-    # get extremal charachteristics
-    imax = df['alpha'].idxmax()
-    imin = df['alpha'].idxmin()
-    alph_max = df['alpha'][imax]
-    uvhwp_max_alph = df['UVHWP'][imax]
-    alph_min = df['alpha'][imin]
-    uvhwp_min_alph = df['UVHWP'][imin]
-
-    # print the results and show the plot
-    print(f'"m": {params[0]} ± {uncs[0]},')
-    print(f'"b": {params[1]} ± {uncs[1]},')
-    print(f'"uvhwp_max": {uvhwp_max_alph},')
-    print(f'"alph_max": {alph_max},')
-    print(f'"uvhwp_min": {uvhwp_min_alph},')
-    print(f'"alph_min": {alph_min}')
-    plt.show()
-
-def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:str=None):
-    '''
-    Sweep Bob's creation HWP while collecting beta data.
-    '''
+    Parameters
+    ----------
+    m : Manager
+        The manager object that is controlling the experiment.
+    pos_min : float
+        The minimum position of the UVHWP.
+    pos_max : float
+        The maximum position of the UVHWP.
+    num_step : int
+        The number of steps to take between pos_min and pos_max.
+    samp : Tuple[int,float]
+        The sample parameters for each measurement.
+    out_file : str
+        The name of the file to save the data to.
     '''
     # overall collection parameters
     pos_min = -10
@@ -177,64 +163,16 @@ def sweep_bchwp_beta(m:Manager, samp:Tuple[int,float], num_step:int, out_file:st
     T = HH + HV + VH + VV
 
     # compute beta
-    beta = np.arctan(np.sqrt((HV+VH)/(HH+VV)))
-    beta_unc = 1/(2*T) * np.sqrt((HHu**2 + VVu**2) * (VH+HV)/(HH+VV) + (HVu**2 + VHu**2) * (HH+VV)/(HV+VH))
-    
-    # using degrees from here on out
-    beta = np.rad2deg(beta)
-    beta_unc = np.rad2deg(beta_unc)
+    beta = np.rad2deg(np.arctan(np.sqrt((HV+VH)/(HH+VV))))
+    beta_unc = np.rad2deg(1/(2*T) * np.sqrt((HHu**2 + VVu**2) * (VH+HV)/(HH+VV) + (HVu**2 + VHu**2) * (HH+VV)/(HV+VH)))
 
     # repackage data into a dataframe
-    df = pd.DataFrame({'BCHWP':angles, 'alpha':beta, 'unc':beta_unc})
+    df = pd.DataFrame({'BCHWP':angles, 'beta':beta, 'unc':beta_unc})
 
-    # save if requested
-    if out_file is not None:
-        df.to_csv(out_file, index=False)
-    
-    '''
+    # save
+    df.to_csv(out_file, index=False)
 
-    # use this block comment for re-running analysis
-    # load the data from a file
-    df = pd.read_csv(out_file)
-    
-    df['beta'] = df['alpha']
-    df = df[['BCHWP', 'beta', 'unc']]
-
-    # error bar plot of the data
-    plt.errorbar(df['BCHWP'], df['beta'], df['unc'], fmt='ro', ms=0.1)
-    
-    '''
-    # trim the data to the linear region
-    linear_region = (5, 35)
-    dfl = df.iloc[linear_region[0]:linear_region[1]]
-    
-    # fit a linear function to the datas!
-    params, uncs = analysis.fit('line', dfl['BCHWP'], dfl['beta'], dfl['unc'])
-    analysis.plot_func('line', params, df['BCHWP'], label=f'${params[0]:.3f}x + {params[1]:.3f}$')
-    '''
-
-    # plot axes and such
-    plt.xlabel('BCHWP Angle (degrees)')
-    plt.ylabel('Beta Parameter (degrees)')
-    plt.title(f'Beta parameter as BCWHP\nis swept from {df["BCHWP"].min()} to {df["BCHWP"].max()} degrees')
-    plt.legend()
-
-    # get extremal charachteristics
-    imax = df['beta'].idxmax()
-    imin = df['beta'].idxmin()
-    alph_max = df['beta'][imax]
-    uvhwp_max_alph = df['BCHWP'][imax]
-    alph_min = df['beta'][imin]
-    uvhwp_min_alph = df['BCHWP'][imin]
-
-    # print the results and show the plot
-    # print(f'"m": {params[0]} ± {uncs[0]},')
-    # print(f'"b": {params[1]} ± {uncs[1]},')
-    print(f'"uvhwp_max": {uvhwp_max_alph},')
-    print(f'"alph_max": {alph_max},')
-    print(f'"uvhwp_min": {uvhwp_min_alph},')
-    print(f'"alph_min": {alph_min}')
-    plt.show()
+# +++ DATA DISPLAY +++
 
 def show_data(fp:str):
     ''' Show the data that was collected using one of the sweep methods.
@@ -256,7 +194,41 @@ def show_data(fp:str):
     plt.errorbar(df[comp], df[param], df['unc'], fmt='ro', ms=0.1)
     plt.title(f'{param} as {comp} is\nswept from {df[comp].min():.1f} to {df[comp].max():.1f}')
     plt.xlabel(f'{comp} position (degrees)')
-    plt.xlabel(f'{param} parameter (degrees)')
+    plt.ylabel(f'{param} parameter (degrees)')
+    plt.show()
+
+# +++ DATA FITTING +++
+
+def fit_phi(fp:str) -> None:
+    ''' Perform a secant fit for the quartz plate-phi sweep.
+
+    Parameters
+    ----------
+    fp : str
+        Path to the data file.
+    '''
+    # load the data from a file
+    df = pd.read_csv(fp)
+
+    # error bar plot of the data
+    plt.errorbar(df['QP'], df['phi'], df['unc'], fmt='ro', ms=0.1)
+
+    # fit a secant function to the data
+    # but only include up to phi(0)+360
+    df = df[df['phi'] <= df['phi'][0]+360]
+    params, uncs = analysis.fit('sec', df['QP'], df['phi'], df['unc'], p0=[1000, 1, -1000], maxfev=10000)
+    analysis.plot_func('sec', params, df['QP'], label=f'${params[0]:.3f}\\sec({params[1]:.3f} x) + {params[2]:.3f}$')
+    
+    # plot axes and such
+    plt.xlabel('Quartz Plate Angle (degrees)')
+    plt.ylabel('Phi Parameter (degrees)')
+    plt.title(f'Phi parameter as quartz plate\nis swept from {df["QP"].min()} to {df["QP"].max()} degrees')
+    plt.legend()
+
+    # print the results and show the plot
+    print(f'"a": {params[0]} ± {uncs[0]}')
+    print(f'"b": {params[1]} ± {uncs[1]}')
+    print(f'"c": {params[2]} ± {uncs[2]}')
     plt.show()
 
 def fit_ab(fp:str, linear_region:Tuple[float, float]):
@@ -293,7 +265,7 @@ def fit_ab(fp:str, linear_region:Tuple[float, float]):
     
     plt.title(f'{param} as {comp} is\nswept from {df[comp].min():.1f} to {df[comp].max():.1f}')
     plt.xlabel(f'{comp} position (degrees)')
-    plt.xlabel(f'{param} parameter (degrees)')
+    plt.ylabel(f'{param} parameter (degrees)')
     plt.legend()
 
     print(f'"m": {fit_params[0]}')
@@ -305,6 +277,7 @@ def fit_ab(fp:str, linear_region:Tuple[float, float]):
 
     plt.show()
 
+# +++ MAIN SCRIPT +++
 if __name__ == '__main__':
     
     SAMP = (5, 0.5)
