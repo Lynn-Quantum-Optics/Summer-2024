@@ -6,7 +6,7 @@ from core import Manager
 from full_tomo import get_rho
 
 # read in angle settings
-df = pd.read_csv('../oscar/machine_learning/decomp/bell.csv')
+df = pd.read_csv('../oscar/machine_learning/decomp/ertias.csv')
 
 # set up manager #
 SAMP = (5, 1) # sampling parameters
