@@ -793,15 +793,20 @@ if __name__=='__main__':
     elif resp==2: # to generate results for experimental tests
         # import function to help make separate columns for the angles
         from itertools import zip_longest
+        n = 6 # number of states to generate
         # initialize list
-        states = [PhiM]
-        states_names = ['PhiM']
+        states = [PhiP, PhiM, PsiP, PsiM]
+        states_names = ['PhiM', 'PhiP', 'PsiM', 'PsiP']
         eta_setup = []
         chi_setup = []
+        for state in states:
+            for setup in ['C0', 'C1']:
+                eta_setup.append(None)
+                chi_setup.append(None)
 
         # populate eritas states
-        eta_ls = np.linspace(0, np.pi/4, 6) # set of eta values to sample
-        chi_ls = np.linspace(0, np.pi/2, 6) # set of chi values to sample
+        eta_ls = np.linspace(0, np.pi/4, n) # set of eta values to sample
+        chi_ls = np.linspace(0, np.pi/2, n) # set of chi values to sample
         eta_fixed= np.pi/4 # fixed values for state generation
         chi_fixed= np.pi/3
 
@@ -811,19 +816,23 @@ if __name__=='__main__':
         E1_Wp_ls = []
 
         for chi in chi_ls:
+            # states.append(PsiM)
+            # states_names.append('PsiM')
             states.append(get_E0(eta_fixed, chi))
-            # states_names.append(f'E0_{np.pi/3}_{chi}'
             states_names.append('E0')
-            eta_setup.append(np.rad2deg(eta_fixed))
-            chi_setup.append(np.rad2deg(chi))
+            for setup in ['C0', 'C1']:
+                eta_setup.append(np.rad2deg(eta_fixed))
+                chi_setup.append(np.rad2deg(chi))
             
 
         for eta in eta_ls:
+            # states.append(PsiM)
+            # states_names.append('PsiM')
             states.append(get_E1(eta, np.pi/3))
-            # states_names.append(f'E1_{eta}_{np.pi/3}')
             states_names.append('E1')
-            chi_setup.append(np.rad2deg(chi_fixed))
-            eta_setup.append(np.rad2deg(eta))
+            for setup in ['C0', 'C1']:
+                chi_setup.append(np.rad2deg(chi_fixed))
+                eta_setup.append(np.rad2deg(eta))
             
         # get function with preset inputs
         decomp = partial(jones_decompose, adapt=2, debug=False, exp=True)
@@ -846,22 +855,33 @@ if __name__=='__main__':
         # filter None results out
         results = [result for result in results if result is not None] 
 
-        ## save to df ##
+        ## get to df ##
         decomp_df = pd.DataFrame()
-        decomp_df['eta'] = eta_setup
-        decomp_df['chi'] = chi_setup
         columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
-        decomp_df = pd.concat([decomp_df, pd.DataFrame.from_records(results, columns=columns)])
-        # add columns for setup angles
-        try:
-            angles_unpacked = list(zip_longest(*decomp_df['angles']))
-            decomp_df['UV_HWP'] = np.rad2deg(np.array(angles_unpacked[0]))
-            decomp_df['QP'] = np.rad2deg(np.array(angles_unpacked[1]))
-            decomp_df['B_HWP'] = np.rad2deg(np.array(angles_unpacked[2]))
-            decomp_df['B_QWP'] = np.rad2deg(np.array(angles_unpacked[3]))
-            decomp_df.drop(columns=['angles'], inplace=True)
-        except:
-            pass
+        decomp_df = pd.DataFrame.from_records(results, columns=columns)
+        
+        # parse df to make angles explicit and in degrees #
+        angles_unpacked = list(zip_longest(*decomp_df['angles']))
+        angles_unpacked= [np.array(angle) for angle in angles_unpacked]
+        angles_unpacked = np.array(angles_unpacked)
+        angles_unpacked = angles_unpacked.T
+        angles_df =  pd.DataFrame(angles_unpacked, columns=['UV_HWP', 'QP', 'B_HWP', 'B_QWP'])
 
-        decomp_df.to_csv(join('decomp', 'ertias.csv'))
+        # prepare final output df #
+        return_df = pd.DataFrame()
+        return_df['state'] = decomp_df['state']
+        return_df['eta'] = eta_setup
+        return_df['chi'] = chi_setup
+        return_df['setup'] = decomp_df['setup']
+        return_df['UV_HWP'] = angles_df['UV_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['QP'] = angles_df['QP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['B_HWP'] = angles_df['B_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['fidelity'] = decomp_df['fidelity']
+        return_df['n'] = decomp_df['n']
+        return_df['actual_rho'] = decomp_df['targ_rho']
+        return_df['pred_rho'] = decomp_df['pred_rho']
+
+        print('saving!')
+        return_df.to_csv(join('decomp', 'ertias.csv'))
 
