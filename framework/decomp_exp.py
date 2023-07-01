@@ -11,7 +11,7 @@ df = pd.read_csv('../oscar/machine_learning/decomp/ertias.csv')
 # set up manager #
 SAMP = (5, 1) # sampling parameters
 m = Manager()
-m.new_output('decomp_data.csv')
+m.new_output('decomp_data_t0.csv')
 
 # define states of interest
 states = [('PhiP')]
