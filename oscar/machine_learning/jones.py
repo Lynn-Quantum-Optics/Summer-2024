@@ -25,7 +25,7 @@ phi_H_PCC = (2*np.pi * d_PCC * n_o_p) / l_p # phase shift for H polarization
 phi_V_PCC = (2*np.pi * d_PCC * n_e_p) / l_p # phase shift for V polarization
 
 # BBO #
-a = 0.907 # ratio of max HH / max VV; determined by sweeping UV_HWP
+a = 0.9143592035643862 # ratio of max HH / max VV; determined by sweeping UV_HWP
 
 #### jones matrices ####
 def R(alpha): 
@@ -44,21 +44,22 @@ BBO = np.array([[0, 0, 0, 1], [1, 0,0,0]]).T
 s0 = np.array([[1], [0]]) # initial |0> state
 
 # experimental components #
-BBO_exp = np.array([[0, 0, 0, 1], [a, 0,0,0]]).T # experimental BBO matrix
-def get_QP_exp(phi_a):
+BBO_expt = np.array([[0, 0, 0, 1/a], [a, 0,0,0]]).T # experimental BBO matrix
+# BBO_expt = BBO
+def get_QP_expt(phi_a):
     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
-PCC_exp = np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)]) # experimental PCC matrix
+PCC_expt = np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)]) # experimental PCC matrix
 
 #### calculations ####
 
-def get_Jrho(angles, setup = 'C1', exp = True, check=False):
+def get_Jrho(angles, setup = 'C1', expt = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
         setup: 'Ca', 'C', 'I' respectively for current setup, current setup with one QWP on Alice, and ideal setup, replacing the QP with two QWPs and giving both A and B two QWPs and 1 HWP
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
-        exp: boolean to use experimental components or not
+        expt: boolean to use experimental components or not
     '''
 
     if setup=='C0':
@@ -77,9 +78,9 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
         # B HWP
         B_theta = angles[2]
 
-        if exp:
+        if expt:
             # experimental QP #
-            QP = PCC_exp @ get_QP_exp(angles[1]) # combine QP and PCC
+            QP = PCC_expt @ get_QP_expt(phi) # combine QP and PCC
 
         else:
            QP = get_QP(phi)
@@ -87,7 +88,10 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
         H_UV = H(theta0)
         H_B = H(B_theta)
 
-        U = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV
+        if expt:
+            U = np.kron(np.eye(2), H_B) @ BBO_expt @ QP @ H_UV
+        else:
+            U = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV
 
     elif setup=='C1':
         ''' Jones matrix with adding one QWP on Bob. Computes the rotated polarization state using the following setup:
@@ -106,9 +110,9 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
         B_theta = angles[2]
         B_alpha = angles[3]
 
-        if exp:
+        if expt:
             # experimental QP #
-            QP = PCC_exp @ get_QP_exp(angles[1]) # combine QP and PCC
+            QP = PCC_expt @ get_QP_expt(phi) # combine QP and PCC
 
         else:
            QP = get_QP(phi)
@@ -117,7 +121,10 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
         H_B = H(B_theta)
         Q_B = Q(B_alpha)
 
-        U = np.kron(np.eye(2), Q_B @ H_B) @ BBO @ QP @ H_UV
+        if expt:
+            U = np.kron(np.eye(2), Q_B @ H_B) @ BBO_expt @ QP @ H_UV
+        else:
+            U = np.kron(np.eye(2), Q_B @ H_B) @ BBO @ QP @ H_UV
 
 
     elif setup == 'C2':
@@ -140,15 +147,18 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
         A_alpha = angles[4]
 
         H_UV = H(theta0)
-        if exp:
-            QP = PCC_exp @ get_QP_exp(phi)
+        if expt:
+            QP = PCC_expt @ get_QP_expt(phi)
         else:
             QP = get_QP(phi)
         H_B = H(B_theta)
         Q_B = Q(B_alpha)
         Q_A = Q(A_alpha)
         
-        U = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV
+        if expt:
+            U = np.kron(Q_A, Q_B @ H_B) @ BBO_expt @ QP @ H_UV
+        else:
+            U = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV
 
     elif setup == 'I':
         ''' Jones matrix method with Ideal setup. Computes the rotated polarization state using the following setup:
@@ -190,6 +200,7 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
     # apply unitary
     P = U @ s0
     rho = P @ adjoint(P)
+    rho /= np.trace(rho)
 
     ## return density matrix ##
     if check:
@@ -203,7 +214,7 @@ def get_Jrho(angles, setup = 'C1', exp = True, check=False):
         return rho
 
 
-def get_random_Jangles(setup='C1', exp=True):
+def get_random_Jangles(setup='C1', expt=True):
     ''' Returns random angles for the Jrho_C setup. Confirms that the density matrix is valid.
     params: 
         setup: see get_Jrho
@@ -217,8 +228,8 @@ def get_random_Jangles(setup='C1', exp=True):
             # UV HWP
             theta_UV = np.random.rand()*np.pi/4
             # QP
-            if exp: 
-                phi = np.random.rand()*np.deg2rad(38.57)
+            if expt: 
+                phi = np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57))
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -229,8 +240,8 @@ def get_random_Jangles(setup='C1', exp=True):
             # UV HWP
             theta_UV = np.random.rand()*np.pi/4
             # QP
-            if exp:
-                phi = np.random.rand()*np.deg2rad(38.57) # 40 degrees is the max angle for the QP
+            if expt:
+                phi = np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57)) # 40 degrees is the max angle for the QP
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -243,8 +254,8 @@ def get_random_Jangles(setup='C1', exp=True):
             # UV HWP
             theta_UV = np.random.rand()*np.pi/4
             # QP
-            if exp:
-                phi = np.random.rand()*np.deg2rad(38.57) # 40 degrees is the max angle for the QP
+            if expt:
+                phi =np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57)) # 40 degrees is the max angle for the QP
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -274,20 +285,22 @@ def get_random_Jangles(setup='C1', exp=True):
     angles = get_angles()
     while not(is_valid_rho(get_Jrho(angles=angles, setup=setup))):
         angles = get_angles()
+    # while np.isclose(get_Jrho(angles=angles, setup=setup) , np.zeros):
+    #     angles = get_angles()
     return angles
 
 
-def get_random_jones(setup='C1', exp=True, return_params=False):
+def get_random_jones(setup='C1', expt=True, return_params=False):
     ''' Computes random angles in the ranges specified and generates the resulting states'''
     # get random angles
-    angles = get_random_Jangles(setup=setup, exp=exp)
+    angles = get_random_Jangles(setup=setup, expt=expt)
     # get density matrix
-    rho = get_Jrho(setup=setup, exp=exp, angles=angles)
+    rho = get_Jrho(setup=setup, expt=expt, angles=angles)
 
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=False, frac = 0.001, zeta = 0.01, exp=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 10000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -296,7 +309,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=Fal
         adapt: 0: random hop, 1: random fan, 2: gradient descent
         frac: what percentage of the domain of the angles to change each time in adapt
         zeta: learning rate for gradient descent
-        exp: whether to use experimental components
+        expt: whether to use experimental components
         state_num: number of the state to decompose for progress tracking
         gd_tune: whether to output parameters for gd tuning
         save_rho: whether to save the density matrix
@@ -329,8 +342,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=Fal
         # iset bounds for guesses
         H_bound = (0, np.pi/4)
         Q_bound = (0, np.pi/2)
-        if exp:
-            QP_bound = (0, np.deg2rad(38.57))
+        if expt:
+            QP_bound = (-np.deg2rad(38.57), np.deg2rad(38.57))
         else:
             QP_bound = (0, 2*np.pi)
         if setup=='C0':
@@ -370,6 +383,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=Fal
         else:
             max_best_fidelity = 0
             max_best_angles = [0 for _ in best_angles]
+        # max_best_fidelity = fidelity
+        # max_best_angles = best_angles
         grad_angles = max_best_angles # keep track of the angles for gradient descent
 
         n=0 # keep track of overall number of iterations
@@ -420,6 +435,10 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=Fal
                     index_since_improvement = 0
                 elif not(is_valid_rho(rho)):
                     n-=1
+                # if fidelity > max_best_fidelity and (fidelity < 1 or np.isclose(fidelity, 1, rtol=1e-9)):
+                #     max_best_fidelity = fidelity
+                #     max_best_angles = best_angles
+                #     index_since_improvement = 0
                 else:
                     index_since_improvement += 1
 
@@ -482,11 +501,11 @@ if __name__=='__main__':
     from random_gen import *
 
 
-    def do_full_ex_decomp(setup,exp=True, adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, debug=False, savename='test') :
+    def do_full_ex_decomp(setup,expt=True, adapt=0, bell=False, e0=False,e1=False, random=False, jones_C=False, jones_I=False, roik=False, num_random=100, debug=False, savename='test') :
         ''' Run example decompositions using the C setup.
         Params:
             setup: 'C' or 'I' or 'Ca' or 'A' for all.
-            exp: whether to use experimental components
+            expt: whether to use experimental components
             adapt: 0 for no adaptation, 1 for random fan, 2 for gradient descent
             savename: name of file to save results to
             bell: whether to include bell states
@@ -567,7 +586,7 @@ if __name__=='__main__':
         print(decomp_ls)
 
         # get function with preset inputs
-        decomp = partial(jones_decompose, adapt=adapt, debug=debug, exp=exp)
+        decomp = partial(jones_decompose, adapt=adapt, debug=debug, expt=expt)
 
         ## build multiprocessing pool ##
         pool = Pool(cpu_count())
@@ -759,7 +778,7 @@ if __name__=='__main__':
             plot()
 
 
-    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2  to run eritas states '))
+    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2  to run eritas states, 3 to run bell '))
     
     ## test states and get average fidelity ##
     if resp == 0:
@@ -810,14 +829,7 @@ if __name__=='__main__':
         eta_fixed= np.pi/4 # fixed values for state generation
         chi_fixed= np.pi/3
 
-        E0_W_ls = []
-        E0_Wp_ls = []
-        E1_W_ls = []
-        E1_Wp_ls = []
-
         for chi in chi_ls:
-            # states.append(PsiM)
-            # states_names.append('PsiM')
             states.append(get_E0(eta_fixed, chi))
             states_names.append('E0')
             for setup in ['C0', 'C1']:
@@ -826,8 +838,6 @@ if __name__=='__main__':
             
 
         for eta in eta_ls:
-            # states.append(PsiM)
-            # states_names.append('PsiM')
             states.append(get_E1(eta, np.pi/3))
             states_names.append('E1')
             for setup in ['C0', 'C1']:
@@ -835,7 +845,7 @@ if __name__=='__main__':
                 eta_setup.append(np.rad2deg(eta))
             
         # get function with preset inputs
-        decomp = partial(jones_decompose, adapt=2, debug=False, exp=True)
+        decomp = partial(jones_decompose, adapt=0, debug=False, expt=True)
 
         decomp_ls = []
         for i in range(len(states)):
@@ -884,4 +894,65 @@ if __name__=='__main__':
 
         print('saving!')
         return_df.to_csv(join('decomp', 'ertias.csv'))
+
+    elif resp==3: # to generate results for experimental tests
+        # import function to help make separate columns for the angles
+        from itertools import zip_longest
+        states = [PhiP, PhiM, PsiP, PsiM]
+        states_names = ['PhiM', 'PhiP', 'PsiM', 'PsiP']
+        eta_setup = []
+        chi_setup = []
+        for state in states:
+            for setup in ['C0', 'C1']:
+                eta_setup.append(None)
+                chi_setup.append(None)
+
+        # get function with preset inputs
+        decomp = partial(jones_decompose, adapt=0, debug=False, expt=True)
+
+        decomp_ls = []
+        for i in range(len(states)):
+            for setup in ['C0', 'C1']:
+                decomp_ls.append((i, setup))
+
+         ## build multiprocessing pool ##
+        pool = Pool(cpu_count())
+
+        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1]) for  decomp_in in decomp_ls]        
+        results = pool.starmap_async(decomp, inputs).get()
+
+        ## end multiprocessing ##
+        pool.close()
+        pool.join()
+
+        # filter None results out
+        results = [result for result in results if result is not None] 
+
+        ## get to df ##
+        decomp_df = pd.DataFrame()
+        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
+        decomp_df = pd.DataFrame.from_records(results, columns=columns)
+        
+        # parse df to make angles explicit and in degrees #
+        angles_unpacked = list(zip_longest(*decomp_df['angles']))
+        angles_unpacked= [np.array(angle) for angle in angles_unpacked]
+        angles_unpacked = np.array(angles_unpacked)
+        angles_unpacked = angles_unpacked.T
+        angles_df =  pd.DataFrame(angles_unpacked, columns=['UV_HWP', 'QP', 'B_HWP', 'B_QWP'])
+
+        # prepare final output df #
+        return_df = pd.DataFrame()
+        return_df['state'] = decomp_df['state']
+        return_df['setup'] = decomp_df['setup']
+        return_df['UV_HWP'] = angles_df['UV_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['QP'] = angles_df['QP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['B_HWP'] = angles_df['B_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['fidelity'] = decomp_df['fidelity']
+        return_df['n'] = decomp_df['n']
+        return_df['actual_rho'] = decomp_df['targ_rho']
+        return_df['pred_rho'] = decomp_df['pred_rho']
+
+        print('saving!')
+        return_df.to_csv(join('decomp', 'bell.csv'))
 
