@@ -23,35 +23,38 @@ PhiPM = get_rho(PhiPM_s)
 
 # Eritas's states from spring 2023 writeup
 def get_E0(eta, chi): 
-    '''Eritas's state of the form cos(alpha)PsiP + e^(i*beta)*sin(alpha)PsiM'''
+    '''Eritas's state of the form cos(eta)PsiP + e^(i*chi)*sin(eta)PsiM'''
     E_state0_s= np.cos(eta)*PsiP_s + np.sin(eta)*np.exp(1j*chi)*PsiM_s 
     return get_rho(E_state0_s)
 
 def get_E1(eta, chi):
-    '''Eritas's state of the form 1/sqrt2 * cos(alpha)*(PsiP + iPsiM) + e^(i*beta)*sin(alpha)*(PhiP + iPhiM))'''
+    '''Eritas's state of the form 1/sqrt2 * cos(eta)*(PsiP + iPsiM) + e^(i*chi)*sin(eta)*(PhiP + iPhiM))'''
     E_state1_s= 1/np.sqrt(2) * (np.cos(eta)*(PsiP_s + 1j*PsiM_s) + np.sin(eta)*np.exp(1j*chi)*(PhiP_s + 1j*PhiM_s))
     return get_rho(E_state1_s)
 
 ## sample of different values of eta, chi for E0 and E1
 def sample_E():
-    '''Samples E0 and E1 for various values of beta and alpha and computes witness values'''
-    alpha_ls = np.linspace(0, np.pi/4, 6) # set of alpha values to sample
-    beta_ls = np.linspace(0, np.pi/2, 6) # set of beta values to sample
+    '''Samples E0 and E1 for various values of chi and eta and computes witness values'''
+    eta_ls = np.linspace(0, np.pi/4, 6) # set of eta values to sample
+    chi_ls = np.linspace(0, np.pi/2, 6) # set of chi values to sample
+    # fixed angles to investigate for slice of plot 
+    eta_fixed= np.pi/4
+    chi_fixed= np.pi/3
 
     E0_W_ls = []
     E0_Wp_ls = []
     E1_W_ls = []
     E1_Wp_ls = []
 
-    for beta in beta_ls:
-        rho = get_E0(np.pi/3, beta)
+    for chi in chi_ls:
+        rho = get_E0(eta_fixed, chi)
         W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
         Wp= min(Wp_t1, Wp_t2, Wp_t3)
         E0_W_ls.append(W_min)
         E0_Wp_ls.append(Wp)
 
-    for alpha in alpha_ls:
-        rho = get_E1(alpha, np.pi/3)
+    for eta in eta_ls:
+        rho = get_E1(eta, chi_fixed)
         W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
         Wp= min(Wp_t1, Wp_t2, Wp_t3)
         E1_W_ls.append(W_min)
@@ -67,25 +70,31 @@ def sample_E():
             num = label.numerator
             denom = label.denominator
             return "$\\frac{%s\pi}{%s}$" %(num, denom) if num!=1 else "$\\frac{\pi}{%s}$" %(denom) if denom!=1 else "$\pi$"
+
+    def deg_formatter(x, pos):
+        return str(np.round(np.rad2deg(x), 3))
     
     # plot results
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].scatter(beta_ls, E0_W_ls, label='W')
-    ax[0].scatter(beta_ls, E0_Wp_ls, label='W\'')
-    ax[0].set_title('$E_0, \\alpha = \\frac{\pi}{3}$')
-    ax[0].set_xlabel('$\\beta$')
-    ax[0].xaxis.set_major_formatter(ticker.FuncFormatter(pi_formatter))
+    fig, ax = plt.subplots(1, 2, figsize=(12, 7))
+    ax[0].scatter(chi_ls, E0_W_ls, label='W')
+    ax[0].scatter(chi_ls, E0_Wp_ls, label='W\'')
+    ax[0].set_title('$\cos(\eta)|\Psi^+ \\rangle + e^{i\chi}\sin(\eta)|\Psi^- \\rangle, \\eta = %2g^\degree$'%np.rad2deg(eta_fixed))
+    ax[0].set_xlabel('$\\chi (^\degree)$')
+    ax[0].xaxis.set_major_formatter(ticker.FuncFormatter(deg_formatter))
+    ax[0].set_xticks(chi_ls)
     ax[0].set_ylabel('Witness value')
     ax[0].legend()
 
-    ax[1].scatter(alpha_ls, E1_W_ls, label='W')
-    ax[1].scatter(alpha_ls, E1_Wp_ls, label='W\'')
-    ax[1].set_xlabel('$\\alpha$')
-    ax[1].xaxis.set_major_formatter(ticker.FuncFormatter(pi_formatter))
+    ax[1].scatter(eta_ls, E1_W_ls, label='W')
+    ax[1].scatter(eta_ls, E1_Wp_ls, label='W\'')
+    ax[1].set_xlabel('$\\eta (^\degree)$')
+    ax[1].xaxis.set_major_formatter(ticker.FuncFormatter(deg_formatter))
+    ax[1].set_xticks(eta_ls)
     ax[1].set_ylabel('Witness value')
-    ax[1].set_title('$E_1, \\beta = \\frac{\pi}{3}$')
+    ax[1].set_title('$\cos(\eta)(|\Psi^+ \\rangle + i|\Psi^-\\rangle) + e^{i\chi }\sin(\eta)(|\Phi^+ \\rangle + i|\Phi^-\\rangle), \\chi = %.2g^\degree$'%np.rad2deg(chi_fixed))
     ax[1].legend()
     plt.tight_layout()
+    plt.subplots_adjust(top=0.90)  # Increase the 'top' value to add more space
     plt.suptitle('Witness values for Eritas\'s states')
     plt.savefig('Eritas_witnesses.pdf')
     plt.show()
