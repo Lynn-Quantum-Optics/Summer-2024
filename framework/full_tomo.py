@@ -112,8 +112,8 @@ def reconstruct_rho(all_projs:np.ndarray, all_proj_uncs:np.ndarray) -> Tuple[np.
     # take the sqrt and divide by 4 to get the correct uncertainty
     rho_unc = np.sqrt(rho_unc)/4
 
-    # return density matrix with uncertainties
-    return rho, rho_unc
+    # return density matrix with uncertainties and the Stokes params unc for witness unc
+    return rho, rho_unc, Su
 
 def get_projections(m:Manager, samp:Tuple[int,float]) -> Tuple[np.ndarray, np.ndarray]:
     ''' Get all 36 projective measurments (and uncertainties) in the powerset of H, V, D, A, R, and L.
@@ -196,7 +196,7 @@ if __name__ == '__main__':
     m.make_state('phi_plus')
 
     # get the density matrix
-    rho, unc = get_rho(m, SAMP)
+    rho, unc, _ = get_rho(m, SAMP)
 
     # print results
     print('RHO\n---')
