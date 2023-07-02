@@ -44,8 +44,8 @@ BBO = np.array([[0, 0, 0, 1], [1, 0,0,0]]).T
 s0 = np.array([[1], [0]]) # initial |0> state
 
 # experimental components #
-BBO_expt = np.array([[0, 0, 0, 1/a], [a, 0,0,0]]).T # experimental BBO matrix
-# BBO_expt = BBO
+# BBO_expt = np.array([[0, 0, 0, 1/a], [a, 0,0,0]]).T # experimental BBO matrix
+BBO_expt = BBO
 def get_QP_expt(phi_a):
     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
@@ -578,7 +578,7 @@ if __name__=='__main__':
         decomp_ls = []
         for i in trange(len(states)):
             if setup=='A':
-                for option in ['Ca', 'C','I']:
+                for option in ['C0', 'C1', 'C2', 'I']:
                     decomp_ls.append((i, option))
             else:
                 decomp_ls.append((i, setup))
@@ -899,7 +899,7 @@ if __name__=='__main__':
         # import function to help make separate columns for the angles
         from itertools import zip_longest
         states = [PhiP, PhiM, PsiP, PsiM]
-        states_names = ['PhiM', 'PhiP', 'PsiM', 'PsiP']
+        states_names = ['PhiP', 'PhiM', 'PsiP', 'PsiM']
         eta_setup = []
         chi_setup = []
         for state in states:
