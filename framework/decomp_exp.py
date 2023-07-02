@@ -31,13 +31,15 @@ if __name__ == '__main__':
 
         UV_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0])
         QP_phi = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0])
+        PCC_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['PCC'].values[0])
         B_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0])
 
         # set angles
         m.configure_motors(
             C_UV_HWP=UV_HWP_theta,
             C_QP = QP_phi,
-            B_C_HWP = B_HWP_theta
+            B_C_HWP = B_HWP_theta,
+            C_PCC = PCC_theta
         )
 
         # get the density matrix
