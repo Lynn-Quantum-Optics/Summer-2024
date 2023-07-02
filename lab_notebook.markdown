@@ -1,3 +1,18 @@
+## 7/1/23
+MP: O
+Started laser warmup at 1:44. Going to test my non-idealized Jones decomp method on several states, including PhiP, PsiM, and then a selection of E0 states depending on results.
+
+Voltage reading: 0.75V.
+
+3:04--Making PhiP using decomp settings, decomp_exp.py. 
+25.744714514968123 -23.54387908592889 0.2789953298532202 (UV_HWP, QP, B_C_HWP)
+
+Issue: live plots not loading and "PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: './mlog.txt'". I used the function .configure_motors(). Tried running full_tomo.py, which worked. Tried closing terminal sesion and restarting, but same WinError 32. Says "loading measurment basis "HH" from config file. Taking data; saimpling 5x1 s. Note: "HH"". Trying replacing with individual move functions--didn't work. Tried just calling .make_state('phi_plus'), but same permissions error. Got it to work! The issue was I didn't put my code within a if  __name__ == '__main__' block.
+
+Actually started taking tomo data at 3:56. Signs are correct! Magnitude is off: 0.62 and 0.373. Fidelity 86.8%. Trying again with ideal BBO. Can correction given in Ivy's thesis, but this will involve solving for the angle of the BBO. Actually amde PhiM, but this is because I named the state wrong in jones.py. Better than last time -- fidelity 89.1%, magnitudes still a bit off. Could implement gradient descent tuning in experiment setup! For ref, tomo took about 20 mins. Actually not -- would take too much time. But could potential integrate some kind of adaptive feedback. Trying substituting s0 = [[1/a], [0]]:
+22.73996272574533,32.895070033699014,0.025591125837580483
+Went down to 44%. Normal cleanup.
+
 ## 6/30/23
 MP: A
 
