@@ -1,49 +1,132 @@
-# file to test the results of my jones decomp method
+if __name__ == '__main__':
 
-import numpy as np
-import pandas as pd
-from core import Manager
-from full_tomo import get_rho
+    # file to test the results of my jones decomp method
 
-# read in angle settings
-df = pd.read_csv('../oscar/machine_learning/decomp/ertias.csv')
+    import numpy as np
+    import pandas as pd
+    from scipy.optimize import approx_fprime, minimize
 
-# set up manager #
-SAMP = (5, 1) # sampling parameters
-m = Manager()
-m.new_output('decomp_data_t0.csv')
+    from core import Manager
+    from full_tomo import get_rho
 
-# define states of interest
-states = [('PhiP')]
-for state in states:
-    # get angles
-    UV_HWP_theta = df.loc[(df['state'] == state) & (df['setup']=='C0')]['UV_HWP'].values[0]
-    QP_phi = df.loc[(df['state'] == state) & (df['setup']=='C0')]['QP'].values[0]
-    B_HWP_theta = df.loc[(df['state'] == state) & (df['setup']=='C0')]['B_HWP'].values[0]
+    import sys
+    sys.path.insert(0, '../oscar/machine_learning')
+    from rho_methods import get_fidelity
+    from sample_rho import PhiP
 
-    print(UV_HWP_theta, QP_phi, B_HWP_theta)
+    # read in angle settings
+    df = pd.read_csv('../oscar/machine_learning/decomp/bell.csv')
 
-    # set angles
-    m.configure_motors(
-        C_UV_HWP=UV_HWP_theta,
-        C_QP = QP_phi,
-        B_C_HWP = B_HWP_theta
-    )
+    # set up manager #
+    SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
+    m = Manager()
+    m.new_output('decomp_test/decomp_data_t2.csv')
 
-    # get the density matrix
-    rho, unc = get_rho(m, SAMP)
+    # define states of interest
+    states_names = [('PhiP')]
+    states = [PhiP]
 
-    # print results
-    print('RHO\n---')
-    print(rho)
-    print('UNC\n---')
-    print(unc)
+    for i, state_n in enumerate(states_names):
+        state = states[i]
 
-    # save results
-    with open('rho_out.npy', 'wb') as f:
-        np.save(f, (rho, unc))
+        UV_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0])
+        QP_phi = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0])
+        B_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0])
 
-# close out
-m.close_output()
-m.shutdown()
+        # set angles
+        m.configure_motors(
+            C_UV_HWP=UV_HWP_theta,
+            C_QP = QP_phi,
+            B_C_HWP = B_HWP_theta
+        )
+
+        # get the density matrix
+        rho, unc = get_rho(m, SAMP)
+
+        # print results
+        print('RHO\n---')
+        print(rho)
+        print('UNC\n---')
+        print(unc)
+
+        # compute fidelity
+        fidelity = get_fidelity(rho, state)
+        print('fidelity', fidelity)
+
+        # save results
+        with open(f'decomp_test/rho_{state_n}.npy', 'wb') as f:
+            np.save(f, (rho, unc))
+
+    # close out
+    m.close_output()
+    m.shutdown()
+
+
+    # # params for GD #
+    # N = 5 # number of times to do it
+    # lr = 0.7 # learning rate
+    # epsilon = .95 # exit if we have >= this fidelity
+
+    # for i, state_n in enumerate(states_names):
+    #     global RHO, UNC, ANGLES
+    #     # get actual targ state
+    #     state = states[i]
+
+    #     def loss_fidelity(angles):
+    #         ''' Function to minimize.
+    #         Params:
+    #             angles: for each component, initial guess by jones decomp
+    #             returns: 1- sqrt(fidelity)
+    #         '''
+    #         UV_HWP_theta, QP_phi, B_HWP_theta = angles
+
+    #         # set angles
+    #         m.configure_motors(
+    #             C_UV_HWP=UV_HWP_theta,
+    #             C_QP = QP_phi,
+    #             B_C_HWP = B_HWP_theta
+    #         )
+
+    #         m.C_UV_HWP.goto(UV_HWP_theta)
+    #         m.C_QP.goto(QP_phi)
+    #         m.B_C_HWP.goto(B_HWP_theta)
+
+    #         # get the density matrix
+    #         rho, unc = get_rho(m, SAMP)
+
+    #         # print results
+    #         print('RHO\n---')
+    #         print(rho)
+    #         print('UNC\n---')
+    #         print(unc)
+
+    #         # set globals
+    #         RHO = rho
+    #         UNC = unc
+    #         ANGLES = angles
+
+    #         # compute fidelity
+    #         fidelity = get_fidelity(rho, state)
+    #         print('fidelity', fidelity)
+    #         return 1-np.sqrt(fidelity)
+
+    #     # def minimize_loss(x0):
+    #     #     '''Function that performs minimization based on input'''
+    #     #     # set bounds (in deg) for components
+    #     #     bounds = [(0, 45), (-38.57, 38.57), (0, 45)]
+    #     #     result = minimize(loss_fidelity, x0=x0, bounds=bounds)
+    #     #     return result.x # return the optimal components
+
+
+    #     # get angles
+    #     angles = [df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0], df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0],df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0]]
+
+    #     # run initial result
+    #     loss = loss_fidelity(angles)
+    #     # gradient
+    #     grad = approx_fprime
+
+    #     # do GD optimization
+    #     for i in range(N):
+
 
