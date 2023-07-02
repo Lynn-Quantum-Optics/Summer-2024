@@ -4,6 +4,7 @@ from rho_methods import *
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import fractions
+from scipy.optimize import curve_fit
 
 ## sample bell states##
 PhiP_s = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
@@ -33,7 +34,7 @@ def get_E1(eta, chi):
     return get_rho(E_state1_s)
 
 ## sample of different values of eta, chi for E0 and E1
-def sample_E():
+def sample_E(exp_data=None):
     '''Samples E0 and E1 for various values of chi and eta and computes witness values'''
     eta_ls = np.linspace(0, np.pi/4, 6) # set of eta values to sample
     chi_ls = np.linspace(0, np.pi/2, 6) # set of chi values to sample
@@ -48,14 +49,14 @@ def sample_E():
 
     for chi in chi_ls:
         rho = get_E0(eta_fixed, chi)
-        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
+        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho, do_stokes=True)
         Wp= min(Wp_t1, Wp_t2, Wp_t3)
         E0_W_ls.append(W_min)
         E0_Wp_ls.append(Wp)
 
     for eta in eta_ls:
         rho = get_E1(eta, chi_fixed)
-        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
+        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho, do_stokes=True)
         Wp= min(Wp_t1, Wp_t2, Wp_t3)
         E1_W_ls.append(W_min)
         E1_Wp_ls.append(Wp)
@@ -73,11 +74,22 @@ def sample_E():
 
     def deg_formatter(x, pos):
         return str(np.round(np.rad2deg(x), 3))
+
+    def sinsq2(x, a, b, c, d):
+        return a*np.sin(b*x + c)**2 + d
     
     # plot results
     fig, ax = plt.subplots(1, 2, figsize=(12, 7))
     ax[0].scatter(chi_ls, E0_W_ls, label='W')
     ax[0].scatter(chi_ls, E0_Wp_ls, label='W\'')
+
+    popt_E0_W, pcov_E0_W = curve_fit(sinsq2, chi_ls, E0_W_ls)
+    popt_E0_Wp, pcov_E0_Wp = curve_fit(sinsq2, chi_ls, E0_Wp_ls)
+
+    chi_fit = np.linspace(0, np.pi/2, 100)
+    ax[0].plot(chi_fit, sinsq2(chi_fit, *popt_E0_W), label='fit W')
+    ax[0].plot(chi_fit, sinsq2(chi_fit, *popt_E0_Wp), label='fit W\'')
+
     ax[0].set_title('$\cos(\eta)|\Psi^+ \\rangle + e^{i\chi}\sin(\eta)|\Psi^- \\rangle, \\eta = %2g^\degree$'%np.rad2deg(eta_fixed))
     ax[0].set_xlabel('$\\chi (^\degree)$')
     ax[0].xaxis.set_major_formatter(ticker.FuncFormatter(deg_formatter))
@@ -85,12 +97,27 @@ def sample_E():
     ax[0].set_ylabel('Witness value')
     ax[0].legend()
 
+    if exp_data is not None:
+        W_vals = exp_data['W_vals']
+        W_errs = exp_data['W_errs']
+        Wp_vals = exp_data['Wp_vals']
+        Wp_errs = exp_data['Wp_errs']
+        ax[0].errorbar(chi_ls, W_vals, yerr=W_errs, fmt='o', label='W exp')
+        ax[0].errorbar(chi_ls, Wp_vals, yerr=Wp_errs, fmt='o', label='W\' exp')
+
     ax[1].scatter(eta_ls, E1_W_ls, label='W')
     ax[1].scatter(eta_ls, E1_Wp_ls, label='W\'')
     ax[1].set_xlabel('$\\eta (^\degree)$')
     ax[1].xaxis.set_major_formatter(ticker.FuncFormatter(deg_formatter))
     ax[1].set_xticks(eta_ls)
     ax[1].set_ylabel('Witness value')
+
+    popt_E1_W, pcov_E1_W = curve_fit(sinsq2, eta_ls, E1_W_ls)
+    popt_E1_Wp, pcov_E1_Wp = curve_fit(sinsq2, eta_ls, E1_Wp_ls)
+
+    eta_fit = np.linspace(0, np.pi/4, 100)
+    ax[1].plot(eta_fit, sinsq2(eta_fit, *popt_E1_W), label='fit W')
+    ax[1].plot(eta_fit, sinsq2(eta_fit, *popt_E1_Wp), label='fit W\'')
     ax[1].set_title('$\cos(\eta)(|\Psi^+ \\rangle + i|\Psi^-\\rangle) + e^{i\chi }\sin(\eta)(|\Phi^+ \\rangle + i|\Phi^-\\rangle), \\chi = %.2g^\degree$'%np.rad2deg(chi_fixed))
     ax[1].legend()
     plt.tight_layout()
