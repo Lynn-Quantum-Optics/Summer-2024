@@ -49,7 +49,7 @@ BBO_expt = BBO
 def get_QP_expt(phi_a):
     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
-PCC_expt = np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)]) # experimental PCC matrix
+def get_PCC_expt(beta): return R(beta) @ np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)])@ R(-beta) # experimental PCC matrix, rotated by angle beta
 
 #### calculations ####
 
@@ -79,8 +79,10 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
         B_theta = angles[2]
 
         if expt:
+            # precompensation crystal
+            PCC_beta = angles[3]
             # experimental QP #
-            QP = PCC_expt @ get_QP_expt(phi) # combine QP and PCC
+            QP = get_PCC_expt(PCC_beta) @ get_QP_expt(phi) # combine QP and PCC
 
         else:
            QP = get_QP(phi)
@@ -111,8 +113,10 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
         B_alpha = angles[3]
 
         if expt:
+            # precompensation crystal
+            PCC_beta = angles[4]
             # experimental QP #
-            QP = PCC_expt @ get_QP_expt(phi) # combine QP and PCC
+            QP =get_PCC_expt(PCC_beta) @ get_QP_expt(phi) # combine QP and PCC
 
         else:
            QP = get_QP(phi)
@@ -148,7 +152,8 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
 
         H_UV = H(theta0)
         if expt:
-            QP = PCC_expt @ get_QP_expt(phi)
+            PCC_beta = angles[5]
+            QP = get_PCC_expt(PCC_beta) @ get_QP_expt(phi)
         else:
             QP = get_QP(phi)
         H_B = H(B_theta)
@@ -191,16 +196,20 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
         Q_A1 = Q(alpha_A_ls[0])
         Q_A2 = Q(alpha_A_ls[1])
 
-        U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV
+        if expt:
+            PCC = get_PCC_expt(angles[10])
+            U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ PCC @ Q1 @ Q0 @ H_UV
+        else:
+            U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV
 
     else:
-        raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I".')
+        raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C0", "C1", "C2", or "I".')
 
 
     # apply unitary
     P = U @ s0
     rho = P @ adjoint(P)
-    rho /= np.trace(rho)
+    # rho /= np.trace(rho)
 
     ## return density matrix ##
     if check:
@@ -230,11 +239,15 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt: 
                 phi = np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57))
+                PCC_beta = np.random.rand()*2*np.pi
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
-            angles= [theta_UV, phi, theta_B]
+            if expt:
+                angles= [theta_UV, phi, theta_B, PCC_beta]
+            else:
+                angles= [theta_UV, phi, theta_B]
 
         elif setup=='C1':
             # UV HWP
@@ -244,11 +257,15 @@ def get_random_Jangles(setup='C1', expt=True):
                 phi = np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57)) # 40 degrees is the max angle for the QP
             else:
                 phi = np.random.rand()*2*np.pi
+                PCC_beta = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
             # QWPs
             alpha = np.random.rand()*np.pi/2
-            angles= [theta_UV, phi, theta_B, alpha]
+            if expt:
+                angles= [theta_UV, phi, theta_B, alpha, PCC_beta]
+            else:
+                angles= [theta_UV, phi, theta_B, alpha]
         
         elif setup=='C2':
             # UV HWP
@@ -256,13 +273,17 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt:
                 phi =np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57)) # 40 degrees is the max angle for the QP
+                PCC_beta = np.random.rand()*2*np.pi
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
             # QWPs
             alpha_ls = np.random.rand(2)*np.pi/2
-            angles= [theta_UV, phi, theta_B, *alpha_ls]
+            if expt:
+                angles= [theta_UV, phi, theta_B, *alpha_ls, PCC_beta]
+            else:
+                angles= [theta_UV, phi, theta_B, *alpha_ls]
 
         elif setup=='I':
             # UVHWP 
@@ -274,7 +295,11 @@ def get_random_Jangles(setup='C1', expt=True):
             # B and A QWPs
             alpha_ls = np.random.rand(4)*np.pi/2
 
-            angles= [theta_0, *Q_init, *theta_ls, *alpha_ls]
+            if expt:
+                PCC_beta = np.random.rand()*2*np.pi
+                angles= [theta_0, *Q_init, *theta_ls, *alpha_ls, PCC_beta]
+            else:
+                angles= [theta_0, *Q_init, *theta_ls, *alpha_ls]
 
         else:
             raise ValueError(f'Invalid setup. You have {setup} but needs to be either "C" or "I" or "Ca".')
@@ -344,6 +369,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=Fal
         Q_bound = (0, np.pi/2)
         if expt:
             QP_bound = (-np.deg2rad(38.57), np.deg2rad(38.57))
+            PCC_bound = (0, 2*np.pi)
         else:
             QP_bound = (0, 2*np.pi)
         if setup=='C0':
@@ -357,6 +383,9 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=Fal
             bounds = [H_bound, Q_bound, Q_bound, H_bound, H_bound, Q_bound, Q_bound, Q_bound, Q_bound]
         else:
             raise ValueError(f'Invalid setup. Must be either "C" or "I" or "Ca". You have {setup}.')
+
+        if expt:
+            bounds.append(PCC_bound)
 
         def loss_fidelity(angles):
             ''' Function to quantify the distance between the targ and pred density matrices'''
