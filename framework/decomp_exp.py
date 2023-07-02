@@ -15,12 +15,12 @@ if __name__ == '__main__':
     from sample_rho import PhiP
 
     # read in angle settings
-    df = pd.read_csv('../oscar/machine_learning/decomp/bell.csv')
+    df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
 
     # set up manager #
     SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
     m = Manager()
-    m.new_output('decomp_test/decomp_data_t2.csv')
+    m.new_output('decomp_test/decomp_data_t3.csv')
 
     # define states of interest
     states_names = [('PhiP')]
