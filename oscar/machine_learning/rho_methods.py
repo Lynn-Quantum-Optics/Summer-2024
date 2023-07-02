@@ -37,12 +37,12 @@ def is_valid_rho(rho, verbose=True):
         return False
     # check if trace 1, within tolerance. can use param rtol to change tolerance
     if not(np.isclose(np.trace(rho), 1, tolerance)):
-        if verbose: print('rho trace is not 1')
+        if verbose: print('rho trace is not 1', np.trace(rho))
         return False
     # check if positive semidefinite
     eig_val = la.eigvals(rho)
     if not(np.all(np.greater_equal(eig_val,np.zeros(len(eig_val))) | np.isclose(eig_val,np.zeros(len(eig_val)), rtol=tolerance))):
-        if verbose: print('rho is not positive semidefinite')
+        if verbose: print('rho is not positive semidefinite. eigenvalues:', eig_val)
         return False
     # square root of rho must exist
     if np.isnan(rho).any() or np.isinf(rho).any():

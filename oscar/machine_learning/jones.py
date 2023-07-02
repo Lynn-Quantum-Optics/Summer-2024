@@ -13,19 +13,35 @@ from random_gen import *
 ### experimental variables to reflect non-idealities in model ###
 # QP #
 l_p = 403 * 10**(-9) # wavelength of pump in m
-n_e_p = 1.56677 # extraordinary refractive index for 403 nm
-n_o_p = 1.55722 # ordinary refractive index for 403 nm
+n_e_p_qp = 1.56677 # extraordinary refractive index for 403 nm for QP
+n_o_p_qp = 1.55722 # ordinary refractive index for 403 nm for QP
 d_QP = 0.5 * 10**(-3) # thickness of QP in m
-def phi_H_QP(phi_a): return (2*np.pi * d_QP * n_o_p**2) / (l_p*np.sqrt(n_o_p**2 - np.sin(phi_a)**2)) # phase shift for H polarization; note phi_a is the actual angle of the QP!
-def phi_V_QP(phi_a): return (2*np.pi * d_QP * n_e_p**2) / (l_p*np.sqrt(n_e_p**2 - np.sin(phi_a)**2)) # phase shift for V polarization; note phi_a is the actual angle of the QP!
+def phi_H_QP(phi_a): return (2*np.pi * d_QP * n_o_p_qp**2) / (l_p*np.sqrt(n_o_p_qp**2 - np.sin(phi_a)**2)) # phase shift for H polarization; note phi_a is the actual angle of the QP!
+def phi_V_QP(phi_a): return (2*np.pi * d_QP * n_e_p_qp**2) / (l_p*np.sqrt(n_e_p_qp**2 - np.sin(phi_a)**2)) # phase shift for V polarization; note phi_a is the actual angle of the QP!
 
 # PCC #
 d_PCC = 5.68 * 10**(-3) # thickness of PCC in m
-phi_H_PCC = (2*np.pi * d_PCC * n_o_p) / l_p # phase shift for H polarization
-phi_V_PCC = (2*np.pi * d_PCC * n_e_p) / l_p # phase shift for V polarization
+phi_H_PCC = (2*np.pi * d_PCC * n_o_p_qp) / l_p # phase shift for H polarization
+phi_V_PCC = (2*np.pi * d_PCC * n_e_p_qp) / l_p # phase shift for V polarization
 
 # BBO #
+d_BB0 = 0.5 * 10**(-3) # thickness of BBO in m
 a = 0.9143592035643862 # ratio of max HH / max VV; determined by sweeping UV_HWP
+def n_e_bbo(l):
+    ''' extraordinary refractive index of BBO crystal for wavelength l in m'''
+    l *= 10**(-9) # convert to m
+    return 2.7359 + (0.01878*10**(-12)) / (l**2 - 0.01667*10**(-12)) - (0.01354 * l**2) / (10**(-12))
+def n_o_bbo(l):
+    ''' ordinary refractive index of BBO crystal for wavelength l in m'''
+    l *= 10**(-9) # convert to m
+    return 2.3753 + (0.01224*10**(-12)) / (l**2 - 0.0156*10**(-12)) - (0.0044 * l**2) / (10**(-12))
+def n_eff_bbo(l, gamma):
+    ''' effective refractive index of BBO crystal for wavelength l in m at angle gamma'''
+    l *= 10**(-9) # convert to m
+    return ((np.cos(gamma) / n_o_bbo(l))**2 + (np.sin(gamma) / n_e_bbo(l))**2)**(-1/2)
+def phi_BBO(gamma):
+    '''Phase shift of BBO crystal'''
+    return 2*np.pi*d_BB0*(n_eff_bbo(806, gamma) / (806*10**(-9)) - n_o_bbo(403) / (403*10**(-9)))    
 
 #### jones matrices ####
 def R(alpha): 
@@ -43,22 +59,27 @@ def get_QP(phi):
 BBO = np.array([[0, 0, 0, 1], [1, 0,0,0]]).T
 s0 = np.array([[1], [0]]) # initial |0> state
 
-# experimental components #
-# BBO_expt = np.array([[0, 0, 0, 1/a], [a, 0,0,0]]).T # experimental BBO matrix
-BBO_expt = BBO
+# -- experimental components -- #
+
+# experimental BBO matrix
+def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
+# set angle of BBO
+# BBO_expt = BBO
 def get_QP_expt(phi_a):
     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
-def get_PCC_expt(beta): return R(beta) @ np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)])@ R(-beta) # experimental PCC matrix, rotated by angle beta
+# experimental PCC matrix, rotated by angle beta
+def get_PCC_expt(beta): return R(beta) @ np.diag([np.exp(1j*phi_H_PCC), np.exp(1j*phi_V_PCC)])@ R(-beta) 
 
 #### calculations ####
 
-def get_Jrho(angles, setup = 'C1', expt = True, check=False):
+def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, expt = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
         setup: 'Ca', 'C', 'I' respectively for current setup, current setup with one QWP on Alice, and ideal setup, replacing the QP with two QWPs and giving both A and B two QWPs and 1 HWP
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
+        gamma: angle of BBO crystal; determined by maximizing fidelity for PhiP setup
         expt: boolean to use experimental components or not
     '''
 
@@ -83,7 +104,8 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
             PCC_beta = angles[3]
             # experimental QP #
             QP = get_PCC_expt(PCC_beta) @ get_QP_expt(phi) # combine QP and PCC
-
+            # BBO angle
+            BBO_expt = get_BBO_expt(gamma)
         else:
            QP = get_QP(phi)
     
@@ -117,7 +139,8 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
             PCC_beta = angles[4]
             # experimental QP #
             QP =get_PCC_expt(PCC_beta) @ get_QP_expt(phi) # combine QP and PCC
-
+            # BBO angle
+            BBO_expt = get_BBO_expt(gamma)
         else:
            QP = get_QP(phi)
     
@@ -154,6 +177,8 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
         if expt:
             PCC_beta = angles[5]
             QP = get_PCC_expt(PCC_beta) @ get_QP_expt(phi)
+            # BBO angle
+            BBO_expt = get_BBO_expt(gamma)
         else:
             QP = get_QP(phi)
         H_B = H(B_theta)
@@ -198,6 +223,8 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
 
         if expt:
             PCC = get_PCC_expt(angles[10])
+            # BBO angle
+            BBO_expt = get_BBO_expt(gamma)
             U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ PCC @ Q1 @ Q0 @ H_UV
         else:
             U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV
@@ -209,7 +236,7 @@ def get_Jrho(angles, setup = 'C1', expt = True, check=False):
     # apply unitary
     P = U @ s0
     rho = P @ adjoint(P)
-    # rho /= np.trace(rho)
+    rho /= np.trace(rho)
 
     ## return density matrix ##
     if check:
@@ -255,9 +282,9 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt:
                 phi = np.random.uniform(-np.deg2rad(38.57), np.deg2rad(38.57)) # 40 degrees is the max angle for the QP
+                PCC_beta = np.random.rand()*2*np.pi
             else:
                 phi = np.random.rand()*2*np.pi
-                PCC_beta = np.random.rand()*2*np.pi
             # B HWP
             theta_B = np.random.rand()*np.pi/4
             # QWPs
@@ -325,7 +352,7 @@ def get_random_jones(setup='C1', expt=True, return_params=False):
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'Ca', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -807,7 +834,7 @@ if __name__=='__main__':
             plot()
 
 
-    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2  to run eritas states, 3 to run bell '))
+    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2  to run eritas states, 3 to run bell, 4 to tune gamma for BBO_expt '))
     
     ## test states and get average fidelity ##
     if resp == 0:
@@ -843,14 +870,18 @@ if __name__=='__main__':
         from itertools import zip_longest
         n = 6 # number of states to generate
         # initialize list
-        states = [PhiP, PhiM, PsiP, PsiM]
-        states_names = ['PhiM', 'PhiP', 'PsiM', 'PsiP']
+        # states = [PhiP, PhiM, PsiP, PsiM]
+        # states_names = ['PhiM', 'PhiP', 'PsiM', 'PsiP']
+        
+        # for state in states:
+        #     for setup in ['C0', 'C1']:
+        #         eta_setup.append(None)
+        #         chi_setup.append(None)
+
+        states = []
+        states_names = []
         eta_setup = []
         chi_setup = []
-        for state in states:
-            for setup in ['C0', 'C1']:
-                eta_setup.append(None)
-                chi_setup.append(None)
 
         # populate eritas states
         eta_ls = np.linspace(0, np.pi/4, n) # set of eta values to sample
@@ -904,7 +935,15 @@ if __name__=='__main__':
         angles_unpacked= [np.array(angle) for angle in angles_unpacked]
         angles_unpacked = np.array(angles_unpacked)
         angles_unpacked = angles_unpacked.T
-        angles_df =  pd.DataFrame(angles_unpacked, columns=['UV_HWP', 'QP', 'B_HWP', 'B_QWP'])
+        angles_df_0 =  pd.DataFrame(angles_unpacked)
+        print(angles_df_0)
+        # split into C0 and C1
+        angles_df_C0 = angles_df_0.loc[decomp_df['setup']=='C0']
+        angles_df_C0.columns = ['UV_HWP', 'QP', 'B_HWP', 'PCC', 'B_QWP']
+        angles_df_C1 = angles_df_0.loc[decomp_df['setup']=='C1']
+        angles_df_C1.columns = ['UV_HWP', 'QP', 'B_HWP', 'B_QWP', 'PCC']
+
+        angles_df = pd.concat([angles_df_C0, angles_df_C1])
 
         # prepare final output df #
         return_df = pd.DataFrame()
@@ -914,12 +953,13 @@ if __name__=='__main__':
         return_df['setup'] = decomp_df['setup']
         return_df['UV_HWP'] = angles_df['UV_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['QP'] = angles_df['QP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        return_df['PCC'] = angles_df['PCC'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['B_HWP'] = angles_df['B_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['fidelity'] = decomp_df['fidelity']
         return_df['n'] = decomp_df['n']
-        return_df['actual_rho'] = decomp_df['targ_rho']
         return_df['pred_rho'] = decomp_df['pred_rho']
+        return_df['actual_rho'] = decomp_df['targ_rho']
 
         print('saving!')
         return_df.to_csv(join('decomp', 'ertias.csv'))
@@ -929,59 +969,122 @@ if __name__=='__main__':
         from itertools import zip_longest
         states = [PhiP, PhiM, PsiP, PsiM]
         states_names = ['PhiP', 'PhiM', 'PsiP', 'PsiM']
-        eta_setup = []
-        chi_setup = []
-        for state in states:
-            for setup in ['C0', 'C1']:
-                eta_setup.append(None)
-                chi_setup.append(None)
 
-        # get function with preset inputs
-        decomp = partial(jones_decompose, adapt=0, debug=False, expt=True)
+        eps_ls = [0.947, 0.999] # list of max fidelity values to sample
 
-        decomp_ls = []
-        for i in range(len(states)):
-            for setup in ['C0', 'C1']:
-                decomp_ls.append((i, setup))
+        for eps in eps_ls:
+            # get function with preset inputs
+            decomp = partial(jones_decompose, adapt=2, debug=False, expt=True, epsilon=eps)
 
-         ## build multiprocessing pool ##
-        pool = Pool(cpu_count())
+            decomp_ls = []
+            for i in range(len(states)):
+                for setup in ['C0', 'C1']:
+                    decomp_ls.append((i, setup))
 
-        inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1]) for  decomp_in in decomp_ls]        
-        results = pool.starmap_async(decomp, inputs).get()
+            ## build multiprocessing pool ##
+            pool = Pool(cpu_count())
 
-        ## end multiprocessing ##
-        pool.close()
-        pool.join()
+            inputs = [(states[decomp_in[0]], states_names[decomp_in[0]], decomp_in[1]) for  decomp_in in decomp_ls]        
+            results = pool.starmap_async(decomp, inputs).get()
 
-        # filter None results out
-        results = [result for result in results if result is not None] 
+            ## end multiprocessing ##
+            pool.close()
+            pool.join()
 
-        ## get to df ##
-        decomp_df = pd.DataFrame()
-        columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
-        decomp_df = pd.DataFrame.from_records(results, columns=columns)
-        
-        # parse df to make angles explicit and in degrees #
-        angles_unpacked = list(zip_longest(*decomp_df['angles']))
-        angles_unpacked= [np.array(angle) for angle in angles_unpacked]
-        angles_unpacked = np.array(angles_unpacked)
-        angles_unpacked = angles_unpacked.T
-        angles_df =  pd.DataFrame(angles_unpacked, columns=['UV_HWP', 'QP', 'B_HWP', 'B_QWP'])
+            # filter None results out
+            results = [result for result in results if result is not None] 
 
-        # prepare final output df #
-        return_df = pd.DataFrame()
-        return_df['state'] = decomp_df['state']
-        return_df['setup'] = decomp_df['setup']
-        return_df['UV_HWP'] = angles_df['UV_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
-        return_df['QP'] = angles_df['QP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
-        return_df['B_HWP'] = angles_df['B_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
-        return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
-        return_df['fidelity'] = decomp_df['fidelity']
-        return_df['n'] = decomp_df['n']
-        return_df['actual_rho'] = decomp_df['targ_rho']
-        return_df['pred_rho'] = decomp_df['pred_rho']
+            ## get to df ##
+            decomp_df = pd.DataFrame()
+            columns = ['state', 'setup', 'adapt', 'n', 'fidelity', 'angles', 'targ_rho', 'pred_rho']
+            decomp_df = pd.DataFrame.from_records(results, columns=columns)
+            
+            # parse df to make angles explicit and in degrees #
+            angles_unpacked = list(zip_longest(*decomp_df['angles']))
+            angles_unpacked= [np.array(angle) for angle in angles_unpacked]
+            angles_unpacked = np.array(angles_unpacked)
+            angles_unpacked = angles_unpacked.T
+            angles_df_0 =  pd.DataFrame(angles_unpacked)
+            print(angles_df_0)
+            # split into C0 and C1
+            angles_df_C0 = angles_df_0.loc[decomp_df['setup']=='C0']
+            angles_df_C0.columns = ['UV_HWP', 'QP', 'B_HWP', 'PCC', 'B_QWP']
+            angles_df_C1 = angles_df_0.loc[decomp_df['setup']=='C1']
+            angles_df_C1.columns = ['UV_HWP', 'QP', 'B_HWP', 'B_QWP', 'PCC']
 
-        print('saving!')
-        return_df.to_csv(join('decomp', 'bell.csv'))
+            angles_df = pd.concat([angles_df_C0, angles_df_C1])
+            
 
+            # prepare final output df #
+            return_df = pd.DataFrame()
+            return_df['state'] = decomp_df['state']
+            return_df['setup'] = decomp_df['setup']
+            return_df['UV_HWP'] = angles_df['UV_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+            return_df['QP'] = angles_df['QP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+            return_df['PCC'] = angles_df['PCC'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+            return_df['B_HWP'] = angles_df['B_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+            return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+            return_df['fidelity'] = decomp_df['fidelity']
+            return_df['n'] = decomp_df['n']
+            return_df['pred_rho'] = decomp_df['pred_rho']
+            return_df['targ_rho'] = decomp_df['targ_rho']
+
+            print('saving!')
+            return_df.to_csv(join('decomp', f'bell_{eps}.csv'))
+
+    elif resp==4:
+        ''' Tune angle of BBO gamma based on PhiP state'''
+        from scipy.optimize import curve_fit
+        # from config
+        UV_HWP_theta = np.deg2rad(65.39980)
+        QP_theta = np.deg2rad(-24.1215)
+        PCC_beta = np.deg2rad(4.005)
+        B_QWP_theta = 0
+        angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+
+        def loss_func(gamma):
+            # reset BBO wth gamma
+            # calc state
+            rho_calc= get_Jrho(angles, setup='C0', gamma=gamma)
+            fidelity = get_fidelity(rho_calc, PhiP)
+            return -fidelity
+
+        def plot_gamma():
+            gamma_ls = np.linspace(0, np.pi/2, 1000)
+            fidelity_ls = []
+            for gamma in gamma_ls:
+                rho_calc= get_Jrho(angles, setup='C0', gamma=gamma)
+                fidelity = get_fidelity(rho_calc, PhiP)
+                fidelity_ls.append(fidelity)
+            print('fidelity', max(fidelity_ls))
+            print('gamma', gamma_ls[np.argmax(fidelity_ls)])
+            plt.figure(figsize=(12,8))
+            plt.scatter(gamma_ls, fidelity_ls)
+
+            # fit sin2
+            # def sin2(x, a, b, c, d):
+            #     return a*np.sin(b*x+c)**2+d
+
+            # popt, pcov = curve_fit(sin2, gamma_ls, fidelity_ls)
+            # plt.plot(gamma_ls, sin2(gamma_ls, *popt), 'r-', label='$%.3g\sin(%.3g \gamma + %.3g) + %.3g$'%tuple(popt))
+            # plt.legend()
+            plt.xlabel('$\gamma$')
+            plt.ylabel('Fidelity')
+            plt.title('Determining optimal BBO angle $\gamma$ for current $|\Phi^+\\rangle$ setup')
+            plt.savefig(join('decomp', 'bbo_tune.pdf'))
+            plt.show()
+
+        # gamma = 1 # initial guess
+        # loss = loss_func(gamma)
+        # print('loss', loss)
+        # gamma_min = minimize(loss_func, gamma).x
+        # print(gamma_min)
+        # gamma_min  =0.2
+        # rho_calc= get_Jrho(angles, setup='C0', gamma=gamma_min)
+        # print('rho', rho_calc)
+        # print('rho_actual', PhiP)
+        # fidelity = get_fidelity(rho_calc, PhiP)
+        # print('fidelity',fidelity)
+        # print('gamma min is', gamma_min)
+
+        plot_gamma()
