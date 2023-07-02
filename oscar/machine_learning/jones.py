@@ -62,7 +62,8 @@ s0 = np.array([[1], [0]]) # initial |0> state
 # -- experimental components -- #
 
 # experimental BBO matrix
-def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
+# def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
+def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 # set angle of BBO
 # BBO_expt = BBO
 def get_QP_expt(phi_a):
@@ -73,13 +74,14 @@ def get_PCC_expt(beta): return R(beta) @ np.diag([np.exp(1j*phi_H_PCC), np.exp(1
 
 #### calculations ####
 
-def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, expt = True, check=False):
+def get_Jrho(angles, setup = 'C1',gamma=0.5148721293383273, add_noise = False, expt = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
         setup: 'Ca', 'C', 'I' respectively for current setup, current setup with one QWP on Alice, and ideal setup, replacing the QP with two QWPs and giving both A and B two QWPs and 1 HWP
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
         gamma: angle of BBO crystal; determined by maximizing fidelity for PhiP setup
+        add_noise: boolean to add noise to the density matrix to simulate mixed states in the lab
         expt: boolean to use experimental components or not
     '''
 
@@ -238,16 +240,26 @@ def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, expt = True, check=F
     rho = P @ adjoint(P)
     rho /= np.trace(rho)
 
+    p = .04 # add 4% noise based on Phi+ fidelity
+
     ## return density matrix ##
     if check:
         if is_valid_rho(rho):
-            return rho
+            if not(add_noise):
+                return rho
+            else:
+                rho  = (1-p)*rho + p*np.eye(4)/4
+                return rho
         else:
             print(rho)
             raise ValueError('Invalid density matrix')
 
     else:
-        return rho
+        if not(add_noise):
+                return rho
+        else:
+            rho  = (1-p)*rho + p*np.eye(4)/4
+            return rho
 
 
 def get_random_Jangles(setup='C1', expt=True):
@@ -352,7 +364,7 @@ def get_random_jones(setup='C1', expt=True, return_params=False):
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000, add_noise=False):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -369,6 +381,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         debug: whether to enforce try/excpet to block errors
         epsilon: maximum tolerance for fidelity; if reached, halleljuah and break early!
         N: max number of times to try to optimize
+        add_noise: whether to add noise when trying to predict the state
     returns:
         angles: list of angles matching setup return. note beta and gamma, which set the initial polarization state, are the first two elements
         fidelity: fidelity of the resulting guessed state
@@ -389,7 +402,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         zeta=1
 
     def decompose():
-        func = lambda angles: get_Jrho(angles=angles, setup=setup)
+        func = lambda angles: get_Jrho(angles=angles, setup=setup, expt=expt, add_noise=add_noise)
 
         # iset bounds for guesses
         H_bound = (0, np.pi/4)
@@ -970,11 +983,11 @@ if __name__=='__main__':
         states = [PhiP, PhiM, PsiP, PsiM]
         states_names = ['PhiP', 'PhiM', 'PsiP', 'PsiM']
 
-        eps_ls = [0.947, 0.999] # list of max fidelity values to sample
+        eps_ls = [0.969] # list of max fidelity values to sample
 
         for eps in eps_ls:
             # get function with preset inputs
-            decomp = partial(jones_decompose, adapt=2, debug=False, expt=True, epsilon=eps)
+            decomp = partial(jones_decompose, adapt=2, debug=False, expt=True, epsilon=eps, add_noise=True)
 
             decomp_ls = []
             for i in range(len(states)):
@@ -1079,12 +1092,12 @@ if __name__=='__main__':
         # print('loss', loss)
         # gamma_min = minimize(loss_func, gamma).x
         # print(gamma_min)
-        # gamma_min  =0.2
-        # rho_calc= get_Jrho(angles, setup='C0', gamma=gamma_min)
-        # print('rho', rho_calc)
-        # print('rho_actual', PhiP)
-        # fidelity = get_fidelity(rho_calc, PhiP)
-        # print('fidelity',fidelity)
+        gamma_min  =0.2
+        rho_calc= get_Jrho(angles, setup='C0', gamma=gamma_min)
+        print('rho', rho_calc)
+        print('rho_actual', PhiP)
+        fidelity = get_fidelity(rho_calc, PhiP)
+        print('fidelity',fidelity)
         # print('gamma min is', gamma_min)
 
-        plot_gamma()
+        # plot_gamma()
