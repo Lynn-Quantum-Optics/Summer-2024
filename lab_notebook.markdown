@@ -28,7 +28,7 @@ Got 59.9% fidelity. Rerunning preset PhiP for sanity check: got 96.3%. Changed t
 To be sure, plugged theoeritcal settings back into program and got sensisble matrices. And radians correctly converted to degrees. 54.5%. Measured rho looks very sparse: maybe not enough light -> restrict range. But still earlier trials with less extreme QP angles and poor counts. Trial 14: noise, theoretical BBO on PsiP:
     6.71300323380349,26.386607556725494,340.0389824890846,44.97247940950898
 79.0%.
-Also, full tomo runs in about 10 mins.
+Also, full tomo runs in about 10 mins for 5x1.
 
 ## 7/1/23
 MP: O

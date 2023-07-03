@@ -62,8 +62,10 @@ s0 = np.array([[1], [0]]) # initial |0> state
 # -- experimental components -- #
 
 # experimental BBO matrix
-# def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
-def get_BBO_expt(gamma): return np.array([[0, 0, 0, 1], [1, 0,0,0]], dtype='complex').T 
+# full correction
+def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
+# partial correction
+BBO_p_expt =  np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 
 # def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 # set angle of BBO
@@ -76,14 +78,17 @@ def get_PCC_expt(beta): return R(beta) @ np.diag([np.exp(1j*phi_H_PCC), np.exp(1
 
 #### calculations ####
 
-def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, expt = True, check=False):
+def get_Jrho(angles, setup = 'C1',BBO_corr = 0, gamma=0.2735921530153273, add_noise = False, p = 0.04, expt = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
-        setup: 'Ca', 'C', 'I' respectively for current setup, current setup with one QWP on Alice, and ideal setup, replacing the QP with two QWPs and giving both A and B two QWPs and 1 HWP
+        setup: 'C0', 'C1', 'C2', 'I' 
+        BBO_corr: 0 to not correct, 1 to partial, 2 to full correction
+        gamma: angle of BBO crystal for corection; determined by maximizing fidelity for PhiP setup; from Ivy's: 0.2735921530153273
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
         gamma: angle of BBO crystal; determined by maximizing fidelity for PhiP setup; from Ivy's:29.5 deg
         add_noise: boolean to add noise to the density matrix to simulate mixed states in the lab
+        p: probability of noise
         expt: boolean to use experimental components or not
     '''
 
@@ -109,7 +114,12 @@ def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, e
             # experimental QP #
             QP = get_PCC_expt(PCC_beta) @ get_QP_expt(phi) # combine QP and PCC
             # BBO angle
-            BBO_expt = get_BBO_expt(gamma)
+            if BBO_corr == 0:
+                BBO_expt = BBO
+            elif BBO_corr == 1:
+                BBO_expt = BBO_p_expt
+            else:
+                BBO_expt = get_BBO_expt(gamma)
         else:
            QP = get_QP(phi)
     
@@ -144,7 +154,12 @@ def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, e
             # experimental QP #
             QP =get_PCC_expt(PCC_beta) @ get_QP_expt(phi) # combine QP and PCC
             # BBO angle
-            BBO_expt = get_BBO_expt(gamma)
+            if BBO_corr == 0:
+                BBO_expt = BBO
+            elif BBO_corr == 1:
+                BBO_expt = BBO_p_expt
+            else:
+                BBO_expt = get_BBO_expt(gamma)
         else:
            QP = get_QP(phi)
     
@@ -182,7 +197,12 @@ def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, e
             PCC_beta = angles[5]
             QP = get_PCC_expt(PCC_beta) @ get_QP_expt(phi)
             # BBO angle
-            BBO_expt = get_BBO_expt(gamma)
+            if BBO_corr == 0:
+                BBO_expt = BBO
+            elif BBO_corr == 1:
+                BBO_expt = BBO_p_expt
+            else:
+                BBO_expt = get_BBO_expt(gamma)
         else:
             QP = get_QP(phi)
         H_B = H(B_theta)
@@ -228,7 +248,14 @@ def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, e
         if expt:
             PCC = get_PCC_expt(angles[10])
             # BBO angle
-            BBO_expt = get_BBO_expt(gamma)
+            if BBO_corr == 0:
+                BBO_expt = BBO
+            elif BBO_corr == 1:
+                BBO_expt = BBO_p_expt
+            else:
+                BBO_expt = get_BBO_expt(gamma)
+
+
             U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ PCC @ Q1 @ Q0 @ H_UV
         else:
             U = np.kron(Q_A1 @ Q_A2 @ H_A, Q_B1 @ Q_B2 @ H_B) @ BBO @ Q1 @ Q0 @ H_UV
@@ -240,9 +267,7 @@ def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, e
     # apply unitary
     P = U @ s0
     rho = P @ adjoint(P)
-    rho /= np.trace(rho)
-
-    p = .04 # add 4% noise based on Phi+ fidelity
+    rho /= np.trace(rho) ## sussy line
 
     ## return density matrix ##
     if check:
@@ -356,17 +381,17 @@ def get_random_Jangles(setup='C1', expt=True):
     return angles
 
 
-def get_random_jones(setup='C1', expt=True, return_params=False):
+def get_random_jones(setup='C1', expt=True, BBO_corr =0, return_params=False):
     ''' Computes random angles in the ranges specified and generates the resulting states'''
     # get random angles
     angles = get_random_Jangles(setup=setup, expt=expt)
     # get density matrix
-    rho = get_Jrho(setup=setup, expt=expt, angles=angles)
+    rho = get_Jrho(setup=setup, expt=expt, angles=angles, BBO_corr=BBO_corr)
 
     if return_params: return [rho, angles]
     else: return rho
 
-def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000, add_noise=False):
+def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=False, frac = 0.001, zeta = 0.01, expt=True, gd_tune=False, save_rho = False, verbose=True, epsilon=0.999, N = 1000, add_noise=False, BBO_corr=0):
     ''' Function to decompose a given density matrix into jones matrices
     params:
         targ_rho: target density matrix
@@ -384,6 +409,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         epsilon: maximum tolerance for fidelity; if reached, halleljuah and break early!
         N: max number of times to try to optimize
         add_noise: whether to add noise when trying to predict the state
+        BBO_corr: what level of BBO corection to do
     returns:
         angles: list of angles matching setup return. note beta and gamma, which set the initial polarization state, are the first two elements
         fidelity: fidelity of the resulting guessed state
@@ -395,16 +421,16 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
     if setup=='C2':
         zeta=0.07
 
-    elif setup=='C':
+    elif setup=='C0':
         frac=.02
         zeta=1
 
-    elif setup=='C':
+    elif setup=='C1': # change these values with tuning
         frac=.02
         zeta=1
 
     def decompose():
-        func = lambda angles: get_Jrho(angles=angles, setup=setup, expt=expt, add_noise=add_noise)
+        func = lambda angles: get_Jrho(angles=angles, setup=setup, expt=expt, add_noise=add_noise, BBO_corr=BBO_corr)
 
         # iset bounds for guesses
         H_bound = (0, np.pi/4)
@@ -444,7 +470,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
             fidelity = get_fidelity(rho, targ_rho)
             return best_angles, fidelity, rho
 
-        x0 = get_random_Jangles(setup=setup)
+        x0 = get_random_Jangles(setup=setup, expt=expt)
         best_angles, fidelity, rho = minimize_angles(x0)
         
         # iterate eiher until we hit max bound or we get a valid rho with fidelity above the min
@@ -1103,3 +1129,150 @@ if __name__=='__main__':
         # print('gamma min is', gamma_min)
 
         # plot_gamma()
+
+    elif resp==5:
+        ''' Make 8 plots treating each of the 3 components as indepndent vars'''
+
+        def make_plots():
+
+            fig, ax = plt.subplots(1,3, figsize=(30,20))
+            UV_HWP_opt = []
+            QP_opt = []
+            PCC_opt = []
+            for BBO_corr in [0, 1, 2]:
+                if BBO_corr==2:
+                    for gamma in [np.deg2rad(15.67), np.deg2rad(29.5)]:
+                        # UV #
+                        UV_HWP_theta_ls = np.linspace(0, np.pi/2, 1000)
+                        fidelity_ls = []
+                        QP_theta = np.deg2rad(-24.1215)
+                        PCC_beta = np.deg2rad(4.005)
+                        B_QWP_theta = 0
+                        for UV_HWP_theta in UV_HWP_theta_ls:
+                            angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+                            rho_calc= get_Jrho(angles, setup='C0', BBO_corr=BBO_corr, gamma=gamma)
+                            fidelity = get_fidelity(rho_calc, PhiP)
+                            fidelity_ls.append(fidelity)
+
+                        ax[0].scatter(np.rad2deg(UV_HWP_theta_ls), fidelity_ls, label='BBO_corr=%d, $\gamma=%.3g^\degree$'%(BBO_corr, np.rad2deg(gamma)))
+                        ax[0].scatter(np.rad2deg(UV_HWP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls), marker='x', label='(%.3g, %.3g)'%(np.rad2deg(UV_HWP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls)), s=100)
+                        UV_HWP_opt.append(np.rad2deg(UV_HWP_theta_ls[np.argmax(fidelity_ls)]))
+
+                        # QP #
+                        QP_theta_ls = np.linspace(-np.deg2rad(38.75), np.deg2rad(38.75), 1000)
+                        fidelity_ls = []
+                        UV_HWP_theta = np.deg2rad(65.39980)
+                        PCC_beta = np.deg2rad(4.005)
+                        B_QWP_theta = 0
+                        for QP_theta in QP_theta_ls:
+                            angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+                            rho_calc= get_Jrho(angles, setup='C0', BBO_corr=BBO_corr, gamma=gamma)
+                            fidelity = get_fidelity(rho_calc, PhiP)
+                            fidelity_ls.append(fidelity)
+
+                        ax[1].scatter(np.rad2deg(QP_theta_ls), fidelity_ls, label='BBO_corr=%d, $\gamma=%.3g^\degree$'%(BBO_corr, np.rad2deg(gamma)))
+                        ax[1].scatter(np.rad2deg(QP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls), marker='x', label='(%.3g, %.3g)'%(np.rad2deg(QP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls)), s=100)
+                        QP_opt.append(np.rad2deg(QP_theta_ls[np.argmax(fidelity_ls)]))
+
+                        # PCC #
+                        PCC_beta_ls = np.linspace(0, 2*np.pi, 1000)
+                        fidelity_ls = []
+                        UV_HWP_theta = np.deg2rad(65.39980)
+                        QP_theta = np.deg2rad(-24.1215)
+                        B_QWP_theta = 0
+                        for PCC_beta in PCC_beta_ls:
+                            angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+                            rho_calc= get_Jrho(angles, setup='C0', BBO_corr=BBO_corr, gamma=gamma)
+                            fidelity = get_fidelity(rho_calc, PhiP)
+                            fidelity_ls.append(fidelity)
+                        ax[2].scatter(np.rad2deg(PCC_beta_ls), fidelity_ls, label='BBO_corr=%d, $\gamma=%.3g^\degree$'%(BBO_corr, np.rad2deg(gamma)))
+                        ax[2].scatter(np.rad2deg(PCC_beta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls), marker='x', label='(%.3g, %.3g)'%(np.rad2deg(PCC_beta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls)), s=100)
+                        PCC_opt.append(np.rad2deg(PCC_beta_ls[np.argmax(fidelity_ls)]))
+
+                else:
+                        
+                    # UV #
+                    UV_HWP_theta_ls = np.linspace(0, np.pi/2, 1000)
+                    fidelity_ls = []
+                    QP_theta = np.deg2rad(-24.1215)
+                    PCC_beta = np.deg2rad(4.005)
+                    B_QWP_theta = 0
+                    for UV_HWP_theta in UV_HWP_theta_ls:
+                        angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+                        rho_calc= get_Jrho(angles, setup='C0', BBO_corr=BBO_corr)
+                        fidelity = get_fidelity(rho_calc, PhiP)
+                        fidelity_ls.append(fidelity)
+
+                    ax[0].scatter(np.rad2deg(UV_HWP_theta_ls), fidelity_ls, label='BBO_corr=%d'%(BBO_corr))
+                    ax[0].scatter(np.rad2deg(UV_HWP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls), marker='x', label='(%.3g, %.3g)'%(np.rad2deg(UV_HWP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls)), s=100)
+                    UV_HWP_opt.append(np.rad2deg(UV_HWP_theta_ls[np.argmax(fidelity_ls)]))
+
+                    # QP #
+                    QP_theta_ls = np.linspace(-np.deg2rad(38.75), np.deg2rad(38.75), 1000)
+                    fidelity_ls = []
+                    UV_HWP_theta = np.deg2rad(65.39980)
+                    PCC_beta = np.deg2rad(4.005)
+                    B_QWP_theta = 0
+                    for QP_theta in QP_theta_ls:
+                        angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+                        rho_calc= get_Jrho(angles, setup='C0', BBO_corr=BBO_corr)
+                        fidelity = get_fidelity(rho_calc, PhiP)
+                        fidelity_ls.append(fidelity)
+
+                    ax[1].scatter(np.rad2deg(QP_theta_ls), fidelity_ls, label='BBO_corr=%d'%(BBO_corr))
+                    ax[1].scatter(np.rad2deg(QP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls), marker='x', label='(%.3g, %.3g)'%(np.rad2deg(QP_theta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls)), s=100)
+                    QP_opt.append(np.rad2deg(QP_theta_ls[np.argmax(fidelity_ls)]))
+    
+
+                    # PCC #
+                    PCC_beta_ls = np.linspace(0, 2*np.pi, 1000)
+                    fidelity_ls = []
+                    UV_HWP_theta = np.deg2rad(65.39980)
+                    QP_theta = np.deg2rad(-24.1215)
+                    B_QWP_theta = 0
+                    for PCC_beta in PCC_beta_ls:
+                        angles = [UV_HWP_theta, QP_theta, B_QWP_theta, PCC_beta]
+                        rho_calc= get_Jrho(angles, setup='C0', BBO_corr=BBO_corr)
+                        fidelity = get_fidelity(rho_calc, PhiP)
+                        fidelity_ls.append(fidelity)
+                    ax[2].scatter(np.rad2deg(PCC_beta_ls), fidelity_ls, label='BBO_corr=%d'%(BBO_corr))
+                    
+                    ax[2].scatter(np.rad2deg(PCC_beta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls), marker='x', label='(%.3g, %.3g)'%(np.rad2deg(PCC_beta_ls[np.argmax(fidelity_ls)]), max(fidelity_ls)), s=100)
+                    PCC_opt.append(np.rad2deg(PCC_beta_ls[np.argmax(fidelity_ls)]))
+
+                    
+            ax[0].set_title('UV sweep, $\hat{\\theta}_{UV} = 65.3998$')
+            ax[1].set_title('QP sweep, $\hat{\\phi}_{QP} = -24.1215$')
+            ax[2].set_title('PCC sweep,$\hat{\\beta}_{PCC} = 4.005$')
+
+            ax[0].axvline(65.39998, color='red', linestyle='--')
+            ax[1].axvline(-24.1215, color='red', linestyle='--')
+            ax[2].axvline(4.005, color='red', linestyle='--')
+
+            ax[0].axvline(np.mean(UV_HWP_opt), color='blue', linestyle='--')
+            ax[1].axvline(np.mean(QP_opt), color='blue', linestyle='--')
+            ax[2].axvline(np.mean(PCC_opt), color='blue', linestyle='--')
+
+            ax[0].legend()
+            ax[1].legend()
+            ax[2].legend()
+            ax[0].set_xlabel('$\\theta_{UV}$')
+            ax[0].set_ylabel('Fidelity')
+            ax[1].set_xlabel('$\\phi_{QP}$')
+            ax[1].set_ylabel('Fidelity')
+            ax[2].set_xlabel('$\\beta_{PCC}$')
+            ax[2].set_ylabel('Fidelity')
+
+            plt.tight_layout()
+            plt.subplots_adjust(top=0.95)
+            plt.suptitle('Sweep of settings, $|\Phi^+\\rangle$')
+            print('saving')
+            plt.savefig(join('decomp', 'config_sweep.pdf'))
+        
+        # run through all combinations of BBO_corr, add_noise, gamma
+        make_plots()
+
+    elif resp==6:
+        ''' Parallel cooridinate plot of the 4 angles for PhiP and PsiP'''
+        df = pd.read_csv(join('decomp', 'config_sweep.csv'))       
+        
