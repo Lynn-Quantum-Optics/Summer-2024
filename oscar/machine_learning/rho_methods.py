@@ -236,11 +236,13 @@ def get_all_roik_projections(rho):
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
-def compute_witnesses(rho, do_stokes=False, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
             do_stokes: bool, whether to compute 
+            calc_unc: bool, whether to compute the uncertainty in the Ws; uses the Stokes params -- must have do_stokes=True
+            stokes_unc: the uncertainty in the stokes params; 4x4 matrix
             num_reps: int, number of times to run the optimization
             optimize: bool, whether to optimize the Ws with random or gradient descent or to just check bounds
             gd: bool, whether to use gradient descent or brute random search
@@ -298,28 +300,207 @@ def compute_witnesses(rho, do_stokes=False, num_reps = 20, optimize = True, gd=T
             theta, alpha, beta = params[0], params[1], params[2]
             return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[0,1] + expec_vals[3,1]) + np.sin(theta)**2*np.sin(2*beta)*(expec_vals[0,1] - expec_vals[3,1]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[1,0] + expec_vals[1,3])+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[1,0] - expec_vals[1,3])))
 
+        if calc_unc:
+            def get_unc_W1(theta, stokes_unc):
+                a, b = np.cos(theta), np.sin(theta)
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2))))
+            def get_unc_W2(theta, stokes_unc):
+                a, b = np.cos(theta), np.sin(theta)
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2))))
+            def get_unc_W3(theta, stokes_unc):
+                a, b = np.cos(theta), np.sin(theta)
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[1,1]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[1,0]**2 + stokes_unc[0,1]**2))))
+            def get_unc_W4(theta, stokes_unc):
+                a, b = np.cos(theta), np.sin(theta)
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[1,1]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[1,0]**2 + stokes_unc[0,1]**2))))
+            def get_unc_W5(theta, stokes_unc):
+                a, b = np.cos(theta), np.sin(theta)
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + (2*a*b)**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
+            def get_unc_W6(theta, stokes_unc):
+                a, b = np.cos(theta), np.sin(theta)
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + (2*a*b)**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
+            
+            ## W' from summer 2022 ##
+            def get_unc_Wp1(params, stokes_unc):
+                theta, alpha = params[0], params[1]
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + (np.cos(2*theta))**2*(stokes_unc[1,1]**2+stokes_unc[2,2]**2)+(np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[1,2]**2 + stokes_unc[2,1]**2))))
+            def get_unc_Wp2(params, stokes_unc):
+                theta, alpha = params[0], params[1]
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + (np.cos(2*theta))**2*(stokes_unc[1,1]**2+stokes_unc[2,2]**2)+(np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[1,2]**2 + stokes_unc[2,1]**2))))
+            def get_unc_Wp3(params, stokes_unc):
+                theta, alpha, beta = params[0], params[1], params[2]
+                return np.sqrt(np.real(0.5 * (np.cos(theta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2) + np.sin(theta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2) + np.cos(theta)**4*np.cos(beta)**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + np.sin(theta)**4*np.cos(2*alpha - beta)**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha)*stokes_unc[1,0])**2 + (np.sin(2*theta)*np.cos(alpha - beta)*stokes_unc[0,1])**2 + (np.sin(2*theta)*np.sin(alpha)*stokes_unc[2,0])**2 + (np.sin(2*theta)*np.sin(alpha - beta)*stokes_unc[0,2])**2+(np.cos(theta)**2*np.sin(beta))**2*(stokes_unc[2,1]**2 + stokes_unc[1,2]**2) + np.sin(theta)**4*np.sin(2*alpha - beta)**2*(stokes_unc[2,1]**2 + stokes_unc[1,2]**2))))
+            def get_unc_Wp4(params, stokes_unc):
+                theta, alpha = params[0], params[1]
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2+stokes_unc[1,1]**2+np.cos(2*theta)**2*(stokes_unc[3,3]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[0,1]**2 + stokes_unc[1,0]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,3]**2 + stokes_unc[3,2]**2))))
+            def get_unc_Wp5(params, stokes_unc):
+                theta, alpha = params[0], params[1]
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2+stokes_unc[1,1]**2+np.cos(2*theta)**2*(stokes_unc[3,3]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[0,1]**2 + stokes_unc[1,0]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,3]**2 + stokes_unc[3,2]**2))))
+            def get_unc_Wp6(params,stokes_unc):
+                theta, alpha, beta = params[0], params[1], params[2]
+                return np.sqrt(np.real(0.5*(np.cos(theta)**2*np.cos(alpha)**2*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.cos(theta)**4*np.sin(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.cos(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.sin(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0] **2+ stokes_unc[0,3]**2) + (np.sin(2*theta)*np.cos(alpha)*np.cos(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.sin(alpha)*np.sin(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha)*np.sin(beta))**2*(stokes_unc[2,3]**2 + stokes_unc[2,0]**2) + (np.sin(2*theta)*np.sin(alpha)*np.cos(beta))**2*(stokes_unc[2,3]**2 + stokes_unc[2,0]**2) + (np.cos(theta)**2*np.sin(2*alpha))**2*(stokes_unc[3,2]**2 + stokes_unc[0,2]**2) + (np.sin(theta)**2*np.sin(2*beta))**2*(stokes_unc[3,2]**2 + stokes_unc[0,2]**2))))
+            def get_unc_Wp7(params, stokes_unc):
+                theta, alpha = params[0], params[1]
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2+np.cos(2*theta)**2*(stokes_unc[3,3]**2 + stokes_unc[1,1]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,1]**2 + stokes_unc[1,3]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,0]**2+stokes_unc[0,2]**2))))
+            def get_unc_Wp8(params, stokes_unc):
+                theta, alpha = params[0], params[1]
+                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + np.cos(2*theta)**2*(stokes_unc[3,3]**2+stokes_unc[1,1]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,1]**2+stokes_unc[1,3]**2)+(np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
+            def get_unc_Wp9(params, stokes_unc):
+                theta, alpha, beta = params[0], params[1], params[2]
+                return np.sqrt(np.real(0.5*(np.cos(theta)**4*np.cos(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.cos(theta)**4*np.sin(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.cos(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.sin(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.cos(alpha)*np.cos(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.sin(alpha)*np.sin(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + np.cos(theta)**4*np.sin(2*alpha)**2*(stokes_unc[0,1]**2 + stokes_unc[3,1]**2) + (np.sin(theta)**2*np.sin(2*beta))**2*(stokes_unc[0,1]**2 + stokes_unc[3,1]**2) + (np.sin(2*theta)*np.cos(alpha)*np.sin(beta))**2*(stokes_unc[1,0]**2 + stokes_unc[1,3]**2)+ (np.sin(2*theta)*np.sin(alpha)*np.cos(beta))**2*(stokes_unc[1,0]**2 + stokes_unc[1,3]**2))))
+
         # now perform optimization; break into three groups based on the number of params to optimize
         all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
         W_expec_vals = []
+        if calc_unc:
+            all_W_unc = [get_unc_W1, get_unc_W2, get_unc_W3, get_unc_W4, get_unc_W5, get_unc_W6, get_unc_Wp1, get_unc_Wp2, get_unc_Wp3, get_unc_Wp4, get_unc_Wp5, get_unc_Wp6, get_unc_Wp7, get_unc_Wp8, get_unc_Wp9]
         for i, W in enumerate(all_W):
-            if i <= 5: # just theta optimization: the discrepancy was with the bound of theta being actally pi and not pi/2
-                W_expec_vals.append(minimize(W, x0=[np.pi], args = (expec_vals,), bounds=[(0, np.pi)])['fun']) # gave an error with [0] after ['fun']
+            if calc_unc: get_unc_W = all_W_unc[i]
+            if i <= 5: # just theta optimization
+                # get initial guess at boundary
+                def min_W(x0):
+                    if not(calc_unc):
+                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])['fun']
+                    else:
+                        W_min = minimize(W, x0=x0,args=(expec_vals,), bounds=[(0, np.pi)])['fun']
+                        assert stokes_unc is not None, "Must provide stokes_unc if calc_unc is True"
+                        return (W_min, get_unc_W(x0, stokes_unc))
+                x0 = [0]
+                w0 = min_W(x0)
+                x0 = [np.pi]
+                w1 = min_W(x0)
+                if w0 < w1:
+                    w_min = w0
+                else:
+                    w_min = w1
+                if optimize:
+                    isi = 0 # index since last improvement
+                    for _ in range(num_reps): # repeat 10 times and take the minimum
+                        if gd:
+                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                x0 = [np.random.rand()*np.pi]
+                            else:
+                                grad = approx_fprime(x0, min_W, 1e-6)
+                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                    break
+                                else:
+                                    x0 = x0 - zeta*grad
+                        else:
+                            x0 = [np.random.rand()*np.pi]
+
+                        w = min_W(x0)
+                        
+                        if w < w_min:
+                            w_min = w
+                            isi=0
+                        else:
+                            isi+=1
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
-                    W_expec_vals.append(minimize(W, x0=[np.pi, np.pi, np.pi], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi), (0, 2*np.pi)])['fun'])
+                def min_W(x0):
+                    if not(calc_unc):
+                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
+                    else:
+                        W_min = minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
+                        assert stokes_unc is not None, "Must provide stokes uncertainty matrix"
+                        return (W_min, get_unc_W(W_min.x, stokes_unc))
+
+
+                x0 = [0, 0, 0]
+                w0 = min_W(x0)
+                x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
+                w1 = min_W(x0)
+                if w0 < w1:
+                    w_min = w0
+                else:
+                    w_min = w1
+                if optimize:
+                    isi = 0 # index since last improvement
+                    for _ in range(num_reps): # repeat 10 times and take the minimum
+                        if gd:
+                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                            else:
+                                grad = approx_fprime(x0, min_W, 1e-6)
+                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                                else:
+                                    x0 = x0 - zeta*grad
+                        else:
+                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+
+                        w = min_W(x0)
+                        
+                        if w < w_min:
+                            w_min = w
+                            isi=0
+                        else:
+                            isi+=1
             else:# theta and alpha
-                W_expec_vals.append(minimize(W, x0=[np.pi, np.pi], args = (expec_vals,), bounds=[(0, np.pi/2), (0, 2*np.pi)])['fun'])
-        
+                def min_W(x0):
+                    if not(calc_unc):
+                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
+                    else:
+                        W_min = minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
+                        assert stokes_unc is not None, "Must provide stokes uncertainty matrix"
+                        return (W_min, get_unc_W(W_min.x, stokes_unc))
+                    
+                x0 = [0, 0]
+                w0 = min_W(x0)
+                x0 = [np.pi/2 , 2*np.pi]
+                w1 = min_W(x0)
+                if w0 < w1:
+                    w_min = w0
+                else:
+                    w_min = w1
+                if optimize:
+                    isi = 0 # index since last improvement
+                    for _ in range(num_reps): # repeat 10 times and take the minimum
+                        if gd:
+                            if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                            else:
+                                grad = approx_fprime(x0, min_W, 1e-6)
+                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                else:
+                                    x0 = x0 - zeta*grad
+                        else:
+                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+
+                        w = min_W(x0)
+                        
+                        if w < w_min:
+                            w_min = w
+                            isi=0
+                        else:
+                            isi+=1
+
+            W_expec_vals.append(w_min)
+    
         # find min W expec value; this tells us if first 12 measurements are enough #
-        try:
-            W_min = np.real(min(W_expec_vals[:6]))[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
-        except TypeError: # if it's a float, then just use that
-            W_min = np.real(min(W_expec_vals[:6]))
+        if not(calc_unc):
+            try:
+                W_min = np.real(min(W_expec_vals[:6]))[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
+            except TypeError: # if it's a float, then just use that
+                W_min = np.real(min(W_expec_vals[:6]))
 
-        Wp_t1 = np.real(min(W_expec_vals[6:9]))
-        Wp_t2 = np.real(min(W_expec_vals[9:12]))
-        Wp_t3 = np.real(min(W_expec_vals[12:15]))
+            Wp_t1 = np.real(min(W_expec_vals[6:9]))
+            Wp_t2 = np.real(min(W_expec_vals[9:12]))
+            Wp_t3 = np.real(min(W_expec_vals[12:15]))
 
-        return W_min, Wp_t1, Wp_t2, Wp_t3
+            return W_min, Wp_t1, Wp_t2, Wp_t3
+
+        else:
+            try:
+                W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
+            except TypeError: # if it's a float, then just use that
+                W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])
+
+            Wp_t1 = np.real(sorted(W_expec_vals[6:9], key=lambda x: x[0])[0])
+            Wp_t2 = np.real(sorted(W_expec_vals[9:12], key=lambda x: x[0])[0])
+            Wp_t3 = np.real(sorted(W_expec_vals[12:15], key=lambda x: x[0])[0])
+
+            return W_min, Wp_t1, Wp_t2, Wp_t3 # these are tuples
 
     else: # use operators instead like in eritas's matlab code
         # bell states #
