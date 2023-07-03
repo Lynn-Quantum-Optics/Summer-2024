@@ -1,3 +1,35 @@
+## 7/2/23
+MP: O
+Started laser at 11:58AM. N2 tank looks ~100 PSI lower than yesterday (800 currently). Started full tomo at 1:02. 
+
+Voltage: 0.74 at noon, 0.77 at 3:15.
+
+Added PCC rotation and BBO angle to calculations. Trying
+    30.36798114838227,-18.733916497315626,325.0448358763723,0.23200941293187563
+UVHWP, QP, PCC, B_HWP
+Got 59.9% fidelity. Rerunning preset PhiP for sanity check: got 96.3%. Changed theoretical angle of BBO to match Ivy's; retying tomo with 
+    42.00970401137467,16.104299813987264,153.07306905699525,0.33805272547956783
+77.5% fidelity. Trying calculations ignoring BBO angle but with correct VV/HH value
+    11.97123887473845,2.291134930229936,10.15900765763413,4.124816734946772
+86.2% fidelity! Trial 7: Adding 4% random noise in form of Werner state (still w/o BBo angle):
+    28.94069719483748,-38.56999665032338,51.27978279691683,0.55709529393374
+87.0% fidelity. Trial 8: adding back BBO angle into calculations (15.67 deg), keeping random noise:
+    34.27962952182128,-8.056738901545698,162.16280197276214,7.406772698815368e-06
+84.6%. Since best trial to date used completely theoretical BBO, trying that with random noise. Theoretical result with completely theoreitcal BBO and preset PhiP is 95.6%. Trial 9 on PhiP, with theoretical BBO and 4% random noise and .967 threshold (actual state has theoretical fidelity 96.9%):
+    6.7410391723475565,-34.40483411502409,198.43489846691298,3.09261081570572e-06
+84.6%. Trial 10: same settings as trial 9, but trying PsiM:
+    33.074939030622865,-22.297722896570058,56.764877657872944,45.0
+46.6%. Trial 11: PsiM  with no noise, theoretical BBO:
+    29.930457985054893,-21.873246542663157,52.00229138327332,43.77360595684996
+42.6%. Problem is instead of like .5, -.5 in middle, it's .668, 0.068. Trial 12: PsiP with no noise, 15.67deg BBO in calculations.
+    2.226563168917415e-07,-37.549459873637595,248.13895611602422,43.84182739949773
+51.2%. Trial 13: no noise, theoretical BBO on PsiP:
+    2.7179454889665373,-34.12724934711968,244.75312445410287,42.42870169562849
+To be sure, plugged theoeritcal settings back into program and got sensisble matrices. And radians correctly converted to degrees. 54.5%. Measured rho looks very sparse: maybe not enough light -> restrict range. But still earlier trials with less extreme QP angles and poor counts. Trial 14: noise, theoretical BBO on PsiP:
+    6.71300323380349,26.386607556725494,340.0389824890846,44.97247940950898
+79.0%.
+Also, full tomo runs in about 10 mins.
+
 ## 7/1/23
 MP: O
 Started laser warmup at 1:44. Going to test my non-idealized Jones decomp method on several states, including PhiP, PsiM, and then a selection of E0 states depending on results.

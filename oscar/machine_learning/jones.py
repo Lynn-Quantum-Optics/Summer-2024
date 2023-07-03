@@ -63,7 +63,9 @@ s0 = np.array([[1], [0]]) # initial |0> state
 
 # experimental BBO matrix
 # def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
-def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
+def get_BBO_expt(gamma): return np.array([[0, 0, 0, 1], [1, 0,0,0]], dtype='complex').T 
+
+# def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 # set angle of BBO
 # BBO_expt = BBO
 def get_QP_expt(phi_a):
@@ -74,13 +76,13 @@ def get_PCC_expt(beta): return R(beta) @ np.diag([np.exp(1j*phi_H_PCC), np.exp(1
 
 #### calculations ####
 
-def get_Jrho(angles, setup = 'C1',gamma=0.5148721293383273, add_noise = False, expt = True, check=False):
+def get_Jrho(angles, setup = 'C1',gamma=0.2735921530153273, add_noise = False, expt = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
         setup: 'Ca', 'C', 'I' respectively for current setup, current setup with one QWP on Alice, and ideal setup, replacing the QP with two QWPs and giving both A and B two QWPs and 1 HWP
         check: boolean to check if density matrix is valid; don't call when minimizing bc throwing an error will distrupt minimzation process. the check is handled in the while statement in jones_decomp -- for this reason, set to False by default
-        gamma: angle of BBO crystal; determined by maximizing fidelity for PhiP setup
+        gamma: angle of BBO crystal; determined by maximizing fidelity for PhiP setup; from Ivy's:29.5 deg
         add_noise: boolean to add noise to the density matrix to simulate mixed states in the lab
         expt: boolean to use experimental components or not
     '''
@@ -1087,13 +1089,13 @@ if __name__=='__main__':
             plt.savefig(join('decomp', 'bbo_tune.pdf'))
             plt.show()
 
-        # gamma = 1 # initial guess
+        # gamma = 0 # initial guess
         # loss = loss_func(gamma)
         # print('loss', loss)
         # gamma_min = minimize(loss_func, gamma).x
         # print(gamma_min)
-        gamma_min  =0.2
-        rho_calc= get_Jrho(angles, setup='C0', gamma=gamma_min)
+        # rho_calc= get_Jrho(angles, setup='C0', gamma=gamma_min)
+        rho_calc= get_Jrho(angles, setup='C0')
         print('rho', rho_calc)
         print('rho_actual', PhiP)
         fidelity = get_fidelity(rho_calc, PhiP)
