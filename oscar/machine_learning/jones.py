@@ -49,7 +49,8 @@ def R(alpha):
     return np.array([[np.cos(alpha), np.sin(alpha)], [-np.sin(alpha), np.cos(alpha)]])
 def H(theta): 
     ''' HWP matrix for angle theta'''
-    return np.array([[np.cos(2*theta), np.sin(2*theta)], [np.sin(2*theta), -np.cos(2*theta)]])
+    # return np.array([[np.cos(2*theta), np.sin(2*theta)], [np.sin(2*theta), -np.cos(2*theta)]])
+    return R(theta) @ np.diag([-1, 1]) @ R(-theta)
 def Q(alpha): 
     ''' QWP matrix for angle alpha'''
     return R(alpha) @ np.array(np.diag([np.e**(np.pi / 4 * 1j), np.e**(-np.pi / 4 * 1j)])) @ R(-alpha)
@@ -73,16 +74,23 @@ BBO_expt =  np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T
 # def get_QP_expt(phi_a):
 #     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
 #     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
-def get_phi(QP_rot):
-    '''Function based on fitting to Alec's QP vs phi sweep'''
-    return -665.7387877576543  / np.cos(np.deg2rad(QP_rot)) + 1216.646560255029*np.deg2rad(QP_rot)**2 - 16.605576843415434*np.deg2rad(QP_rot) + 675.8364140462216
+def get_phi(QP_rot, params = [-6.98200712e+04, 4.33971479e+03, 4.37424378e+02, 3.41720748e+03, 1.47435257e+03, 1.42317213e+04, 1.96811356e+01, 3.49254704e+04, -2.97037399e-01, 6.98202522e+04]):
+    '''Function based on fitting to Alec's QP vs phi sweep. Assumes input is in radians and outputs in radians.'''
+    a, b, c, d, e, f, g, h, i, j = params
+    phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
+    # print('QP rot in deg', np.rad2deg(QP_rot))
+    # print('phi in deg', np.rad2deg(phi))
+    return phi
 
 def get_QP_rot(phi):
-    '''Function to return inverse of get_phi, that is what the theoretical angle is'''
+    '''Function to return inverse of get_phi, that is what the theoretical angle is'.
+    Assumes input is in degrees.
+    '''
+    phi = np.deg2rad(phi)
     def diff(QP_rot):
         return phi - get_phi(QP_rot)
-    val = minimize(diff, x0=[0], bounds = [(0, 360)])
-    return val
+    val = minimize(diff, x0=[np.pi], bounds = [(0, 2*np.pi)]).fun[0] % (2*np.pi)
+    return np.rad2deg(val)
 
 def get_QP_expt(QP_rot):
     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
@@ -93,7 +101,7 @@ def get_QP_expt(QP_rot):
 
 #### calculations ####
 
-def get_Jrho(angles, setup = 'C1', add_noise = False, p = 0.04, expt = True, check=False):
+def get_Jrho(angles, setup = 'C0', add_noise = False, p = 0.04, expt = True, check=False):
     ''' Main function to get density matrix using Jones Matrix setup.
     Params:
         angles: list of angles for setup. see the conditionals for specifics
