@@ -4,40 +4,38 @@ if __name__ == '__main__':
 
     import numpy as np
     import pandas as pd
-    from scipy.optimize import approx_fprime, minimize
+    import os
 
     from core import Manager
     from full_tomo import get_rho
 
     import sys
     sys.path.insert(0, '../oscar/machine_learning')
-    from rho_methods import get_fidelity
-    from sample_rho import PhiP, PsiM, PsiP
+    from rho_methods import get_fidelity, get_purity
+    from sample_rho import PhiP, PhiM, PsiM, PsiP
 
     # read in angle settings
-    df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.969.csv')
+    df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
 
     # set up manager #
     SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
     m = Manager()
-    tnum = 14 # trial number
+    tnum = 18 # trial number
     m.new_output(f'decomp_test/decomp_data_{tnum}.csv')
 
     # define states of interest
-    states_names = [('PsiP')]
-    states = [PsiP]
+    states_names = ['PhiM', 'PsiP', 'PhiP','PsiM']
+    states = [PhiM, PsiP, PhiP,PsiM]
 
     for i, state_n in enumerate(states_names):
         state = states[i]
 
         UV_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0])
         QP_phi = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0])
-        PCC_beta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['PCC'].values[0])
         B_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0])
 
         print('UV_HWP', UV_HWP_theta)
         print('QP', QP_phi)
-        print('PCC', PCC_beta)
         print('B_C_HWP', B_HWP_theta)
 
         # set angles
@@ -45,7 +43,7 @@ if __name__ == '__main__':
             C_UV_HWP=UV_HWP_theta,
             C_QP = QP_phi,
             B_C_HWP = B_HWP_theta,
-            C_PCC = PCC_beta
+            C_PCC = 4.005 # optimal value from phi_plus in config
         )
 
         # m.make_state('phi_plus')
@@ -64,10 +62,12 @@ if __name__ == '__main__':
         # compute fidelity
         fidelity = get_fidelity(rho, state)
         print('fidelity', fidelity)
+        purity = get_purity(rho)
+        print('purity', purity)
 
         # save results
-        with open(f'decomp_test/rho_{state_n}_t{tnum}.npy', 'wb') as f:
-            np.save(f, (rho, unc, Su))
+        with open(f'decomp_test/rho_{state_n}_{tnum}.npy', 'wb') as f:
+            np.save(f, (rho, unc, Su, state, fidelity, purity))
 
     # close out
     m.close_output()

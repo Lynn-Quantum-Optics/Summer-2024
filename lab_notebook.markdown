@@ -1,3 +1,31 @@
+## 7/3/23
+MP: O
+Started laser at 2:45. Had talk with Prof. Lynn earlier and removed PCC from calculations, removed phase from BBO calc, using Alec's QP vs phi data fitted to a curve in QP calculations. Setting PCC to 4.005 degrees as per the phi_plus.
+
+Started taking data at 4:42.
+
+Trial 15: PsiP based on changes described above.
+    20.8108889219335,17.696653112243197,44.6587696163696
+41.2% fidelity, 94.7% purity... missing the element off main diagonal in middle...UV_HWP angle looks good, B_HWP looks good. phi corresponds to:  
+Trial 16: PhiP.
+    21.109626323605763,8.798403700895438,2.130978125874551e-08
+94.7% fidelity, 94.7% purity. Yayy!! But why is PsiP so bad?
+Trial 17: PhiM, PsiM.
+    20.83285827774238,38.1826344182438,0.5216514440098672
+    20.894233176313282,5.1385597616734895,44.99807621169933
+PhiM: matrix looks good EXCEPT missing off diagonal signs... so like 0 fidelity. 38.138 deg rot corresponds to phi = 0!! So it's making PhiP. PsiM: 96.5% fidelity!! 38.182 degrees rotation is 0 phi. Plotting my get_phi function on lab computer reveals it blows up? Issue was didn't convert back to radians for sec..
+
+---
+Retrying after fixing the get_phi function. Trial 18: PhiM, PsiP, PhiP,PsiM
+    21.515402512198687,27.518074317391733,0.22015241973423158
+97% fidelity.
+    21.232646569572733,25.57333802946146,44.99994134071441
+95% fidelity.
+    21.20077993918437,19.216339991442524,0.00012493912175692444
+47.7% fidelity -- missing off diagonal entries... problem was missing more deg to rads in get_phi.
+
+
+
 ## 7/2/23
 MP: O
 Started laser at 11:58AM. N2 tank looks ~100 PSI lower than yesterday (800 currently). Started full tomo at 1:02. 
