@@ -83,7 +83,7 @@ def train_nn1h():
         X_train, Y_train,
         batch_size = wandb.config.batch_size,
         validation_data=(X_test,Y_test),
-        epochs=100,
+        epochs=50,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
@@ -118,7 +118,7 @@ def train_nn3h():
         X_train, Y_train,
         batch_size = wandb.config.batch_size,
         validation_data=(X_test,Y_test),
-        epochs=100,
+        epochs=50,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
@@ -156,7 +156,7 @@ def train_nn5h():
         X_train, Y_train,
         batch_size = wandb.config.batch_size,
         validation_data=(X_test,Y_test),
-        epochs=100,
+        epochs=50,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
@@ -181,7 +181,7 @@ if __name__=='__main__':
         "method": "bayes",
         "metric": {"name": "val_loss", "goal": "minimize"},
         "parameters": {
-            "max_depth": {"distribution": "int_uniform", "min":  3, "max": 20},
+            "max_depth": {"distribution": "int_uniform", "min":  1, "max": 20},
             "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.5},
             "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 10000},
             "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 40}
@@ -195,12 +195,12 @@ if __name__=='__main__':
         'parameters':{
         # for build_dataset
         'batch_size': {
-        'values': [x for x in range(256, 513, 32)]
+        'values': [x for x in range(256, 4481, 32)]
         },
         'size': {
         'distribution': 'int_uniform',
-        'min': 0,
-        'max': 50
+        'min': 1,
+        'max': 1800
         },
         'learning_rate':{
             #uniform distribution between 0 and 1
@@ -218,21 +218,21 @@ if __name__=='__main__':
         'parameters':{
         # for build_dataset
         'batch_size': {
-        'values': [x for x in range(256, 513, 32)]
+        'values': [x for x in range(256, 4481, 32)]
         },
         'size_1': {
         'distribution': 'int_uniform',
-        'min': 5,
-        'max': 300
+        'min': 1,
+        'max': 1800
         },
         'size_2': {
         'distribution': 'int_uniform',
-        'min': 5,
-        'max': 300
+        'min': 1,
+        'max': 1800
         },'size_3': {
         'distribution': 'int_uniform',
-        'min': 5,
-        'max': 300,
+        'min': 1,
+        'max': 1800,
         },
         # 'dropout': {
         # 'distribution': 'uniform',
@@ -256,29 +256,29 @@ if __name__=='__main__':
         'parameters':{
             # for build_dataset
             'batch_size': {
-            'values': [x for x in range(256, 513, 32)]
+            'values': [x for x in range(256, 4481, 32)]
             },
             'size_1': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },
             'size_2': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },'size_3': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },'size_4': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },'size_5': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },
             # 'dropout': {
             # 'distribution': 'uniform',
@@ -318,18 +318,16 @@ if __name__=='__main__':
         },
         # for build_dataset
         'batch_size': {
-        'values': [x for x in range(256, 513, 32)]
+        'values': [x for x in range(256, 4481, 32)]
         },
         'size': {
-        'distribution': 'int_uniform',
-        'min': 0,
-        'max': 50
+        'value': 50
         },
         'learning_rate':{
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.5
+            'max': 0.7
         }
         },
         }
@@ -346,7 +344,7 @@ if __name__=='__main__':
         },
         # for build_dataset
         'batch_size': {
-        'values': [x for x in range(256, 513, 32)]
+        'values': [x for x in range(256, 4481, 32)]
         },
         'size_1': {
         'distribution': 'int_uniform',
@@ -371,7 +369,7 @@ if __name__=='__main__':
             #uniform distribution between 0 and 1
             'distribution': 'uniform', 
             'min': 1e-5,
-            'max': 0.5
+            'max': 0.7
         }
         },
         }
@@ -383,35 +381,33 @@ if __name__=='__main__':
             'metric':'val_accuracy',
         'parameters':{
             'epochs': {
-            'distribution': 'int_uniform',
-            'min': 20,
-            'max': 100
+            'value': 50
             },
             # for build_dataset
             'batch_size': {
-            'values': [x for x in range(256, 513, 32)]
+            'values': [x for x in range(256, 4481, 32)]
             },
             'size_1': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },
             'size_2': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },'size_3': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },'size_4': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },'size_5': {
             'distribution': 'int_uniform',
-            'min': 5,
-            'max': 300
+            'min': 1,
+            'max': 1800
             },
             'dropout': {
             'distribution': 'uniform',
@@ -422,7 +418,7 @@ if __name__=='__main__':
                 #uniform distribution between 0 and 1
                 'distribution': 'uniform', 
                 'min': 1e-5,
-                'max': 0.04
+                'max': 0.5
             }
         },
         }
