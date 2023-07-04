@@ -12,7 +12,7 @@ if __name__ == '__main__':
     import sys
     sys.path.insert(0, '../oscar/machine_learning')
     from rho_methods import get_fidelity, get_purity
-    from sample_rho import PhiP, PhiM, PsiM, PsiP
+    from sample_rho import PhiP, PhiM, PsiM, PsiP, get_E0
 
     # read in angle settings
     df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
@@ -23,16 +23,36 @@ if __name__ == '__main__':
     tnum = 18 # trial number
     m.new_output(f'decomp_test/decomp_data_{tnum}.csv')
 
-    # define states of interest
-    states_names = ['PhiM', 'PsiP', 'PhiP','PsiM']
-    states = [PhiM, PsiP, PhiP,PsiM]
+    # define states of interest #
+
+    # Bell
+    # states_names = ['PhiM', 'PsiP', 'PhiP','PsiM']
+    # states = [PhiM, PsiP, PhiP,PsiM]
+
+    # E0 states
+    # fit eta at 45 degrees
+    eta = np.pi / 4
+    chi_ls = np.linspace(0, np.pi/2, 6)
+    states_names = [('E0', (np.rad2deg(chi), np.rad2deg(eta))) for chi in chi_ls]
+    states = [get_E0(eta, chi) for chi in chi_ls]
 
     for i, state_n in enumerate(states_names):
         state = states[i]
 
-        UV_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0])
-        QP_phi = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0])
-        B_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0])
+        if len(state_n) == 1:
+            UV_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0])
+            QP_phi = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0])
+            B_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0])
+
+        elif len(state_n) == 2: # has angle settings
+            eta = state_n[1][0]
+            chi = state_n[1][1]
+
+            print(eta, chi)
+
+            UV_HWP_theta = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0') & (df['eta']==eta) & (df['chi']==chi)]['UV_HWP'].values[0])
+            QP_phi = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0') & (df['eta']==eta) & (df['chi']==chi)]['QP'].values[0])
+            B_HWP_theta = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0') & (df['eta']==eta) & (df['chi']==chi)]['B_HWP'].values[0])
 
         print('UV_HWP', UV_HWP_theta)
         print('QP', QP_phi)
