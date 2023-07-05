@@ -236,19 +236,33 @@ def get_all_roik_projections(rho):
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
-def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes_unc = None, expt_purity = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
+            expt: bool, whether to compute the Ws assuming input is experimental data
             do_stokes: bool, whether to compute 
             calc_unc: bool, whether to compute the uncertainty in the Ws; uses the Stokes params -- must have do_stokes=True
             stokes_unc: the uncertainty in the stokes params; 4x4 matrix
+            expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
             num_reps: int, number of times to run the optimization
             optimize: bool, whether to optimize the Ws with random or gradient descent or to just check bounds
             gd: bool, whether to use gradient descent or brute random search
             zeta: learning rate for gradient descent
             ads_test: bool, whether to return w2 expec and sin (theta) for the amplitude damped states
     '''
+
+    # check if experimental data
+    if expt:
+        do_stokes = True
+        calc_unc = True
+        assert stokes_unc is not None, "Must provide uncertainty in Stokes params"
+
+    # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
+    if expt_purity is not None:
+        p = 1 - expt_purity
+        rho = (1-p)*rho + p*np.eye(4)/4
+
     if do_stokes:
         expec_vals = get_expec_vals(rho)
 
@@ -359,20 +373,26 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
             if i <= 5: # just theta optimization
                 # get initial guess at boundary
                 def min_W(x0):
-                    if not(calc_unc):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])['fun']
-                    else:
-                        W_min = minimize(W, x0=x0,args=(expec_vals,), bounds=[(0, np.pi)])['fun']
-                        assert stokes_unc is not None, "Must provide stokes_unc if calc_unc is True"
-                        return (W_min, get_unc_W(x0, stokes_unc))
+                    return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])
+
+                def min_W_val(x0):
+                    return min_W(x0).fun
+
+                def min_W_params(x0):
+                    return min_W(x0).x
+
                 x0 = [0]
-                w0 = min_W(x0)
+                w0_val = min_W_val(x0)
+                w0_params = min_W_params(x0)
                 x0 = [np.pi]
-                w1 = min_W(x0)
-                if w0 < w1:
-                    w_min = w0
+                w1_val = min_W_val(x0)
+                w1_params = min_W_params(x0)
+                if w0_val < w1_val:
+                    w_min_val = w0_val
+                    w_min_params = w0_params
                 else:
-                    w_min = w1
+                    w_min_val = w1_val
+                    w_min_params = w1_params
                 if optimize:
                     isi = 0 # index since last improvement
                     for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -380,7 +400,7 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
                             if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                 x0 = [np.random.rand()*np.pi]
                             else:
-                                grad = approx_fprime(x0, min_W, 1e-6)
+                                grad = approx_fprime(x0, min_W_val, 1e-6)
                                 if np.all(grad < 1e-5*np.ones(len(grad))):
                                     break
                                 else:
@@ -388,31 +408,38 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
                         else:
                             x0 = [np.random.rand()*np.pi]
 
-                        w = min_W(x0)
+                        w_val = min_W_val(x0)
+                        w_params = min_W_params(x0)
                         
-                        if w < w_min:
-                            w_min = w
+                        if w_val < w_min_val:
+                            w_min_val = w_val
+                            w_min_params = w_params
                             isi=0
                         else:
                             isi+=1
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
+                
                 def min_W(x0):
-                    if not(calc_unc):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
-                    else:
-                        W_min = minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
-                        assert stokes_unc is not None, "Must provide stokes uncertainty matrix"
-                        return (W_min, get_unc_W(W_min.x, stokes_unc))
+                    return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
 
+                def min_W_val(x0):
+                    return min_W(x0).fun
 
+                def min_W_params(x0):
+                    return min_W(x0).x
+                    
                 x0 = [0, 0, 0]
-                w0 = min_W(x0)
-                x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
-                w1 = min_W(x0)
-                if w0 < w1:
-                    w_min = w0
+                w0_val = min_W_val(x0)
+                w0_params = min_W_params(x0)
+                x0 = [np.pi/2, 2*np.pi, 2*np.pi]
+                w1_val = min_W_val(x0)
+                w1_params = min_W_params(x0)
+                if w0_val < w1_val:
+                    w_min_val = w0_val
+                    w_min_params = w0_params
                 else:
-                    w_min = w1
+                    w_min_val = w1_val
+                    w_min_params = w1_params
                 if optimize:
                     isi = 0 # index since last improvement
                     for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -420,7 +447,7 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
                             if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                             else:
-                                grad = approx_fprime(x0, min_W, 1e-6)
+                                grad = approx_fprime(x0, min_W_val, 1e-6)
                                 if np.all(grad < 1e-5*np.ones(len(grad))):
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                 else:
@@ -428,30 +455,39 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
                         else:
                             x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                        w = min_W(x0)
-                        
-                        if w < w_min:
-                            w_min = w
+                        w_val = min_W_val(x0)
+                        w_params = min_W_params(x0)
+                        # print(w_min_val, w_val)
+                        if w_val < w_min_val:
+                            w_min_val = w_val
+                            w_min_params = w_params
                             isi=0
                         else:
                             isi+=1
+                
+
             else:# theta and alpha
                 def min_W(x0):
-                    if not(calc_unc):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                    else:
-                        W_min = minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                        assert stokes_unc is not None, "Must provide stokes uncertainty matrix"
-                        return (W_min, get_unc_W(W_min.x, stokes_unc))
+                    return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])
+
+                def min_W_val(x0):
+                    return min_W(x0).fun
+
+                def min_W_params(x0):
+                    return min_W(x0).x
                     
                 x0 = [0, 0]
-                w0 = min_W(x0)
+                w0_val = min_W(x0).fun
+                w0_params = min_W(x0).x
                 x0 = [np.pi/2 , 2*np.pi]
-                w1 = min_W(x0)
-                if w0 < w1:
-                    w_min = w0
+                w1_val = min_W(x0).fun
+                w1_params = min_W(x0).x
+                if w0_val < w1_val:
+                    w_min_val = w0_val
+                    w_min_params = w0_params
                 else:
-                    w_min = w1
+                    w_min_val = w1_val
+                    w_min_params = w1_params
                 if optimize:
                     isi = 0 # index since last improvement
                     for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -459,7 +495,7 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
                             if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                             else:
-                                grad = approx_fprime(x0, min_W, 1e-6)
+                                grad = approx_fprime(x0, min_W_val, 1e-6)
                                 if np.all(grad < 1e-5*np.ones(len(grad))):
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                                 else:
@@ -467,22 +503,27 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
                         else:
                             x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                        w = min_W(x0)
+                        w_val = min_W_val(x0)
+                        w_params = min_W_params(x0)
                         
-                        if w < w_min:
-                            w_min = w
+                        if w_val < w_min_val:
+                            w_min_val = w_val
+                            w_min_params = w_params
                             isi=0
                         else:
                             isi+=1
 
-            W_expec_vals.append(w_min)
+            if expt:
+                W_expec_vals.append(((w_min_val), get_unc_W(w_min_params, stokes_unc)))
+            else:
+                W_expec_vals.append(w_min_val)
     
         # find min W expec value; this tells us if first 12 measurements are enough #
         if not(calc_unc):
-            try:
-                W_min = np.real(min(W_expec_vals[:6]))[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
-            except TypeError: # if it's a float, then just use that
-                W_min = np.real(min(W_expec_vals[:6]))
+            # try:
+            #     W_min = np.real(min(W_expec_vals[:6]))[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
+            # except TypeError: # if it's a float, then just use that
+            W_min = np.real(min(W_expec_vals[:6]))
 
             Wp_t1 = np.real(min(W_expec_vals[6:9]))
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
@@ -490,11 +531,11 @@ def compute_witnesses(rho, do_stokes=False, calc_unc=False, stokes_unc = None, n
 
             return W_min, Wp_t1, Wp_t2, Wp_t3
 
-        else:
-            try:
-                W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
-            except TypeError: # if it's a float, then just use that
-                W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])
+        else: # calculate uncertainty
+            # try:
+            #     W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
+            # except TypeError: # if it's a float, then just use that
+            W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])
 
             Wp_t1 = np.real(sorted(W_expec_vals[6:9], key=lambda x: x[0])[0])
             Wp_t2 = np.real(sorted(W_expec_vals[9:12], key=lambda x: x[0])[0])
