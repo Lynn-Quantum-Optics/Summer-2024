@@ -2,7 +2,16 @@
 MP: A
 Started warming up the laser at 0823.
 
-Alec here: I just came back in to do my test. I don't know who completed the rest of the setup today but I am noticing the nitrogen tank is _critically_ low (~300psi).
+Alec here: I just came back in to do my test. I don't know who completed the rest of the setup today but I am noticing the nitrogen tank is _critically_ low (~300psi). Talked to BJ and we can just swap it with the spare we have in here, and he will come in sometime and just swap the now empty one for another spare.
+
+**NOTE**: we should make a sign for when we are running experiments because we don't know when BJ will be coming by in the next few days and don't want him to interrupt anything.
+
+1304 A: ran my (corrected) sweep for checking correlation between HH/VV and HV/VH.
+1316 A: Powered down detectors, blocked laser, packed up BBO and everything. Getting ready to swap N2 tanks.
+1319 A: Closed tank, purged the regulator.
+1322 A: All went well, now going to swap the positions of the full and empty tanks so that the regulator can reach.
+
+Borrowed some hands from Prof. Brake's lab to hold the N2 tanks and help swap the regulators. Was fun and I think they liked it :) All went well and everything is back to operational. Shutting down the laser now (1342) for the day.
 
 ## 7/4/23
 MP: O
