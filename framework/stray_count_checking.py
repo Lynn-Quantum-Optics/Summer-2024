@@ -39,7 +39,7 @@ def run_sweeps(out_file:str, start_angle:float, end_angle:float, num_steps:int, 
 
     # set the state preset if one was given
     if state_preset is not None:
-        m.state_preset(state_preset)
+        m.make_state(state_preset)
     
     # initialize the dataframe
     df = pd.DataFrame({'UVHWP': np.linspace(start_angle, end_angle, num_steps)})
@@ -66,7 +66,7 @@ def run_sweeps(out_file:str, start_angle:float, end_angle:float, num_steps:int, 
     return df
 
 def make_plots(data:pd.DataFrame, plot_outfile:str=None) -> None:
-    ''' Runs 
+    ''' Generates plots of the data collected from run_sweeps.
     '''
     # calculate count rate ratios and uncertainties
     HH_VV = data['HH']/data['VV']
@@ -96,12 +96,14 @@ def make_plots(data:pd.DataFrame, plot_outfile:str=None) -> None:
     plt.show()
 
 if __name__ == '__main__':
-    # data = run_sweeps(
-    #     out_file='data/stray_count_checking/sweep_data.csv',
-    #     start_angle=-10,
-    #     end_angle=50,
-    #     num_steps=30,
-    #     samp=(5,1))
-    make_plots(pd.read_csv('data/stray_count_checking/sweep_data.csv'), 'data/stray_count_checking/count_ratio_plots.png')
+    data = run_sweeps(
+        out_file='data/stray_count_checking/sweep_data.csv',
+        start_angle=-10,
+        state_preset='phi_plus',
+        end_angle=50,
+        num_steps=30,
+        samp=(5,1))
+    # make_plots(data, 'data/stray_count_checking/count_ratio_plots.png')
+    # make_plots(pd.read_csv('data/stray_count_checking/sweep_data.csv'), 'data/stray_count_checking/count_ratio_plots.png')
 
 
