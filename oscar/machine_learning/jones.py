@@ -80,7 +80,7 @@ def get_phi(QP_rot, params = [-6.98200712e+04, 4.33971479e+03, 4.37424378e+02, 3
     phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
     # print('QP rot in deg', np.rad2deg(QP_rot))
     # print('phi in deg', np.rad2deg(phi))
-    return phi
+    return -phi
 
 def get_QP_rot(phi):
     '''Function to return inverse of get_phi, that is what the theoretical angle is'.
@@ -901,30 +901,30 @@ if __name__=='__main__':
         # populate eritas states
         eta_ls = np.linspace(0, np.pi/4, n) # set of eta values to sample
         chi_ls = np.linspace(0, np.pi/2, n) # set of chi values to sample
-        eta_fixed= np.pi/4 # fixed values for state generation
+        eta_fixed= np.pi/3 # fixed values for state generation
         chi_fixed= np.pi/3
 
         for chi in chi_ls:
             states.append(get_E0(eta_fixed, chi))
             states_names.append('E0')
-            for setup in ['C0', 'C1']:
+            for setup in ['C0']:
                 eta_setup.append(np.rad2deg(eta_fixed))
                 chi_setup.append(np.rad2deg(chi))
             
 
-        for eta in eta_ls:
-            states.append(get_E1(eta, np.pi/3))
-            states_names.append('E1')
-            for setup in ['C0', 'C1']:
-                chi_setup.append(np.rad2deg(chi_fixed))
-                eta_setup.append(np.rad2deg(eta))
+        # for eta in eta_ls:
+        #     states.append(get_E1(eta, np.pi/3))
+        #     states_names.append('E1')
+        #     for setup in ['C0', 'C1']:
+        #         chi_setup.append(np.rad2deg(chi_fixed))
+        #         eta_setup.append(np.rad2deg(eta))
             
         # get function with preset inputs
         decomp = partial(jones_decompose, adapt=0, debug=False, expt=True)
 
         decomp_ls = []
         for i in range(len(states)):
-            for setup in ['C0', 'C1']:
+            for setup in ['C0']:
                 decomp_ls.append((i, setup))
 
          ## build multiprocessing pool ##
@@ -954,11 +954,13 @@ if __name__=='__main__':
         print(angles_df_0)
         # split into C0 and C1
         angles_df_C0 = angles_df_0.loc[decomp_df['setup']=='C0']
-        angles_df_C0.columns = ['UV_HWP', 'QP', 'B_HWP', 'PCC', 'B_QWP']
-        angles_df_C1 = angles_df_0.loc[decomp_df['setup']=='C1']
-        angles_df_C1.columns = ['UV_HWP', 'QP', 'B_HWP', 'B_QWP', 'PCC']
+        # angles_df_C0.columns = ['UV_HWP', 'QP', 'B_HWP', 'B_QWP']
+        angles_df_C0.columns = ['UV_HWP', 'QP', 'B_HWP']
+        # angles_df_C1 = angles_df_0.loc[decomp_df['setup']=='C1']
+        # angles_df_C1.columns = ['UV_HWP', 'QP', 'B_HWP', 'B_QWP']
 
-        angles_df = pd.concat([angles_df_C0, angles_df_C1])
+        # angles_df = pd.concat([angles_df_C0, angles_df_C1])
+        angles_df  = angles_df_C0
 
         # prepare final output df #
         return_df = pd.DataFrame()
@@ -968,16 +970,15 @@ if __name__=='__main__':
         return_df['setup'] = decomp_df['setup']
         return_df['UV_HWP'] = angles_df['UV_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['QP'] = angles_df['QP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
-        return_df['PCC'] = angles_df['PCC'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['B_HWP'] = angles_df['B_HWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
-        return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
+        # return_df['B_QWP'] = angles_df['B_QWP'].map(lambda x: np.rad2deg(x) if x and x is not None else None)
         return_df['fidelity'] = decomp_df['fidelity']
         return_df['n'] = decomp_df['n']
         return_df['pred_rho'] = decomp_df['pred_rho']
         return_df['actual_rho'] = decomp_df['targ_rho']
 
         print('saving!')
-        return_df.to_csv(join('decomp', 'ertias.csv'))
+        return_df.to_csv(join('decomp', 'ertias_2_n.csv'))
 
     elif resp==3: # to generate results for experimental tests
         # import function to help make separate columns for the angles
@@ -1045,7 +1046,7 @@ if __name__=='__main__':
             return_df['targ_rho'] = decomp_df['targ_rho']
 
             print('saving!')
-            return_df.to_csv(join('decomp', f'bell_{eps}.csv'))
+            return_df.to_csv(join('decomp', f'bell_{eps}_n.csv'))
 
     elif resp==4:
         ''' Make plots treating each of the 3 components as indepndent vars'''
