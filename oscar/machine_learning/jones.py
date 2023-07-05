@@ -80,7 +80,7 @@ def get_phi(QP_rot, params = [-6.98200712e+04, 4.33971479e+03, 4.37424378e+02, 3
     phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
     # print('QP rot in deg', np.rad2deg(QP_rot))
     # print('phi in deg', np.rad2deg(phi))
-    return phi
+    return -phi
 
 def get_QP_rot(phi):
     '''Function to return inverse of get_phi, that is what the theoretical angle is'.
@@ -900,7 +900,7 @@ if __name__=='__main__':
 
         # populate eritas states
         eta_ls = np.linspace(0, np.pi/4, n) # set of eta values to sample
-        chi_ls = -np.linspace(0, np.pi/2, n) # set of chi values to sample
+        chi_ls = np.linspace(0, np.pi/2, n) # set of chi values to sample
         eta_fixed= np.pi/3 # fixed values for state generation
         chi_fixed= np.pi/3
 
@@ -978,7 +978,7 @@ if __name__=='__main__':
         return_df['actual_rho'] = decomp_df['targ_rho']
 
         print('saving!')
-        return_df.to_csv(join('decomp', 'ertias_2_f.csv'))
+        return_df.to_csv(join('decomp', 'ertias_2_n.csv'))
 
     elif resp==3: # to generate results for experimental tests
         # import function to help make separate columns for the angles
@@ -1046,7 +1046,7 @@ if __name__=='__main__':
             return_df['targ_rho'] = decomp_df['targ_rho']
 
             print('saving!')
-            return_df.to_csv(join('decomp', f'bell_{eps}.csv'))
+            return_df.to_csv(join('decomp', f'bell_{eps}_n.csv'))
 
     elif resp==4:
         ''' Make plots treating each of the 3 components as indepndent vars'''
