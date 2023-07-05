@@ -38,7 +38,7 @@ Will try a different eta value--pi/3. Trial 22:
 
 Trial 23: flipping sign in chi calculation; trying 60, -90. Agrees theoretically with the experimental matrix for E0 60, 90. Will recheck fidelity calculations but for the minus states.Taking data on the E0 60, -90 state to try to match E0 60, 90 theory.
     21.201565428724564,14.15176549160343,44.802745028367205
-96.1% fidelity to theory E0 60, -90!!
+96.1% fidelity to theory E0 60, 90!!
 
 Checked the experimental E0 45, 18 to theory E0 45, -18, and got 96.7% fidelity! Will track down the minus sign.
 
