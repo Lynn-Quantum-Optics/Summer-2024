@@ -2,6 +2,7 @@ from core import Manager, analysis
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import scipy.optimize as opt
 
 """
 Procedure:
@@ -19,16 +20,45 @@ Specifically ONLY for psi plus
 
 any angle between 45 to 90 degrees is ok, in first octant between 0 and 45 degrees signs flip
 the octant alternate between flipping and not flipping
+
+angles for full tomography:
+    QP: -13 degrees
+    UVHWP: 60.62731 degrees
+
+Results:
+    theoretical rho:
+    [0  0   0   0]
+    [0  0.71650635  0.25 + 0.375i   0]
+    [0  0.25 - 0.375i   0.28349365  0]
+    [0  0   0   0]
+
+    experimental rho:
+    [0.00394011 - 0.00768909 + 0.00967013i   -0.00622985 + 0.01479892i   -0.00957832 + 0.0015256i]
+    [-0.00768909 - 0.00967013i  0.71380471  0.2080949 - 0.37910358i -0.01783937 - 0.0212087i]
+    [-0.00622985 - 0.01479892i  0.208949 + 0.37910358i  0.27767032  -0.0075087 - 0.01341226i]
+    [-0.00957832 - 0.0015256i   -0.01783937 + 0.0212087i    -0.0075087 + 0.01341226i    0.00458486]
+
+    uncertainty for diagonals:
+    0.00470298 for all entries
+
+points to test:
+
 """
 
 def get_params(alpha, beta):
+    """
+    Take in two angles alpha and beta in radians where the created state is cos(alpha)*Psi_plus + (e^i*beta)*sin(alpha)*Psi_minus
+    and returns the measurement angles that the HWP and QWP need to be set at per the notes for state creation.
+
+    
+    """
 
     if alpha <= math.pi/2 and beta <= math.pi/2:
         r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
         r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
         delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
-        gamma = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
-        phi = gamma + delta
+        gamma = math.asin(-(math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)) + 2*math.pi
+        phi = gamma - delta
 
     if alpha >= math.pi/2 and beta >= math.pi/2:
         r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
@@ -40,15 +70,15 @@ def get_params(alpha, beta):
     if alpha <= math.pi/2 and beta >= math.pi/2:
         r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
         r2 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
-        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
-        gamma = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
-        phi = gamma + delta
+        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+        gamma = math.asin(-(math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)) + 2*math.pi
+        phi = gamma - delta
         
     if alpha >= math.pi/2 and beta <= math.pi/2:
         r1 = math.sqrt(((1-math.sin(2*alpha)*math.cos(beta))/2))
         r2 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
-        delta = (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1)
-        gamma = math.pi + (math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2)
+        delta = math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r1))
+        gamma = math.pi + math.asin((math.sin(alpha)*math.sin(beta))/(math.sqrt(2)*r2))
         phi = gamma - delta
 
     # calculate theta based on alpha and beta
@@ -67,15 +97,15 @@ def get_params(alpha, beta):
 
     return [meas_HWP_angle,meas_QWP_angle,HH_frac]
 
-
 def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     '''
-
+    Performs a QP sweep to determine the angle that the QP needs to be set at for state creation. Finds the angle that minimizes counts.
     '''
 
 
     # set the output file for manager
-    m.new_output("QP_sweep.csv")
+    m.new_output(f"QP_sweep_{HWP_angle}_{QWP_angle}.csv")
+    # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
     print(m.time, "Setting creation state to phi plus")
@@ -91,8 +121,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     m.configure_motors(B_HWP = np.rad2deg(HWP_angle), B_QWP = np.rad2deg(QWP_angle))
 
     # sweep the QP to determine the minimum count angle
-    # sweep through negative angles so that laser reflection points inward
-   
+    # sweeps through negative angles so that laser reflection points inward
     m.sweep("C_QP", -30, 0, 25, 5, 3)
 
     print(m.time, "Sweep complete")
@@ -100,6 +129,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     # read the data into a dataframe
     data = m.close_output()
     
+    # shutsdown the manager
     m.shutdown()
 
     # take the counts of the quartz sweep at each angle and find the index of the minimum data point
@@ -109,13 +139,15 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
         if QP_counts[i] == min(QP_counts):
             min_ind = i
     
-
+    # creates a new data set of counts centered around the previous sweep's minimum data point
     new_guess = data["C_QP"][min_ind]
     RANGE = 4
 
+    # finds the new minimum and maximum indices of the truncated data set
     min_bound = 0
     max_bound = len(QP_counts)
 
+    # sets the minimum and maximum indices to the data point with the angle value (in degrees) new_guess +- RANGE
     for i in range(len(QP_counts)):
         if data["C_QP"][i] <= new_guess - RANGE:
             min_bound = i
@@ -135,17 +167,26 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     # find the lowest data point and then resweep near the guessed minimum to fit a function
     # write own fit function in analysis maybe
 
-    args1, unc1 = analysis.fit('quadratic', fit_angles, fit_data, fit_unc)
+    args1, unc1 = analysis.fit('quartic', fit_angles, fit_data, fit_unc)
 
     plt.title('Angle of QP to minimize counts')
     plt.xlabel('QP angle (deg))')
     plt.ylabel('Count rates (#/s)')
     plt.errorbar(fit_angles, fit_data, yerr=fit_unc, fmt='o', label="Measurement Basis")
-    analysis.plot_func('quadratic', args1, fit_angles, label='Measurement fit function')
+    analysis.plot_func('quartic', args1, fit_angles, label='Measurement fit function')
     plt.legend()
     plt.show()
 
-    print(args1)
+    # finds the angle that corresponds to the minimum value of the fit function
+    def fit(x):
+
+        return args1[0] * x**4 + args1[1] * x**3 + args1[2] * x**2 + args1[3] * x + args1[4]
+
+    minimum = opt.minimize(fit, new_guess)
+    min_angle = minimum.pop('x')
+
+    print(min_angle)
+
     """
     basis preset:
     HWP = b + u / 2 from horizontal
