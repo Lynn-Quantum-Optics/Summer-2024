@@ -1,3 +1,9 @@
+## 7/5/23
+MP: A
+Started warming up the laser at 0823.
+
+Alec here: I just came back in to do my test. I don't know who completed the rest of the setup today but I am noticing the nitrogen tank is _critically_ low (~300psi).
+
 ## 7/4/23
 MP: O
 Started laser at 11:45. Realzed that trial 17's PhiM was really PhiP, which the updated fit agrees with! (had wrong minus sign in HWP matrix). @ 12:52, starting data. Trial 19: running PhiP and PsiP, since flipping the B_HWP by 45 will give us PsiM and PhiM:
