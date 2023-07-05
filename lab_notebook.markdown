@@ -1,3 +1,48 @@
+## 7/4/23
+MP: O
+Started laser at 11:45. Realzed that trial 17's PhiM was really PhiP, which the updated fit agrees with! (had wrong minus sign in HWP matrix). @ 12:52, starting data. Trial 19: running PhiP and PsiP, since flipping the B_HWP by 45 will give us PsiM and PhiM:
+    PhiP: 21.220354099848972,38.299,0.0009163323381782993
+96.4% fidelity!! 
+    PsiP: 21.337566181446963,25.951366671457016,45.0
+96.8% fidelity!!
+Trial 20: 6 sample E0 states: cos eta PsiP + e^(i chi)*sin eta PsiM
+    45, 0: 45.0,13.107759739471968,45.0
+98.9% fidelity!! 98.3% purity.
+    45, 18: 40.325617881787,32.45243475604995,45.0
+95.8% fidelity, 98.1% purity.
+    45, 36: 35.319692011068646,32.80847131578413,45.0
+73.9% fidelity, 98.1% purity. 2nd row, 3rd element off by cc.
+    45, 54: 29.99386625322187,32.59712114540248,45.0
+40.7% fidelity, 97.1% purity
+    45, 72: 26.353505137451158,32.91656908476468,44.71253931908844
+16.0% fidelity, 96.0% purity.
+    45, 90: 20.765759133476752,32.763298596034836,45.0
+2.3% fidelity, 94.5% purity? 
+In final 3, Consistent decrease in purity as well as fidelity; rerunning 45,0 to rule out extraneously factors in the lab.
+
+Trial 21: E0 45, 0 yields 98.8% fidelity, 98.3% fidelity, E0 45, 18 yields 95.4% fidelity, 98.2% purity (same settings as before) 
+
+Will try a different eta value--pi/3. Trial 22: 
+    E0 60, 0: 36.80717351236577,38.298986094951985,45.0
+98.5% fidelity, 97.7% purity.
+    E0 60, 18: 35.64037134135345,36.377936778443754,44.99999
+91.9% fidelity, 96.9% purity. 2nd row, 3rd elem off by complex conjugate.
+    E0 60, 36: 32.421520781235735,35.46619180422062,44.99998
+75.2% fidelity, 97.2% purity. 3rd row, 2nd elem off by cc.
+    E0 50, 54: 28.842682522467676,34.97796909446873,44.61235
+51.4% fidelity, 94.6% purity. 2nd row, 3rd elem off by cc.
+    E0 60, 72: 25.8177216842833,34.72228985431089,44.74163766
+33.5% fidelity, 95.6% purity.
+    E0 60, 90: 21.614459228879422,34.622127766985436,44.9666 
+23.4% fidelity, 95.4% purity.
+
+Trial 23: flipping sign in chi calculation; trying 60, -90. Agrees theoretically with the experimental matrix for E0 60, 90. Will recheck fidelity calculations but for the minus states.Taking data on the E0 60, -90 state to try to match E0 60, 90 theory.
+    21.201565428724564,14.15176549160343,44.802745028367205
+96.1% fidelity to theory E0 60, -90!!
+
+Checked the experimental E0 45, 18 to theory E0 45, -18, and got 96.7% fidelity! Will track down the minus sign.
+
+
 ## 7/3/23
 MP: O
 Started laser at 2:45. Had talk with Prof. Lynn earlier and removed PCC from calculations, removed phase from BBO calc, using Alec's QP vs phi data fitted to a curve in QP calculations. Setting PCC to 4.005 degrees as per the phi_plus.
@@ -23,8 +68,6 @@ Retrying after fixing the get_phi function. Trial 18: PhiM, PsiP, PhiP,PsiM
 95% fidelity.
     21.20077993918437,19.216339991442524,0.00012493912175692444
 47.7% fidelity -- missing off diagonal entries... problem was missing more deg to rads in get_phi.
-
-
 
 ## 7/2/23
 MP: O

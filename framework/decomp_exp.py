@@ -15,34 +15,37 @@ if __name__ == '__main__':
     from sample_rho import PhiP, PhiM, PsiM, PsiP, get_E0
 
     # read in angle settings
-    df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
+    # df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
+    df = pd.read_csv('../oscar/machine_learning/decomp/ertias_2_f.csv')
 
     # set up manager #
     SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
     m = Manager()
-    tnum = 18 # trial number
+    tnum = 23 # trial number
     m.new_output(f'decomp_test/decomp_data_{tnum}.csv')
 
     # define states of interest #
 
     # Bell
-    # states_names = ['PhiM', 'PsiP', 'PhiP','PsiM']
-    # states = [PhiM, PsiP, PhiP,PsiM]
+    # states_names = [('PhiP',), ('PsiP',)]
+    # states = [PhiP, PsiP]
 
     # E0 states
     # fit eta at 45 degrees
-    eta = np.pi / 4
-    chi_ls = np.linspace(0, np.pi/2, 6)
-    states_names = [('E0', (np.rad2deg(chi), np.rad2deg(eta))) for chi in chi_ls]
+    # eta = np.pi / 4
+    eta = np.pi/3
+    # chi_ls = np.linspace(0, np.pi/2, 6)
+    chi_ls = [-np.pi/2]
+    states_names = [('E0', (np.rad2deg(eta), np.rad2deg(chi))) for chi in chi_ls]
     states = [get_E0(eta, chi) for chi in chi_ls]
 
     for i, state_n in enumerate(states_names):
         state = states[i]
 
         if len(state_n) == 1:
-            UV_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['UV_HWP'].values[0])
-            QP_phi = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['QP'].values[0])
-            B_HWP_theta = float(df.loc[(df['state'] == state_n) & (df['setup']=='C0')]['B_HWP'].values[0])
+            UV_HWP_theta = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0')]['UV_HWP'].values[0])
+            QP_phi = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0')]['QP'].values[0])
+            B_HWP_theta = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0')]['B_HWP'].values[0])
 
         elif len(state_n) == 2: # has angle settings
             eta = state_n[1][0]
