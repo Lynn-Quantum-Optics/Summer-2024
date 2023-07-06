@@ -22,8 +22,8 @@ any angle between 45 to 90 degrees is ok, in first octant between 0 and 45 degre
 the octant alternate between flipping and not flipping
 
 angles for full tomography:
-    QP: -20 degrees
-    UVHWP: 60.16582 degrees
+    QP: -33.5 degrees
+    UVHWP: 56.48811 degrees
 
 Results:
     theoretical rho:
@@ -41,14 +41,16 @@ Results:
     new exp rho:
     RHO
     ---
-    [[ 0.00468262+0.j         -0.02298898+0.00989265j  0.00953237+0.01825194j
-    -0.00841357-0.00810226j]
-    [-0.02298898-0.00989265j  0.70648134+0.j         -0.29334017-0.3166438j
-    -0.02279506-0.02822054j]
-    [ 0.00953237-0.01825194j -0.29334017+0.3166438j   0.28363312+0.j
-    0.00928785-0.00978311j]
-    [-0.00841357+0.00810226j -0.02279506+0.02822054j  0.00928785+0.00978311j
-    0.00520291+0.j        ]]
+    [[ 0.00425164+0.j         -0.00674868+0.00695096j  0.0029137 -0.00920168j
+   0.0031735 +0.00981046j]
+ [-0.00674868-0.00695096j  0.70670894+0.j          0.30183819+0.31566753j
+  -0.01175356-0.01475974j]
+ [ 0.0029137 +0.00920168j  0.30183819-0.31566753j  0.2849319 +0.j
+  -0.00347926-0.00509636j]
+ [ 0.0031735 -0.00981046j -0.01175356+0.01475974j -0.00347926+0.00509636j
+   0.00410752+0.j        ]]
+
+   it worked
 
     uncertainty for diagonals:
     0.00470298 for all entries
@@ -314,7 +316,7 @@ if __name__ == '__main__':
 
     m = Manager()
 
-    C_QP_angle = QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
+    # C_QP_angle = QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
 
     """
     If the minimum is 0, we need to compare it to other plot to see the counts to see if the counts are the same as another minimum since 0 is always
@@ -326,7 +328,7 @@ if __name__ == '__main__':
     diagonal elements should be very close to one another, off diagonals will be close but with a smaller magnitude (around 95% of the value), if diagonals are 0
     they might be nonzero
     """
-    m.C_QP.goto(C_QP_angle)
+    m.C_QP.goto(-33.5)
 
     UVHWP_sweep(m, HH_frac)
 
