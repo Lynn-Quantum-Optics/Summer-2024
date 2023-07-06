@@ -83,6 +83,27 @@ def sec(x:np.ndarray, a:float, b:float) -> np.ndarray:
     '''
     return a / np.cos(np.deg2rad(x)) + b
 
+def sin2_sq(x:np.ndarray, a:float, b:float, c:float) -> np.ndarray:
+    ''' Sin(2x)^2 fit function
+
+    Returns
+    -------
+    float
+        a * sin^2(2*x + b) + c
+    '''
+
+    return a * (np.sin(np.deg2rad(2*x + b)))**2 + c
+
+def quartic(x:np.ndarray, a:float, b:float, c:float, d:float, e:float) -> np.ndarray:
+    ''' A quartic polynomial fit function
+
+    Returns
+    -------
+    float
+        a * x^4 + b * x^3 + c * x^2 + d * x + e
+    '''
+    return a * x**4 + b * x**3 + c * x**2 + d * x + e
+
 # dictionary
 
 FIT_FUNCS = {
@@ -96,7 +117,9 @@ FIT_FUNCS = {
     'cos': cos,
     'cos_sq': cos_sq,
     'cos2': cos2,
-    'sec': sec
+    'sec': sec,
+    'sin2_sq': sin2_sq,
+    'quartic': quartic
 }
 
 # +++ functions for fitting +++
