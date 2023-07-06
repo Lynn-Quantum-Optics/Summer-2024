@@ -32,12 +32,14 @@ if __name__ == '__main__':
 
     # E0 states
     # fit eta at 45 degrees
-    # eta = np.pi / 4
-    eta = np.pi/3
-    # chi_ls = np.linspace(0, np.pi/2, 6)
-    chi_ls = [-np.pi/2]
-    states_names = [('E0', (np.rad2deg(eta), np.rad2deg(chi))) for chi in chi_ls]
-    states = [get_E0(eta, chi) for chi in chi_ls]
+    eta_ls =[np.pi/4, np.pi/3]
+    chi_ls = np.linspace(-np.pi/2,0, 6)
+    states_names = []
+    states = []
+    for eta in eta_ls:
+        for chi in chi_ls:
+            states_names.append(('E0', (np.rad2deg(eta), np.rad2deg(chi))))
+            states.append(get_E0(eta, chi))
 
     for i, state_n in enumerate(states_names):
         state = states[i]
