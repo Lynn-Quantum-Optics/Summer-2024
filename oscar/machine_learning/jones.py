@@ -25,7 +25,9 @@ from random_gen import *
 # phi_V_PCC = (2*np.pi * d_PCC * n_e_p_qp) / l_p # phase shift for V polarization
 
 # BBO #
-a = 0.9143592035643862 # ratio of max HH / max VV; determined by sweeping UV_HWP
+def a(QP_rot): 
+    return 0.003919514737857195*np.rad2deg(QP_rot) + 1.024799049989838
+# a = 0.9143592035643862 # ratio of max HH / max VV; determined by sweeping UV_HWP
 # d_BB0 = 0.5 * 10**(-3) # thickness of BBO in m
 # def n_e_bbo(l):
 #     ''' extraordinary refractive index of BBO crystal for wavelength l in m'''
@@ -64,13 +66,14 @@ s0 = np.array([[1], [0]]) # initial |0> state
 
 # experimental BBO matrix
 # full correction
-# def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
+# def get_BBO_expt(phi)(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
 # partial correction
-BBO_expt =  np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
+def BBO_expt(QP_rot): 
+    return np.array([[0, 0, 0, a(QP_rot)], [1, 0,0,0]], dtype='complex').T 
 
-# def get_BBO_expt(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
+# def get_BBO_expt(phi)(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 # set angle of BBO
-# BBO_expt = BBO
+# BBO_expt(phi) = BBO
 # def get_QP_expt(phi_a):
 #     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
 #     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
@@ -142,7 +145,7 @@ def get_Jrho(angles, setup = 'C0', add_noise = False, p = 0.04, expt = True, che
         H_B = H(B_theta)
 
         if expt:
-            U = np.kron(np.eye(2), H_B) @ BBO_expt @ QP @ H_UV
+            U = np.kron(np.eye(2), H_B) @ BBO_expt(phi) @ QP @ H_UV
         else:
             U = np.kron(np.eye(2), H_B) @ BBO @ QP @ H_UV
 
@@ -175,7 +178,7 @@ def get_Jrho(angles, setup = 'C0', add_noise = False, p = 0.04, expt = True, che
         Q_B = Q(B_alpha)
 
         if expt:
-            U = np.kron(np.eye(2), Q_B @ H_B) @ BBO_expt @ QP @ H_UV
+            U = np.kron(np.eye(2), Q_B @ H_B) @ BBO_expt(phi) @ QP @ H_UV
         else:
             U = np.kron(np.eye(2), Q_B @ H_B) @ BBO @ QP @ H_UV
 
@@ -210,7 +213,7 @@ def get_Jrho(angles, setup = 'C0', add_noise = False, p = 0.04, expt = True, che
         Q_A = Q(A_alpha)
         
         if expt:
-            U = np.kron(Q_A, Q_B @ H_B) @ BBO_expt @ QP @ H_UV
+            U = np.kron(Q_A, Q_B @ H_B) @ BBO_expt(phi) @ QP @ H_UV
         else:
             U = np.kron(Q_A, Q_B @ H_B) @ BBO @ QP @ H_UV
 
@@ -849,7 +852,7 @@ if __name__=='__main__':
             plot()
 
 
-    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2  to run eritas states, 3 to run bell, 4 to tune gamma for BBO_expt '))
+    resp = int(input('0 to run decomp_ex_all, 1 to tune gd, 2  to run eritas states, 3 to run bell, 4 to tune gamma for BBO_expt(phi) '))
     
     ## test states and get average fidelity ##
     if resp == 0:
@@ -901,15 +904,15 @@ if __name__=='__main__':
         # populate eritas states
         eta_ls = np.linspace(0, np.pi/4, n) # set of eta values to sample
         chi_ls = np.linspace(0, np.pi/2, n) # set of chi values to sample
-        eta_fixed= np.pi/3 # fixed values for state generation
+        eta_fixed_ls= [np.pi/4, np.pi/3] # fixed values for state generation
         chi_fixed= np.pi/3
-
-        for chi in chi_ls:
-            states.append(get_E0(eta_fixed, chi))
-            states_names.append('E0')
-            for setup in ['C0']:
-                eta_setup.append(np.rad2deg(eta_fixed))
-                chi_setup.append(np.rad2deg(chi))
+        for eta_fixed in eta_fixed_ls:
+            for chi in chi_ls:
+                states.append(get_E0(eta_fixed, chi))
+                states_names.append('E0')
+                for setup in ['C0']:
+                    eta_setup.append(np.rad2deg(eta_fixed))
+                    chi_setup.append(np.rad2deg(chi))
             
 
         # for eta in eta_ls:
@@ -920,7 +923,7 @@ if __name__=='__main__':
         #         eta_setup.append(np.rad2deg(eta))
             
         # get function with preset inputs
-        decomp = partial(jones_decompose, adapt=0, debug=False, expt=True)
+        decomp = partial(jones_decompose, adapt=2, debug=False, expt=True)
 
         decomp_ls = []
         for i in range(len(states)):
@@ -978,7 +981,7 @@ if __name__=='__main__':
         return_df['actual_rho'] = decomp_df['targ_rho']
 
         print('saving!')
-        return_df.to_csv(join('decomp', 'ertias_2_n.csv'))
+        return_df.to_csv(join('decomp', 'ertias_2_fita.csv'))
 
     elif resp==3: # to generate results for experimental tests
         # import function to help make separate columns for the angles
@@ -1046,7 +1049,7 @@ if __name__=='__main__':
             return_df['targ_rho'] = decomp_df['targ_rho']
 
             print('saving!')
-            return_df.to_csv(join('decomp', f'bell_{eps}_n.csv'))
+            return_df.to_csv(join('decomp', f'bell_{eps}_ra.csv'))
 
     elif resp==4:
         ''' Make plots treating each of the 3 components as indepndent vars'''
