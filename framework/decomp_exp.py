@@ -16,12 +16,12 @@ if __name__ == '__main__':
 
     # read in angle settings
     # df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
-    df = pd.read_csv('../oscar/machine_learning/decomp/ertias_2_f.csv')
+    df = pd.read_csv('../oscar/machine_learning/decomp/ertias_2_fita.csv')
 
     # set up manager #
     SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
     m = Manager()
-    tnum = 23 # trial number
+    tnum = 26 # trial number
     m.new_output(f'decomp_test/decomp_data_{tnum}.csv')
 
     # define states of interest #
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # E0 states
     # fit eta at 45 degrees
     eta_ls =[np.pi/4, np.pi/3]
-    chi_ls = np.linspace(-np.pi/2,0, 6)
+    chi_ls = np.linspace(0, np.pi/2, 6)
     states_names = []
     states = []
     for eta in eta_ls:

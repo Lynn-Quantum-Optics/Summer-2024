@@ -13,6 +13,44 @@ Alec here: I just came back in to do my test. I don't know who completed the res
 
 Borrowed some hands from Prof. Brake's lab to hold the N2 tanks and help swap the regulators. Was fun and I think they liked it :) All went well and everything is back to operational. Shutting down the laser now (1342) for the day.
 
+--
+At 17:43, O started warming up laser to take data on HH and VV states sweeping the QP from 0 to 38.3 degrees. Started taking data at 18:45. Fitting VV / HH (QP rot). Plot showinf VV / HH > 1 ?? Thought HH exceeds VV counts... also a bit noisey, so retakijng 10  x 1 s sweep. 
+
+Got fit, now PhiP UV_HWP looks be at 24 degrees. Trial 24: PhiP with
+    23.94779209337987,38.299,0
+yielded 96.8% fidelity, 95.1% purity, a .4% improvement from my previous results and .7% improvement from preset for fidelity! 
+
+Trial 25: PsiP:
+    24.495671033003333,26.10255916324198,45.0
+96.3% fidelity, 95.7% purity.
+
+Trial 26: eta = 45, 60 and chi from 0 to 90 (with fit func for VV / HH)
+    E0 (45, 0): 45.0,18.369888570153112,45.0,0.9999999999999998
+98.5% fidelity, 98.2% purity.
+    E0 (45, 18): 40.61574916425849,17.811568077191748,44.999997995332805
+99.0% fidelty, 98.7% purity!
+    E0 (45, 36): 37.01747029255738,17.740156375689754,45.0
+99.3% fidelity, 98.8% purity!!
+    E0 (45, 54): 32.83419140697312,18.212276187711478,44.76148960325736
+98.4% fidelity, 97.5% purity.
+    E0 (45, 72): 27.841030629344782,17.922416212538486,44.71126751213072
+97.5% fidelity, 95.7% purity.
+    E0 (45, 90): 23.884281132684468,18.09415493858101,44.52700103522797
+96.6% fidelity, 94.7% purity.
+    E0 (60, 0): 39.03263879532898,38.01428458035744,44.519056793395045
+97.8% fidelity, 98.7% purity.
+    E0 (60, 18): 36.93625499084846,9.704567434793242,44.999999603208025
+98.4% fidelity, 98.8% purity.
+    E0 (60, 36): 34.22465116816317,12.755510373909463,44.494589981153
+97.9% fidelity, 97.8% purity.
+    E0 (60, 54): 31.104191953808133,13.467682329830504,44.38291758457631
+98.2% fidelity, 97.8% purity.
+    E0 (60, 72): 27.352578800083396,14.249820021812848,44.95401383269358
+97.0% fidelity, 95.5% purity.
+    E0 (60, 90): 23.916491360652447,14.340308744299092,44.9348855047236
+96.9% fidelity, 95.3% purity.
+
+Laser shutoff at 02:46.
 ## 7/4/23
 MP: O
 Started laser at 11:45. Realzed that trial 17's PhiM was really PhiP, which the updated fit agrees with! (had wrong minus sign in HWP matrix). @ 12:52, starting data. Trial 19: running PhiP and PsiP, since flipping the B_HWP by 45 will give us PsiM and PhiM:
