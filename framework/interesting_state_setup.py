@@ -53,7 +53,7 @@ Results:
     uncertainty for diagonals:
     0.00470298 for all entries
 
-points to test:
+points to test: oscar fixed alpha at pi/4 and pi/3, swept beta
 
 """
 
@@ -62,8 +62,21 @@ def get_params(alpha, beta):
     Take in two angles alpha and beta in radians where the created state is cos(alpha)*Psi_plus + (e^i*beta)*sin(alpha)*Psi_minus
     and returns the measurement angles that the HWP and QWP need to be set at per the notes for state creation.
 
-    
+    Paramters
+    ---------
+    alpha, beta: float
+        Angles in radians between 0 and 2*pi
+
+    Returns
+    -------
+    meas_HWP_angle: float
+        The angle that Bob's measurement HWP should be turned to
+    meas_QWP_angle: float
+        The angle that Bob's measurement QWP should be turned to
+
     """
+
+    # calculates phi depending on different values of alpha and beta, where the desired creation state is cos(theta)*HV + (e^i*phi)*sin(theta)*VH
 
     if alpha <= math.pi/2 and beta <= math.pi/2:
         r1 = math.sqrt(((1+math.sin(2*alpha)*math.cos(beta))/2))
@@ -98,12 +111,15 @@ def get_params(alpha, beta):
     theta = math.acos(math.sqrt((1+math.cos(beta)*math.sin(2*alpha))/2))
 
     # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
-    # phi = phi + np.pi
+    # introduces a phase shift of pi to the angle phi because of Bob's creation HWP introducing a negative sign, which means the experimentally
+    # desired creation state is cos(theta)*HV - (e^i*phi)*sin(theta)*VH
+    phi = phi + np.pi
     b = np.pi/4
     u = (phi + np.pi)/2
 
     rate_ratio = (math.tan(theta))**2
 
+    # find the measurement wave plate angles in terms of b and u
     meas_HWP_angle = (b + u) / 2
     meas_QWP_angle = u + math.pi/2
 
@@ -112,6 +128,15 @@ def get_params(alpha, beta):
 def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     '''
     Performs a QP sweep to determine the angle that the QP needs to be set at for state creation. Finds the angle that minimizes counts.
+
+    Parameters
+    ----------
+    m: Manager class object
+    HWP_angle: float
+        The angle at which Bob's measurement HWP should be set in radians
+    QWP_angle: float
+        The angle at which Bob's measurement QWP should be set in radians
+
     '''
 
     # set the output file for manager
@@ -132,8 +157,8 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     m.configure_motors(B_HWP = np.rad2deg(HWP_angle), B_QWP = np.rad2deg(QWP_angle))
 
     # sweep the QP to determine the minimum count angle
-    # sweeps through negative angles so that laser reflection points inward
-    m.sweep("C_QP", -30, 0, 25, 5, 3)
+    # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
+    m.sweep("C_QP", -38.3, 0, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -169,15 +194,8 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     fit_data = QP_counts[min_bound:max_bound]
     fit_angles = data["C_QP"][min_bound:max_bound]
     fit_unc = data["C4_sem"][min_bound:max_bound]
-    # perform a new sweep around the previous minimum data point
-    # m.new_output("QP_sweep2.csv")
-    # m.sweep("C_QP", new_guess - RANGE, new_guess + RANGE, 20, 5, 0.1)
-    # instead, performed one detailed sweep with data truncated for fitting and analysis
 
-    # refine analysis and fitting since we don't know what the function will look like
-    # find the lowest data point and then resweep near the guessed minimum to fit a function
-    # write own fit function in analysis maybe
-
+    # fits the truncated data set to a quartic fit function
     args1, unc1 = analysis.fit('quartic', fit_angles, fit_data, fit_unc)
 
     plt.title('Angle of QP to minimize counts')
@@ -193,18 +211,12 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
 
         return args1[0] * x**4 + args1[1] * x**3 + args1[2] * x**2 + args1[3] * x + args1[4]
 
+    # finds the angle at which the minimum of the fit function occurs to return as the QP angle setting
     minimum = opt.minimize(fit, new_guess)
     min_angle = minimum.pop('x')
 
     print(min_angle)
-
-    """
-    basis preset:
-    HWP = b + u / 2 from horizontal
-    QWP = u + pi/2 from horizontal
-
-    N vv/sec is the number of vv counts per second, same with HH
-    """
+    return min_angle[0]
 
 def UVHWP_sweep(m:Manager, ratio):
     """
@@ -268,6 +280,7 @@ def UVHWP_sweep(m:Manager, ratio):
     plt.legend()
     plt.show()
 
+# methods for finding the density matrix of a given state
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
@@ -294,10 +307,6 @@ if __name__ == '__main__':
     # float(input("Beta = "))
 
     """
-    Error in measurement HWP and QWP angle settings. Double check all angle calculations.
-    """
-
-    """
     Note these angles are all in radians, not degrees.
     """
 
@@ -305,7 +314,7 @@ if __name__ == '__main__':
 
     m = Manager()
 
-    # QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
+    C_QP_angle = QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
 
     """
     If the minimum is 0, we need to compare it to other plot to see the counts to see if the counts are the same as another minimum since 0 is always
@@ -317,7 +326,7 @@ if __name__ == '__main__':
     diagonal elements should be very close to one another, off diagonals will be close but with a smaller magnitude (around 95% of the value), if diagonals are 0
     they might be nonzero
     """
-    m.C_QP.goto(-20)
+    m.C_QP.goto(C_QP_angle)
 
     UVHWP_sweep(m, HH_frac)
 
