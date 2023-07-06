@@ -392,10 +392,15 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         add_noise: whether to add noise when trying to predict the state
         BBO_corr: what level of BBO corection to do
     returns:
-        angles: list of angles matching setup return. note beta and gamma, which set the initial polarization state, are the first two elements
-        fidelity: fidelity of the resulting guessed state
-    note: if you use Cntrl-C to break out of the function, it will return the best guess so far
-    RETURNS: targ_name, setup, adapt, n, max_best_fidelity, max_best_angles, proj_pred[:4], proj_targ[:4], proj_pred[4:8], proj_targ[4:8], proj_pred[8:], proj_targ[8:]
+        targ_name: name of target state
+        setup: string representation
+        adapt: 0: random hop, 1: random fan, 2: gradient descent
+        frac, zeta: params for GD
+        n: num of iterations until solution
+        max_best_fidelity: fidelity of best guess
+        max_best_angles: angle settings corresponding to best guess
+        best_pred_rho: best guess at density matrix
+        targ_rho: target density matrix
     '''
 
     # set zeta to be more aggressive for C based on tuning
