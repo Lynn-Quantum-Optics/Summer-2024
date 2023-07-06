@@ -103,5 +103,5 @@ def alec_decompose(targ_rho, targ_name = 'Test',zeta=.7, frac=0.1, N = 1000, eps
 
 if __name__=='__main__':
     targ = get_E1(np.pi/4, np.pi/2)
-    targ_name = 'E1_60_90'
+    targ_name = 'E1_45_90'
     alec_decompose(targ, targ_name, verbose=True)
