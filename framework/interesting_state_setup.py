@@ -22,8 +22,8 @@ any angle between 45 to 90 degrees is ok, in first octant between 0 and 45 degre
 the octant alternate between flipping and not flipping
 
 angles for full tomography:
-    QP: -13 degrees
-    UVHWP: 60.62731 degrees
+    QP: -20 degrees
+    UVHWP: 60.16582 degrees
 
 Results:
     theoretical rho:
@@ -37,6 +37,18 @@ Results:
     [-0.00768909 - 0.00967013i  0.71380471  0.2080949 - 0.37910358i -0.01783937 - 0.0212087i]
     [-0.00622985 - 0.01479892i  0.208949 + 0.37910358i  0.27767032  -0.0075087 - 0.01341226i]
     [-0.00957832 - 0.0015256i   -0.01783937 + 0.0212087i    -0.0075087 + 0.01341226i    0.00458486]
+
+    new exp rho:
+    RHO
+    ---
+    [[ 0.00468262+0.j         -0.02298898+0.00989265j  0.00953237+0.01825194j
+    -0.00841357-0.00810226j]
+    [-0.02298898-0.00989265j  0.70648134+0.j         -0.29334017-0.3166438j
+    -0.02279506-0.02822054j]
+    [ 0.00953237-0.01825194j -0.29334017+0.3166438j   0.28363312+0.j
+    0.00928785-0.00978311j]
+    [-0.00841357+0.00810226j -0.02279506+0.02822054j  0.00928785+0.00978311j
+    0.00520291+0.j        ]]
 
     uncertainty for diagonals:
     0.00470298 for all entries
@@ -86,7 +98,7 @@ def get_params(alpha, beta):
     theta = math.acos(math.sqrt((1+math.cos(beta)*math.sin(2*alpha))/2))
 
     # find angles b and u, which determine the angle Bob's measurement waveplates should be oriented
-    phi = phi + np.pi
+    # phi = phi + np.pi
     b = np.pi/4
     u = (phi + np.pi)/2
 
@@ -101,7 +113,6 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     '''
     Performs a QP sweep to determine the angle that the QP needs to be set at for state creation. Finds the angle that minimizes counts.
     '''
-
 
     # set the output file for manager
     m.new_output(f"QP_sweep_{HWP_angle}_{QWP_angle}.csv")
@@ -141,7 +152,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle):
     
     # creates a new data set of counts centered around the previous sweep's minimum data point
     new_guess = data["C_QP"][min_ind]
-    RANGE = 4
+    RANGE = 5
 
     # finds the new minimum and maximum indices of the truncated data set
     min_bound = 0
@@ -239,9 +250,9 @@ def UVHWP_sweep(m:Manager, ratio):
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
     m.shutdown()
 
-    args1, unc1 = analysis.fit('sin2', data1.C_UV_HWP, data1.C4, data1.C4_sem)
-    args2, unc2 = analysis.fit('sin2', data2.C_UV_HWP, data2.C4, data2.C4_sem)
-    x = analysis.find_ratio('sin2', args1, 'sin2', args2, PCT1, data1.C_UV_HWP, GUESS)
+    args1, unc1 = analysis.fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_sem)
+    args2, unc2 = analysis.fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_sem)
+    x = analysis.find_ratio('sin2_sq', args1, 'sin2_sq', args2, PCT1, data1.C_UV_HWP, GUESS)
 
     # print result
     print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({(1-PCT1)*100:.2f}% coincidences): {x:.5f}')
@@ -252,8 +263,8 @@ def UVHWP_sweep(m:Manager, ratio):
     plt.ylabel(f'Count rates (#/s)')
     plt.errorbar(data1.C_UV_HWP, data1.C4, yerr=data1.C4_sem, fmt='o', label=BASIS1)
     plt.errorbar(data2.C_UV_HWP, data2.C4, yerr=data2.C4_sem, fmt='o', label=BASIS2)
-    analysis.plot_func('sin2', args1, data1.C_UV_HWP, label=f'{BASIS1} fit function')
-    analysis.plot_func('sin2', args2, data2.C_UV_HWP, label=f'{BASIS2} fit function')
+    analysis.plot_func('sin2_sq', args1, data1.C_UV_HWP, label=f'{BASIS1} fit function')
+    analysis.plot_func('sin2_sq', args2, data2.C_UV_HWP, label=f'{BASIS2} fit function')
     plt.legend()
     plt.show()
 
@@ -277,8 +288,10 @@ def get_rho(alpha, beta):
 if __name__ == '__main__':
 
     # read user input to determine preset angles for state in radians
-    alpha = float(input("Alpha = "))
-    beta = float(input("Beta = "))
+    alpha = math.pi/6
+    # float(input("Alpha = "))
+    beta = math.pi/3
+    # float(input("Beta = "))
 
     """
     Error in measurement HWP and QWP angle settings. Double check all angle calculations.
@@ -292,7 +305,7 @@ if __name__ == '__main__':
 
     m = Manager()
 
-    QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
+    # QP_sweep(m,meas_HWP_angle,meas_QWP_angle)
 
     """
     If the minimum is 0, we need to compare it to other plot to see the counts to see if the counts are the same as another minimum since 0 is always
@@ -304,11 +317,7 @@ if __name__ == '__main__':
     diagonal elements should be very close to one another, off diagonals will be close but with a smaller magnitude (around 95% of the value), if diagonals are 0
     they might be nonzero
     """
+    m.C_QP.goto(-20)
 
-    # UVHWP_sweep(m, HH_frac)
+    UVHWP_sweep(m, HH_frac)
 
-
-
-
-
-    
