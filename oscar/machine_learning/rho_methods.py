@@ -260,8 +260,14 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
     if expt_purity is not None:
-        p = 1 - expt_purity
-        rho = (1-p)*rho + p*np.eye(4)/4
+        rho_0_ad = rho.copy() # get rho but set off diagonals to 0
+        rho_0_ad[1,2] = 0
+        rho_0_ad[2,1] = 0
+        rho = expt_purity * rho + (1 - expt_purity) *rho_0_ad
+
+        # # adjust only antidiagonals
+        # rho[1,2] = expt_purity*rho[1,2]
+        # rho[2,1] = expt_purity*rho[2,1]
 
     if do_stokes:
         expec_vals = get_expec_vals(rho)
