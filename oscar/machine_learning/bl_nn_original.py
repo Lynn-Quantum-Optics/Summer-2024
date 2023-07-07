@@ -64,8 +64,6 @@ def witness_loss_fn(y_true, y_pred):
 
     print(y_true, y_true.shape)
     print(y_pred, y_pred.shape)
-
-    batchsize = y_true.shape[0]
     
     
     # making y_pred 1 output when evaluating loss
@@ -186,7 +184,7 @@ this is a pretty big dataset but this technique can still be pretty useful
 # data_5 = 'all_qual_20000_4.csv'
 # data_6 = 'all_qual_20000_5.csv'
 
-data_method0 = 'random_gen/data/hurwitz_True_4400000_b0_method_0.csv'
+data_method0 = 'random_gen/data/roik_True_4000000_tv.csv'
 df= pd.read_csv(data_method0)
 df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))].reset_index()
 
@@ -242,9 +240,10 @@ model.fit(X,y, epochs=100)
 
 
 # # # serialize model to JSON
-model_json = model.to_json()
-with open("model_qual_v3.json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-model.save_weights("model_qual_v3.h5")
-print("Saved model to disk")
+# model_json = model.to_json()
+# with open("model_qual_v3.json", "w") as json_file:
+#     json_file.write(model_json)
+# # serialize weights to HDF5
+# model.save_weights("model_qual_v3.h5")
+# print("Saved model to disk")
+model.save('bl_r4.h5')
