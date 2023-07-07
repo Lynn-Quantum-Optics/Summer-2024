@@ -221,7 +221,7 @@ models = tuner.get_best_models(num_models=2)
 best_hps = tuner.get_best_hyperparameters(2)
 model = get_model(best_hps[0])
 
-model.fit(X,y, epochs=100)
+model.fit(X,y, epochs=50)
 
 
 
@@ -240,10 +240,10 @@ model.fit(X,y, epochs=100)
 
 
 # # # serialize model to JSON
-# model_json = model.to_json()
-# with open("model_qual_v3.json", "w") as json_file:
-#     json_file.write(model_json)
-# # serialize weights to HDF5
-# model.save_weights("model_qual_v3.h5")
-# print("Saved model to disk")
-model.save('bl_r4.h5')
+model_json = model.to_json()
+with open("model_qual_v3.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model_qual_v3.h5")
+print("Saved model to disk")
+# model.save('bl_r4.h5')

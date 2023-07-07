@@ -65,7 +65,7 @@ def train_nn1h():
     def build_model(size, learning_rate):
         model = Sequential()
 
-        model.add(layers.Dense(size))
+        model.add(layers.Dense(size, activation='relu'))
 
         # return len of class size
         model.add(layers.Dense(len(Y_train[0])))
@@ -96,9 +96,9 @@ def train_nn3h():
     def build_model(size1, size2, size3, learning_rate):
         model = Sequential()
 
-        model.add(layers.Dense(size1))
-        model.add(layers.Dense(size2))
-        model.add(layers.Dense(size3))
+        model.add(layers.Dense(size1, activation='relu'))
+        model.add(layers.Dense(size2, activation='relu'))
+        model.add(layers.Dense(size3, activation='relu'))
 
         # model.add(layers.Dropout(dropout))
 
@@ -131,11 +131,11 @@ def train_nn5h():
     def build_model(size1, size2, size3, size4, size5, learning_rate):
         model = Sequential()
 
-        model.add(layers.Dense(size1))
-        model.add(layers.Dense(size2))
-        model.add(layers.Dense(size3))
-        model.add(layers.Dense(size4))
-        model.add(layers.Dense(size5))
+        model.add(layers.Dense(size1, activation='relu'))
+        model.add(layers.Dense(size2, activation='relu'))
+        model.add(layers.Dense(size3, activation='relu'))
+        model.add(layers.Dense(size4, activation='relu'))
+        model.add(layers.Dense(size5, activation='relu'))
 
         # model.add(layers.Dropout(dropout))
 
