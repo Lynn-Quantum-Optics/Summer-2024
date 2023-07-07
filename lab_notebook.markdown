@@ -1,3 +1,16 @@
+## 7/6/23
+MP: O
+Started warming up laser at 17:52. At 22:28 started collecting data; running QP angle vs phi from -45 to 0; will use to inform QP rot sweep of HH and VV. 
+
+Seems like  sweeping -45 to 0 reveals there are several regions which give us full 0 - 360 coverage, so running HH VV sweep wrt HH, HV, VH, VV basis over -45 to 0. I'm thinking we could sweep over negative angles for QP in InstaQ since it's more compact, so should have higher count rates; did 5x1 measurement. Problem is 
+
+Getting occasional error in sweep: 
+    raise RuntimeError(f'Sent instruction "{self._addr+inst+data}" to {self} expecting response length {require_resp_len} but got response {resp} (length={len(resp)})')
+    RuntimeError: Sent instruction "b'Bma0001FB24'" to ElliptecMotor-C_QP expecting response length 11 but got response b'BGS0A' (length=5)
+Just CNTRL-C + reload seemed to work. Also found that instatiating new manager obj for each configuration of state made this issue go away.
+
+After plotting, max HH and VV in HH and VV basis realized low counts; problem was didn't set measurement basis correctly; 3000 counts now for HH in HH, yay! Accidentally had the wrong sweep angles, so had to run again :(
+
 ## 7/5/23
 MP: A
 Started warming up the laser at 0823.
