@@ -53,20 +53,19 @@ def det_qp_phi():
     print('len of data', len(df[df['QP']<38.3]))
 
     # plot data #
-    fig, ax = plt.subplots(2, 1, figsize=(10,7),sharex=True)
+    fig, ax = plt.subplots(2, 2, figsize=(10,7))
 
     # convert all angles to radians #
     QP_vals_a = np.deg2rad(df['QP'].to_numpy())
     phi_vals_a = np.deg2rad(df['phi'].to_numpy())
     phi_err_a= np.deg2rad(df['unc'].to_numpy())
 
-    # restrict fit where phi goes from 0 to 2 pi
-    phi_vals = phi_vals_a[phi_vals_a < 2*np.pi]
-    QP_vals = QP_vals_a[phi_vals_a < 2*np.pi]
-    phi_err = phi_err_a[phi_vals_a < 2*np.pi]
+    # restrict fit where phi goes from 0 to 2 pi plus offset of whatver 0 is
+    phi_vals = phi_vals_a[phi_vals_a < (2*np.pi + phi_vals_a[0])]
+    QP_vals = QP_vals_a[phi_vals_a < (2*np.pi + phi_vals_a[0])]
+    phi_err = phi_err_a[phi_vals_a < (2*np.pi + phi_vals_a[0])]
 
-
-    ax[0].errorbar(QP_vals, phi_vals, yerr=phi_err, fmt='o')
+    ax[0,0].errorbar(QP_vals, phi_vals, yerr=phi_err, fmt='o')
 
     # fitting function #
     def fit(x, a, b, c, d, e, f, g,h, i, j):
@@ -76,12 +75,12 @@ def det_qp_phi():
     popt, pcov = curve_fit(fit, QP_vals, phi_vals, sigma=phi_err)
     phi_ls = np.linspace(min(QP_vals), max(QP_vals), 1000)
     # ax[0].plot(phi_ls, fit(phi_ls, *popt))
-    ax[0].plot(phi_ls, fit(phi_ls, *popt))
+    ax[0,0].plot(phi_ls, fit(phi_ls, *popt))
     print('$%.3g / \cos(\\theta) + %.3g \\theta^8 + %.3g \\theta^7 + %.3g \\theta^6 + %.3g \\theta^5 + %.3g \\theta^4 + %.3g \\theta^3 + %.3g \\theta^2 + %.3g \\theta + %.3g$'%(popt[0], popt[1], popt[2], popt[3], popt[4], popt[5], popt[6], popt[7], popt[8], popt[9]))
     print(popt)
 
-    ax[0].set_ylabel('Phi (rad)')
-    ax[0].set_title('Phi vs QP rotation')
+    ax[0,0].set_ylabel('Phi (rad)')
+    ax[0,0].set_title('Phi vs QP rotation')
     # ax[0].legend()
 
     # print fit parameters #
@@ -100,12 +99,31 @@ def det_qp_phi():
     print('percent within 1 sigma', num_1sig / len(norm_resid))
 
     # plot norm residuals #
-    ax[1].errorbar(QP_vals, norm_resid, yerr=phi_err, fmt='o')
-    ax[1].plot(phi_ls, np.zeros(len(phi_ls)), 'k--')
+    ax[0,1].errorbar(QP_vals, norm_resid, yerr=phi_err, fmt='o')
+    ax[0,1].plot(phi_ls, np.zeros(len(phi_ls)), 'k--')
 
-    ax[1].set_xlabel('QP rotation (rad)')
-    ax[1].set_ylabel('Normalized Residuals')
-    ax[1].set_title('Normalized residuals, $\chi^2_\\nu = %.3g$'%chi2red)
+    ax[0,1].set_xlabel('QP rotation (rad)')
+    ax[0,1].set_ylabel('Normalized Residuals')
+    ax[0,1].set_title('Normalized residuals, $\chi^2_\\nu = %.3g$'%chi2red)
+
+    # plot negaitve QP rot #
+    df_neg = pd.read_csv('../../framework/qp_phi_sweep_neg.csv')
+    QP_vals_neg_a = np.deg2rad(df_neg['QP'].to_numpy())
+    phi_vals_neg_a = np.deg2rad(df_neg['phi'].to_numpy()) 
+    phi_err_neg_a = np.deg2rad(df_neg['unc'].to_numpy())
+
+    # stitch together #
+    # phi_vals_neg_a = np.concatenate([(phi_vals_a[QP_vals_neg_a <= -0.432]+min(phi_vals_neg_a[QP_vals_neg_a > -0.432])*np.ones_like(phi_vals_a[QP_vals_neg_a <= -0.432])), phi_vals_neg_a[QP_vals_neg_a > -0.432]])
+    phi_vals_neg_p  =phi_vals_neg_a[phi_vals_neg_a >= 2* np.pi]
+    phi_vals_neg_n  =phi_vals_neg_a[phi_vals_neg_a < 2* np.pi]
+    
+    # phi_vals_neg_a = phi_vals_neg_a %(2*np.pi)
+
+    phi_vals_neg = phi_vals_neg_a[phi_vals_neg_a < (2*np.pi + phi_vals_neg_a[-1])]
+    QP_vals_neg = QP_vals_neg_a[phi_vals_neg_a < (2*np.pi + phi_vals_neg_a[-1])]
+    phi_err_neg = phi_err_neg_a[phi_vals_neg_a < (2*np.pi + phi_vals_neg_a[-1])]
+
+    ax[1,0].errorbar(QP_vals_neg, phi_vals_neg, yerr=phi_err_neg, fmt='o')
 
     plt.suptitle('Comparison of QP rotation to theoretical phi')
     plt.savefig(join('jones_fit_data', 'qp_phi.pdf'))
@@ -126,48 +144,141 @@ def hh_vv_qp_sweep():
 
     # plot data #
     # plt.plot(angles, vv_counts / hh_counts, 'o', label='VV / HH')
-    fig, ax = plt.subplots(1, 3, figsize=(15,5),sharex=True)
-    ax[0].errorbar(angles, vv_counts, yerr = vv_unc, fmt='o',label='VV')
-    ax[0].errorbar(angles, hh_counts, yerr = hh_unc, fmt='o', label='HH')
-    ax[0].set_xlabel('QP rotation (deg)')
-    ax[0].set_ylabel('Counts (#/s)')
-    ax[0].set_title('Counts vs QP rotation')
-    ax[0].legend()
+    fig, ax = plt.subplots(2, 3, figsize=(15,5))
+    ax[0,0].errorbar(angles, vv_counts, yerr = vv_unc, fmt='o',label='VV')
+    ax[0,0].errorbar(angles, hh_counts, yerr = hh_unc, fmt='o', label='HH')
+    ax[0,0].set_ylabel('Counts (#/s)')
+    ax[0,0].set_title('Counts vs QP rotation')
+    ax[0,0].legend()
 
-    vv_hh_unc = np.sqrt((vv_unc / hh_counts)**2 + (hh_unc * vv_counts / hh_counts**2)**2)
-    ax[1].errorbar(angles, vv_counts / hh_counts, yerr=vv_hh_unc, fmt='o')
+    vv_hh_f_unc = np.sqrt(( vv_unc / (hh_counts+vv_counts)*(vv_counts * vv_unc) / (hh_counts + vv_counts)**2)**2 + (hh_unc * vv_counts / (hh_counts + vv_counts)**2)**2)
+
+    ax[0,1].errorbar(angles, vv_counts / (hh_counts+vv_counts), yerr=vv_hh_f_unc, fmt='o')
 
     # fit data #
     def func(x, a, b):
         return a*x + b
     
-    popt, pcov = curve_fit(func, angles, vv_counts / hh_counts, sigma=vv_hh_unc, absolute_sigma=True)
+    popt, pcov = curve_fit(func, angles, vv_counts / (hh_counts + vv_counts), sigma=vv_hh_f_unc, absolute_sigma=True)
     angles_ls = np.linspace(min(angles), max(angles), 1000)
-    ax[1].plot(angles_ls, func(angles_ls, *popt), label='%.3g \\theta_{QP} + %.3g'%(popt[0], popt[1]))
-    ax[1].set_xlabel('QP rotation (deg)')
-    ax[1].set_ylabel('VV / HH')
-    ax[1].set_title('VV / HH vs QP rotation')
-    ax[1].legend()
+    ax[0,1].plot(angles_ls, func(angles_ls, *popt), label='$%.3g \\theta_{QP} + %.3g$'%(popt[0], popt[1]))
+    ax[0,1].set_ylabel('$\\frac{VV}{HH + VV}$')
+    ax[0,1].set_title('$\\frac{VV}{HH + VV}$ vs QP rotation')
+    ax[0,1].legend()
 
     print('a', popt[0], np.sqrt(np.diag(pcov))[0])
     print('b', popt[1], np.sqrt(np.diag(pcov))[1])
 
-
     # residuals #
-    norm_resid = (vv_counts / hh_counts - func(angles, *popt)) / vv_hh_unc
+    norm_resid = (vv_counts / (hh_counts+vv_counts) - func(angles, *popt)) / vv_hh_f_unc
     chi2 = np.sum(norm_resid**2)
     chi2red = chi2 / (len(angles) - len(popt))
 
-    ax[2].errorbar(angles, norm_resid, yerr=np.ones_like(norm_resid), fmt='o')
-    ax[2].plot(angles_ls, np.zeros(len(angles_ls)), 'k--')
-    ax[2].set_ylabel('Normalized Residuals')
-    ax[2].set_xlabel('QP rotation (deg)')
-    ax[2].set_title('$\chi^2_\\nu = %.3g$'%chi2red)
+    ax[0,2].errorbar(angles, norm_resid, yerr=np.ones_like(norm_resid), fmt='o')
+    ax[0,2].plot(angles_ls, np.zeros(len(angles_ls)), 'k--')
+    ax[0,2].set_ylabel('Normalized Residuals')
+    ax[0,2].set_title('$\chi^2_\\nu = %.3g$'%chi2red)
 
+    # do for negtive QP rot #
+    hh_hh_df = pd.read_csv('../../framework/decomp_test/HH_HH_5_-45_0.csv')
+    hh_hv_df = pd.read_csv('../../framework/decomp_test/HH_HV_5_-45_0.csv')
+    hh_vh_df = pd.read_csv('../../framework/decomp_test/HH_VH_5_-45_0.csv')
+    hh_vv_df = pd.read_csv('../../framework/decomp_test/HH_VV_5_-45_0.csv')
+    vv_hh_df = pd.read_csv('../../framework/decomp_test/VV_HH_5_-45_0.csv')
+    vv_hv_df = pd.read_csv('../../framework/decomp_test/VV_HV_5_-45_0.csv')
+    vv_vh_df = pd.read_csv('../../framework/decomp_test/VV_VH_5_-45_0.csv')
+    vv_vv_df = pd.read_csv('../../framework/decomp_test/VV_VV_5_-45_0.csv')
+
+    hh_hh_counts = hh_hh_df['C4 rate (#/s)'].to_numpy()
+    hh_hh_unc = hh_hh_df['C4 rate SEM (#/s)'].to_numpy()
+    hh_hv_counts = hh_hv_df['C4 rate (#/s)'].to_numpy()
+    hh_hv_unc = hh_hv_df['C4 rate SEM (#/s)'].to_numpy()
+    hh_vh_counts = hh_vh_df['C4 rate (#/s)'].to_numpy()
+    hh_vh_unc = hh_vh_df['C4 rate SEM (#/s)'].to_numpy()
+    hh_vv_counts = hh_vv_df['C4 rate (#/s)'].to_numpy()
+    hh_vv_unc = hh_vv_df['C4 rate SEM (#/s)'].to_numpy()
+    vv_hh_counts = vv_hh_df['C4 rate (#/s)'].to_numpy()
+    vv_hh_unc = vv_hh_df['C4 rate SEM (#/s)'].to_numpy()
+    vv_hv_counts = vv_hv_df['C4 rate (#/s)'].to_numpy()
+    vv_hv_unc = vv_hv_df['C4 rate SEM (#/s)'].to_numpy()
+    vv_vh_counts = vv_vh_df['C4 rate (#/s)'].to_numpy()
+    vv_vh_unc = vv_vh_df['C4 rate SEM (#/s)'].to_numpy()
+    vv_vv_counts = vv_vv_df['C4 rate (#/s)'].to_numpy()
+    vv_vv_unc = vv_vv_df['C4 rate SEM (#/s)'].to_numpy()
+
+    angles_o = hh_hh_df['C_QP position (deg)'].to_numpy()
+    angles = angles_o[(angles_o >= 315) & (angles_o <=360)]
+    hh_hh_counts = hh_hh_counts[(angles_o >= 315) & (angles_o <=360)]
+    hh_hh_unc = hh_hh_unc[(angles_o >= 315) & (angles_o <=360)]
+    hh_hv_counts = hh_hv_counts[(angles_o >= 315) & (angles_o <=360)]
+    hh_hv_unc = hh_hv_unc[(angles_o >= 315) & (angles_o <=360)]
+    hh_vh_counts = hh_vh_counts[(angles_o >= 315) & (angles_o <=360)]
+    hh_vh_unc = hh_vh_unc[(angles_o >= 315) & (angles_o <=360)]
+    hh_vv_counts = hh_vv_counts[(angles_o >= 315) & (angles_o <=360)]
+    hh_vv_unc = hh_vv_unc[(angles_o >= 315) & (angles_o <=360)]
+    vv_hh_counts = vv_hh_counts[(angles_o >= 315) & (angles_o <=360)]
+    vv_hh_unc = vv_hh_unc[(angles_o >= 315) & (angles_o <=360)]
+    vv_hv_counts = vv_hv_counts[(angles_o >= 315) & (angles_o <=360)]
+    vv_hv_unc = vv_hv_unc[(angles_o >= 315) & (angles_o <=360)]
+    vv_vh_counts = vv_vh_counts[(angles_o >= 315) & (angles_o <=360)]
+    vv_vh_unc = vv_vh_unc[(angles_o >= 315) & (angles_o <=360)]
+    vv_vv_counts = vv_vv_counts[(angles_o >= 315) & (angles_o <=360)]
+    vv_vv_unc = vv_vv_unc[(angles_o >= 315) & (angles_o <=360)]
+
+    # plot data #
+    ax[1,0].errorbar(angles, vv_vv_counts, yerr = vv_vv_unc, fmt='o',label='VV')
+    ax[1,0].errorbar(angles, hh_hh_counts, yerr = hh_hh_unc, fmt='o', label='HH')
+    # ax[1,0].set_xlim(315, 360)
+    ax[1,0].set_xlabel('QP rotation (deg)')
+    ax[1,0].set_ylabel('Counts (#/s)')
+    ax[1,0].legend()
+
+    hh_vv_f_unc = np.sqrt(( hh_hh_unc / (hh_hh_counts+vv_vv_counts)*(vv_vv_counts * hh_hh_unc) / (hh_hh_counts + vv_vv_counts)**2)**2 + (vv_vv_unc * hh_hh_counts / (hh_hh_counts + vv_vv_counts)**2)**2)
+    
+    ax[1,1].errorbar(angles, vv_vv_counts / (hh_hh_counts+vv_vv_counts), yerr=hh_vv_f_unc, fmt='o', label='VV')
+
+    # fit #
+    popt, pcov = curve_fit(func, angles, vv_vv_counts / (hh_hh_counts+vv_vv_counts), sigma=hh_vv_f_unc, absolute_sigma=True)
+
+    angles_ls = np.linspace(315, 360, 1000)
+    ax[1,1].plot(angles_ls, func(angles_ls, *popt), label='$%.3g \\theta_{QP} + %.3g$'%(popt[0], popt[1]))
+    # ax[1,1].set_xlim(315, 360)
+    ax[1,1].set_xlabel('QP rotation (deg)')
+    ax[1,1].set_ylabel('$\\frac{VV}{HH + VV}$')
+    ax[1,1].legend()
+
+    # get chi2_red #
+    norm_resid = (vv_vv_counts / (hh_hh_counts+vv_vv_counts) - func(angles, *popt)) / hh_vv_f_unc
+    chi2red = np.sum(norm_resid**2) / (len(angles) - len(popt))
+
+    ax[1,2].errorbar(angles, norm_resid, yerr=np.ones_like(norm_resid), fmt='o')
+    ax[1,2].plot(angles_ls, np.zeros(len(angles_ls)), 'k--')
+    ax[1,2].set_title('$\chi^2_\\nu = %.3g$'%chi2red)
+    # ax[1,2].set_xlim(315, 360)
+    ax[1,2].set_ylabel('Normalized Residuals')
+    ax[1,2].set_xlabel('QP rotation (deg)')
+    
     plt.suptitle('HH and VV counts vs QP rotation')
     plt.tight_layout()
     plt.savefig('jones_fit_data/hh_vv_qp_sweep_20.pdf')
     plt.show()
 
+    # plot individual components #
+    plt.figure(figsize=(10,7))
+    plt.errorbar(angles, hh_hv_counts, yerr = hh_hv_unc, fmt='o',label='HH, HV')
+    plt.errorbar(angles, hh_vh_counts, yerr = hh_hh_unc, fmt='o', label='HH, VH')
+    plt.errorbar(angles, hh_vv_counts, yerr = hh_vv_unc, fmt='o', label='HH, VV')
+    plt.errorbar(angles, vv_hh_counts, yerr = vv_hh_unc, fmt='o',label='VV, HH')
+    plt.errorbar(angles, vv_hv_counts, yerr = vv_hv_unc, fmt='o', label='VV, HV')
+    plt.errorbar(angles, vv_vh_counts, yerr = vv_vh_unc, fmt='o', label='VV, VH')
+    plt.legend()
+    plt.xlim(315, 360)
+    plt.xlabel('QP rotation (deg)')
+    plt.ylabel('Counts (#/s)')
+    plt.title('Other bases for HH, VV states')
+    plt.savefig('jones_fit_data/qp_sweep_extra_components.pdf')
+    plt.show()
+
 if __name__=='__main__':
     hh_vv_qp_sweep()
+    # det_qp_phi()

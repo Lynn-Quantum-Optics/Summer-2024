@@ -2,7 +2,7 @@
 
 import wandb
 import numpy as np
-from xgboost import XGBClassifier
+from xgboost import XGBRegressor
 from keras import layers
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
@@ -20,7 +20,7 @@ def train_xgb():
     wandb.init(config=xgb_sweep_config) # initialize wandb client
 
     # define the model
-    model = XGBClassifier(
+    model = XGBRegressor(
         max_depth=wandb.config.max_depth,
         learning_rate=wandb.config.learning_rate,
         n_estimators=wandb.config.n_estimators,
@@ -41,7 +41,7 @@ def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, lear
         data: 'train' or 'test' for which data to evaluate on
     '''
     # define the model
-    model = XGBClassifier(
+    model = XGBRegressor(
         max_depth=max_depth,
         learning_rate=learning_rate,
         n_estimators= n_estimators,
@@ -69,10 +69,10 @@ def train_nn1h():
 
         # return len of class size
         model.add(layers.Dense(len(Y_train[0])))
-        model.add(layers.Activation('softmax'))
+        model.add(layers.Activation('sigmoid'))
 
         optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
 
         return model
     
@@ -104,10 +104,10 @@ def train_nn3h():
 
         # return len of class size
         model.add(layers.Dense(len(Y_train[0])))
-        model.add(layers.Activation('softmax'))
+        model.add(layers.Activation('sigmoid'))
 
         optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
 
         return model
     
@@ -141,10 +141,10 @@ def train_nn5h():
 
         # return len of class size
         model.add(layers.Dense(len(Y_train[0])))
-        model.add(layers.Activation('softmax'))
+        model.add(layers.Activation('sigmoid'))
 
         optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
 
         return model
     
