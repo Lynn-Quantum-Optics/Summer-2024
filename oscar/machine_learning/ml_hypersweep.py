@@ -72,7 +72,7 @@ def train_nn1h():
         model.add(layers.Activation('softmax'))
 
         optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
-        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy')
 
         return model
     
@@ -107,7 +107,7 @@ def train_nn3h():
         model.add(layers.Activation('softmax'))
 
         optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
-        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy')
 
         return model
     
@@ -144,7 +144,7 @@ def train_nn5h():
         model.add(layers.Activation('softmax'))
 
         optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
-        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy')
 
         return model
     

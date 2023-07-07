@@ -290,10 +290,11 @@ def make_plots_E0(dfname):
     ax[0,0].errorbar(chi_45, Wp_expt_45, yerr = Wp_unc_45, fmt='s', color='salmon')
 
     ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_W_T_45), color='navy', label="$W_{T}$")
-    ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_T_45), color='crimson', label="$W_{T}'$")
     ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_W_AT_45), linestyle='dashed', color='blue', label="$W_{AT}$")
-    ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_AT_45), linestyle='dashed', color='red', label="$W_{AT}'$")
     ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_W_expt_45), linestyle='dashdot', color='slateblue', label="$W_{expt}$")
+
+    ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_T_45), color='crimson', label="$W_{T}'$")
+    ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_AT_45), linestyle='dashed', color='red', label="$W_{AT}'$")
     ax[0,0].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_expt_45), linestyle='dashdot', color='salmon', label="$W_{expt}'$")
 
 
@@ -319,10 +320,11 @@ def make_plots_E0(dfname):
     popt_E0_Wp_expt_60, pcov_E0_Wp_expt_60 = curve_fit(sinsq2, chi_60, Wp_expt_60, sigma=Wp_unc_60, absolute_sigma=True)
 
     ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_W_T_60), color='navy', label='$W_T$')
-    ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_T_60), color='crimson', label="$W_T'$")
     ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_W_AT_60), linestyle='dashed', color='blue', label='$W_{AT}$')
-    ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_AT_60), linestyle='dashed', color='red', label="$W_{AT}$'")
     ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_W_expt_60), linestyle='dashdot', color='slateblue', label='$W_{expt}$')
+
+    ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_T_60), color='crimson', label="$W_T'$")
+    ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_AT_60), linestyle='dashed', color='red', label="$W_{AT}$'")
     ax[0,1].plot(chi_ls, sinsq2(chi_ls, *popt_E0_Wp_expt_60), linestyle='dashdot',color='salmon', label="$W_{expt}'$")
 
     ax[0,1].set_ylabel('$W$')
@@ -430,17 +432,17 @@ if __name__ == '__main__':
     # filenames = filenames_45 + filenames_60
 
     ## old ##
-    filenames_45 = ["rho_('E0', (45.0, 0.0))_20.npy", "rho_('E0', (45.0, 18.0))_20.npy", "rho_('E0', (45.0, 36.0))_20.npy", "rho_('E0', (45.0, 54.0))_20.npy", "rho_('E0', (45.0, 72.0))_20.npy", "rho_('E0', (45.0, 90.0))_20.npy"]
-    filenames_60= ["rho_('E0', (59.99999999999999, 0.0))_22.npy", "rho_('E0', (59.99999999999999, 18.0))_22.npy", "rho_('E0', (59.99999999999999, 36.0))_22.npy", "rho_('E0', (59.99999999999999, 54.0))_22.npy", "rho_('E0', (59.99999999999999, 72.0))_22.npy", "rho_('E0', (59.99999999999999, 90.0))_22.npy"]
+    # filenames_45 = ["rho_('E0', (45.0, 0.0))_20.npy", "rho_('E0', (45.0, 18.0))_20.npy", "rho_('E0', (45.0, 36.0))_20.npy", "rho_('E0', (45.0, 54.0))_20.npy", "rho_('E0', (45.0, 72.0))_20.npy", "rho_('E0', (45.0, 90.0))_20.npy"]
+    # filenames_60= ["rho_('E0', (59.99999999999999, 0.0))_22.npy", "rho_('E0', (59.99999999999999, 18.0))_22.npy", "rho_('E0', (59.99999999999999, 36.0))_22.npy", "rho_('E0', (59.99999999999999, 54.0))_22.npy", "rho_('E0', (59.99999999999999, 72.0))_22.npy", "rho_('E0', (59.99999999999999, 90.0))_22.npy"]
 
-    filenames = filenames_45 + filenames_60
+    # filenames = filenames_45 + filenames_60
 
-    settings_45 = [[45.0,13.107759739471968,45.0], [40.325617881787,32.45243475604995,45.0], [35.319692011068646,32.80847131578413,45.0], [29.99386625322187,32.59712114540248,45.0], [26.353505137451158,32.91656908476468,44.71253931908844], [20.765759133476752,32.763298596034836,45.0]]
-    settings_60 = [[36.80717351236577,38.298986094951985,45.0], [35.64037134135345,36.377936778443754,44.99999], [32.421520781235735,35.46619180422062,44.99998], [28.842682522467676,34.97796909446873,44.61235], [25.8177216842833,34.72228985431089,44.74163766], [21.614459228879422,34.622127766985436,44.9666]]
-    settings = settings_45 + settings_60
+    # settings_45 = [[45.0,13.107759739471968,45.0], [40.325617881787,32.45243475604995,45.0], [35.319692011068646,32.80847131578413,45.0], [29.99386625322187,32.59712114540248,45.0], [26.353505137451158,32.91656908476468,44.71253931908844], [20.765759133476752,32.763298596034836,45.0]]
+    # settings_60 = [[36.80717351236577,38.298986094951985,45.0], [35.64037134135345,36.377936778443754,44.99999], [32.421520781235735,35.46619180422062,44.99998], [28.842682522467676,34.97796909446873,44.61235], [25.8177216842833,34.72228985431089,44.74163766], [21.614459228879422,34.622127766985436,44.9666]]
+    # settings = settings_45 + settings_60
     # analyze rho files
     # analyze_rhos(filenames, settings=settings,id='a')
 
-    make_plots_E0('rho_analysis_a.csv')
+    make_plots_E0('rho_analysis_fita.csv')
 
     # get_rho_from_file_depricated("rho_('PhiP',)_19.npy", PhiP)
