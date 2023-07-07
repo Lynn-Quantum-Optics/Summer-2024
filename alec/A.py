@@ -14,6 +14,14 @@ def random_prob_vector_uniform(dim):
     x = x / np.sum(x)
     return x
 
+def random_prob_vector_stick_method(dim):
+    x = np.random.rand(dim-1)
+    x = np.sort(x)
+    x = np.append(x, 1)
+    x = np.append(0, x)
+    x = np.diff(x)
+    return x
+
 # generate a bunch of pvs using that function
 
 N = 10000
@@ -22,8 +30,9 @@ pvs = np.array([
     [random_prob_vector_gaussian(3) for _ in range(N)],
     [random_prob_vector_uniform(3) for _ in range(N)],
     [random_prob_vector(3) for _ in range(N)],
+    [random_prob_vector_stick_method(3) for _ in range(N)],
 ])
-names = ['Gaussian', 'Uniform', 'Fair']
+names = ['Gaussian', 'Uniform', 'Fair', 'Stick']
 
 for n, data in zip(names, pvs):
     fig = plt.figure(figsize=(8,8))
