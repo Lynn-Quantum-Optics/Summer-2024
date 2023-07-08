@@ -22,6 +22,13 @@ def random_prob_vector_stick_method(dim):
     x = np.diff(x)
     return x
 
+def random_prob_roik(dim):
+    out = []
+    for _ in range(dim):
+        out.append(np.random.rand()*(1-sum(out)))
+    np.random.shuffle(out)
+    return np.array(out)/sum(out)
+
 # generate a bunch of pvs using that function
 
 N = 10000
@@ -31,8 +38,9 @@ pvs = np.array([
     [random_prob_vector_uniform(3) for _ in range(N)],
     [random_prob_vector(3) for _ in range(N)],
     [random_prob_vector_stick_method(3) for _ in range(N)],
+    [random_prob_roik(3) for _ in range(N)],
 ])
-names = ['Gaussian', 'Uniform', 'Fair', 'Stick']
+names = ['Gaussian', 'Uniform', 'Fair', 'Stick', 'Roik']
 
 for n, data in zip(names, pvs):
     fig = plt.figure(figsize=(8,8))

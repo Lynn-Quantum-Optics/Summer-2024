@@ -17,6 +17,19 @@ def random_prob_vector(dim) -> np.ndarray:
     np.random.shuffle(vec)
     return np.array(vec)
 
+def random_prob_vector_roik(dim) -> np.ndarray:
+    ''' Generates a random vectors of evenly distributed probabilities between 0 and 1.
+    '''
+    # generate a random vector with n elements that sum to 1
+    vec = []
+    while len(vec) < dim:
+        vec.append(np.random.rand()*(1-np.sum(vec)))
+    # add last element so vector sum is unity
+    vec = np.array(vec)/np.sum(vec)
+    # randomly permute the vector
+    np.random.shuffle(vec)
+    return vec
+
 def random_unit_vector(dim:int) -> np.ndarray:
     ''' Obtain a random vector on the unit sphere. Probability distribution is uniform over the (dim-1)-dimensional surface of the unit sphere.
 
@@ -81,6 +94,7 @@ def RDM1(dim:int) -> np.ndarray:
     np.ndarray of shape (dim, dim)
         The random density matrix.
     '''
+    '''
     # generate a random unitary matrix
     U = generate_random_unitary(dim)
     # use the columns of that matrix as eigenvectors
@@ -92,7 +106,10 @@ def RDM1(dim:int) -> np.ndarray:
     for v, l in zip(eigvecs, eigvals):
         out += l * (v @ v.conj().T)
     # return the density matrix
-    return out
+    '''
+    U = generate_random_unitary(dim)
+    rho = np.diag(random_prob_vector_roik(dim))
+    return U @ rho @ U.conj().T
 
 # function to generate generalized Gell-Mann matricies
 
