@@ -1,3 +1,11 @@
+## 7/7/23
+MP: O
+Started warming up laser at 20:15. Plan is to re-take data for E0; eta fixed at 45, 60, and 22.5 degrees, sweeping chi from 0 to 90; change is using VV / (VV+HH) and HH / (VV + HH) in BBO and sweeping negative QP angles. At 22:44, started taking data using 'ertias_2_fita2.csv' in oscar/machine_learning/decomp.
+
+Trial 27: fix eta = 45, 60, 22.5 and iterate chi over 0 to 90 in 6 steps like before, but this time I've changed the calculations based on last night's fit to use negative values of QP rot. Realized making states with -chi again, since I still returned -phi in QP function in InstaQ.
+
+Trial 38: retrying with new calculations. For some reason, eta = 60 degrees results in low (~80% fidelity), which is coming from off-diagonal components: seems like imaginary components are close in mag and have correct sign, but real parts have same issue as trial 26 in terms of magnitude but also have incorrect sign. Same with eta = 22.5 degrees: magnitudes close-ish, but wrong sign on real part; magnitudes actually quite close! 0.703 vs 0.707.
+
 ## 7/6/23
 MP: O
 Started warming up laser at 17:52. At 22:28 started collecting data; running QP angle vs phi from -45 to 0; will use to inform QP rot sweep of HH and VV. 
