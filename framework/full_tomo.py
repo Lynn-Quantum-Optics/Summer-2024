@@ -156,6 +156,9 @@ def get_projections(m:Manager, samp:Tuple[int,float]) -> Tuple[np.ndarray, np.nd
     proj = np.array(proj)
     proj_unc = np.array(proj_unc)
 
+    # save unnormalized proj_unc
+    un_proj_unc = proj_unc.copy()
+
     # normalize groups of orthonormal measurements to get projections
     for i in range(0,6,2):
         for j in range(0,6,2):
@@ -164,7 +167,7 @@ def get_projections(m:Manager, samp:Tuple[int,float]) -> Tuple[np.ndarray, np.nd
             proj_unc[i:i+2, j:j+2] /= total_rate
     
     # return the projections and uncertainties
-    return proj, proj_unc
+    return proj, proj_unc, un_proj_unc
 
 def get_rho(m:Manager, samp:Tuple[int, float]) -> Tuple[np.ndarray, np.ndarray]:
     ''' Get the density matrix and uncertainty for the state that is currently configured.
@@ -183,7 +186,8 @@ def get_rho(m:Manager, samp:Tuple[int, float]) -> Tuple[np.ndarray, np.ndarray]:
     numpy.ndarray of shape (4,4)
         The uncertainty for the density matrix.
     '''
-    return reconstruct_rho(*get_projections(m, samp))
+    proj, proj_unc, un_proj_unc = get_projections(m, samp)
+    return reconstruct_rho(proj, proj_unc), un_proj_unc
 
 if __name__ == '__main__':
     SAMP = (5, 1)
