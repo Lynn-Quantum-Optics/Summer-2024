@@ -25,8 +25,6 @@ from random_gen import *
 # phi_V_PCC = (2*np.pi * d_PCC * n_e_p_qp) / l_p # phase shift for V polarization
 
 # BBO #
-def a(QP_rot): 
-    return 0.003919514737857195*np.rad2deg(QP_rot) + 1.024799049989838
 # a = 0.9143592035643862 # ratio of max HH / max VV; determined by sweeping UV_HWP
 # d_BB0 = 0.5 * 10**(-3) # thickness of BBO in m
 # def n_e_bbo(l):
@@ -68,8 +66,20 @@ s0 = np.array([[1], [0]]) # initial |0> state
 # full correction
 # def get_BBO_expt(phi)(gamma): return np.array([[0, 0, 0, a], [np.exp(1j*phi_BBO(gamma)), 0,0,0]], dtype='complex').T 
 # partial correction
-def BBO_expt(QP_rot): 
-    return np.array([[0, 0, 0, a(QP_rot)], [1, 0,0,0]], dtype='complex').T 
+
+# VV / HH on positive QP angles
+# def a(QP_rot): 
+#     return 0.003919514737857195*np.rad2deg(QP_rot) + 1.024799049989838   
+# def BBO_expt(QP_rot): 
+#     return np.array([[0, 0, 0, a(QP_rot)], [1, 0,0,0]], dtype='complex').T 
+
+# VV /(HH +VV) for negative QP angles
+def a(QP_rot, params=[1.00804849e-10, 1.24045054e+02, -3.66700073e-05, -3.72126982e+02, 6.33126695e-01]):
+    a, b, c, d, e = params
+    QP_rot = np.rad2deg(QP_rot) # convert to degrees
+    return a*QP_rot**4 + b*QP_rot**3 + c*QP_rot**2 + d*QP_rot + e
+def BBO_expt(QP_rot):
+    return np.array([[0, 0, 0, a(QP_rot)], [1-a(QP_rot), 0,0,0]], dtype='complex').T
 
 # def get_BBO_expt(phi)(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 # set angle of BBO
@@ -77,12 +87,25 @@ def BBO_expt(QP_rot):
 # def get_QP_expt(phi_a):
 #     ''' QP matrix for angle phi_a, where phi_a is the actual angle of the QP'''
 #     return np.diag([np.exp(1j*phi_H_QP(phi_a)), np.exp(1j*phi_V_QP(phi_a))])
-def get_phi(QP_rot, params = [-6.98200712e+04, 4.33971479e+03, 4.37424378e+02, 3.41720748e+03, 1.47435257e+03, 1.42317213e+04, 1.96811356e+01, 3.49254704e+04, -2.97037399e-01, 6.98202522e+04]):
-    '''Function based on fitting to Alec's QP vs phi sweep. Assumes input is in radians and outputs in radians.'''
+
+
+# for positive angles of QP #
+# def get_phi(QP_rot, params = [-6.98200712e+04, 4.33971479e+03, 4.37424378e+02, 3.41720748e+03, 1.47435257e+03, 1.42317213e+04, 1.96811356e+01, 3.49254704e+04, -2.97037399e-01, 6.98202522e+04]):
+#     '''Function based on fitting to Alec's QP vs phi sweep. Assumes input is in radians and outputs in radians.'''
+#     a, b, c, d, e, f, g, h, i, j = params
+#     phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
+#     # print('QP rot in deg', np.rad2deg(QP_rot))
+#     # print('phi in deg', np.rad2deg(phi))
+#     return -phi
+
+# for negative angles of QP #
+# bound is 0 to -0.6363 rad= -36.5 deg
+def get_phi(QP_rot, params=[-1.05971375e+04,5.25511676e+03,1.18147650e+04, 1.27410922e+04, 6.07139506e+03, 3.81757342e+03, 1.94716763e+02, 5.31934589e+03, -8.01250263e-01, 1.05975049e+04]):
+    '''Using my sweep data calculated using Alec's phi expression. Assumes input is in radians and outputs in radians.'''
+
     a, b, c, d, e, f, g, h, i, j = params
     phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
-    # print('QP rot in deg', np.rad2deg(QP_rot))
-    # print('phi in deg', np.rad2deg(phi))
+
     return -phi
 
 def get_QP_rot(phi):
@@ -297,7 +320,8 @@ def get_random_Jangles(setup='C1', expt=True):
             theta_UV = np.random.rand()*np.pi/4
             # QP
             if expt: 
-                phi = np.random.uniform(0, np.deg2rad(38.299))
+                # phi = np.random.uniform(0, np.deg2rad(38.299))
+                phi = np.random.uniform(-.6363, 0)
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -310,7 +334,8 @@ def get_random_Jangles(setup='C1', expt=True):
             theta_UV = np.random.rand()*np.pi/4
             # QP
             if expt:
-                phi = np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
+                # phi = np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
+                phi = np.random.uniform(-.6363, 0)
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -325,7 +350,8 @@ def get_random_Jangles(setup='C1', expt=True):
             theta_UV = np.random.rand()*np.pi/4
             # QP
             if expt:
-                phi =np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
+                # phi =np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
+                phi = np.random.uniform(-.6363, 0)
 
             else:
                 phi = np.random.rand()*2*np.pi
@@ -422,7 +448,8 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         H_bound = (0, np.pi/4)
         Q_bound = (0, np.pi/2)
         if expt:
-            QP_bound = (0, np.deg2rad(38.299))
+            # QP_bound = (0, np.deg2rad(38.299))
+            QP_bound = (-0.6363, 0)
         else:
             QP_bound = (0, 2*np.pi)
         if setup=='C0':
@@ -986,7 +1013,7 @@ if __name__=='__main__':
         return_df['actual_rho'] = decomp_df['targ_rho']
 
         print('saving!')
-        return_df.to_csv(join('decomp', 'ertias_2_fita.csv'))
+        return_df.to_csv(join('decomp', 'ertias_2_fita2.csv'))
 
     elif resp==3: # to generate results for experimental tests
         # import function to help make separate columns for the angles
