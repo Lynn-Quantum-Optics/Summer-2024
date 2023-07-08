@@ -936,7 +936,7 @@ if __name__=='__main__':
         # populate eritas states
         eta_ls = np.linspace(0, np.pi/4, n) # set of eta values to sample
         chi_ls = np.linspace(0, np.pi/2, n) # set of chi values to sample
-        eta_fixed_ls= [np.pi/4, np.pi/3] # fixed values for state generation
+        eta_fixed_ls= [np.pi/4, np.pi/3, np.pi/8] # fixed values for state generation
         chi_fixed= np.pi/3
         for eta_fixed in eta_fixed_ls:
             for chi in chi_ls:
