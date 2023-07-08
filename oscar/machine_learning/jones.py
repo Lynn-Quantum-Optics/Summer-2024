@@ -106,7 +106,7 @@ def get_phi(QP_rot, params=[-1.05971375e+04,5.25511676e+03,1.18147650e+04, 1.274
     a, b, c, d, e, f, g, h, i, j = params
     phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
 
-    return -phi
+    return phi
 
 def get_QP_rot(phi):
     '''Function to return inverse of get_phi, that is what the theoretical angle is'.
