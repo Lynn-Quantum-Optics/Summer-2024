@@ -17,6 +17,7 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
     print(join(datapath, file))
     print('split', split)
     df= pd.read_csv(join(datapath, file))
+    print(df.head())
 
     if input_method == 'prob_3':
         inputs = ['HH', 'VV', 'HV']
@@ -26,6 +27,8 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
         inputs = ['HH', 'HV', 'VV', 'DD', 'RR', 'LL']
     elif input_method=='prob_9': 
         inputs = ['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL']
+    elif input_method=='prob_12_red': # redudant prob based on including full bases for each
+        inputs = ['HH', 'HV', 'VH', 'VV', 'DD', 'DA', 'AD', 'AA', 'RR', 'RL', 'LR', 'LL']
     elif input_method=='prob_12':
         inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV']
     elif input_method=='prob_15':
@@ -36,7 +39,10 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
 
     if task=='w':
         df_full = df.copy()
-        df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
+        try: 
+            df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
+        except KeyError: # no W value; keep whole df (for testing 102 states from last sem)
+            pass
         outputs=['Wp_t1', 'Wp_t2', 'Wp_t3']
         def simplify_targ(df):
             print('number satisfy', len(df))
@@ -87,4 +93,7 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
         return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
 
     if split: return split_data()
-    else: return df[inputs].to_numpy(), simplify_targ(df[outputs]).to_numpy()
+    else: 
+        print(df[inputs].to_numpy())
+        print(simplify_targ(df[outputs]).to_numpy())
+        return df[inputs].to_numpy(), simplify_targ(df[outputs]).to_numpy()
