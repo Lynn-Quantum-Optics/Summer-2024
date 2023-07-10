@@ -20,36 +20,30 @@ def eval_perf(model, name):
         Y_pred_labels = Y_pred_labels.astype(int)
         return Y_pred_labels
 
-    if not(name == 'min_max'):
-        def per_file(file):
-            if not('old' in name):
-                X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_9', task='w', split=False)
-            else:
-                X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
+    
+    def per_file(file):
+        if not('old' in name):
+            X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_9', task='w', split=False)
+        else:
+            X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
+        if not(name == 'population'):
             Y_pred = model.predict(X)
             Y_pred_labels = get_labels(Y_pred)
-            # take dot product of Y and Y_pred_labels to get number of correct predictions
-            N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
-            print(N_correct / len(Y_pred))
-            return N_correct / len(Y_pred), N_correct, len(Y_pred)
-    else: # do 'max_min' method
-        # parallize calc process
-        def per_file(file):
-            probs_df = pd.read_csv(file)
-            probs_df = probs_df.loc[:, 'HH':'LL']
+        else: # population method
+            prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
+            prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
+            prob_RandL = abs(0.5*np.ones_like(df['HH']) - (df['RR'] + df['LL']))
+            pop_df = pd.DataFrame()
+            pop_df['d_HandV'] = prob_HandV
+            pop_df['d_DandA'] = prob_DandA
+            pop_df['d_RandL'] = prob_RandL
 
-            pool= Pool(cpu_count())
-            inputs = [row.to_numpy().reshape(6,6) for _, row in probs_df.iterrows()]
-
-            # maximize witnesses
-            def min_max_witnesses(probs):
-                get_W1 = compute_witnesses.get_W1()
-
-
-        
-        # # recontruct rho
-        # rho = reconstruct_rho()
-
+            # prediction is max value per row
+            Y_pred_labels = df[['d_HandV', 'd_DandA', 'd_RandL']].idxmax(axis=1)
+        # take dot product of Y and Y_pred_labels to get number of correct predictions
+        N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
+        print(N_correct / len(Y_pred))
+        return N_correct / len(Y_pred), N_correct, len(Y_pred)
 
     file_ls = ['roik_True_400000_t.csv', 'm_total.csv']
     # file_ls = ['../../S22_data/all_qual_102_tot.csv']
