@@ -19,6 +19,8 @@ import serial
 # package imports
 from tqdm import tqdm
 import numpy as np
+from uncertainties import unumpy as unp
+from uncertainties import ufloat
 import pandas as pd
 
 # local imports
@@ -75,6 +77,9 @@ class Manager:
             self.init_motors()
             if out_file is not None:
                 self.new_output(out_file)
+
+    # +++ class variabes +++
+    MAIN_CHANNEL = 'C4' # the main coincidence counting channel key
 
     # +++ properties +++
     
@@ -226,7 +231,7 @@ class Manager:
 
     # +++ methods +++
 
-    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> 'tuple[np.ndarray, np.ndarray]':
+    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> Union[unp.uarray,ufloat]:
         ''' Take detector data
 
         The data is written to the csv output table.
@@ -244,10 +249,11 @@ class Manager:
         
         Returns
         -------
-        data_avg : np.ndarray
-            The average number of counts per second for each channel.
-        data_unc : np.ndarray
-            The standard error of the mean for each channel.
+        uncertainties.unumpy.uarray
+            Array of ufloats with count rates and count rate uncertianties for each specified channel.
+        or
+        uncertainties.ufloat
+            If only one channel is specified, a single ufloat is returned.
         '''
         # log the data taking
         if self.out_file is not None:
@@ -283,14 +289,14 @@ class Manager:
         
         # return the right rates
         if len(keys) == 0:
-            return data_avg, data_unc
+            return unp.uarray(data_avg, data_unc)
         elif len(keys) == 1:
             k = keys[0]
-            return data_avg[self._ccu._channel_keys.index(k)], data_unc[self._ccu._channel_keys.index(k)]
+            return ufloat(data_avg[self._ccu._channel_keys.index(k)], data_unc[self._ccu._channel_keys.index(k)])
         else:
             out_avgs = np.array([data_avg[self._ccu._channel_keys.index(k)] for k in keys])
             out_uncs = np.array([data_unc[self._ccu._channel_keys.index(k)] for k in keys])
-            return out_avgs, out_uncs
+            return unp.uarray(out_avgs, out_uncs)
 
     def log(self, note:str):
         ''' Log a note to the manager's log file.
@@ -397,26 +403,12 @@ class Manager:
         self.log(f'Sweeping {component} from {pos_min} to {pos_max} degrees in {num_steps} steps.')
         # open output
         out = []
-        unc = []
         # loop to perform the sweep
         for pos in tqdm(np.linspace(pos_min, pos_max, num_steps)):
             self.configure_motors(**{component:pos})
-            x, u = self.take_data(num_samp, samp_period, 'C4')
+            x = self.take_data(num_samp, samp_period, Manager.MAIN_CHANNEL)
             out.append(x)
-            unc.append(u)
-        return np.array(out), np.array(unc)
-
-    def full_tomography(self):
-
-        self.new_output('Full_tomography.csv')
-
-        NUM_SAMP = 5
-        SAMP_PERIOD = 3
-
-        for basis in self._config['full_tomography']:
-            self.meas_basis(basis)
-            self.take_data(NUM_SAMP, SAMP_PERIOD)
-
+        return unp.uarray(out)
 
     # +++ shutdown methods +++
 
