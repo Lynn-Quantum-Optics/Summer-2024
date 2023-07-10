@@ -2,8 +2,12 @@
 
 from typing import Union, Tuple
 import numpy as np
+import uncertainties.unumpy as unp
+import uncertainties.core as ucore
+from uncertainties import ufloat
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
+import matplotlib
 
 # +++ basic functions for fitting +++
 
@@ -124,13 +128,59 @@ FIT_FUNCS = {
 
 # +++ functions for fitting +++
 
-def eval(func:Union[str, 'function'], **kwargs):
-    ''' Evaluate a fit function with given arguments. '''
+def evalkw(func:Union[str, 'function'], **kwargs):
+    ''' Evaluate a fit function with given arguments.
+    
+    Parameters
+    ----------
+    func : Union[str, 'function']
+        The function to evaluate. If a string, it will be looked up in FIT_FUNCS.
+    **kwargs : dict[str, Union[np.ndarray, float, ufloat]]
+        The arguments to pass to the function. All ufloats will be converted to floats.
+    '''
+    # get the function
     if isinstance(func, str):
         func = FIT_FUNCS[func]
+    # convert kwargs to floats
+    for k, v in kwargs.items():
+        # convert arrays to float arrays
+        if isinstance(v, np.ndarray) and v.dtype == np.dtype('O'):
+            kwargs[k] = unp.nominal_values(v)
+        # convert ufloats to floats
+        if isinstance(v, ucore.Variable):
+            kwargs[k] = v.nominal_value
+    # evaluate the function
     return func(**kwargs)
 
-def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarray, full_covm:bool=False, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+def eval(func:Union[str, 'function'], *args):
+    ''' Evaluate a fit function with given arguments.
+    
+    Parameters
+    ----------
+    func : Union[str, 'function']
+        The function to evaluate. If a string, it will be looked up in FIT_FUNCS.
+    *args : Tuple[Union[np.ndarray, float, ufloat]]
+        The arguments to pass to the function. All ufloats will be converted to floats.
+    '''
+    # get the function
+    if isinstance(func, str):
+        func = FIT_FUNCS[func]
+    # convert kwargs to floats
+    new_args = []
+    for v in args:
+        # convert arrays to float arrays
+        if isinstance(v, np.ndarray) and v.dtype == np.dtype('O'):
+            new_args.append(unp.nominal_values(v))
+        elif isinstance(v, ucore.Variable):
+            # convert ufloats to floats
+            new_args.append(v.nominal_value)
+        else:
+            # no modification needed
+            new_args.append(v)
+    # evaluate the function
+    return func(*new_args)
+
+def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray, full_covm:bool=False, **kwargs) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     ''' Fit data to a sine function
 
     Parameters
@@ -138,9 +188,7 @@ def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarra
     x : np.ndarray
         X values
     y : np.ndarray
-        Y values
-    y_err : np.ndarray
-        Y errors
+        Y values and uncertainties in the form of a uarray.
     full_covm : bool, optional (default=False)
         If true, a full covariance matrix will be returned rather than individual SEMs.
     **kwargs
@@ -149,21 +197,27 @@ def fit(func:Union[str,'function'], x:np.ndarray, y:np.ndarray,  y_err:np.ndarra
     Returns
     -------
     np.ndarray
-        Fit parameters.
-    np.ndarray
-        SEM uncertainties, or if full_covm=True, the full covariance matrix.
+        Fit parameters with SEM uncertainties in the form of a uarray.
+    or if full_covm=True
+    np.ndarray, np.ndarray
+        Fit parameters and the full covariance matrix.
     '''
     # get the function to fit
     if isinstance(func, str):
         func = FIT_FUNCS[func]
     # fit the function
-    popt, pcov = opt.curve_fit(func, x, y, sigma=y_err, absolute_sigma=True, **kwargs)
+    popt, pcov = opt.curve_fit(
+        f=func,
+        xdata=x,
+        ydata=unp.nominal_values(y), sigma=unp.std_devs(y),absolute_sigma=True,
+        **kwargs)
+    # return in the correct format
     if full_covm:
         return popt, pcov
     else:
-        return popt, np.sqrt(np.diag(pcov))
+        return unp.uarray(popt, np.sqrt(np.diag(pcov)))
 
-def plot_func(func:Union[str,'function'], args:np.ndarray, x:Union[tuple,np.ndarray], ax:plt.Axes=None, num_points:int=300, **kwargs) -> None:
+def plot_func(func:Union[str,'function'], args:np.ndarray, x:Union[tuple,np.ndarray], ax:plt.Axes=None, num_points:int=300, **kwargs) -> matplotlib.lines.Line2D:
     ''' Plot a function
     
     Parameters
@@ -181,15 +235,12 @@ def plot_func(func:Union[str,'function'], args:np.ndarray, x:Union[tuple,np.ndar
     **kwargs : dict
         Additional arguments for plt/ax.plot().
     '''
-    # get the function to plot
-    if isinstance(func, str):
-        func = FIT_FUNCS[func]
     # get axes
     if ax is None:
         ax = plt.gca()
     # plot the function
     x = np.linspace(np.min(x), np.max(x), num_points)
-    ax.plot(x, func(x, *args), **kwargs)
+    return ax.plot(x, eval(func, x, *args), **kwargs)
 
 def find_ratio(func1:Union[str,'function'], args1:np.ndarray, func2:Union[str,'function'], args2:np.ndarray, pct_1:float, x:Union[tuple,np.ndarray], guess:float=None):
     ''' Find where the two functions satisfy func1(x) / (func1(x) + func2(x)) = pct_1
@@ -211,30 +262,51 @@ def find_ratio(func1:Union[str,'function'], args1:np.ndarray, func2:Union[str,'f
     guess : float, optional
         Initial guess for the x value, by default average of the minimum and maximum of x.
     '''
-    # get the functions
-    if isinstance(func1, str):
-        func1 = FIT_FUNCS[func1]
-    if isinstance(func2, str):
-        func2 = FIT_FUNCS[func2]
     # get the range
     x_min, x_max = np.min(x), np.max(x)
     # get the initial guess
     if guess is None:
         guess = (x_min + x_max) / 2
-    # get the function to minimize
+    
+    # define the function to minimize
     def min_me(x_:np.ndarray, args1_:tuple, args2_:tuple) -> float:
-        return np.abs((1-pct_1)*func1(x_, *args1_) - pct_1*func2(x_, *args2_))
-    # minimize
+        return np.abs((1-pct_1)*eval(func1, x_, *args1_) - pct_1*eval(func2, x_, *args2_))
+    
+    # minimize it!
     res = opt.minimize(min_me, guess, args=(args1, args2), bounds=((x_min, x_max),))
+    
     # obtain the result
     return res.x[0]
 
-def find_value(func:Union[str,'function'], kwargs:dict, target:float):
+def find_value(func:Union[str,'function'], args:tuple, target:float, x:np.ndarray, guess:float=None):
+    ''' Find where the function equals a target value.
 
-    # define a function to minimize
-    def min_me(x_:np.ndarray) -> float:
-        return np.abs(eval(func, x=x_, **kwargs) - target)
+    Parameters
+    ----------
+    func : Union[str,function]
+        Function to find the value of.
+    args : tuple
+        Additional arguments for the function.
+    target : float
+        Target value to hit.
+    x : np.ndarray
+        X values, the search will be limited within the minimum and maximum of this range.
+    guess : float, optional
+        Initial guess for the x value, by default average of the minimum and maximum of x.    
+    '''
+    # get bounds
+    x_min, x_max = np.min(x), np.max(x)
+    
+    # get the initial guess
+    if guess is None:
+        guess = (x_min + x_max) / 2
+
+    # define the function to minimize
+    def min_me(x_, args_) -> float:
+        return np.abs(eval(func, x_, *args_) - target)
+    
     # minimize it
-    res = opt.minimize(min_me, 10)
+    res = opt.minimize(min_me, x0=guess, args=(args,), bounds=((x_min, x_max),))
+
     # return the x value that minimizes it
     return res.x[0]
