@@ -408,7 +408,7 @@ class Manager:
             self.configure_motors(**{component:pos})
             x = self.take_data(num_samp, samp_period, Manager.MAIN_CHANNEL)
             out.append(x)
-        return unp.uarray(out)
+        return np.array(out)
 
     # +++ shutdown methods +++
 
