@@ -279,12 +279,12 @@ class CCU(SerialMonitor):
     
     # +++ BASIC METHODS +++
 
-    def __init__(self, port:str, baud:int, plot_xlim:float, plot_smoothing:float, ignore:List[str]) -> None:
+    def __init__(self, port:str, baud:int, plot_xlim:float, plot_smoothing:float, channel_keys:List[str], ignore:List[str]) -> None:
         super(CCU, self).__init__(
             port=port,
             baud=baud,
             update_period=0.1, # from device documentation
-            channel_keys=['A', 'B', 'A\'', 'B\'', 'C4', 'C5', 'C6', 'C7'],
+            channel_keys=channel_keys,
             termination_seq=b'\xff',
             plot_xlim=plot_xlim,
             plot_smoothing=plot_smoothing,

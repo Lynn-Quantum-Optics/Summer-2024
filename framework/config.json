@@ -2,6 +2,7 @@
     "ccu": {
         "port": "COM4",
         "baudrate": 19200,
+        "channel_keys": ["A", "B", "Ap", "Bp", "C4", "C5", "C6", "C7"],
         "ignore": ["A'", "C5", "C7"],
         "plot_xlim": 60,
         "plot_smoothing": 0.5

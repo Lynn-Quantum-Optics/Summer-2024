@@ -9,7 +9,6 @@ Author(s):
 # python imports
 import json
 import time
-import csv
 import os
 import datetime
 import copy
@@ -20,7 +19,7 @@ import serial
 from tqdm import tqdm
 import numpy as np
 from uncertainties import unumpy as unp
-from uncertainties import ufloat
+from uncertainties import core as ucore
 import pandas as pd
 
 # local imports
@@ -34,14 +33,12 @@ class Manager:
 
     Parameters
     ----------
-    out_file : str, optional
-        The name of the output file to save the data to. If not specified, no output will be initialized.
     config : str, optional
         The name of the configuration file to load. Defaults to 'config.json'.
     debug : bool, optional
         If True, the CCU and motors will not be initialized with the manager, and will have to be initialized later with the init_ccu and init_motors methods.
     '''
-    def __init__(self, out_file:str=None, config:str='config.json', debug:bool=False):
+    def __init__(self, config:str='config.json', debug:bool=False):
         # get the time of initialization for file naming
         self._init_time = time.time()
         self._init_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -54,9 +51,7 @@ class Manager:
         self.config_file = config
 
         # initialize output file variables
-        self.out_file = None
-        self._out_file = None # file object
-        self._out_writer = None # csv writer
+        self._output_df = pd.DataFrame(columns=self.df_columns) # output dataframe
 
         # initialize ccu and motor class variables
         self._ccu = None
@@ -75,11 +70,10 @@ class Manager:
         if not debug:
             self.init_ccu()
             self.init_motors()
-            if out_file is not None:
-                self.new_output(out_file)
 
     # +++ class variabes +++
-    MAIN_CHANNEL = 'C4' # the main coincidence counting channel key
+
+    MAIN_CHANNEL = 'C4' # the main coincidence counting channel key for any preset basis
 
     # +++ properties +++
     
@@ -97,6 +91,10 @@ class Manager:
     def now(self) -> str:
         return datetime.datetime.now().strftime("%Y.%m.%d %H:%M:%S")
 
+    @property
+    def df_columns(self) -> str:
+        return ['start', 'stop', 'num_samp', 'samp_period'] + self._config['motors'].keys() + self._config['ccu']['channel_keys'] + ['note']
+
     # +++ initialization methods +++
 
     def init_ccu(self) -> None:
@@ -113,6 +111,7 @@ class Manager:
             baud=self._config['ccu']['baudrate'],
             plot_xlim=self._config['ccu'].get('plot_xlim', 60),
             plot_smoothing=self._config['ccu'].get('plot_smoothing', 0.5),
+            channel_keys=self._config['ccu']['channel_keys'],
             ignore=self._config['ccu'].get('ignore', []))
     
     def init_motors(self) -> None:
@@ -147,91 +146,43 @@ class Manager:
 
     # +++ file management +++
 
-    def new_output(self, out_file:str) -> None:
-        ''' Opens a new output file and initializes data collection
+    def clear_output(self) -> None:
+        ''' Clear (erase) the data in the current output data frame. '''
+        self.log('Clearing output data.')
+        # just create a brand new output data frame
+        self._output_df = pd.DataFrame(columns=self.df_columns)
+
+    def save_data(self, output_file:str, clear_data:bool=True) -> pd.DataFrame:
+        ''' Saves the output data to a specified file in pickle format
 
         Parameters
         ----------
-        out_file : str
-            The name of the output file to save the data to.
-        '''
-        # check if motors and ccu have been initialized
-        if self._ccu is None:
-            raise RuntimeError('Cannot initialize output file; CCU has not been initialized.')
-        if len(self._motors) == 0:
-            raise RuntimeError('Cannot initialize output file; No motors have been initialized.')
-        
-        # check that we don't currently have a file open
-        if self._out_file is not None:
-            self.log('Output file already initialized; throwing error.')
-            raise RuntimeError('Output file has already been initialized.')
-        # check that the file doesn't already exist
-        if os.path.isfile(out_file):
-            self.log(f'Given output file "{out_file}" already exists; throwing error.')
-            raise RuntimeError(f'Output file "{out_file}" already exists.')
-        
-        # open output file and setup output file writer
-        self.log(f'Opening new output file "{out_file}".')
-        self.out_file = out_file
-        self._out_file = open(self.out_file, 'w+', newline='')
-        self._out_writer = csv.writer(self._out_file)
-        
-        # write the column headers
-        self._out_writer.writerow(\
-            [f'start time (s)', 'stop time (s)'] + \
-            ['num samples (#)', 'period per sample (s)'] + \
-            [f'{m} position (deg)' for m in self._motors] + \
-            [f'{k} rate (#/s)' for k in self._ccu._channel_keys] + \
-            [f'{k} rate SEM (#/s)' for k in self._ccu._channel_keys] + \
-            ['note'])
-
-    def close_output(self, get_data:bool=True) -> Union[pd.DataFrame, None]:
-        ''' Closes the output file
-
-        Parameters
-        ----------
-        get_data : bool, optional
-            If True, returns the data as a pandas dataframe. Defaults to True.
+        output_file : str
+            The name of the file to save the data to.
+        clear_data : bool, optional
+            If True, the data will be cleared after saving. Default is True.
         
         Returns
         -------
-        Union[pd.DataFrame, None]
-            If get_data is True, returns the data as a pandas dataframe. Otherwise, returns None.
+        pd.DataFrame
+            The data that was saved.
         '''
-        # output file
-        if self.out_file is None:
-            self.log('Called close_output without an output file open; throwing error.')
-            raise RuntimeError('Cannot close output, output has not been initialized.')
-        else:
-            self.log(f'Closing output file "{self.out_file}".')
-            # close the output file (writes lines)
-            self._out_file.close()
-            self._out_file = None
-            self._out_writer = None
-
-        # grab the data
-        if get_data:
-            self.log(f'Retreiving data from "{self.out_file}".')
-            data = pd.read_csv(self.out_file)
-            # convert columns to be useful
-            data.columns = \
-                [f't_start', 't_end'] + \
-                ['num_samp', 'samp_period'] + \
-                [f'{m}' for m in self._motors] + \
-                [f'C{i}' for i in range(len(self._ccu._channel_keys))] + \
-                [f'C{i}_sem' for i in range(len(self._ccu._channel_keys))] + \
-                ['note']
-        else:
-            data = None
+        # output data frame to pickle file
+        self.log(f'Saving data to "{output_file}".')
+        self._output_df.to_pickle(output_file)
+        
+        # save copy of data to return
+        out = self._output_df.copy()
 
         # reset out_file
-        self.out_file = None
-
-        return data
+        if clear_data:
+            self.clear_output()
+        
+        return out
 
     # +++ methods +++
 
-    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> Union[unp.uarray,ufloat]:
+    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> Union[np.ndarray, ucore.Variable]:
         ''' Take detector data
 
         The data is written to the csv output table.
@@ -256,11 +207,8 @@ class Manager:
             If only one channel is specified, a single ufloat is returned.
         '''
         # log the data taking
-        if self.out_file is not None:
-            self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
-        else:
-            self.log(f'Taking data; sampling {num_samp} x {samp_period} s. No output file active.')
-
+        self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
+        
         # check for note to log
         if note != "":
             self.log(f'\tNote: "{note}"')
@@ -272,31 +220,24 @@ class Manager:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # run trials
-        data_avg, data_unc = self._ccu.acquire_data(num_samp, samp_period)
+        ccu_data = unp.uarray(*self._ccu.acquire_data(num_samp, samp_period))
         
         # record stop time
         stop_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        # record data
-        if self.out_file is not None:
-            self._out_writer.writerow(\
-                [start_time, stop_time] + \
-                [num_samp, samp_period] + \
-                motor_positions + \
-                list(data_avg) + \
-                list(data_unc) + \
-                [note])
+        # record data in the dataframe
+        row = pd.DataFrame(dict(zip(
+            self.df_columns, [[start_time], [stop_time], [num_samp], [samp_period]] + [[p] for p in motor_positions] + [[c] for c in ccu_data] + [[note]])))
+        self._output_df = self._output_df.append(row, ignore_index=True)
         
-        # return the right rates
+        # return the right keys
         if len(keys) == 0:
-            return unp.uarray(data_avg, data_unc)
+            return row.values[0]
         elif len(keys) == 1:
             k = keys[0]
-            return ufloat(data_avg[self._ccu._channel_keys.index(k)], data_unc[self._ccu._channel_keys.index(k)])
+            return row[k][0]
         else:
-            out_avgs = np.array([data_avg[self._ccu._channel_keys.index(k)] for k in keys])
-            out_uncs = np.array([data_unc[self._ccu._channel_keys.index(k)] for k in keys])
-            return unp.uarray(out_avgs, out_uncs)
+            return np.array(row[keys].values[0])
 
     def log(self, note:str):
         ''' Log a note to the manager's log file.
