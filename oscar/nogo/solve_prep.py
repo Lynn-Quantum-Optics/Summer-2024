@@ -1,7 +1,6 @@
 # file to generate systems by enforcing orthogonality of measured states
 import numpy as np
 from itertools import combinations
-from functools import partial
 
 class HyperBell():
     '''HyperBell class to generate systems of measured bell states for a given dimension d and number of states in group k.'''
@@ -11,18 +10,30 @@ class HyperBell():
         self.d = d
         self.k = k
 
+        print('Initializing HyperBell class with d = {} and k = {}.'.format(d,k))
+
         self.soln_limit = 2*d # must find solutions for all detectors to fuflill sufficient condition
+
+        self.num_coeff = 4*d # number of coefficients in measurement operator
+
+        self.bounds = [(-1,1) for _ in range(self.num_coeff)] # set bounds for coefficients
 
         self.k_groups, self.k_groups_indices = self.get_all_kbell() # initialize all k-groups of bell states
         self.num_ksys = len(self.k_groups) # number of k-systems
 
         self.set_m(0)
 
+    def construct_v(self, coeff):
+        '''Returns vector of a_i + i*b_i'''
+        v_c = np.zeros((2*self.d, 1), dtype='complex128')
+        for o in range(2*self.d):
+            v_c[o] = coeff[o] + 1j*coeff[o+2*self.d]
+        return v_c
+
     def get_bell(self, c, p):
         '''Define bell state for given correlation and phase class c, p and dimension d, represented in number basis.
         --
         Params: 
-            d (int): dimension of system
             c (int): correlation class
             p (int): phase class
         --
@@ -37,7 +48,7 @@ class HyperBell():
             numb[l]=1
             numb[d+(l+c)%d]=1
             bell += phase * numb
-        return bell
+        return bell * 1/np.sqrt(d) # normalize
 
     def get_all_kbell(self):
         '''Returns all unique k-groups of bell states for a given dimension d.'''
@@ -78,7 +89,6 @@ class HyperBell():
 
     def get_meas_ip(self, bell_ls, coeff):
         ''' Computes inner product between two measured bell states'''
-        d = self.d
         # unpack bell states ls
         bell1, bell2 = bell_ls
         # get measurement functions
@@ -129,14 +139,15 @@ class HyperBell():
         '''Returns random simplex guess for coefficients'''
         d = self.d
         # uses stick method
-        rand = np.random.rand(4*d-1)
+        rand = 2*np.random.rand(4*d-1)
         rand = np.sort(rand)
         guess = np.zeros(4*d)
         guess[0] = rand[0] # set initial guess
         for i in range(1, len(rand), 1):
             guess[i] = rand[i] - rand[i-1] # set remaining guesses by taking difference, i.e. "lengths" of sticks
-        guess[-1] = 1 - rand[-1] # set final guess
-        guess = np.sqrt(guess) # since we want the sum of squares to be 1
+        guess[-1] = 2 - rand[-1] # set final guess
+        guess -= 1 # shift so that guess is centered around 0
+        # guess = np.sqrt(guess) # since we want the sum of squares to be 1
         # print('random guess: ', guess)
         return guess
 
@@ -146,6 +157,9 @@ if __name__ == '__main__':
     k = 3
     hb = HyperBell()
     hb.init(d,k)
-    print(hb.get_ksys_func(0)(hb.rand_guess()))
+    coeff= hb.rand_guess()
+    print(coeff)
+    print(hb.construct_v(coeff))
+    # print(hb.get_ksys_func(0)())
     # print(hb.get_ksys(0, hb.rand_guess()))
 

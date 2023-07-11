@@ -34,7 +34,7 @@ def train_xgb():
     # val_acc = evaluate_perf(model, X_train, Y_train, X_test, Y_test)[0]
     # wandb.log({"val_acc": val_acc})
 
-def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, learning_rate=0.3, n_estimators=1000, early_stopping=10):
+def custom_train_xgb(max_depth=6, learning_rate=0.3, n_estimators=1000, early_stopping=10):
     ''' Function to run XGBOOST with custom hyperparameters.
     params:
         method: 'witness' or 'entangled' for prediction method
@@ -44,15 +44,17 @@ def custom_train_xgb(method, X_train, Y_train, X_test, Y_test, max_depth=6, lear
     model = XGBRegressor(
         max_depth=max_depth,
         learning_rate=learning_rate,
-        n_estimators= n_estimators,
+        n_estimators= n_estimators
+        # tree_method = 'gpu_hist',
     )
 
     # fit the model
-    model.fit(X_train, Y_train, tree_method='hist', early_stopping_rounds = early_stopping, random_state=42, eval_set=[(X_test, Y_test)])
+    model.fit(X_train, Y_train,early_stopping_rounds = early_stopping, eval_set=[(X_test, Y_test)])
 
     # print results
     # acc = evaluate_perf(model, method, X_train, Y_train, X_test, Y_test)
     # print('Accuracy on test, train', acc)
+    return model
 
 #######################################################
 ## NN ##
@@ -86,6 +88,35 @@ def train_nn1h():
         epochs=50,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
+    return  model
+    
+def custom_train_nn1h(size, learning_rate, batch_size):
+    ''' Function to run wandb sweep for NN.'''
+    
+    def build_model(size, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size, activation='relu'))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('sigmoid'))
+
+        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(size,learning_rate)
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=50,                   
+      )
+    return model
 
 def train_nn3h():
     ''' Function to run wandb sweep for NN.'''
@@ -163,97 +194,64 @@ def train_nn5h():
 
 ## run on our data ##
 if __name__=='__main__':
+    from os.path import join
+
     from train_prep import prepare_data
+    from ml_comp import eval_perf
+    sweep = bool(int(input('Enter 1 for sweep, 0 for custom run:')))
 
-    file = input('Enter file name: ')
-    input_method = input('Enter input method: ')
-    task = input('Enter task: ')
-    identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
-    savename= identifier+'_'+task+'_'+input_method
+    if sweep:
+        file = input('Enter file name: ')
+        input_method = input('Enter input method: ')
+        task = input('Enter task: ')
+        identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
+        savename= identifier+'_'+task+'_'+input_method
 
-    # load data here
-    DATA_PATH = 'random_gen/data'
-    X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
+        # load data here
+        DATA_PATH = 'random_gen/data'
+        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
 
-    ## sweep configs ##
-    if task=='w':
-        xgb_sweep_config = {
-        "method": "bayes",
-        "metric": {"name": "val_loss", "goal": "minimize"},
-        "parameters": {
-            "max_depth": {"distribution": "int_uniform", "min":  1, "max": 20},
-            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.5},
-            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 10000},
-            "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 40}
-        },
-        }
+        ## sweep configs ##
+        if task=='w':
+            xgb_sweep_config = {
+            "method": "bayes",
+            "metric": {"name": "val_loss", "goal": "minimize"},
+            "parameters": {
+                "max_depth": {"distribution": "int_uniform", "min":  1, "max": 20},
+                "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.5},
+                "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 10000},
+                "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 40}
+            },
+            }
 
-        nn1h_sweep_config = {
-        'method': 'random',
-        'name': 'val_accuracy',
-        'goal': 'maximize',
-        'parameters':{
-        # for build_dataset
-        'batch_size': {
-        'values': [x for x in range(256, 4481, 32)]
-        },
-        'size': {
-        'distribution': 'int_uniform',
-        'min': 1,
-        'max': 1800
-        },
-        'learning_rate':{
-            #uniform distribution between 0 and 1
-            'distribution': 'uniform', 
-            'min': 1e-5,
-            'max': 0.5
-        }
-        },
-        }
-
-        nn3h_sweep_config = {
-        'method': 'random',
-        'name': 'val_accuracy',
-        'goal': 'maximize',
-        'parameters':{
-        # for build_dataset
-        'batch_size': {
-        'values': [x for x in range(256, 4481, 32)]
-        },
-        'size_1': {
-        'distribution': 'int_uniform',
-        'min': 1,
-        'max': 1800
-        },
-        'size_2': {
-        'distribution': 'int_uniform',
-        'min': 1,
-        'max': 1800
-        },'size_3': {
-        'distribution': 'int_uniform',
-        'min': 1,
-        'max': 1800,
-        },
-        # 'dropout': {
-        # 'distribution': 'uniform',
-        # 'min': 0,
-        # 'max': 0.6
-        # },
-        'learning_rate':{
-            #uniform distribution between 0 and 1
-            'distribution': 'uniform', 
-            'min': 1e-5,
-            'max': 0.5
-        }
-        },
-        }
-
-        nn5h_sweep_config = {
+            nn1h_sweep_config = {
             'method': 'random',
             'name': 'val_accuracy',
             'goal': 'maximize',
-            'metric':'val_accuracy',
-        'parameters':{
+            'parameters':{
+            # for build_dataset
+            'batch_size': {
+            'values': [x for x in range(256, 4481, 32)]
+            },
+            'size': {
+            'distribution': 'int_uniform',
+            'min': 1,
+            'max': 1800
+            },
+            'learning_rate':{
+                #uniform distribution between 0 and 1
+                'distribution': 'uniform', 
+                'min': 1e-5,
+                'max': 0.5
+            }
+            },
+            }
+
+            nn3h_sweep_config = {
+            'method': 'random',
+            'name': 'val_accuracy',
+            'goal': 'maximize',
+            'parameters':{
             # for build_dataset
             'batch_size': {
             'values': [x for x in range(256, 4481, 32)]
@@ -270,15 +268,7 @@ if __name__=='__main__':
             },'size_3': {
             'distribution': 'int_uniform',
             'min': 1,
-            'max': 1800
-            },'size_4': {
-            'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
-            },'size_5': {
-            'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
+            'max': 1800,
             },
             # 'dropout': {
             # 'distribution': 'uniform',
@@ -291,97 +281,102 @@ if __name__=='__main__':
                 'min': 1e-5,
                 'max': 0.5
             }
-        },
-        }
+            },
+            }
 
-    elif task=='e':
-        xgb_sweep_config = {
-        "method": "bayes",
-        "metric": {"name": "val_loss", "goal": "minimize"},
-        "parameters": {
-            "max_depth": {"distribution": "int_uniform", "min":  3, "max": 10},
-            "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
-            "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 8500},
-            "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
-        },
-        }
+            nn5h_sweep_config = {
+                'method': 'random',
+                'name': 'val_accuracy',
+                'goal': 'maximize',
+                'metric':'val_accuracy',
+            'parameters':{
+                # for build_dataset
+                'batch_size': {
+                'values': [x for x in range(256, 4481, 32)]
+                },
+                'size_1': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },
+                'size_2': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },'size_3': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },'size_4': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },'size_5': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },
+                # 'dropout': {
+                # 'distribution': 'uniform',
+                # 'min': 0,
+                # 'max': 0.6
+                # },
+                'learning_rate':{
+                    #uniform distribution between 0 and 1
+                    'distribution': 'uniform', 
+                    'min': 1e-5,
+                    'max': 0.5
+                }
+            },
+            }
 
-        nn1h_sweep_config = {
-        'method': 'random',
-        'name': 'val_accuracy',
-        'goal': 'maximize',
-        'parameters':{
-        'epochs': {
-        'distribution': 'int_uniform',
-        'min': 20,
-        'max': 100
-        },
-        # for build_dataset
-        'batch_size': {
-        'values': [x for x in range(256, 4481, 32)]
-        },
-        'size': {
-        'value': 50
-        },
-        'learning_rate':{
-            #uniform distribution between 0 and 1
-            'distribution': 'uniform', 
-            'min': 1e-5,
-            'max': 0.7
-        }
-        },
-        }
+        elif task=='e':
+            xgb_sweep_config = {
+            "method": "bayes",
+            "metric": {"name": "val_loss", "goal": "minimize"},
+            "parameters": {
+                "max_depth": {"distribution": "int_uniform", "min":  3, "max": 10},
+                "learning_rate": {"distribution": "uniform", "min": 1e-5, "max": 0.1},
+                "n_estimators": {"distribution": "int_uniform", "min":  500, "max": 8500},
+                "early_stopping": {"distribution": "int_uniform", "min": 5, "max": 30}
+            },
+            }
 
-        nn3h_sweep_config = {
-        'method': 'random',
-        'name': 'val_accuracy',
-        'goal': 'maximize',
-        'parameters':{
-        'epochs': {
-        'distribution': 'int_uniform',
-        'min': 20,
-        'max': 100
-        },
-        # for build_dataset
-        'batch_size': {
-        'values': [x for x in range(256, 4481, 32)]
-        },
-        'size_1': {
-        'distribution': 'int_uniform',
-        'min': 5,
-        'max': 300
-        },
-        'size_2': {
-        'distribution': 'int_uniform',
-        'min': 5,
-        'max': 300
-        },'size_3': {
-        'distribution': 'int_uniform',
-        'min': 5,
-        'max': 300,
-        },
-        'dropout': {
-        'distribution': 'uniform',
-        'min': 0,
-        'max': 0.6
-        },
-        'learning_rate':{
-            #uniform distribution between 0 and 1
-            'distribution': 'uniform', 
-            'min': 1e-5,
-            'max': 0.7
-        }
-        },
-        }
-
-        nn5h_sweep_config = {
+            nn1h_sweep_config = {
             'method': 'random',
             'name': 'val_accuracy',
             'goal': 'maximize',
-            'metric':'val_accuracy',
-        'parameters':{
+            'parameters':{
             'epochs': {
+            'distribution': 'int_uniform',
+            'min': 20,
+            'max': 100
+            },
+            # for build_dataset
+            'batch_size': {
+            'values': [x for x in range(256, 4481, 32)]
+            },
+            'size': {
             'value': 50
+            },
+            'learning_rate':{
+                #uniform distribution between 0 and 1
+                'distribution': 'uniform', 
+                'min': 1e-5,
+                'max': 0.7
+            }
+            },
+            }
+
+            nn3h_sweep_config = {
+            'method': 'random',
+            'name': 'val_accuracy',
+            'goal': 'maximize',
+            'parameters':{
+            'epochs': {
+            'distribution': 'int_uniform',
+            'min': 20,
+            'max': 100
             },
             # for build_dataset
             'batch_size': {
@@ -389,25 +384,17 @@ if __name__=='__main__':
             },
             'size_1': {
             'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
+            'min': 5,
+            'max': 300
             },
             'size_2': {
             'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
+            'min': 5,
+            'max': 300
             },'size_3': {
             'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
-            },'size_4': {
-            'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
-            },'size_5': {
-            'distribution': 'int_uniform',
-            'min': 1,
-            'max': 1800
+            'min': 5,
+            'max': 300,
             },
             'dropout': {
             'distribution': 'uniform',
@@ -418,31 +405,100 @@ if __name__=='__main__':
                 #uniform distribution between 0 and 1
                 'distribution': 'uniform', 
                 'min': 1e-5,
-                'max': 0.5
+                'max': 0.7
             }
-        },
-        }
+            },
+            }
 
-    
+            nn5h_sweep_config = {
+                'method': 'random',
+                'name': 'val_accuracy',
+                'goal': 'maximize',
+                'metric':'val_accuracy',
+            'parameters':{
+                'epochs': {
+                'value': 50
+                },
+                # for build_dataset
+                'batch_size': {
+                'values': [x for x in range(256, 4481, 32)]
+                },
+                'size_1': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },
+                'size_2': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },'size_3': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },'size_4': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },'size_5': {
+                'distribution': 'int_uniform',
+                'min': 1,
+                'max': 1800
+                },
+                'dropout': {
+                'distribution': 'uniform',
+                'min': 0,
+                'max': 0.6
+                },
+                'learning_rate':{
+                    #uniform distribution between 0 and 1
+                    'distribution': 'uniform', 
+                    'min': 1e-5,
+                    'max': 0.5
+                }
+            },
+            }
 
-    def run_sweep(wtr=0):
-        ''' Function to run hyperparam sweep.
-        Params:
-            wtr: int, 0 for XGB, 1 for NN5H, 2 for NN3H
-        '''
+        def run_sweep(wtr=0):
+            ''' Function to run hyperparam sweep.
+            Params:
+                wtr: int, 0 for XGB, 1 for NN5H, 2 for NN3H
+            '''
+            if wtr==0:
+                sweep_id = wandb.sweep(xgb_sweep_config, project='LQO-XGB_'+savename)
+                wandb.agent(sweep_id=sweep_id, function=train_xgb)
+            elif wtr==1:
+                sweep_id = wandb.sweep(nn1h_sweep_config, project='LQO-NN1H_'+savename)
+                wandb.agent(sweep_id=sweep_id, function=train_nn1h) 
+            elif wtr==3:
+                sweep_id = wandb.sweep(nn3h_sweep_config, project='LQO-NN3H_'+savename)
+                wandb.agent(sweep_id=sweep_id, function=train_nn3h)
+            elif wtr==5:
+                sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
+                wandb.agent(sweep_id=sweep_id, function=train_nn5h)
+            else:
+                raise ValueError('wtr must be 0, 1, 3, or 5.')
+        wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
+        run_sweep(wtr)
+    else:
+        file = 'roik_True_400000_r_os_t_35.csv'
+        input_method = 'prob_9'
+        task = 'w'
+        trial = int(input('Enter trial number:'))
+        identifier = 'r35_%i'%trial
+        savename= identifier+'_'+task+'_'+input_method
+
+        # load data here
+        DATA_PATH = 'random_gen/data'
+        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
+
+        wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
         if wtr==0:
-            sweep_id = wandb.sweep(xgb_sweep_config, project='LQO-XGB_'+savename)
-            wandb.agent(sweep_id=sweep_id, function=train_xgb)
+            xgb = custom_train_xgb(n_estimators=5000, learning_rate=0.1)
+            eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t_5.csv'])
+            xgb.save_model(join('random_gen', 'models', savename+'_'+'xgb'+'.json'))
+
         elif wtr==1:
-            sweep_id = wandb.sweep(nn1h_sweep_config, project='LQO-NN1H_'+savename)
-            wandb.agent(sweep_id=sweep_id, function=train_nn1h) 
-        elif wtr==3:
-            sweep_id = wandb.sweep(nn3h_sweep_config, project='LQO-NN3H_'+savename)
-            wandb.agent(sweep_id=sweep_id, function=train_nn3h)
-        elif wtr==5:
-            sweep_id = wandb.sweep(nn5h_sweep_config, project='LQO-NN5H_'+savename)
-            wandb.agent(sweep_id=sweep_id, function=train_nn5h)
-        else:
-            raise ValueError('wtr must be 0, 1, 3, or 5.')
-    wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
-    run_sweep(wtr)
+            nn1 = custom_train_nn1h(size=50, learning_rate = 0.01, batch_size=256)
+            eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t_5.csv'])
+            nn1.save(join('random_gen', 'models', savename+'_'+'nn1'+'.h5'))
