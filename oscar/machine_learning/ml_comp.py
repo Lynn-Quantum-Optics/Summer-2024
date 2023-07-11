@@ -30,7 +30,8 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_t.csv', 'm_total.csv']):
             Y_pred = model.predict(join('random_gen', 'data', X))
             Y_pred_labels = get_labels(Y_pred)
         else: # population method
-            df =pd.read_csv(file)
+            df =pd.read_csv(join('random_gen', 'data', file))
+            df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0))]
             prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
             prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
             prob_RandL = abs(0.5*np.ones_like(df['HH']) - (df['RR'] + df['LL']))
@@ -40,7 +41,12 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_t.csv', 'm_total.csv']):
             pop_df['d_RandL'] = prob_RandL
 
             # prediction is max value per row
-            Y_pred_labels = df[['d_HandV', 'd_DandA', 'd_RandL']].idxmax(axis=1)
+            Y_pred = pop_df[['d_HandV', 'd_DandA', 'd_RandL']].idxmax(axis=1).apply(lambda x: pop_df.columns.get_loc(x))
+            Y_pred_labels = np.zeros((len(Y_pred), 3))
+            Y_pred_labels[np.arange(len(Y_pred)), Y_pred] = 1
+            Y_pred_labels = Y_pred_labels.astype(int)
+
+            print(Y_pred_labels)
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
         print(N_correct / len(Y_pred))
@@ -63,24 +69,26 @@ if __name__ == '__main__':
     ## load models ##
 
     # new models ---
-    xgb = XGBRegressor()
-    xgb.load_model(join(new_model_path, 'xgb_w_prob_9_r4.json'))
+    # xgb = XGBRegressor()
+    # xgb.load_model(join(new_model_path, 'xgb_w_prob_9_r4.json'))
 
-    # old models ---
-    xgb_old = XGBRegressor()
-    xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
+    # # old models ---
+    # xgb_old = XGBRegressor()
+    # xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
 
-    json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    model_bl = keras.models.model_from_json(loaded_model_json)
-    # load weights into new model
-    model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
+    # json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
+    # loaded_model_json = json_file.read()
+    # json_file.close()
+    # model_bl = keras.models.model_from_json(loaded_model_json)
+    # # load weights into new model
+    # model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
 
 
     ## evaluate ##
-    model_ls = [xgb, xgb_old, model_bl]
-    model_names = ['xgb', 'xgb_old', 'bl_old']
+    # model_ls = [xgb, xgb_old, model_bl]
+    # model_names = ['xgb', 'xgb_old', 'bl_old']
+    model_ls = [1]
+    model_names = ['population']
     eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t_5.csv'])
     # df = pd.DataFrame()
     # for model, name in zip(model_ls, model_names):
