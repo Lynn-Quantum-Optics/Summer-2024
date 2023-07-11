@@ -335,7 +335,7 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt: 
                 # phi = np.random.uniform(0, np.deg2rad(38.299))
-                phi = np.random.uniform(0, 5.646885307179586)
+                phi = np.random.uniform(5.646885307179586, 2*np.pi)
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -349,7 +349,7 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt:
                 # phi = np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
-                phi = np.random.uniform(0, 5.646885307179586)
+                phi = np.random.uniform(5.646885307179586, 2*np.pi)
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -365,7 +365,7 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt:
                 # phi =np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
-                phi = np.random.uniform(0, 5.646885307179586)
+                phi = np.random.uniform(5.646885307179586, 2*np.pi)
 
             else:
                 phi = np.random.rand()*2*np.pi
@@ -463,7 +463,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         Q_bound = (0, np.pi/2)
         if expt:
             # QP_bound = (0, np.deg2rad(38.299))
-            QP_bound = (0, 5.646885307179586)
+            QP_bound = (5.646885307179586, 2*np.pi)
         else:
             QP_bound = (0, 2*np.pi)
         if setup=='C0':
