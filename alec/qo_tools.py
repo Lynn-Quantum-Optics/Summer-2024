@@ -1,5 +1,18 @@
-import numpy as np
+''' qo_tools.py
 
+This module has some helpful functions and constants for playing around with quantum optics.
+
+'''
+
+import numpy as np
+from numpy import sin, cos, tan, arcsin, arctan, arctan2, sqrt, exp, pi, log, angle, rad2deg, deg2rad
+
+# constants
+
+I = 1j
+
+def expi(x):
+    return exp(I*x)
 
 # one qubit states
 
