@@ -86,14 +86,14 @@ s0 = np.array([[1], [0]]) # initial |0> state
 #     print(d*QP_rot)
 #     return a*QP_rot**4 + b*QP_rot**3 + c*QP_rot**2 + d*QP_rot + e
 
-def a(x, params=[1.20411312e-09, -3.77537609e+01, -8.22624806e-04,  1.13630194e+02, -4.58975501e+01]):
+def a(x, params=[5.02266366e-09, -7.89724832e+02, -3.41393047e-03,  2.37070122e+03,-1.90440641e+02]):
     x = np.rad2deg(x)
     a, b, c, d, e = params
     return a*x**4 + b*x*3 + c*x**2 + d*x +e
 
 
 def BBO_expt(QP_rot):
-    return np.array([[0, 0, 0, a(QP_rot)], [1-a(QP_rot), 0,0,0]], dtype='complex').T
+    return np.array([[0, 0, 0, a(QP_rot)], [1, 0,0,0]], dtype='complex').T
 
 # def get_BBO_expt(phi)(gamma): return np.array([[0, 0, 0, a], [1, 0,0,0]], dtype='complex').T 
 # set angle of BBO
@@ -113,14 +113,14 @@ def BBO_expt(QP_rot):
 #     return -phi
 
 # for negative angles of QP #
-# bound is 0 to -0.6363 rad= -36.5 deg
+# bound is 5.64 deg to 2pi
 def get_phi(QP_rot, params=[-1.39457353e+01, -2.22473380e-02,  1.27918243e-01,  3.38791354e+00,-1.45863718e+01, -3.35914837e+02,2.57078371e+03, 1.25499431e+02, -4.44347126e+04, 9.90780793e+04]):
     '''Using my sweep data calculated using Alec's phi expression. Assumes input is in radians and outputs in radians.'''
 
     a, b, c, d, e, f, g, h, i, j = params
     phi = a / np.cos(QP_rot) + b*QP_rot**8 + c*QP_rot**7 +d*QP_rot**6 + e*QP_rot**5 + f*QP_rot**4 + g*QP_rot**3 + h*QP_rot**2 + i*QP_rot + j
 
-    return phi
+    return -phi
 
 def get_QP_rot(phi):
     '''Function to return inverse of get_phi, that is what the theoretical angle is'.
