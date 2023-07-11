@@ -20,6 +20,7 @@ from tqdm import tqdm
 import numpy as np
 from uncertainties import unumpy as unp
 from uncertainties import core as ucore
+from uncertainties import ufloat
 import pandas as pd
 
 # local imports
@@ -74,6 +75,110 @@ class Manager:
     # +++ class variabes +++
 
     MAIN_CHANNEL = 'C4' # the main coincidence counting channel key for any preset basis
+
+    # +++ class methods +++
+
+    @staticmethod
+    def load_data(file_path:str) -> pd.DataFrame:
+        ''' Load the data saved by this class into a pandas dataframe.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to the data file to load.
+        
+        Returns
+        -------
+        pd.DataFrame
+            The data loaded from the file.
+        '''
+        # this can just use the built-in pandas.read_pickle
+        return pd.read_pickle(file_path)
+    
+    @staticmethod
+    def save_dataframe(df:pd.DataFrame, file_path:str) -> None:
+        ''' Save a dataframe. This can be any data frame, it's just a wrapper for pd.to_pickle.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The dataframe to save.
+        file_path : str
+            The path to the file to save to.
+        '''
+        df.to_pickle(file_path)
+    
+    @staticmethod
+    def load_new_data_into_old_format(file_path:str, config_file:str='config.json') -> pd.DataFrame:
+        ''' Load the data saved by this class into a pandas dataframe in the old format. This means that the count rates and count rate uncertainties will be given seperate columns in the dataframe.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to the data file (saved in pickle format) to load.
+        config_file : str, optional
+            The path to the config file. The only part of the file that will be referred to is the CCU channel keys. Default is 'config.json'.
+        Returns
+        -------
+        pd.DataFrame
+            The data that was loaded, but in the old format. Each CCU channel (e.g. "Ap") will have a corresponding uncertainty channel (e.g. "Ap_SEM"), and both will have a dtype of float (no ufloats).
+        '''
+        # load the data
+        df = pd.read_pickle(file_path)
+        # read the config file
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        # get the channel keys
+        channel_keys = config['ccu']['channel_keys']
+        # add columns for uncertainties, and make the old ones floats
+        for key in channel_keys:
+            # get sem and values
+            df[f'{key}_SEM'] = df[key].apply(lambda x: x.s)
+            df[key] = df[key].apply(lambda x: x.n)
+            # cast types to floats
+            df[key] = df[key].astype(float)
+            df[f'{key}_SEM'] = df[f'{key}_SEM'].astype(float)
+        # return the new dataframe
+        return df
+
+    @staticmethod
+    def load_old_data_into_new_format(file_path:str, config_file:str='config.json') -> pd.DataFrame:
+        ''' Load old data into the new format.
+
+        This method can be tricky to use! At the very least, you will need to rename the columns for the CCU count rates to match the new naming convention for those columns. So for instance
+        - "A' rate (#/s)" -> "Ap"
+        - "C6 rate SEM (#/s)" -> "C6_SEM"
+        These should also match the CCU channel keys in the config file.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to the data file (saved in CSV format) to load.
+        config_file : str, optional
+            The path to the config file. The only part of the file that will be referred to is the CCU channel keys. Default is 'config.json'.
+        
+        Returns
+        -------
+        pd.DataFrame
+            The data that was loaded, but in the new format. The CCU channels and uncertainties like "C7" and "C7_SEM" will be converted to ufloats in the column "C7".
+        '''
+        # load the data
+        df = pd.read_csv(file_path)
+        # read the config file
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        # get the channel keys
+        channel_keys = config['ccu']['channel_keys']
+        # make the old CCU count rate columns ufloats
+        for key in channel_keys:
+            df[key] = df[key].astype('object')
+            for i in range(len(df)):
+                df.at[i,key] = ufloat(df[key][i], df[f'{key}_SEM'][i])
+        # remove the old CCU count rate uncertainty columns
+        for key in channel_keys:
+            df.pop(f'{key}_SEM')
+        # return the new dataframe
+        return df
 
     # +++ properties +++
     
