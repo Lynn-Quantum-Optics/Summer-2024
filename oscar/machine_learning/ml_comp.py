@@ -27,9 +27,10 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_t.csv', 'm_total.csv']):
         else:
             X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
         if not(name == 'population'):
-            Y_pred = model.predict(X)
+            Y_pred = model.predict(join('random_gen', 'data', X))
             Y_pred_labels = get_labels(Y_pred)
         else: # population method
+            df =pd.read_csv(file)
             prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
             prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
             prob_RandL = abs(0.5*np.ones_like(df['HH']) - (df['RR'] + df['LL']))
@@ -80,8 +81,9 @@ if __name__ == '__main__':
     ## evaluate ##
     model_ls = [xgb, xgb_old, model_bl]
     model_names = ['xgb', 'xgb_old', 'bl_old']
-    df = pd.DataFrame()
-    for model, name in zip(model_ls, model_names):
-        df = pd.concat([df, eval_perf(model, name)])
-    print('saving!')
-    df.to_csv(join(new_model_path, 'model_perf.csv'))
+    eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t_5.csv'])
+    # df = pd.DataFrame()
+    # for model, name in zip(model_ls, model_names):
+    #     df = pd.concat([df, eval_perf(model, name)])
+    # print('saving!')
+    # df.to_csv(join(new_model_path, 'model_perf.csv'))
