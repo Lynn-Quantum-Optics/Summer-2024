@@ -194,17 +194,17 @@ class Manager:
         samp_period : float
             Collection time for each sample, in seconds. Note that this will be rounded to the nearest 0.1 seconds (minimum 0.1 seconds).
         *keys : str
-            The CCU channel keys to return data for. All rates will be taken and written to the output file, only these rates will be returned. If no keys are given, all rates will be returned.
+            Any channel keys (probably CCU keys, but any are allowed) to return data for. If no keys are given, all rates will be returned.
         note : str, optional (default "")
             A note can be provided to be written to this row in the output table which can help you remember why you took this data.
         
         Returns
         -------
-        uncertainties.unumpy.uarray
+        numpy.ndarray
             Array of ufloats with count rates and count rate uncertianties for each specified channel.
         or
-        uncertainties.ufloat
-            If only one channel is specified, a single ufloat is returned.
+        Any
+            If only one channel is specified, a single value is returned (e.g. ufloat for CCU data or str for time data or float for motor position).
         '''
         # log the data taking
         self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
@@ -354,25 +354,31 @@ class Manager:
     # +++ shutdown methods +++
 
     def shutdown(self) -> None:
-        ''' Shutsdown all the motors and terminates CCU processes, closing all com ports
+        ''' Shutsdown all the motors and terminates CCU processes, closing all com ports.
         '''
+        self.log('Beginning shutdown procedure.')
         # motors
         if len(self._motors) == 0:
-            print('WARNING: No motors are active.')
+            self.log('WARNING: No motors are active.')
         else:
             # loop to delete motors
+            self.log('Deleting motor objects.')
             for motor_name in self._motors:
                 del self.__dict__[motor_name]
         # com ports
         if len(self._active_ports) == 0:
-            print('WARNING: No com ports are active.')
+            self.log('WARNING: No com ports are active.')
         else:
             # loop to shutdown ports
+            self.log('Closing COM ports.')
             for port in self._active_ports.values():
                 port.close()
-        # output files
-        if self.out_file is not None:
-            self.close_output(get_data=False)
-        self._log_file.close()
+        # output data
+        if len(self._output_df) != 0:
+            self.log(f'WARNING: Shutting down with {len(self._output_df)} rows of (potentially) unsaved data.')
         # CCU
+        self.log('Closing CCU.')
         self._ccu.shutdown()
+        # log file
+        self.log('Closing log file.')
+        self._log_file.close()
