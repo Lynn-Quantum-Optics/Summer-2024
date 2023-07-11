@@ -74,10 +74,24 @@ s0 = np.array([[1], [0]]) # initial |0> state
 #     return np.array([[0, 0, 0, a(QP_rot)], [1, 0,0,0]], dtype='complex').T 
 
 # VV /(HH +VV) for negative QP angles
-def a(QP_rot, params=[1.00804849e-10, 1.24045054e+02, -3.66700073e-05, -3.72126982e+02, 6.33126695e-01]):
+# def a(QP_rot, params=[1.00804849e-10,  1.24045054e+02, -3.66700073e-05, -3.72126982e+02,6.33126695e-01]):
+#     '''Input is in radians, but fit is in degrees.'''
+#     a, b, c, d, e = params
+#     print(params)
+#     QP_rot = np.rad2deg(QP_rot)
+#     print(QP_rot)
+#     print(a*QP_rot**4)
+#     print(b*QP_rot**3)
+#     print(c*QP_rot**2)
+#     print(d*QP_rot)
+#     return a*QP_rot**4 + b*QP_rot**3 + c*QP_rot**2 + d*QP_rot + e
+
+def a(x, params=[1.20411312e-09, -3.77537609e+01, -8.22624806e-04,  1.13630194e+02, -4.58975501e+01]):
+    x = np.rad2deg(x)
     a, b, c, d, e = params
-    QP_rot = np.rad2deg(QP_rot) # convert to degrees
-    return a*QP_rot**4 + b*QP_rot**3 + c*QP_rot**2 + d*QP_rot + e
+    return a*x**4 + b*x*3 + c*x**2 + d*x +e
+
+
 def BBO_expt(QP_rot):
     return np.array([[0, 0, 0, a(QP_rot)], [1-a(QP_rot), 0,0,0]], dtype='complex').T
 
@@ -321,7 +335,7 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt: 
                 # phi = np.random.uniform(0, np.deg2rad(38.299))
-                phi = np.random.uniform(-.6363, 0)
+                phi = np.random.uniform(0, 5.646885307179586)
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -335,7 +349,7 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt:
                 # phi = np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
-                phi = np.random.uniform(-.6363, 0)
+                phi = np.random.uniform(0, 5.646885307179586)
             else:
                 phi = np.random.rand()*2*np.pi
             # B HWP
@@ -351,7 +365,7 @@ def get_random_Jangles(setup='C1', expt=True):
             # QP
             if expt:
                 # phi =np.random.uniform(0, np.deg2rad(38.299)) # 40 degrees is the max angle for the QP
-                phi = np.random.uniform(-.6363, 0)
+                phi = np.random.uniform(0, 5.646885307179586)
 
             else:
                 phi = np.random.rand()*2*np.pi
@@ -449,7 +463,7 @@ def jones_decompose(targ_rho, targ_name='Test', setup = 'C0', adapt=0, debug=Fal
         Q_bound = (0, np.pi/2)
         if expt:
             # QP_bound = (0, np.deg2rad(38.299))
-            QP_bound = (-0.6363, 0)
+            QP_bound = (0, 5.646885307179586)
         else:
             QP_bound = (0, 2*np.pi)
         if setup=='C0':

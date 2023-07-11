@@ -201,29 +201,29 @@ def hh_vv_qp_sweep():
     ax[0,2].set_title('$\chi^2_\\nu = %.3g$'%chi2red)
 
     # do for negtive QP rot #
-    hh_hh_df = pd.read_csv('../../framework/decomp_test/HH_HH_5_-45_0.csv')
-    hh_hv_df = pd.read_csv('../../framework/decomp_test/HH_HV_5_-45_0.csv')
-    hh_vh_df = pd.read_csv('../../framework/decomp_test/HH_VH_5_-45_0.csv')
-    hh_vv_df = pd.read_csv('../../framework/decomp_test/HH_VV_5_-45_0.csv')
-    vv_hh_df = pd.read_csv('../../framework/decomp_test/VV_HH_5_-45_0.csv')
-    vv_hv_df = pd.read_csv('../../framework/decomp_test/VV_HV_5_-45_0.csv')
-    vv_vh_df = pd.read_csv('../../framework/decomp_test/VV_VH_5_-45_0.csv')
-    vv_vv_df = pd.read_csv('../../framework/decomp_test/VV_VV_5_-45_0.csv')
+    hh_hh_df = pd.read_csv('../../framework/decomp_test/HH_HH_20_-38_0.csv')
+    # hh_hv_df = pd.read_csv('../../framework/decomp_test/HH_HV_5_-45_0.csv')
+    # hh_vh_df = pd.read_csv('../../framework/decomp_test/HH_VH_5_-45_0.csv')
+    # hh_vv_df = pd.read_csv('../../framework/decomp_test/HH_VV_5_-45_0.csv')
+    # vv_hh_df = pd.read_csv('../../framework/decomp_test/VV_HH_5_-45_0.csv')
+    # vv_hv_df = pd.read_csv('../../framework/decomp_test/VV_HV_5_-45_0.csv')
+    # vv_vh_df = pd.read_csv('../../framework/decomp_test/VV_VH_5_-45_0.csv')
+    vv_vv_df = pd.read_csv('../../framework/decomp_test/VV_VV_20_-38_0.csv')
 
     hh_hh_counts = hh_hh_df['C4 rate (#/s)'].to_numpy()
     hh_hh_unc = hh_hh_df['C4 rate SEM (#/s)'].to_numpy()
-    hh_hv_counts = hh_hv_df['C4 rate (#/s)'].to_numpy()
-    hh_hv_unc = hh_hv_df['C4 rate SEM (#/s)'].to_numpy()
-    hh_vh_counts = hh_vh_df['C4 rate (#/s)'].to_numpy()
-    hh_vh_unc = hh_vh_df['C4 rate SEM (#/s)'].to_numpy()
-    hh_vv_counts = hh_vv_df['C4 rate (#/s)'].to_numpy()
-    hh_vv_unc = hh_vv_df['C4 rate SEM (#/s)'].to_numpy()
-    vv_hh_counts = vv_hh_df['C4 rate (#/s)'].to_numpy()
-    vv_hh_unc = vv_hh_df['C4 rate SEM (#/s)'].to_numpy()
-    vv_hv_counts = vv_hv_df['C4 rate (#/s)'].to_numpy()
-    vv_hv_unc = vv_hv_df['C4 rate SEM (#/s)'].to_numpy()
-    vv_vh_counts = vv_vh_df['C4 rate (#/s)'].to_numpy()
-    vv_vh_unc = vv_vh_df['C4 rate SEM (#/s)'].to_numpy()
+    # hh_hv_counts = hh_hv_df['C4 rate (#/s)'].to_numpy()
+    # hh_hv_unc = hh_hv_df['C4 rate SEM (#/s)'].to_numpy()
+    # hh_vh_counts = hh_vh_df['C4 rate (#/s)'].to_numpy()
+    # hh_vh_unc = hh_vh_df['C4 rate SEM (#/s)'].to_numpy()
+    # hh_vv_counts = hh_vv_df['C4 rate (#/s)'].to_numpy()
+    # hh_vv_unc = hh_vv_df['C4 rate SEM (#/s)'].to_numpy()
+    # vv_hh_counts = vv_hh_df['C4 rate (#/s)'].to_numpy()
+    # vv_hh_unc = vv_hh_df['C4 rate SEM (#/s)'].to_numpy()
+    # vv_hv_counts = vv_hv_df['C4 rate (#/s)'].to_numpy()
+    # vv_hv_unc = vv_hv_df['C4 rate SEM (#/s)'].to_numpy()
+    # vv_vh_counts = vv_vh_df['C4 rate (#/s)'].to_numpy()
+    # vv_vh_unc = vv_vh_df['C4 rate SEM (#/s)'].to_numpy()
     vv_vv_counts = vv_vv_df['C4 rate (#/s)'].to_numpy()
     vv_vv_unc = vv_vv_df['C4 rate SEM (#/s)'].to_numpy()
 
@@ -231,18 +231,18 @@ def hh_vv_qp_sweep():
     angles = angles_o[(angles_o >= 323.5427) & (angles_o <=360)]
     hh_hh_counts = hh_hh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
     hh_hh_unc = hh_hh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
-    hh_hv_counts = hh_hv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
-    hh_hv_unc = hh_hv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
-    hh_vh_counts = hh_vh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
-    hh_vh_unc = hh_vh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
-    hh_vv_counts = hh_vv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
-    hh_vv_unc = hh_vv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
-    vv_hh_counts = vv_hh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
-    vv_hh_unc = vv_hh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
-    vv_hv_counts = vv_hv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
-    vv_hv_unc = vv_hv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
-    vv_vh_counts = vv_vh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
-    vv_vh_unc = vv_vh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
+    # hh_hv_counts = hh_hv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
+    # hh_hv_unc = hh_hv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
+    # hh_vh_counts = hh_vh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
+    # hh_vh_unc = hh_vh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
+    # hh_vv_counts = hh_vv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
+    # hh_vv_unc = hh_vv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
+    # vv_hh_counts = vv_hh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
+    # vv_hh_unc = vv_hh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
+    # vv_hv_counts = vv_hv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
+    # vv_hv_unc = vv_hv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
+    # vv_vh_counts = vv_vh_counts[(angles_o >= 323.5427) & (angles_o <=360)]
+    # vv_vh_unc = vv_vh_unc[(angles_o >= 323.5427) & (angles_o <=360)]
     vv_vv_counts = vv_vv_counts[(angles_o >= 323.5427) & (angles_o <=360)]
     vv_vv_unc = vv_vv_unc[(angles_o >= 323.5427) & (angles_o <=360)]
 
@@ -258,6 +258,7 @@ def hh_vv_qp_sweep():
     
     ax[1,1].errorbar(angles, vv_vv_counts / (hh_hh_counts+vv_vv_counts), yerr=hh_vv_f_unc, fmt='o')
 
+    print('fit angles', angles)
     # fit #
     popt, pcov = curve_fit(func, angles, vv_vv_counts / (hh_hh_counts+vv_vv_counts), sigma=hh_vv_f_unc, absolute_sigma=True)
 
@@ -266,6 +267,8 @@ def hh_vv_qp_sweep():
     # ax[1,1].set_xlim(323.5427, 360)
     ax[1,1].set_xlabel('QP rotation (deg)')
     ax[1,1].set_ylabel('$\\frac{VV}{HH + VV}$')
+
+    # print(func(335, *popt))
 
     print('neg params', popt)
 
@@ -286,20 +289,20 @@ def hh_vv_qp_sweep():
     plt.show()
 
     # plot individual components #
-    plt.figure(figsize=(10,7))
-    plt.errorbar(angles, hh_hv_counts, yerr = hh_hv_unc, fmt='o',label='HH, HV')
-    plt.errorbar(angles, hh_vh_counts, yerr = hh_hh_unc, fmt='o', label='HH, VH')
-    plt.errorbar(angles, hh_vv_counts, yerr = hh_vv_unc, fmt='o', label='HH, VV')
-    plt.errorbar(angles, vv_hh_counts, yerr = vv_hh_unc, fmt='o',label='VV, HH')
-    plt.errorbar(angles, vv_hv_counts, yerr = vv_hv_unc, fmt='o', label='VV, HV')
-    plt.errorbar(angles, vv_vh_counts, yerr = vv_vh_unc, fmt='o', label='VV, VH')
-    plt.legend()
-    # plt.xlim(323.5427, 360)
-    plt.xlabel('QP rotation (deg)')
-    plt.ylabel('Counts (#/s)')
-    plt.title('Other bases for HH, VV states')
-    plt.savefig('jones_fit_data/qp_extra_bases.pdf')
-    # plt.show()
+    # plt.figure(figsize=(10,7))
+    # plt.errorbar(angles, hh_hv_counts, yerr = hh_hv_unc, fmt='o',label='HH, HV')
+    # plt.errorbar(angles, hh_vh_counts, yerr = hh_hh_unc, fmt='o', label='HH, VH')
+    # plt.errorbar(angles, hh_vv_counts, yerr = hh_vv_unc, fmt='o', label='HH, VV')
+    # plt.errorbar(angles, vv_hh_counts, yerr = vv_hh_unc, fmt='o',label='VV, HH')
+    # plt.errorbar(angles, vv_hv_counts, yerr = vv_hv_unc, fmt='o', label='VV, HV')
+    # plt.errorbar(angles, vv_vh_counts, yerr = vv_vh_unc, fmt='o', label='VV, VH')
+    # plt.legend()
+    # # plt.xlim(323.5427, 360)
+    # plt.xlabel('QP rotation (deg)')
+    # plt.ylabel('Counts (#/s)')
+    # plt.title('Other bases for HH, VV states')
+    # plt.savefig('jones_fit_data/qp_extra_bases.pdf')
+    # # plt.show()
 
 if __name__=='__main__':
     hh_vv_qp_sweep()
