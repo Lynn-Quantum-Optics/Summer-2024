@@ -118,6 +118,8 @@ def det_qp_phi():
     phi_err_neg = phi_err_neg[QP_vals_neg_a >= QP_cutoff]
 
     # QP_vals_neg = QP_vals_neg_a
+    QP_vals_neg += 2*np.pi
+    print(QP_vals_neg)
 
     ax[1,0].errorbar(QP_vals_neg, phi_vals_neg, yerr=phi_err_neg, fmt='o')
 
@@ -305,5 +307,5 @@ def hh_vv_qp_sweep():
     # # plt.show()
 
 if __name__=='__main__':
-    hh_vv_qp_sweep()
-    # det_qp_phi()
+    # hh_vv_qp_sweep()
+    det_qp_phi()

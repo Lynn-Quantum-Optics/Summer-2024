@@ -114,7 +114,7 @@ def BBO_expt(QP_rot):
 
 # for negative angles of QP #
 # bound is 0 to -0.6363 rad= -36.5 deg
-def get_phi(QP_rot, params=[-1.05971375e+04,5.25511676e+03,1.18147650e+04, 1.27410922e+04, 6.07139506e+03, 3.81757342e+03, 1.94716763e+02, 5.31934589e+03, -8.01250263e-01, 1.05975049e+04]):
+def get_phi(QP_rot, params=[-1.39457353e+01, -2.22473380e-02,  1.27918243e-01,  3.38791354e+00,-1.45863718e+01, -3.35914837e+02,2.57078371e+03, 1.25499431e+02, -4.44347126e+04, 9.90780793e+04]):
     '''Using my sweep data calculated using Alec's phi expression. Assumes input is in radians and outputs in radians.'''
 
     a, b, c, d, e, f, g, h, i, j = params
