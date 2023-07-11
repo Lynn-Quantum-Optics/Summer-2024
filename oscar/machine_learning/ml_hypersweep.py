@@ -481,11 +481,11 @@ if __name__=='__main__':
         wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
         run_sweep(wtr)
     else:
-        file = 'roik_True_400000_r_os_t_35.csv'
+        file = 'roik_True_4000000_r_os_tv.csv'
         input_method = 'prob_9'
         task = 'w'
         trial = int(input('Enter trial number:'))
-        identifier = 'r35_%i'%trial
+        identifier = 'r4_s0_%i'%trial
         savename= identifier+'_'+task+'_'+input_method
 
         # load data here
@@ -495,10 +495,10 @@ if __name__=='__main__':
         wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
         if wtr==0:
             xgb = custom_train_xgb(n_estimators=5000, learning_rate=0.1)
-            eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t_5.csv'])
-            xgb.save_model(join('random_gen', 'models', savename+'_'+'xgb'+'.json'))
+            eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
+            xgb.save_model(join('random_gen', 'models', savename+'_'+'xgb_all'+'.json'))
 
         elif wtr==1:
             nn1 = custom_train_nn1h(size=50, learning_rate = 0.01, batch_size=256)
-            eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t_5.csv'])
-            nn1.save(join('random_gen', 'models', savename+'_'+'nn1'+'.h5'))
+            eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
+            nn1.save(join('random_gen', 'models', savename+'_'+'nn1_all'+'.h5'))
