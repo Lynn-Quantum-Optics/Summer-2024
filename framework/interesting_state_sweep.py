@@ -159,7 +159,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     '''
 
     # set the output file for manager
-    m.new_output(f"QP_sweep_{num}.csv")
+    m.new_output(f"int_state_sweep/QP_sweep_{num}.csv")
     # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
@@ -218,13 +218,13 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     # fits the truncated data set to a quartic fit function
     args1, unc1 = analysis.fit('quartic', fit_angles, fit_data, fit_unc)
 
-    plt.title('Angle of QP to minimize counts')
-    plt.xlabel('QP angle (deg))')
-    plt.ylabel('Count rates (#/s)')
-    plt.errorbar(fit_angles, fit_data, yerr=fit_unc, fmt='o', label="Measurement Basis")
-    analysis.plot_func('quartic', args1, fit_angles, label='Measurement fit function')
-    plt.legend()
-    plt.show()
+    # plt.title('Angle of QP to minimize counts')
+    # plt.xlabel('QP angle (deg))')
+    # plt.ylabel('Count rates (#/s)')
+    # plt.errorbar(fit_angles, fit_data, yerr=fit_unc, fmt='o', label="Measurement Basis")
+    # analysis.plot_func('quartic', args1, fit_angles, label='Measurement fit function')
+    # plt.legend()
+    # plt.show()
 
     # finds the angle that corresponds to the minimum value of the fit function
     def fit(x):
@@ -256,7 +256,7 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     PCT1 = ratio
 
-    m.new_output(f"UVHWP_balance_sweep1_{num}.csv")
+    m.new_output(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -268,7 +268,7 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     # obtain the first round of data and switch to a new output file
     data1 = m.close_output()
-    m.new_output(f'UVHWP_balance_sweep2_{num}.csv')
+    m.new_output(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
 
     # sweep in the second basis
     print(m.time, f'Configuring measurement basis {BASIS2}')
@@ -291,15 +291,15 @@ def UVHWP_sweep(m:Manager, ratio, num):
     print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({(1-PCT1)*100:.2f}% coincidences): {x:.5f}')
     
     # plot the data and fit
-    plt.title(f'Angle of {COMPONENT} to achieve {PCT1*100:.2f}% {BASIS1}\ncoincidences ({(1-PCT1)*100:.2f}% {BASIS2} coincidences): {x:.5f} degrees')
-    plt.xlabel(f'{COMPONENT} angle (deg)')
-    plt.ylabel(f'Count rates (#/s)')
-    plt.errorbar(data1.C_UV_HWP, data1.C4, yerr=data1.C4_sem, fmt='o', label=BASIS1)
-    plt.errorbar(data2.C_UV_HWP, data2.C4, yerr=data2.C4_sem, fmt='o', label=BASIS2)
-    analysis.plot_func('sin2_sq', args1, data1.C_UV_HWP, label=f'{BASIS1} fit function')
-    analysis.plot_func('sin2_sq', args2, data2.C_UV_HWP, label=f'{BASIS2} fit function')
-    plt.legend()
-    plt.show()
+    # plt.title(f'Angle of {COMPONENT} to achieve {PCT1*100:.2f}% {BASIS1}\ncoincidences ({(1-PCT1)*100:.2f}% {BASIS2} coincidences): {x:.5f} degrees')
+    # plt.xlabel(f'{COMPONENT} angle (deg)')
+    # plt.ylabel(f'Count rates (#/s)')
+    # plt.errorbar(data1.C_UV_HWP, data1.C4, yerr=data1.C4_sem, fmt='o', label=BASIS1)
+    # plt.errorbar(data2.C_UV_HWP, data2.C4, yerr=data2.C4_sem, fmt='o', label=BASIS2)
+    # analysis.plot_func('sin2_sq', args1, data1.C_UV_HWP, label=f'{BASIS1} fit function')
+    # analysis.plot_func('sin2_sq', args2, data2.C_UV_HWP, label=f'{BASIS2} fit function')
+    # plt.legend()
+    # plt.show()
 
     return x
 
@@ -353,7 +353,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
 if __name__ == '__main__':
 
     alphas = [np.pi/4, np.pi/6]
-    betas = np.linspace(0, np.pi/2, 6)
+    betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
 
@@ -385,7 +385,7 @@ if __name__ == '__main__':
 
         UVHWP_angle = UVHWP_sweep(m, HH_frac, i)
 
-        m.new_output(f'int_state_tomography_data_{state}.csv')
+        m.new_output(f'int_state_sweep/sweep_data_{state}.csv')
 
         m.configure_motors(
             C_UV_HWP=UVHWP_angle,
@@ -395,7 +395,7 @@ if __name__ == '__main__':
         )
 
         # get the density matrix
-        rho, unc, Su = get_rho(m, SAMP)
+        rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
 
         # theoretical density matrix
         actual_rho = get_theo_rho(state[0], state[1])
@@ -418,8 +418,9 @@ if __name__ == '__main__':
 
         # save results
         with open(f'int_state_sweep/rho_{state_n}.npy', 'wb') as f:
-            np.save(f, (rho, unc, Su, state, angles, fidelity, purity))
+            np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
         
-    m.close_output()
+        m.close_output()
+        
     m.shutdown()
 
