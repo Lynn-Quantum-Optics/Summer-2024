@@ -176,24 +176,26 @@ def hh_vv_qp_sweep():
     ax[0,0].set_title('Counts vs QP rotation')
     ax[0,0].legend()
 
-    vv_hh_f_unc = np.sqrt(( vv_unc / (hh_counts+vv_counts)*(vv_counts * vv_unc) / (hh_counts + vv_counts)**2)**2 + (hh_unc * vv_counts / (hh_counts + vv_counts)**2)**2)
+    # vv_hh_f_unc = np.sqrt(( vv_unc / (hh_counts+vv_counts)*(vv_counts * vv_unc) / (hh_counts + vv_counts)**2)**2 + (hh_unc * vv_counts / (hh_counts + vv_counts)**2)**2)
 
-    ax[0,1].errorbar(angles, vv_counts / (hh_counts+vv_counts), yerr=vv_hh_f_unc, fmt='o')
+    vv_hh_f_unc = np.sqrt((vv_unc / hh_counts)**2 + (hh_unc * vv_counts / (hh_counts)**2)**2)
+
+    ax[0,1].errorbar(angles, vv_counts / hh_counts, yerr=vv_hh_f_unc, fmt='o')
 
     # fit data #
     def func(x, a, b, c, d, e):
         return a*x**4 + b*x*3 + c*x**2 + d*x +e
     
-    popt, pcov = curve_fit(func, angles, vv_counts / (hh_counts + vv_counts), sigma=vv_hh_f_unc, absolute_sigma=True)
+    popt, pcov = curve_fit(func, angles, vv_counts / hh_counts, sigma=vv_hh_f_unc, absolute_sigma=True)
     angles_ls = np.linspace(min(angles), max(angles), 1000)
     ax[0,1].plot(angles_ls, func(angles_ls, *popt), 'r--')
-    ax[0,1].set_ylabel('$\\frac{VV}{HH + VV}$')
-    ax[0,1].set_title('$\\frac{VV}{HH + VV}$ vs QP rotation')
+    ax[0,1].set_ylabel('$\\frac{VV}{HH}$')
+    ax[0,1].set_title('$\\frac{VV}{HH}$ vs QP rotation')
 
     print('pos params', popt)
 
     # residuals #
-    norm_resid = (vv_counts / (hh_counts+vv_counts) - func(angles, *popt)) / vv_hh_f_unc
+    norm_resid = ((vv_counts / hh_counts) - func(angles, *popt)) / vv_hh_f_unc
     chi2 = np.sum(norm_resid**2)
     chi2red = chi2 / (len(angles) - len(popt))
 
@@ -256,26 +258,28 @@ def hh_vv_qp_sweep():
     ax[1,0].set_ylabel('Counts (#/s)')
     ax[1,0].legend()
 
-    hh_vv_f_unc = np.sqrt(( hh_hh_unc / (hh_hh_counts+vv_vv_counts)*(vv_vv_counts * hh_hh_unc) / (hh_hh_counts + vv_vv_counts)**2)**2 + (vv_vv_unc * hh_hh_counts / (hh_hh_counts + vv_vv_counts)**2)**2)
+    hh_vv_f_unc = np.sqrt((vv_vv_unc / hh_hh_counts)**2 + (hh_hh_unc * vv_vv_counts / hh_hh_counts**2)**2 )
+
+    # hh_vv_f_unc = np.sqrt(( hh_hh_unc / (hh_hh_counts+vv_vv_counts)*(vv_vv_counts * hh_hh_unc) / (hh_hh_counts + vv_vv_counts)**2)**2 + (vv_vv_unc * hh_hh_counts / (hh_hh_counts + vv_vv_counts)**2)**2)
     
-    ax[1,1].errorbar(angles, vv_vv_counts / (hh_hh_counts+vv_vv_counts), yerr=hh_vv_f_unc, fmt='o')
+    ax[1,1].errorbar(angles, vv_vv_counts / hh_hh_counts, yerr=hh_vv_f_unc, fmt='o')
 
     print('fit angles', angles)
     # fit #
-    popt, pcov = curve_fit(func, angles, vv_vv_counts / (hh_hh_counts+vv_vv_counts), sigma=hh_vv_f_unc, absolute_sigma=True)
+    popt, pcov = curve_fit(func, angles, vv_vv_counts / hh_hh_counts, sigma=hh_vv_f_unc, absolute_sigma=True)
 
     angles_ls = np.linspace(323.5427, 360, 1000)
     ax[1,1].plot(angles_ls, func(angles_ls, *popt),'r--')
     # ax[1,1].set_xlim(323.5427, 360)
     ax[1,1].set_xlabel('QP rotation (deg)')
-    ax[1,1].set_ylabel('$\\frac{VV}{HH + VV}$')
+    ax[1,1].set_ylabel('$\\frac{VV}{HH}$')
 
     # print(func(335, *popt))
 
     print('neg params', popt)
 
     # get chi2_red #
-    norm_resid = (vv_vv_counts / (hh_hh_counts+vv_vv_counts) - func(angles, *popt)) / hh_vv_f_unc
+    norm_resid = (vv_vv_counts / hh_hh_counts - func(angles, *popt)) / hh_vv_f_unc
     chi2red = np.sum(norm_resid**2) / (len(angles) - len(popt))
 
     ax[1,2].errorbar(angles, norm_resid, yerr=np.ones_like(norm_resid), fmt='o')
@@ -307,5 +311,5 @@ def hh_vv_qp_sweep():
     # # plt.show()
 
 if __name__=='__main__':
-    # hh_vv_qp_sweep()
-    det_qp_phi()
+    hh_vv_qp_sweep()
+    # det_qp_phi()
