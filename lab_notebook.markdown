@@ -1,3 +1,8 @@
+## 7/10/23
+MP: R
+
+Started warming up laser at 10:30. I changed the beta sweep from 0 to pi/2 to .001 to pi/2 due to a division by zero error which I will try to fix later. Importing from rho_methods also seems to be having issues. The interesting_state_sweep file ran without issue until the end of the first iteration where I forgot to close the output. Fixed the issue then ran it again, and it succeeded in running fully through. I will process the data tomorrow.
+
 ## 7/7/23
 MP: O
 Started warming up laser at 20:15. Plan is to re-take data for E0; eta fixed at 45, 60, and 22.5 degrees, sweeping chi from 0 to 90; change is using VV / (VV+HH) and HH / (VV + HH) in BBO and sweeping negative QP angles. At 22:44, started taking data using 'ertias_2_fita2.csv' in oscar/machine_learning/decomp.
