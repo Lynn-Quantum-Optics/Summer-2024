@@ -27,7 +27,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_t.csv', 'm_total.csv']):
         else:
             X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
         if not(name == 'population'):
-            Y_pred = model.predict(join('random_gen', 'data', X))
+            Y_pred = model.predict(join('random_gen', 'data'), X)
             Y_pred_labels = get_labels(Y_pred)
         else: # population method
             df =pd.read_csv(join('random_gen', 'data', file))
