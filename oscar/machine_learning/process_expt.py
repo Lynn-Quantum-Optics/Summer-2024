@@ -59,7 +59,8 @@ def get_rho_from_file(filename, verbose=True, angles=None):
     # read in data
     try:
 
-        rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
+        # rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
+        rho, unc, Su, un_proj, un_proj_unc, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
 
         ## update df with info about this trial ##
         if "E0" in filename: # if E0, split up into eta and chi
@@ -85,6 +86,8 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
     except:
         rho, unc, Su, rho_actual, _, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
+        print(np.load(join(DATA_PATH,filename), allow_pickle=True))
+        
 
         ## since angles were not saved, this means we also have the phi sign error as described in the comment to the function, so will need to recalculate the target. ##
 
@@ -160,7 +163,7 @@ def analyze_rhos(filenames, settings=None, id='id'):
     # initialize df
     df = pd.DataFrame()
 
-    for i, file in tqdm(enumerate(filenames)):
+    for i, file in enumerate(filenames):
         if settings is None:
             try:
                 trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles = get_rho_from_file(file, verbose=False)
@@ -177,7 +180,7 @@ def analyze_rhos(filenames, settings=None, id='id'):
 
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual) # theory
-        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity) # adjusted theory
+        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi]) # adjusted theory
 
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, stokes_unc=Su)
@@ -203,7 +206,9 @@ def analyze_rhos(filenames, settings=None, id='id'):
         Wp_t3_unc = W_expt_ls[3][1]
 
         if eta is not None and chi is not None:
-            df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 
+            adj_fidelity= get_adj_fidelity(rho_actual, angles, purity)
+
+            df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity,
             'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
 
         else:
@@ -238,10 +243,14 @@ def make_plots_E0(dfname):
         purity_eta = df_eta['purity'].to_numpy()
         fidelity_eta = df_eta['fidelity'].to_numpy()
         chi_eta = df_eta['chi'].to_numpy()
+        adj_fidelity = df_eta['AT_fidelity'].to_numpy()
 
         # do purity and fidelity plots
         ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
         ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
+
+        # plot adjusted theory purity
+        ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
         # extract witness values
         W_min_T = df_eta['W_min_T'].to_numpy()
@@ -265,21 +274,23 @@ def make_plots_E0(dfname):
         popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T)
         popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
 
-        ax[0,i].plot(chi_eta, sinsq(chi_eta, *popt_W_T_eta), label='$W_T$', color='navy')
-        ax[0,i].plot(chi_eta, sinsq(chi_eta, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+        chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
+
+        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
+        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
         ax[0,i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
 
 
-        ax[0,i].plot(chi_eta, sinsq(chi_eta, *popt_Wp_T_eta), label="$W_{T}'", color='crimson')
-        ax[0,i].plot(chi_eta, sinsq(chi_eta, *popt_Wp_AT_eta), label="$W_{AT}'", linestyle='dashed', color='red')
+        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
+        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
         ax[0,i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
 
         ax[0,i].set_title(f'$\eta = {eta}$')
         ax[0,i].set_ylabel('Witness value')
-        ax[0,i].legend()
+        ax[0,i].legend(ncol=2)
         ax[1,i].set_xlabel('$\chi$')
         ax[1,i].set_ylabel('Value')
-        ax[1,i].legend(ncols=2)
+        ax[1,i].legend()
 
         
     plt.suptitle('Witnesses for $E_0$ states, $\cos(\eta)|\Psi^+\\rangle + \sin(\eta)e^{i \chi}|\Psi^-\\rangle $')
@@ -344,9 +355,10 @@ def make_plots_E0(dfname):
 if __name__ == '__main__':
     # set filenames for computing W values
     ## new names ##
-    # filenames_45 = ["rho_('E0', (45.0, 0.0))_26.npy", "rho_('E0', (45.0, 18.0))_26.npy", "rho_('E0', (45.0, 36.0))_26.npy", "rho_('E0', (45.0, 54.0))_26.npy", "rho_('E0', (45.0, 72.0))_26.npy", "rho_('E0', (45.0, 90.0))_26.npy"]
-    # filenames_60= ["rho_('E0', (59.99999999999999, 0.0))_26.npy", "rho_('E0', (59.99999999999999, 18.0))_26.npy", "rho_('E0', (59.99999999999999, 36.0))_26.npy", "rho_('E0', (59.99999999999999, 54.0))_26.npy", "rho_('E0', (59.99999999999999, 72.0))_26.npy", "rho_('E0', (59.99999999999999, 90.0))_26.npy"]
-    # filenames = filenames_45 + filenames_60
+    filenames_45 = ["rho_('E0', (45.0, 0.0))_33.npy", "rho_('E0', (45.0, 18.0))_33.npy", "rho_('E0', (45.0, 36.0))_33.npy", "rho_('E0', (45.0, 54.0))_33.npy", "rho_('E0', (45.0, 72.0))_33.npy", "rho_('E0', (45.0, 90.0))_33.npy"]
+    filenames_30= ["rho_('E0', (29.999999999999996, 0.0))_34.npy", "rho_('E0', (29.999999999999996, 18.0))_34.npy", "rho_('E0', (29.999999999999996, 36.0))_34.npy", "rho_('E0', (29.999999999999996, 54.0))_34.npy", "rho_('E0', (29.999999999999996, 72.0))_34.npy", "rho_('E0', (29.999999999999996, 90.0))_34.npy"]
+    filenames_60 = ["rho_('E0', (59.99999999999999, 0.0))_32.npy", "rho_('E0', (59.99999999999999, 18.0))_32.npy", "rho_('E0', (59.99999999999999, 36.0))_32.npy", "rho_('E0', (59.99999999999999, 54.0))_32.npy", "rho_('E0', (59.99999999999999, 72.0))_32.npy", "rho_('E0', (59.99999999999999, 90.0))_32.npy"]
+    filenames = filenames_45 + filenames_30 + filenames_60
 
     ## old ##
     # filenames_45 = ["rho_('E0', (45.0, 0.0))_20.npy", "rho_('E0', (45.0, 18.0))_20.npy", "rho_('E0', (45.0, 36.0))_20.npy", "rho_('E0', (45.0, 54.0))_20.npy", "rho_('E0', (45.0, 72.0))_20.npy", "rho_('E0', (45.0, 90.0))_20.npy"]
@@ -358,8 +370,9 @@ if __name__ == '__main__':
     # settings_60 = [[36.80717351236577,38.298986094951985,45.0], [35.64037134135345,36.377936778443754,44.99999], [32.421520781235735,35.46619180422062,44.99998], [28.842682522467676,34.97796909446873,44.61235], [25.8177216842833,34.72228985431089,44.74163766], [21.614459228879422,34.622127766985436,44.9666]]
     # settings = settings_45 + settings_60
     # analyze rho files
-    # analyze_rhos(filenames, settings=settings,id='a')
+    id = 'neg3'
+    analyze_rhos(filenames,id=id)
 
-    make_plots_E0('rho_analysis_fita.csv')
+    make_plots_E0(f'rho_analysis_{id}.csv')
 
     # get_rho_from_file_depricated("rho_('PhiP',)_19.npy", PhiP)

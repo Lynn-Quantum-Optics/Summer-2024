@@ -236,7 +236,24 @@ def get_all_roik_projections(rho):
 
     return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
 
-def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes_unc = None, expt_purity = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def adjust_rho(rho, angles, expt_purity, state='E0'):
+    ''' Adjusts density matrix to account for experimental impurity.'''
+    if state=='E0':
+        r_hv = (1 + np.cos(np.deg2rad(angles[1]))*np.sin(2*np.deg2rad(angles[0]))) / 2
+        r_vh = 1 - r_hv
+        HV= np.array([0, 1, 0, 0]).reshape(4,1)
+        VH = np.array([0, 0, 1, 0]).reshape(4,1)
+        rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
+        return rho_adj
+
+def get_adj_fidelity(rho, angles, expt_purity, state='E0'):
+    ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
+    adj_rho = adjust_rho(rho, angles, expt_purity, state=state)
+    return get_fidelity(adj_rho, rho)
+
+
+
+def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes_unc = None, expt_purity = None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -245,6 +262,7 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
             calc_unc: bool, whether to compute the uncertainty in the Ws; uses the Stokes params -- must have do_stokes=True
             stokes_unc: the uncertainty in the stokes params; 4x4 matrix
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
+            angles: angles of eta, chi for E0 states to adjust theory
             num_reps: int, number of times to run the optimization
             optimize: bool, whether to optimize the Ws with random or gradient descent or to just check bounds
             gd: bool, whether to use gradient descent or brute random search
@@ -259,11 +277,8 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
         assert stokes_unc is not None, "Must provide uncertainty in Stokes params"
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
-    if expt_purity is not None:
-        rho_0_ad = rho.copy() # get rho but set off diagonals to 0
-        rho_0_ad[1,2] = 0
-        rho_0_ad[2,1] = 0
-        rho = expt_purity * rho + (1 - expt_purity) *rho_0_ad
+    if expt_purity is not None and angles is not None:
+        rho = adjust_rho(rho, angles, expt_purity)
 
         # # adjust only antidiagonals
         # rho[1,2] = expt_purity*rho[1,2]
