@@ -7,39 +7,47 @@ if __name__ == '__main__':
     import os
 
     from core import Manager
-    from full_tomo import get_rho
+    from full_tomo import *
 
     import sys
     sys.path.insert(0, '../oscar/machine_learning')
     from rho_methods import get_fidelity, get_purity
     from sample_rho import PhiP, PhiM, PsiM, PsiP, get_E0
 
-    # read in angle settings
-    # df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999.csv')
-    df = pd.read_csv('../oscar/machine_learning/decomp/ertias_2_fita.csv')
-
     # set up manager #
     SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
     m = Manager()
-    tnum = 26 # trial number
+    tnum = 34 # trial number
     m.new_output(f'decomp_test/decomp_data_{tnum}.csv')
+
+    expt = int(input('0 to run Phip and PsiP, 1 for E0(60, 36), 2 for E0 eta = 45, 60: '))
 
     # define states of interest #
 
-    # Bell
-    # states_names = [('PhiP',), ('PsiP',)]
-    # states = [PhiP, PsiP]
 
-    # E0 states
-    # fit eta at 45 degrees
-    eta_ls =[np.pi/4, np.pi/3]
-    chi_ls = np.linspace(0, np.pi/2, 6)
-    states_names = []
-    states = []
-    for eta in eta_ls:
-        for chi in chi_ls:
-            states_names.append(('E0', (np.rad2deg(eta), np.rad2deg(chi))))
-            states.append(get_E0(eta, chi))
+    # Bell
+    if expt==0:
+        df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999_neg.csv')
+        states_names = [('PhiP',), ('PsiP',)]
+        states = [PhiP, PsiP]
+
+    elif expt==1 or expt==2:
+        df = pd.read_csv('../oscar/machine_learning/decomp/e0_neg_ci.csv')
+        if expt==1:
+            eta_ls = [np.pi/3]
+            chi_ls = [np.pi/5]
+
+        else:
+            # E0 states
+            # fit eta at variety of values
+            eta_ls =[np.pi/6]
+            chi_ls = np.linspace(0, np.pi/2, 6)
+        states_names = []
+        states = []
+        for eta in eta_ls:
+            for chi in chi_ls:
+                states_names.append(('E0', (np.rad2deg(eta), np.rad2deg(chi))))
+                states.append(get_E0(eta, chi))
 
     for i, state_n in enumerate(states_names):
         state = states[i]
@@ -50,8 +58,8 @@ if __name__ == '__main__':
             B_HWP_theta = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0')]['B_HWP'].values[0])
 
         elif len(state_n) == 2: # has angle settings
-            eta = state_n[1][0]
-            chi = state_n[1][1]
+            eta = np.round(state_n[1][0],5)
+            chi = np.round(state_n[1][1],5)
 
             print(eta, chi)
 
@@ -71,16 +79,12 @@ if __name__ == '__main__':
             C_PCC = 4.005 # optimal value from phi_plus in config
         )
 
-        # m.make_state('phi_plus')
-
         # get the density matrix
-        rho, unc, Su = get_rho(m, SAMP)
+        rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
 
         # print results
         print('measured rho\n---')
         print(rho)
-        print('uncertainty \n---')
-        print(unc)
         print('actual rho\n ---')
         print(state)
 
@@ -94,7 +98,7 @@ if __name__ == '__main__':
 
         # save results
         with open(f'decomp_test/rho_{state_n}_{tnum}.npy', 'wb') as f:
-            np.save(f, (rho, unc, Su, state, angles, fidelity, purity))
+            np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
 
     # close out
     m.close_output()

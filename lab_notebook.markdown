@@ -1,3 +1,22 @@
+## 7/11/23 
+MP: O
+
+Temp in lab looks good: thermostat says 65.3F, in the curtained portion the original thermometer reads 18.8C, and the new one we got says 19.7C. Laser started warming up at 10:38. Plan is to retake HH/VV sweep wrt QP but for 20 x 1s; will then retry making E0 states with negative angles (and correct witness uncertainties). Replaced the N2 tank and got another one in position. For reference, there are 2 full tanks in Breznay lab we can use.
+
+At 12:21, started taking QP data. Inside curtain thermometer reads 19.0 C, in main room 66.5F. Sweep finished at 13:05.
+
+At 13:32, trial 29: running E0(60, 36) using improved HH, VV sweep to test calculations. 91.8% fidelity; Problem is magnitude of off-diagonal imaginary components. Just realized inconsistency in value of QP rot (neg or pos); fixing.
+
+Trial 30: implemented phi func fix. Magnitude of diagonal term quite off; going to original VV / HH, and also fixed sign on phi.
+
+Trial 31: testing w negative phi, original BBO correction: fidelity 98.6%!! Off diasonga mags for both real and im look much better, like .205 vs .25 in imaginary, 0.857 vs 0.85.
+
+Trial 32: running full sweep, eta = 45, 60. Note: we were moving the couch during this time, so after this run finishes I will probably redo it just to be safe.
+
+Trial 33: rerunning sweep eta = 45, 30 (30 since Richard did 30 and 45 again bc of couch disturbance; also PhiP and PsiP for the record. 19:26--There was an error reading in the eta = 30 setting, but got PhiP and PsiP and eta=45. Turning off N2 but keeping laser on and will come back in a few hours to rerun eta=30.
+
+At 23:10, got back to lab and it's feeling a little on the warm side: thermostat says 68.5, thermometer 19.9C. Trial 34: eta = 30 data. Everything off at 12:43.
+
 ## 7/10/23
 MP: R
 
