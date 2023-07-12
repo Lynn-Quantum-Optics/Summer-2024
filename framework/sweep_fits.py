@@ -405,9 +405,9 @@ if __name__ == '__main__':
     # +++ QP phi sweep experiment
     m = Manager()
     m.make_state("phi_plus")
-    sweep_qp_phi(m, 0, 45, NUM_STEP, SAMP, 'qp_phi_sweep.csv')
+    sweep_qp_phi(m, -45, 0, NUM_STEP, SAMP, 'qp_phi_sweep_neg.csv')
     m.shutdown()
-    show_data('qp_phi_sweep.csv', 'qp_phi_sweep_nofit.png')
+    # show_data('qp_phi_sweep.csv', 'qp_phi_sweep_nofit.png')
     
     
     # sweep_qp_phi(None, SAMP, NUM_STEP, 'qp_phi_sweep_no_discontinuities.csv')

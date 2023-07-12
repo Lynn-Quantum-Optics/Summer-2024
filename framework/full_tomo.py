@@ -188,7 +188,8 @@ def get_rho(m:Manager, samp:Tuple[int, float]) -> Tuple[np.ndarray, np.ndarray]:
         The uncertainty for the density matrix.
     '''
     proj, proj_unc, un_proj, un_proj_unc = get_projections(m, samp)
-    return reconstruct_rho(proj, proj_unc), un_proj, un_proj_unc
+    rho, rho_unc, Su = reconstruct_rho(proj, proj_unc)
+    return rho, rho_unc, Su, un_proj, un_proj_unc
 
 if __name__ == '__main__':
     SAMP = (5, 1)
