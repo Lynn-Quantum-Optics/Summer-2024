@@ -1,10 +1,12 @@
 {
+    "channel_keys": ["A", "B", "Ap", "Bp", "C4", "C5", "C6", "C7"],
     "ccu": {
         "port": "COM4",
         "baudrate": 19200,
         "ignore": ["A'", "C5", "C7"],
         "plot_xlim": 60,
-        "plot_smoothing": 0.5
+        "plot_smoothing": 0.5,
+        "channel_keys": ["A", "B", "Ap", "Bp", "C4", "C5", "C6", "C7"]
     },
     "laser": {
         "port": "COM10",
@@ -35,6 +37,12 @@
             "type": "Elliptec",
             "port": "COM9",
             "address": "A",
+            "offset": 0
+        },
+        "B_C_QWP": {
+            "type": "Elliptec",
+            "port": "COM9",
+            "address": "B",
             "offset": 0
         },
         "B_HWP": {
