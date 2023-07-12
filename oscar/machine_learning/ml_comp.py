@@ -10,7 +10,7 @@ from multiprocessing import Pool, cpu_count
 from train_prep import prepare_data
 from rho_methods import compute_witnesses
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_t.csv', 'm_total.csv']):
+def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv']):
     ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.'''
     def get_labels(Y_pred):
         ''' Function to assign labels based on argmax per row'''
@@ -27,7 +27,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_t.csv', 'm_total.csv']):
         else:
             X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
         if not(name == 'population'):
-            Y_pred = model.predict(join('random_gen', 'data'), X)
+            Y_pred = model.predict(X)
             Y_pred_labels = get_labels(Y_pred)
         else: # population method
             df =pd.read_csv(join('random_gen', 'data', file))
@@ -63,35 +63,37 @@ if __name__ == '__main__':
 
 
     # define models
-    new_model_path= join('random_gen', 'models', 'w_7_7')
+    new_model_path= join('random_gen', 'models', 'w_7_12')
     old_model_path = 'old_models'
 
     ## load models ##
 
     # new models ---
-    # xgb = XGBRegressor()
-    # xgb.load_model(join(new_model_path, 'xgb_w_prob_9_r4.json'))
+    xgb = XGBRegressor()
+    xgb.load_model(join(new_model_path, 'xgb_drawn9.json'))
+    nn1 = keras.models.load_model(join(new_model_path, 'nn1_valiant29.h5'))
+    nn3 = keras.models.load_model(join(new_model_path, 'nn3_woven66.h5'))
+    nn5 = keras.models.load_model(join(new_model_path, 'nn5_polar34.h5'))
 
     # # old models ---
-    # xgb_old = XGBRegressor()
-    # xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
-
-    # json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
-    # loaded_model_json = json_file.read()
-    # json_file.close()
-    # model_bl = keras.models.model_from_json(loaded_model_json)
-    # # load weights into new model
-    # model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
+    xgb_old = XGBRegressor()
+    xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
+    json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model_bl = keras.models.model_from_json(loaded_model_json)
+    # load weights into new model
+    model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
 
 
     ## evaluate ##
-    # model_ls = [xgb, xgb_old, model_bl]
-    # model_names = ['xgb', 'xgb_old', 'bl_old']
-    model_ls = [1]
-    model_names = ['population']
-    eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t_5.csv'])
-    # df = pd.DataFrame()
-    # for model, name in zip(model_ls, model_names):
-    #     df = pd.concat([df, eval_perf(model, name)])
-    # print('saving!')
-    # df.to_csv(join(new_model_path, 'model_perf.csv'))
+    model_ls = [xgb, nn1, nn3, nn5, xgb_old, model_bl]
+    model_names = ['xgb', 'nn1', 'nn3', 'nn5', 'xgb_old', 'bl_old']
+    # model_ls = [1]
+    # model_names = ['population']
+    # eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'])
+    df = pd.DataFrame()
+    for model, name in zip(model_ls, model_names):
+        df = pd.concat([df, eval_perf(model, name)])
+    print('saving!')
+    df.to_csv(join(new_model_path, 'model_perf.csv'))

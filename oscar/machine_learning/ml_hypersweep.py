@@ -153,6 +153,38 @@ def train_nn3h():
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
+def custom_train_nn3h(size1, size2, size3, learning_rate, batch_size):
+    ''' Function to run wandb sweep for NN.'''
+    
+    def build_model(size1, size2, size3, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size1, activation='relu'))
+        model.add(layers.Dense(size2, activation='relu'))
+        model.add(layers.Dense(size3, activation='relu'))
+
+        # model.add(layers.Dropout(dropout))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('sigmoid'))
+
+        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(size1, size2, size3, learning_rate, batch_size)
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=50                    
+      )
+
+
 def train_nn5h():
     ''' Function to run wandb sweep for NN.'''
     
@@ -189,6 +221,39 @@ def train_nn5h():
         validation_data=(X_test,Y_test),
         epochs=50,
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
+      )
+
+def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, batch_size):
+    ''' Function to run wandb sweep for NN.'''
+    
+    def build_model(size1, size2, size3, size4, size5, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size1, activation='relu'))
+        model.add(layers.Dense(size2, activation='relu'))
+        model.add(layers.Dense(size3, activation='relu'))
+        model.add(layers.Dense(size4, activation='relu'))
+        model.add(layers.Dense(size5, activation='relu'))
+
+        # model.add(layers.Dropout(dropout))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('sigmoid'))
+
+        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(size1, size2, size3, size4, size5, learning_rate) 
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=50                   
       )
 
 
@@ -483,22 +548,131 @@ if __name__=='__main__':
     else:
         file = 'roik_True_4000000_r_os_tv.csv'
         input_method = 'prob_9'
-        task = 'w'
+        task = input('w or e for task: ')
+        do_sweep = bool(int(input('Enter 1 to do sweep, 0 to train single instance:')))
         trial = int(input('Enter trial number:'))
         identifier = 'r4_s0_%i'%trial
         savename= identifier+'_'+task+'_'+input_method
 
-        # load data here
-        DATA_PATH = 'random_gen/data'
-        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
+        if do_sweep:   
+            wtr = int(input('Which model to run? 0 for XGB, 1 for NN1H, 3 for NN3H, 5 for NN5H:'))
+            if wtr==0:
+                lr_ls = np.linspace(1e-5, 0.7, 50)
+                n_est_ls = np.linspace(500, 5000, 20)
+                best_acc = 0
+                best_lr = None
+                best_n_est = None
+                best_model = None
+                for lr in lr_ls:
+                    for n_est in n_est_ls:
+                        xgb = custom_train_xgb(n_estimators=int(n_est), learning_rate=lr)
+                        df= eval_perf(xgb, identifier+'_'+str(wtr))
+                        if df['acc'].values[0] > best_acc:
+                            best_acc = df['acc'].values[0]
+                            best_lr = lr
+                            best_n_est = n_est
+                            best_model = xgb
+                print('Best acc: ', best_acc)
+                print('Best lr: ', best_lr)
+                print('Best n_est: ', best_n_est)
+                best_model.save_model(join('random_gen', 'models', savename+'_'+'xgb_all'+'.json'))
+            elif wtr==1:   
+                lr_ls = np.linspace(1e-5, 0.3, 50)
+                size_ls = np.linspace(1, 1800, 50)
+                best_acc = 0
+                best_lr = None
+                best_size = None
+                best_model = None
+                for lr in lr_ls:
+                    for size in size_ls:
+                        nn1 = custom_train_nn1h(size=int(size), learning_rate=lr)
+                        df= eval_perf(nn1, identifier+'_'+str(wtr))
+                        if df['acc'].values[0] > best_acc:
+                            best_acc = df['acc'].values[0]
+                            best_lr = lr
+                            best_size = size
+                            best_model = nn1
+                print('Best acc: ', best_acc)
+                print('Best lr: ', best_lr)
+                print('Best size: ', best_size)
+                best_model.save(join('random_gen', 'models', savename+'_'+'nn1_all'+'.h5'))
+            elif wtr==3:
+                lr_ls = np.linspace(1e-5, 0.3, 20)
+                size_ls = np.linspace(1, 1800, 20)
+                best_acc = 0
+                best_lr = None
+                best_size1 = None
+                best_size2 = None
+                best_size3 = None
+                best_model = None
+                for lr in lr_ls:
+                    for size1 in size_ls:
+                        for size2 in size_ls:
+                            for size3 in size_ls:
+                                nn3 = custom_train_nn3h(size1=int(size1), size2=int(size2), size3=int(size3), learning_rate=lr)
+                                df= eval_perf(nn3, identifier+'_'+str(wtr))
+                                if df['acc'].values[0] > best_acc:
+                                    best_acc = df['acc'].values[0]
+                                    best_lr = lr
+                                    best_size1 = size1
+                                    best_size2 = size2
+                                    best_size3 = size3
+                                    best_model = nn3
+                print('Best acc: ', best_acc)
+                print('Best lr: ', best_lr)
+                print('Best size1: ', best_size1)
+                print('Best size2: ', best_size2)
+                print('Best size3: ', best_size3)
+                best_model.save(join('random_gen', 'models', savename+'_'+'nn3_all'+'.h5'))
+            elif wtr==5:
+                lr_ls = np.linspace(1e-5, 0.3, 10)
+                size_ls = np.linspace(1, 1800, 10)
+                best_acc = 0
+                best_lr = None
+                best_size1 = None
+                best_size2 = None
+                best_size3 = None
+                best_size4 = None
+                best_size5 = None
+                best_model = None
+                for lr in lr_ls:
+                    for size1 in size_ls:
+                        for size2 in size_ls:
+                            for size3 in size_ls:
+                                for size4 in size_ls:
+                                    for size5 in size_ls:
+                                        nn5 = custom_train_nn5h(size1=int(size1), size2=int(size2), size3=int(size3), size4=int(size4), size5=int(size5), learning_rate=lr)
+                                        df= eval_perf(nn5, identifier+'_'+str(wtr))
+                                        if df['acc'].values[0] > best_acc:
+                                            best_acc = df['acc'].values[0]
+                                            best_lr = lr
+                                            best_size1 = size1
+                                            best_size2 = size2
+                                            best_size3 = size3
+                                            best_size4 = size4
+                                            best_size5 = size5
+                                            best_model = nn5
+                print('Best acc: ', best_acc)
+                print('Best lr: ', best_lr)
+                print('Best size1: ', best_size1)
+                print('Best size2: ', best_size2)
+                print('Best size3: ', best_size3)
+                print('Best size4: ', best_size4)
+                print('Best size5: ', best_size5)
+                best_model.save(join('random_gen', 'models', savename+'_'+'nn5_all'+'.h5'))
 
-        wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
-        if wtr==0:
-            xgb = custom_train_xgb(n_estimators=5000, learning_rate=0.1)
-            eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
-            xgb.save_model(join('random_gen', 'models', savename+'_'+'xgb_all'+'.json'))
+        else:
+            # load data here
+            DATA_PATH = 'random_gen/data'
+            X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
 
-        elif wtr==1:
-            nn1 = custom_train_nn1h(size=50, learning_rate = 0.01, batch_size=256)
-            eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
-            nn1.save(join('random_gen', 'models', savename+'_'+'nn1_all'+'.h5'))
+            wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
+            if wtr==0:
+                xgb = custom_train_xgb(n_estimators=5000, learning_rate=0.1)
+                eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
+                xgb.save_model(join('random_gen', 'models', savename+'_'+'xgb_all'+'.json'))
+
+            elif wtr==1:
+                nn1 = custom_train_nn1h(size=50, learning_rate = 0.01, batch_size=256)
+                eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
+                nn1.save(join('random_gen', 'models', savename+'_'+'nn1_all'+'.h5'))
