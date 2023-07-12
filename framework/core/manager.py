@@ -262,6 +262,7 @@ class Manager:
         if output_file is not None:
             self.log(f'Saving data to "{output_file}".')
             csv_df = Manager.reformat_ufloat_to_float(df)
+            csv_df = csv_df[self.csv_columns]
             csv_df.to_csv(output_file)
         
         # clear the output data
