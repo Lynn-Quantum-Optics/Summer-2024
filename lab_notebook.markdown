@@ -1,3 +1,15 @@
+## 7/12/13
+MP: A, O
+
+A here coming to test out the new code framework with uncertainties and such! I've started by installing the lab_framework package from the new repository I setup this morning and now I'm going to get the lab setup to run a few tests with it :)
+
+Set everything up at 12:12. Didn't warm up laser because this data doesn't matter. I double checked everything
+- made sure nitrogen flow was minimal but present. came up with another way of checking this -- cover the ends of the tubes for ~1s and listen for a hiss when you let go. this is much easier than feeling for the breeze when the room is already chilly.
+- photodetector small power supply was like 1.5V (should be 2V?) and 0.7ish A (should be 1A?)
+- laser themometer at 19.4C desk thermometer at 19C
+
+After testing and verifying the new lab_framework, Lynn came down to help with a preliminary mounting setup for Bob's creation QWP. It went well! But we are missing a part so it is on a temporary mount for now, good enough for us to try out some calibration scripts but a far cry from the final mounting.
+
 ## 7/11/23 
 MP: O
 
