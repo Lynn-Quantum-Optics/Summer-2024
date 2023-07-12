@@ -34,19 +34,29 @@ def train_xgb():
     # val_acc = evaluate_perf(model, X_train, Y_train, X_test, Y_test)[0]
     # wandb.log({"val_acc": val_acc})
 
-def custom_train_xgb(max_depth=6, learning_rate=0.3, n_estimators=1000, early_stopping=10):
+def custom_train_xgb(max_depth=10, learning_rate=0.3, n_estimators=1000, early_stopping=10):
     ''' Function to run XGBOOST with custom hyperparameters.
     params:
         method: 'witness' or 'entangled' for prediction method
-        data: 'train' or 'test' for which data to evaluate on
+        data: 'train' or 'test' for which data to evaluate ond
+        defauls for ref:
+            max_depth=6, learning_rate=0.3, n_estimators=1000, early_stopping=10
     '''
     # define the model
-    model = XGBRegressor(
-        max_depth=max_depth,
-        learning_rate=learning_rate,
-        n_estimators= n_estimators
-        # tree_method = 'gpu_hist',
-    )
+    try:
+        model = XGBRegressor(
+            max_depth=max_depth,
+            learning_rate=learning_rate,
+            n_estimators= n_estimators,
+            tree_method = 'hist'
+        )
+    except:
+        print('unable to load gpu_hist, using default')
+        model = XGBRegressor(
+            max_depth=max_depth,
+            learning_rate=learning_rate,
+            n_estimators= n_estimators
+        )
 
     # fit the model
     model.fit(X_train, Y_train,early_stopping_rounds = early_stopping, eval_set=[(X_test, Y_test)])
@@ -90,7 +100,7 @@ def train_nn1h():
       )
     return  model
     
-def custom_train_nn1h(size, learning_rate, batch_size):
+def custom_train_nn1h(size, learning_rate, batch_size=256):
     ''' Function to run wandb sweep for NN.'''
     
     def build_model(size, learning_rate):
@@ -153,7 +163,7 @@ def train_nn3h():
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
-def custom_train_nn3h(size1, size2, size3, learning_rate, batch_size):
+def custom_train_nn3h(size1, size2, size3, learning_rate, batch_size=256):
     ''' Function to run wandb sweep for NN.'''
     
     def build_model(size1, size2, size3, learning_rate):
@@ -174,7 +184,7 @@ def custom_train_nn3h(size1, size2, size3, learning_rate, batch_size):
 
         return model
     
-    model = build_model(size1, size2, size3, learning_rate, batch_size)
+    model = build_model(size1, size2, size3, learning_rate)
     
     # now train
     history = model.fit(
@@ -183,6 +193,7 @@ def custom_train_nn3h(size1, size2, size3, learning_rate, batch_size):
         validation_data=(X_test,Y_test),
         epochs=50                    
       )
+    return model
 
 
 def train_nn5h():
@@ -223,7 +234,7 @@ def train_nn5h():
         callbacks=[wandb.keras.WandbCallback()] #use callbacks to have w&b log stats; will automatically save best model                     
       )
 
-def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, batch_size):
+def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, batch_size=256):
     ''' Function to run wandb sweep for NN.'''
     
     def build_model(size1, size2, size3, size4, size5, learning_rate):
@@ -255,6 +266,7 @@ def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, batch_si
         validation_data=(X_test,Y_test),
         epochs=50                   
       )
+    return model
 
 
 ## run on our data ##
@@ -553,80 +565,113 @@ if __name__=='__main__':
         trial = int(input('Enter trial number:'))
         identifier = 'r4_s0_%i'%trial
         savename= identifier+'_'+task+'_'+input_method
+        # load data here
+        DATA_PATH = 'random_gen/data'
+        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
 
         if do_sweep:   
             wtr = int(input('Which model to run? 0 for XGB, 1 for NN1H, 3 for NN3H, 5 for NN5H:'))
             if wtr==0:
-                lr_ls = np.linspace(1e-5, 0.7, 50)
-                n_est_ls = np.linspace(500, 5000, 20)
+                lr_ls = np.linspace(0.1, 0.7, 5)
+                n_est_ls = np.linspace(500, 5000, 10)
+                max_depth_ls = np.linspace(5, 20, 5)
+                early_stopping_ls = np.linspace(5, 50, 5)
                 best_acc = 0
                 best_lr = None
                 best_n_est = None
                 best_model = None
                 for lr in lr_ls:
                     for n_est in n_est_ls:
-                        xgb = custom_train_xgb(n_estimators=int(n_est), learning_rate=lr)
-                        df= eval_perf(xgb, identifier+'_'+str(wtr))
-                        if df['acc'].values[0] > best_acc:
-                            best_acc = df['acc'].values[0]
-                            best_lr = lr
-                            best_n_est = n_est
-                            best_model = xgb
+                        for max_depth in max_depth_ls:
+                            for early_stopping in early_stopping_ls:
+                                try:
+                                    xgb = custom_train_xgb(n_estimators=int(n_est), learning_rate=lr, max_depth=int(max_depth), early_stopping=int(early_stopping))
+                                    df= eval_perf(xgb, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)])
+                                    print('acc', df['acc'].values[0])
+                                    if df['acc'].values[0] > best_acc:
+                                        best_acc = df['acc'].values[0]
+                                        best_lr = lr
+                                        best_n_est = n_est
+                                        best_model = xgb
+                                        print('Best acc: ', best_acc)
+                                        print('Best lr: ', best_lr)
+                                        print('Best n_est: ', best_n_est)
+                                except KeyboardInterrupt:
+                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best n_est: ', best_n_est)
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 best_model.save_model(join('random_gen', 'models', savename+'_'+'xgb_all'+'.json'))
             elif wtr==1:   
-                lr_ls = np.linspace(1e-5, 0.3, 50)
-                size_ls = np.linspace(1, 1800, 50)
+                lr_ls = np.linspace(0.01, 0.7, 5)
+                size_ls = np.linspace(1, 500, 10)
                 best_acc = 0
                 best_lr = None
                 best_size = None
                 best_model = None
                 for lr in lr_ls:
                     for size in size_ls:
-                        nn1 = custom_train_nn1h(size=int(size), learning_rate=lr)
-                        df= eval_perf(nn1, identifier+'_'+str(wtr))
-                        if df['acc'].values[0] > best_acc:
-                            best_acc = df['acc'].values[0]
-                            best_lr = lr
-                            best_size = size
-                            best_model = nn1
+                        try:
+                            nn1 = custom_train_nn1h(size=int(size), learning_rate=lr)
+                            df= eval_perf(nn1, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)])
+                            print('acc', df['acc'].values[0])
+                            if df['acc'].values[0] > best_acc:
+                                best_acc = df['acc'].values[0]
+                                best_lr = lr
+                                best_size = size
+                                best_model = nn1
+                                print('Best acc: ', best_acc)
+                                print('Best lr: ', best_lr)
+                                print('Best size: ', best_size)
+                        except KeyboardInterrupt:
+                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size: ', best_size)
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn1_all'+'.h5'))
             elif wtr==3:
-                lr_ls = np.linspace(1e-5, 0.3, 20)
-                size_ls = np.linspace(1, 1800, 20)
+                lr_ls = np.linspace(0.01, 0.7, 5)
+                size_ls = np.linspace(1, 500, 5)
                 best_acc = 0
                 best_lr = None
                 best_size1 = None
                 best_size2 = None
                 best_size3 = None
-                best_model = None
                 for lr in lr_ls:
                     for size1 in size_ls:
                         for size2 in size_ls:
                             for size3 in size_ls:
-                                nn3 = custom_train_nn3h(size1=int(size1), size2=int(size2), size3=int(size3), learning_rate=lr)
-                                df= eval_perf(nn3, identifier+'_'+str(wtr))
-                                if df['acc'].values[0] > best_acc:
-                                    best_acc = df['acc'].values[0]
-                                    best_lr = lr
-                                    best_size1 = size1
-                                    best_size2 = size2
-                                    best_size3 = size3
-                                    best_model = nn3
+                                try:
+                                    nn3 = custom_train_nn3h(size1=int(size1), size2=int(size2), size3=int(size3), learning_rate=lr)
+                                    df= eval_perf(nn3, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)])
+                                    print('acc', df['acc'].values[0])
+                                    if df['acc'].values[0] > best_acc:
+                                        best_acc = df['acc'].values[0]
+                                        best_lr = lr
+                                        best_size1 = size1
+                                        best_size2 = size2
+                                        best_size3 = size3
+                                        best_model = nn3
+                                        print('Best acc: ', best_acc)
+                                        print('Best lr: ', best_lr)
+                                        print('Best size1: ', best_size1)
+                                        print('Best size2: ', best_size2)
+                                        print('Best size3: ', best_size3)
+                                except KeyboardInterrupt:
+                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
                 print('Best size2: ', best_size2)
                 print('Best size3: ', best_size3)
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn3_all'+'.h5'))
             elif wtr==5:
-                lr_ls = np.linspace(1e-5, 0.3, 10)
-                size_ls = np.linspace(1, 1800, 10)
+                lr_ls = np.linspace(0.01, 0.7, 5)
+                size_ls = np.linspace(1, 500, 5)
                 best_acc = 0
                 best_lr = None
                 best_size1 = None
@@ -641,31 +686,38 @@ if __name__=='__main__':
                             for size3 in size_ls:
                                 for size4 in size_ls:
                                     for size5 in size_ls:
-                                        nn5 = custom_train_nn5h(size1=int(size1), size2=int(size2), size3=int(size3), size4=int(size4), size5=int(size5), learning_rate=lr)
-                                        df= eval_perf(nn5, identifier+'_'+str(wtr))
-                                        if df['acc'].values[0] > best_acc:
-                                            best_acc = df['acc'].values[0]
-                                            best_lr = lr
-                                            best_size1 = size1
-                                            best_size2 = size2
-                                            best_size3 = size3
-                                            best_size4 = size4
-                                            best_size5 = size5
-                                            best_model = nn5
-                print('Best acc: ', best_acc)
+                                        try:
+                                            nn5 = custom_train_nn5h(size1=int(size1), size2=int(size2), size3=int(size3), size4=int(size4), size5=int(size5), learning_rate=lr)
+                                            df= eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)])
+                                            if df['acc'].values[0] > best_acc:
+                                                best_acc = df['acc'].values[0]
+                                                best_lr = lr
+                                                best_size1 = size1
+                                                best_size2 = size2
+                                                best_size3 = size3
+                                                best_size4 = size4
+                                                best_size5 = size5
+                                                best_model = nn5
+                                                print('Best acc: ', best_acc)
+                                                print('Best lr: ', best_lr)
+                                                print('Best size1: ', best_size1)
+                                                print('Best size2: ', best_size2)
+                                                print('Best size3: ', best_size3)
+                                                print('Best size4: ', best_size4)
+                                                print('Best size5: ', best_size5)
+                                                print('Best acc: ', best_acc)
+                                        except:
+                                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
                 print('Best size2: ', best_size2)
                 print('Best size3: ', best_size3)
                 print('Best size4: ', best_size4)
                 print('Best size5: ', best_size5)
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn5_all'+'.h5'))
 
         else:
-            # load data here
-            DATA_PATH = 'random_gen/data'
-            X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
-
             wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
             if wtr==0:
                 xgb = custom_train_xgb(n_estimators=5000, learning_rate=0.1)
