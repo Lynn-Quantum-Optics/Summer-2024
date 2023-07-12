@@ -19,7 +19,7 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
         verbose: whether to update progress per individual search, bool
         opt: whether this solve is for parallel or single process, bool
     '''
-    N = 10*hb.soln_limit # set max number of iterations
+    N = 2*hb.soln_limit # set max number of iterations
     
     hb.set_m(m) # set mth k-system
 
@@ -31,7 +31,7 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
             v_sol = hb.construct_v(x0)
             ip_ls = []
             for x in x_ls:
-                if not(np.all(x_sol == x)):
+                if not(np.all(x0 == x)):
                     v_x = hb.construct_v(x)
                     ip = v_sol.conj().T @ v_x
                     ip = ip[0][0]
@@ -50,9 +50,16 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
         '''Attempt to find single solution of system with given initial guess x0.'''
         def try_solve(x0):
             soln= minimize(loss, args=(x_ls,), x0=x0, bounds=bounds)
-            valid_soln = soln.success and np.isclose(soln.fun, 0, rtol=1e-6) and np.any(soln.x > 0)# check if solution is valid 
+            s_loss = soln.fun
+            x_sol = soln.x
+            f_vals = hb.get_ksys(x_sol)
+            
+            valid_soln = np.all(np.round(f_vals, 6) == 0) and not(np.all(np.round(x_sol, 3) == 0))# check if solution is valid
+
+
+            # valid_soln = soln.success and np.isclose(soln.fun, 0, rtol=1e-9) and np.all(np.isclose(hb.get_ksys(soln.x), 0, rtol=1e-9)) and not(np.all(np.isclose(soln.x, 0, rtol=1e-4)))# check if solution is valid 
         
-            return soln.fun, soln.x, valid_soln
+            return s_loss, x_sol, valid_soln
 
         soln, x_sol, valid_soln = try_solve(x0)
         grad_x0= x0
@@ -60,17 +67,17 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
         while not(valid_soln) and n <N:
             # if verbose:
             #     print(n, loss(x0))
-            if n % (f * N)==0:
-                x0 = hb.rand_guess()
-            else:
-                # gradient = approx_fprime(grad_x0, loss, epsilon=1e-8)
-                # try:
-                #     x0 = [grad_x0[i] - zeta*gradient[i] for i in range(len(grad_x0))]
-                #     # x0 = hb.rand_guess()
-                #     assert np.all(np.array(x0) > 0)
-                # except AssertionError:
-                #     x0 = hb.rand_guess()
-                x0 = hb.rand_guess()
+            # if n % (f * N)==0:
+            #     x0 = hb.rand_guess()
+            # else:
+            #     gradient = approx_fprime(grad_x0, loss, epsilon=1e-8)
+            #     try:
+            #         x0 = [grad_x0[i] - zeta*gradient[i] for i in range(len(grad_x0))]
+            #         # x0 = hb.rand_guess()
+            #         assert np.all(np.array(x0) > 0)
+            #     except AssertionError:
+            #         x0 = hb.rand_guess()
+            x0 = hb.rand_guess()
             soln, x_sol, valid_soln = try_solve(x0)
             n+=1
 
@@ -107,7 +114,7 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
                         ip = v_sol.conj().T @ v_x
                         try: ip = ip[0][0]
                         except IndexError: pass
-                        ip = np.real(ip)
+                        # ip = np.real(ip)
                         if ip > 1e-6: 
                             orthogonal= False # check if orthogonal
                             print('not orthogonal', ip)
@@ -128,7 +135,11 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
     if len(x_ls) == hb.soln_limit:
         if verbose: print('found all solns with m = %i, d = %i, k = %i'%(m,hb.d, hb.k ))
         if opt: 
-            print(x_ls)
+            print('x_ls', x_ls)
+
+            print('saving!')
+            x_ls = np.array(x_ls)
+            np.save('results/m%i_d%i_k%i.npy'%(m, hb.d, hb.k), x_ls)
             raise StopAsyncIteration('found all solns with m = ', m)
         return x_ls
     else:

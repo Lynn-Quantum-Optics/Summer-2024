@@ -48,7 +48,7 @@ class HyperBell():
             numb[l]=1
             numb[d+(l+c)%d]=1
             bell += phase * numb
-        return bell * 1/np.sqrt(d) # normalize
+        return bell * 1/np.sqrt(d) # normalize)
 
     def get_all_kbell(self):
         '''Returns all unique k-groups of bell states for a given dimension d.'''
@@ -79,7 +79,7 @@ class HyperBell():
         def meas(coeff):
             bell_m = np.zeros((2*d,1), dtype='complex128') # initialize measured bell state
             for l in range(2*d):
-                if bell[l]==1: # if state is occupied
+                if bell[l]!=0: # if state is occupied
                     bell_c = bell.copy()
                     bell_c[l]=0 # annihilate state
                     bell_m += (coeff[l] + 1j*coeff[2*d+l]) * bell_c # mutliply by coefficient
@@ -97,6 +97,8 @@ class HyperBell():
         # get measured states
         bell1_meas = bell1_meas_func(coeff)
         bell2_meas = bell2_meas_func(coeff)
+        # print(bell1_meas)
+        # print(bell2_meas)
         # compute inner product
         ip = np.conj(bell1_meas).T @ bell2_meas
         ip = ip[0][0] # extract scalar from array
@@ -157,9 +159,23 @@ if __name__ == '__main__':
     k = 3
     hb = HyperBell()
     hb.init(d,k)
-    coeff= hb.rand_guess()
-    print(coeff)
-    print(hb.construct_v(coeff))
+    coeff=np.array([-0.9496828 , -0.84160771, -0.53092842, -0.83225099, -0.90072945,
+       -0.35618569, -0.86866719, -0.71994774])
+    print(hb.get_meas(hb.get_bell(c=0, p=0))(coeff))
+    print(hb.get_ksys(coeff))
+    print(hb.get_ksys(hb.rand_guess()))
     # print(hb.get_ksys_func(0)())
     # print(hb.get_ksys(0, hb.rand_guess()))
+
+    def meas(bell, coeff):
+        bell_m = np.zeros((2*d,1), dtype='complex128') # initialize measured bell state
+        print(bell)
+        for l in range(2*d):
+            if bell[l]!=0: # if state is occupied
+                bell_c = bell.copy()
+                bell_c[l]=0 # annihilate state
+                bell_m += (coeff[l] + 1j*coeff[2*d+l]) * bell_c # mutliply by coefficient
+        print(bell_m)
+        return bell_m
+    meas(hb.get_bell(c=0, p=0), coeff)
 
