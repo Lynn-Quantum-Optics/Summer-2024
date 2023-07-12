@@ -52,7 +52,7 @@ class Manager:
         self.config_file = config
 
         # initialize output file variables
-        self._output_df = pd.DataFrame(columns=self.df_columns) # output dataframe
+        self._output_data = {x:[] for x in self.df_columns} # initialize the output data
 
         # initialize ccu and motor class variables
         self._ccu = None
@@ -79,106 +79,85 @@ class Manager:
     # +++ class methods +++
 
     @staticmethod
+    def reformat_ufloat_to_float(df_:pd.DataFrame) -> pd.DataFrame:
+        ''' Reformat a dataframe with ufloats to only contain floats.
+
+        Each column "X" that has a uncertainties.core.Variable dtype will be broken into the columns "X" and "X_SEM".
+
+        Parameters
+        ----------
+        df_ : pd.DataFrame
+            The dataframe to reformat.
+            
+        Returns
+        -------
+        pd.DataFrame
+            The reformatted dataframe.
+        '''
+        # create a copy to work with
+        df = df_.copy()
+        # loop through coluns
+        for c in df.columns:
+            # check if the column is a ufloat
+            if df[c].apply(lambda x : isinstance(x, ucore.Variable)).all():
+                # break into sems and values
+                df[c+'_SEM'] = unp.std_devs(df[c])
+                df[c] = unp.nominal_values(df[c])
+                # convert dtypes
+                df[c] = df[c].astype(float)
+                df[c+'_SEM'] = df[c+'_SEM'].astype(float)
+        return df
+
+    @staticmethod
+    def reformat_float_to_ufloat(df_:pd.DataFrame) -> pd.DataFrame:
+        ''' Reformat a dataframe with floats to contain ufloats where applicable.
+
+        Each column "X" that has a corresponding column "X_SEM" will be collapsed to the single column "X" containing ufloats.
+
+        Parameters
+        ----------
+        df_ : pd.DataFrame
+            The dataframe to reformat.
+            
+        Returns
+        -------
+        pd.DataFrame
+            The reformatted dataframe.
+        '''
+        # create a copy of the dataframe to work with
+        df = df_.copy()
+        # loop through columns to see which should be reformatted
+        to_reformat = [c for c in df.columns if c+'_SEM' in df.columns]
+        # loop through columns to reformat
+        for c in to_reformat:
+            # recast to object type
+            df[c] = df[c].astype(object)
+            # create the ufloats
+            for i in range(len(df)):
+                df.at[i, c] = ufloat(df[c][i], df[c+'_SEM'][i])
+        # drop the sem columns
+        df.drop(columns=[c+'_SEM' for c in to_reformat], inplace=True)
+        # return the new dataframe
+        return df
+
+    @staticmethod
     def load_data(file_path:str) -> pd.DataFrame:
-        ''' Load the data saved by this class into a pandas dataframe.
+        ''' Load data saved by this class directly into a pandas dataframe.
 
         Parameters
         ----------
         file_path : str
-            The path to the data file to load.
+            The path to the csv data file to load.
         
         Returns
         -------
         pd.DataFrame
             The data loaded from the file.
         '''
-        # this can just use the built-in pandas.read_pickle
-        return pd.read_pickle(file_path)
-    
-    @staticmethod
-    def save_dataframe(df:pd.DataFrame, file_path:str) -> None:
-        ''' Save a dataframe. This can be any data frame, it's just a wrapper for pd.to_pickle.
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            The dataframe to save.
-        file_path : str
-            The path to the file to save to.
-        '''
-        df.to_pickle(file_path)
-    
-    @staticmethod
-    def load_new_data_into_old_format(file_path:str, config_file:str='config.json') -> pd.DataFrame:
-        ''' Load the data saved by this class into a pandas dataframe in the old format. This means that the count rates and count rate uncertainties will be given seperate columns in the dataframe.
-
-        Parameters
-        ----------
-        file_path : str
-            The path to the data file (saved in pickle format) to load.
-        config_file : str, optional
-            The path to the config file. The only part of the file that will be referred to is the CCU channel keys. Default is 'config.json'.
-        Returns
-        -------
-        pd.DataFrame
-            The data that was loaded, but in the old format. Each CCU channel (e.g. "Ap") will have a corresponding uncertainty channel (e.g. "Ap_SEM"), and both will have a dtype of float (no ufloats).
-        '''
-        # load the data
-        df = pd.read_pickle(file_path)
-        # read the config file
-        with open(config_file, 'r') as f:
-            config = json.load(f)
-        # get the channel keys
-        channel_keys = config['ccu']['channel_keys']
-        # add columns for uncertainties, and make the old ones floats
-        for key in channel_keys:
-            # get sem and values
-            df[f'{key}_SEM'] = df[key].apply(lambda x: x.s)
-            df[key] = df[key].apply(lambda x: x.n)
-            # cast types to floats
-            df[key] = df[key].astype(float)
-            df[f'{key}_SEM'] = df[f'{key}_SEM'].astype(float)
-        # return the new dataframe
-        return df
-
-    @staticmethod
-    def load_old_data_into_new_format(file_path:str, config_file:str='config.json') -> pd.DataFrame:
-        ''' Load old data into the new format.
-
-        This method can be tricky to use! At the very least, you will need to rename the columns for the CCU count rates to match the new naming convention for those columns. So for instance
-        - "A' rate (#/s)" -> "Ap"
-        - "C6 rate SEM (#/s)" -> "C6_SEM"
-        These should also match the CCU channel keys in the config file.
-
-        Parameters
-        ----------
-        file_path : str
-            The path to the data file (saved in CSV format) to load.
-        config_file : str, optional
-            The path to the config file. The only part of the file that will be referred to is the CCU channel keys. Default is 'config.json'.
-        
-        Returns
-        -------
-        pd.DataFrame
-            The data that was loaded, but in the new format. The CCU channels and uncertainties like "C7" and "C7_SEM" will be converted to ufloats in the column "C7".
-        '''
-        # load the data
+        # start by just loading the data
         df = pd.read_csv(file_path)
-        # read the config file
-        with open(config_file, 'r') as f:
-            config = json.load(f)
-        # get the channel keys
-        channel_keys = config['ccu']['channel_keys']
-        # make the old CCU count rate columns ufloats
-        for key in channel_keys:
-            df[key] = df[key].astype('object')
-            for i in range(len(df)):
-                df.at[i,key] = ufloat(df[key][i], df[f'{key}_SEM'][i])
-        # remove the old CCU count rate uncertainty columns
-        for key in channel_keys:
-            df.pop(f'{key}_SEM')
-        # return the new dataframe
-        return df
+        # return a reformatted version with ufloats
+        return Manager.reformat_float_to_ufloat(df)
 
     # +++ properties +++
     
@@ -198,7 +177,11 @@ class Manager:
 
     @property
     def df_columns(self) -> str:
-        return ['start', 'stop', 'num_samp', 'samp_period'] + self._config['motors'].keys() + self._config['ccu']['channel_keys'] + ['note']
+        return ['start', 'stop', 'num_samp', 'samp_period'] + self._config['motors'].keys() + self._config['channel_keys'] + ['note']
+
+    @property
+    def csv_columns(self) -> str:
+        return ['start', 'stop', 'num_samp', 'samp_period'] + self._config['motors'].keys() + self._config['channel_keys'] + [f'{k}_SEM' for k in self._config['channel_keys']] + ['note']
 
     # +++ initialization methods +++
 
@@ -251,43 +234,46 @@ class Manager:
 
     # +++ file management +++
 
-    def clear_output(self) -> None:
+    def reset_output(self) -> None:
         ''' Clear (erase) the data in the current output data frame. '''
         self.log('Clearing output data.')
         # just create a brand new output data frame
-        self._output_df = pd.DataFrame(columns=self.df_columns)
+        self._output_data = {x:[] for x in self._config['channel_keys']}
 
-    def save_data(self, output_file:str, clear_data:bool=True) -> pd.DataFrame:
-        ''' Saves the output data to a specified file in pickle format
+    def output_data(self, output_file:str=None, clear_data:bool=True) -> pd.DataFrame:
+        ''' Saves the output data to a specified file csv file.
 
         Parameters
         ----------
-        output_file : str
-            The name of the file to save the data to.
+        output_file : str, optional
+            The name of the csv file to save the data to. Default is None, in which case no data is saved.
         clear_data : bool, optional
-            If True, the data will be cleared after saving. Default is True.
+            If True, the output data will be cleared after saving. Default is True.
         
         Returns
         -------
         pd.DataFrame
-            The data that was saved.
+            The data being output.
         '''
-        # output data frame to pickle file
-        self.log(f'Saving data to "{output_file}".')
-        self._output_df.to_pickle(output_file)
-        
-        # save copy of data to return
-        out = self._output_df.copy()
+        # put the output data into a dataframe
+        df = pd.DataFrame(self._output_data)
 
-        # reset out_file
-        if clear_data:
-            self.clear_output()
+        # create the csv dataframe and save to the output file
+        if output_file is not None:
+            self.log(f'Saving data to "{output_file}".')
+            csv_df = Manager.reformat_ufloat_to_float(df)
+            csv_df.to_csv(output_file)
         
-        return out
+        # clear the output data
+        if clear_data:
+            self.reset_output()
+        
+        # return the dataframe
+        return df
 
     # +++ methods +++
 
-    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> Union[np.ndarray, ucore.Variable]:
+    def take_data(self, num_samp:int, samp_period:float, *keys:str, note:str="") -> Union[np.ndarray, ucore.Variable, str, float, int]:
         ''' Take detector data
 
         The data is written to the csv output table.
@@ -306,10 +292,12 @@ class Manager:
         Returns
         -------
         numpy.ndarray
-            Array of ufloats with count rates and count rate uncertianties for each specified channel.
+            Array of values for the data taken during the last collection period.
+
         or
-        Any
-            If only one channel is specified, a single value is returned (e.g. ufloat for CCU data or str for time data or float for motor position).
+        
+        ucore.Variable, str, float, int
+            If only one channel is specified, a single value is returned (e.g. ufloat for CCU data; str for time data; float for motor position).
         '''
         # log the data taking
         self.log(f'Taking data; sampling {num_samp} x {samp_period} s.')
@@ -317,10 +305,13 @@ class Manager:
         # check for note to log
         if note != "":
             self.log(f'\tNote: "{note}"')
+        else:
+            note = ""
         
         # record all motor positions
-        motor_positions = [self.__dict__[m].pos for m in self._motors]
-
+        for m in self._motors:
+            self._output_data[m].append(self.__dict__[m].pos)
+        
         # record start time
         start_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -330,19 +321,24 @@ class Manager:
         # record stop time
         stop_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        # record data in the dataframe
-        row = pd.DataFrame(dict(zip(
-            self.df_columns, [[start_time], [stop_time], [num_samp], [samp_period]] + [[p] for p in motor_positions] + [[c] for c in ccu_data] + [[note]])))
-        self._output_df = self._output_df.append(row, ignore_index=True)
-        
-        # return the right keys
+        # add basic info data to the output
+        self._output_data['start'].append(start_time)
+        self._output_data['stop'].append(stop_time)
+        self._output_data['num_samp'].append(num_samp)
+        self._output_data['samp_period'].append(samp_period)
+        self._output_data['note'].append(note)
+
+        # add ccu data to the output
+        for k, v in zip(self._ccu._channel_keys, ccu_data):
+            self._output_data[k].append(v)
+
+        # put together the output
         if len(keys) == 0:
-            return row.values[0]
+            return None
         elif len(keys) == 1:
-            k = keys[0]
-            return row[k][0]
+            return self._output_data[keys[0]][-1]
         else:
-            return np.array(row[keys].values[0])
+            return np.array(self._output_data[k][-1] for k in keys)
 
     def log(self, note:str):
         ''' Log a note to the manager's log file.
