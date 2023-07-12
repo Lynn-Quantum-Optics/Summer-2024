@@ -9,9 +9,8 @@ import numpy as np
 
 # this condition is REQUIRED for the multiprocessing that allows for the CCU to run parallel plotting with data collection
 if __name__ == '__main__':
-    '''
     # create a manager object
-    m = Manager()
+    m = Manager(config='C:/Users/lynnlab/Documents/Summer-2023/framework/config.json')
 
     # configure measurement basis and state preset
     m.make_state('phi_plus')
@@ -26,9 +25,6 @@ if __name__ == '__main__':
     df = m.output_data('basic_sweep_data.csv')
 
     m.shutdown()
-    '''
-
-    df = Manager.load_data('basic_sweep_data.csv')
 
     # fit the data to a function
     params = analysis.fit('sin2_sq', df['B_C_HWP'], df['C4'])
