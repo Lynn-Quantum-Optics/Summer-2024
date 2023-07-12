@@ -1,5 +1,6 @@
 # file to generate systems by enforcing orthogonality of measured states
 import numpy as np
+import time
 from itertools import combinations
 
 class HyperBell():
@@ -18,8 +19,15 @@ class HyperBell():
 
         self.bounds = [(-1,1) for _ in range(self.num_coeff)] # set bounds for coefficients
 
+        self.num_attempts=2*self.soln_limit # number of attempts to find solutions
+
+        self.precision = 6 # precision for soluttion vec and inner product to be 0
+        self.not0_precision = 3 # precision for input vector to not be 0
+
         self.k_groups, self.k_groups_indices = self.get_all_kbell() # initialize all k-groups of bell states
         self.num_ksys = len(self.k_groups) # number of k-systems
+
+        self.start_time = time.time() # start timer
 
         self.set_m(0)
 
@@ -107,6 +115,23 @@ class HyperBell():
     def set_m(self, m):
         '''Sets m to be the number of the k-system under investigation.'''
         self.m = m
+
+    def set_num_attempts(self, num_attempts):
+        '''Sets number of attempts to find solutions.'''
+        self.num_attempts = num_attempts
+
+    def set_precision(self, precision):
+        '''Sets precision as the negative exponent for declaring solutions in terms of 
+            - func vector = 0
+            - inner product = 0
+        '''
+        self.precision = precision
+
+    def set_not0_precision(self, not0_precision):
+        '''Sets precision as the negative exponent for declaring solutions in terms of 
+            - func input != 0
+        '''
+        self.not0_precision = not0_precision
 
     def get_ksys(self, coeff):
         '''Function to return the mth k-system as a function of 4*d real coefficients.

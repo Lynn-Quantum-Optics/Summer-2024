@@ -4,6 +4,7 @@ from scipy.optimize import minimize, approx_fprime
 from multiprocessing import Pool, cpu_count
 from functools import partial
 from tqdm import tqdm
+import time
 from os.path import join
 
 from solve_prep import HyperBell # import HyperBell class to handle system generation
@@ -19,7 +20,7 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
         verbose: whether to update progress per individual search, bool
         opt: whether this solve is for parallel or single process, bool
     '''
-    N = 2*hb.soln_limit # set max number of iterations
+    N = hb.num_attempts # number of attempts to find solutions
     
     hb.set_m(m) # set mth k-system
 
@@ -54,7 +55,7 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
             x_sol = soln.x
             f_vals = hb.get_ksys(x_sol)
             
-            valid_soln = np.all(np.round(f_vals, 6) == 0) and not(np.all(np.round(x_sol, 3) == 0))# check if solution is valid
+            valid_soln = np.all(np.round(f_vals, hb.precision) == 0) and not(np.all(np.round(x_sol, hb.not0_precision) == 0))# check if solution is valid
 
 
             # valid_soln = soln.success and np.isclose(soln.fun, 0, rtol=1e-9) and np.all(np.isclose(hb.get_ksys(soln.x), 0, rtol=1e-9)) and not(np.all(np.isclose(soln.x, 0, rtol=1e-4)))# check if solution is valid 
@@ -115,7 +116,7 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
                         try: ip = ip[0][0]
                         except IndexError: pass
                         # ip = np.real(ip)
-                        if ip > 1e-6: 
+                        if ip > 10**(-hb.precision): 
                             orthogonal= False # check if orthogonal
                             print('not orthogonal', ip)
                     else:
@@ -139,13 +140,20 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
 
             print('saving!')
             x_ls = np.array(x_ls)
-            np.save('results/m%i_d%i_k%i.npy'%(m, hb.d, hb.k), x_ls)
+            np.save(join('results','solns_d%i_k%i_m%i_p%ipn%i_N%i.npy'%(hb.d, hb.k, m, hb.precision, hb.not0_precision, hb.num_attempts)), x_ls)
+
+            tf = time.time()
+            print('time elapsed: ', tf-hb.start_time)
+
             raise StopAsyncIteration('found all solns with m = ', m)
+
         return x_ls
     else:
         if verbose: 
             print('did not find all solns with m = %i, d = %i, k = %i'%(m, hb.d, hb.k ))
-            print('found %i solns'%len(x_ls))  
+            print('found %i solns'%len(x_ls)) 
+            tf = time.time()
+            print('time elapsed: ', tf-hb.start_time) 
         return x_ls
                 
 def solve_all_ksys(hb, zeta = 1, f=0.1, verbose=True):
@@ -200,10 +208,19 @@ if __name__ == '__main__':
     d= int(input('Enter d: '))
     k = int(input('Enter k: '))
     # initialize HyperBell class
-    hb = HyperBell()
-    hb.init(d, k)
+    hb = HyperBell() 
+    hb.init(d, k) # starts timer
+
+    N_fac = int(input('What multiple of solution limit to run for: '))
+    hb.set_num_attempts(N_fac*hb.soln_limit)
+    precision = int(input('Enter precision for func soln and inner products as negative of exponent (e.g., 9 for 10^-9): '))
+    hb.set_precision(precision)
+    not0_precision = int(input('Enter precision for how far away from 0 >=1 value in input must be as negative of exponent (e.g., 9 for 10^-9): '))
+    hb.set_not0_precision(not0_precision)
+
     # solve all k-systems
     opt = bool(int(input('Parallelize (1) or sequential (0): ')))
+
     if opt:
         solns = solve_all_ksys(hb)
     else:
@@ -214,16 +231,7 @@ if __name__ == '__main__':
                 print('found %i solns for k-system %i'%(len(solns), m))
                 print('solns', solns)
                 solns = np.array(solns)
-                np.save(join('results', 'solns_d%i_k%i_m%i.npy'%(hb.d, hb.k, m)), solns)
+                np.save(join('results', 'solns_d%i_k%i_m%i_p%ipn%i_N%i.npy'%(hb.d, hb.k, m, hb.precision, hb.not0_precision, hb.num_attempts)), solns)
                 break
             else:
                 print('did not find all solns for k-system %i'%m)
-                # break
-    # for m in trange(hb.num_ksys):
-    #     solns = solve_ksys(m, hb)
-    #     if len(solns) >= hb.soln_limit:
-    #         print('found %i solns for k-system %i'%(len(solns), m))
-    #         break
-    #
-
-
