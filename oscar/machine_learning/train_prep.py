@@ -14,10 +14,10 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
         split: boolean for whether to split data into train and test
         p: fraction of data to use for training
     '''
-    print(join(datapath, file))
-    print('split', split)
+    # print(join(datapath, file))
+    # print('split', split)
     df= pd.read_csv(join(datapath, file))
-    print(df.head())
+    # print(df.head())
 
     if input_method == 'prob_3':
         inputs = ['HH', 'VV', 'HV']

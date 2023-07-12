@@ -10,8 +10,15 @@ from multiprocessing import Pool, cpu_count
 from train_prep import prepare_data
 from rho_methods import compute_witnesses
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv']):
-    ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.'''
+def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=None):
+    ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.
+    Params:
+        model: ml model object to evaluate
+        name: name of model
+        file_ls: list of files to evaluate on
+        data: list of tuples of X, Y; if not None, use this data instead of loading from file
+
+    '''
     def get_labels(Y_pred):
         ''' Function to assign labels based on argmax per row'''
         Y_pred_argmax = np.argmax(Y_pred, axis=1)
@@ -20,12 +27,14 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv']):
         Y_pred_labels = Y_pred_labels.astype(int)
         return Y_pred_labels
 
-    
-    def per_file(file):
-        if not('old' in name):
-            X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_9', task='w', split=False)
+    def per_file(file, data=None):
+        if data is None:
+            if not('old' in name):
+                X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_9', task='w', split=False)
+            else:
+                X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
         else:
-            X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
+            X, Y = data
         if not(name == 'population'):
             Y_pred = model.predict(X)
             Y_pred_labels = get_labels(Y_pred)
@@ -46,18 +55,23 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv']):
             Y_pred_labels[np.arange(len(Y_pred)), Y_pred] = 1
             Y_pred_labels = Y_pred_labels.astype(int)
 
-            print(Y_pred_labels)
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
-        print(N_correct / len(Y_pred))
+        # print(N_correct / len(Y_pred))
         return N_correct / len(Y_pred), N_correct, len(Y_pred)
 
     # file_ls = ['../../S22_data/all_qual_102_tot.csv']
     p_df = pd.DataFrame()
-    for file in file_ls:
-        acc, N_correct, N_total = per_file(file)
-        p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file.split('_')[0], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
-    return p_df
+    if data_ls is None:
+        for file in file_ls:
+            acc, N_correct, N_total = per_file(file)
+            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file.split('_')[0], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
+        return p_df
+    else:
+        for data in data_ls:
+            acc, N_correct, N_total = per_file(None, data = data)
+            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
+        return p_df
 
 if __name__ == '__main__':
 
