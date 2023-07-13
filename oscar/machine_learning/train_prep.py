@@ -54,10 +54,10 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
     elif task=='e':
         outputs=['concurrence']
         # randomly remove some entangled states to balance the dataset 2/3 entangled, 1/3 separable
-        alpha = 2*len(df.loc[np.isclose(df['concurrence'], 0, rtol=1e-9)]) / len(df.loc[df['concurrence']>0])
-        print('alpha',alpha)
-        i_to_rem = np.random.choice(df[df['concurrence']>0].index, size=int(len(df[df['concurrence']>0])*(1-alpha)), replace=False)
-        df = df.drop(i_to_rem)
+        # alpha = 2*len(df.loc[np.isclose(df['concurrence'], 0, rtol=1e-9)]) / len(df.loc[df['concurrence']>0])
+        # print('alpha',alpha)
+        # i_to_rem = np.random.choice(df[df['concurrence']>0].index, size=int(len(df[df['concurrence']>0])*(1-alpha)), replace=False)
+        # df = df.drop(i_to_rem)
             
         def simplify_targ(df):
             ''' Use concurrence to decide between entangled and separable states '''

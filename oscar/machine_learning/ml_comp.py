@@ -10,7 +10,7 @@ from multiprocessing import Pool, cpu_count
 from train_prep import prepare_data
 from rho_methods import compute_witnesses
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=None):
+def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=None, task='w', input_method='prob_9'):
     ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.
     Params:
         model: ml model object to evaluate
@@ -28,11 +28,11 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
         return Y_pred_labels
 
     def per_file(file, data=None):
+        
         if data is None:
-            if not('old' in name):
-                X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_9', task='w', split=False)
-            else:
-                X, Y = prepare_data(join('random_gen', 'data'), file, input_method='prob_12_red', task='w', split=False)
+            assert file is not None, 'file or data must be provided'
+            assert task == 'w' or task =='e', 'task must be w or e'
+            X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
         else:
             X, Y = data
         if not(name == 'population'):

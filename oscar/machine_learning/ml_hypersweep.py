@@ -559,8 +559,12 @@ if __name__=='__main__':
         run_sweep(wtr)
     else:
         file = 'roik_True_4000000_r_os_tv.csv'
-        input_method = 'prob_9'
         task = input('w or e for task: ')
+        if task=='e':
+            num = int(input('Enter number of prob inputs:'))
+            input_method = 'prob_%i'%num
+        else:
+            input_method = 'prob_9'
         do_sweep = bool(int(input('Enter 1 to do sweep, 0 to train single instance:')))
         trial = int(input('Enter trial number:'))
         identifier = 'r4_s0_%i'%trial
@@ -574,8 +578,14 @@ if __name__=='__main__':
             if wtr==0:
                 lr_ls = np.linspace(0.01, 1, 10)
                 n_est_ls = np.linspace(1000, 10000, 10)
+                n_est_ls = n_est_ls.astype(int)
+                n_est_ls = np.unique(n_est_ls)
                 max_depth_ls = np.linspace(5, 20, 5)
+                max_depth_ls = max_depth_ls.astype(int)
+                max_depth_ls = np.unique(max_depth_ls)
                 early_stopping_ls = np.linspace(5, 50, 5)
+                early_stopping_ls = early_stopping_ls.astype(int)
+                early_stopping_ls = np.unique(early_stopping_ls)
                 best_acc = 0
                 best_lr = None
                 best_n_est = None
@@ -608,17 +618,19 @@ if __name__=='__main__':
                                     print('Best acc: ', best_acc)
                                     print('Best lr: ', best_lr)
                                     print('Best n_est: ', best_n_est)
-                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                                     best_model.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_est}_{lr}_{max_depth}_{early_stopping}'+'.json'))
                                     
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best n_est: ', best_n_est)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                 best_model.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_est}_{lr}_{max_depth}_{early_stopping}'+'.json'))
             elif wtr==1:   
                 lr_ls = np.linspace(0.01, 1, 10)
-                size_ls = np.linspace(1, 50, 10)
+                size_ls = np.linspace(20, 200, 10)
+                size_ls = size_ls.astype(int)
+                size_ls = np.unique(size_ls)
                 epochs = 100
                 best_acc = 0
                 best_lr = None
@@ -642,16 +654,18 @@ if __name__=='__main__':
                         except KeyboardInterrupt:
                             print('Best lr: ', best_lr)
                             print('Best size: ', best_size)
-                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                             best_model.save(join('random_gen', 'models', savename+'_'+'nn1_{size}_{lr}_{epochs}'+'.h5'))
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size: ', best_size)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn1_{size}_{lr}_{epochs}'+'.h5'))
             elif wtr==3:
                 lr_ls = np.linspace(0.01, 1, 10)
-                size_ls = np.linspace(1, 50, 5)
+                size_ls = np.linspace(20, 200, 5)
+                size_ls = size_ls.astype(int)
+                size_ls = np.unique(size_ls)
                 epochs=100
                 best_acc = 0
                 best_lr = None
@@ -684,18 +698,20 @@ if __name__=='__main__':
                                     print('Best size1: ', best_size1)
                                     print('Best size2: ', best_size2)
                                     print('Best size3: ', best_size3)
-                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                                     best_model.save(join('random_gen', 'models', savename+'_'+'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
                 print('Best size2: ', best_size2)
                 print('Best size3: ', best_size3)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
             elif wtr==5:
                 lr_ls = np.linspace(0.01, 1, 10)
-                size_ls = np.linspace(1, 50, 5)
+                size_ls = np.linspace(20, 200, 5)
+                size_ls = size_ls.astype(int)
+                size_ls = np.unique(size_ls)
                 epochs=100
                 best_acc = 0
                 best_lr = None
@@ -741,7 +757,7 @@ if __name__=='__main__':
                                             print('Best size4: ', best_size4)
                                             print('Best size5: ', best_size5)
                                             print('Best acc: ', best_acc)
-                                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                                             best_model.save(join('random_gen', 'models', savename+'_'+'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
@@ -749,18 +765,44 @@ if __name__=='__main__':
                 print('Best size3: ', best_size3)
                 print('Best size4: ', best_size4)
                 print('Best size5: ', best_size5)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
                 print('Best lr: ', best_lr)
 
         else:
             wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
             if wtr==0:
-                xgb = custom_train_xgb(n_estimators=5000, learning_rate=0.1)
-                eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
-                xgb.save_model(join('random_gen', 'models', savename+'_'+'xgb_all'+'.json'))
-
+                n_estimators = int(input('Enter n_estimators:'))
+                learning_rate = float(input('Enter learning_rate:'))
+                max_depth = int(input('Enter max_depth:'))
+                early_stopping = int(input('Enter early_stopping:'))
+                xgb = custom_train_xgb(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, early_stopping=early_stopping)
+                eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                xgb.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_estimators}_{learning_rate}_{max_depth}_{early_stopping}'+'.json'))
             elif wtr==1:
-                nn1 = custom_train_nn1h(size=50, learning_rate = 0.01, batch_size=256)
-                eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'])
-                nn1.save(join('random_gen', 'models', savename+'_'+'nn1_all'+'.h5'))
+                size = int(input('Enter size:'))
+                learning_rate = float(input('Enter learning_rate:'))
+                epochs=100
+                nn1 = custom_train_nn1h(size=size, learning_rate = learning_rate, batch_size=256, epochs=epochs)
+                eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                nn1.save(join('random_gen', 'models', savename+f'_{size}_{learning_rate}_{epochs}.h5'))
+            elif wtr==3:
+                size1 = int(input('Enter size1:'))
+                size2 = int(input('Enter size2:'))
+                size3 = int(input('Enter size3:'))
+                learning_rate = float(input('Enter learning_rate:'))
+                epochs=100
+                nn3 = custom_train_nn3h(size1=size1, size2=size2, size3=size3, learning_rate = learning_rate, batch_size=256, epochs=epochs)
+                eval_perf(nn3, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                nn3.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{learning_rate}_{epochs}.h5'))
+            elif wtr==5:
+                size1 = int(input('Enter size1:'))
+                size2 = int(input('Enter size2:'))
+                size3 = int(input('Enter size3:'))
+                size4 = int(input('Enter size4:'))
+                size5 = int(input('Enter size5:'))
+                learning_rate = float(input('Enter learning_rate:'))
+                epochs=100
+                nn5 = custom_train_nn5h(size1=size1, size2=size2, size3=size3, size4=size4, size5=size5, learning_rate = learning_rate, batch_size=256, epochs=epochs)
+                eval_perf(nn5, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                nn5.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{size4}_{size5}_{learning_rate}_{epochs}.h5'))
