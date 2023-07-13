@@ -1,10 +1,12 @@
-from core import Manager, analysis
+from lab_framework import Manager
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import sys
 from full_tomo import get_rho
+from analysis_old import *
+import pandas as pd
 
 sys.path.insert(0, '../oscar/machine_learning')
 from rho_methods import get_fidelity, get_purity
@@ -159,7 +161,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     '''
 
     # set the output file for manager
-    m.new_output(f"int_state_sweep/QP_sweep_{num}.csv")
+    # m.new_output(f"int_state_sweep/QP_sweep_{num}.csv")
     # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
@@ -182,7 +184,8 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    data = m.close_output()
+    df = m.output_data(f"int_state_sweep/QP_sweep_{num}.csv")
+    data = pd.read_csv(f"int_state_sweep/QP_sweep_{num}.csv")
     
     # shuts down the manager
     # m.shutdown()
@@ -213,10 +216,10 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     # create new truncated data set using min_bound and max_bound
     fit_data = QP_counts[min_bound:max_bound]
     fit_angles = data["C_QP"][min_bound:max_bound]
-    fit_unc = data["C4_sem"][min_bound:max_bound]
+    fit_unc = data["C4_SEM"][min_bound:max_bound]
 
     # fits the truncated data set to a quartic fit function
-    args1, unc1 = analysis.fit('quartic', fit_angles, fit_data, fit_unc)
+    args1, unc1 = fit('quartic', fit_angles, fit_data, fit_unc)
 
     # plt.title('Angle of QP to minimize counts')
     # plt.xlabel('QP angle (deg))')
@@ -249,14 +252,14 @@ def UVHWP_sweep(m:Manager, ratio, num):
     BASIS2 = 'VV'
 
     # sweep in second octant because the standard phi plus state setting for the UV_HWP is there
-    GUESS = 67.5
+    GUESS = 62.5
     RANGE = 22.5
     N = 20
     SAMP = (5, 3)
 
     PCT1 = ratio
 
-    m.new_output(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
+    # m.new_output(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -267,8 +270,10 @@ def UVHWP_sweep(m:Manager, ratio, num):
     m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
-    data1 = m.close_output()
-    m.new_output(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
+    df1 = m.output_data(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
+    data1 = pd.read_csv(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
+    # data1 = m.close_output()
+    # m.new_output(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
 
     # sweep in the second basis
     print(m.time, f'Configuring measurement basis {BASIS2}')
@@ -278,14 +283,16 @@ def UVHWP_sweep(m:Manager, ratio, num):
     m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     print(m.time, 'Data collected, shutting down...')
-    data2 = m.close_output()
+    # data2 = m.close_output()
+    df2 = m.output_data(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
+    data2 = pd.read_csv(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
     # m.shutdown()
 
-    args1, unc1 = analysis.fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_sem)
-    args2, unc2 = analysis.fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_sem)
-    x = analysis.find_ratio('sin2_sq', args1, 'sin2_sq', args2, PCT1, data1.C_UV_HWP, GUESS)
+    args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
+    args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
+    x = find_ratio('sin2_sq', args1, 'sin2_sq', args2, PCT1, data1.C_UV_HWP, GUESS)
 
     # print result
     print(f'{COMPONENT} angle to find {PCT1*100:.2f}% coincidences ({(1-PCT1)*100:.2f}% coincidences): {x:.5f}')
@@ -352,8 +359,9 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
 
 if __name__ == '__main__':
 
-    alphas = [np.pi/4, np.pi/6]
-    betas = np.linspace(0.001, np.pi/2, 6)
+    alphas = [np.pi/4]
+    betas = [.001]
+    # np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
 
@@ -385,7 +393,7 @@ if __name__ == '__main__':
 
         UVHWP_angle = UVHWP_sweep(m, HH_frac, i)
 
-        m.new_output(f'int_state_sweep/sweep_data_{state}.csv')
+        # m.new_output(f'int_state_sweep/sweep_data_{state}.csv')
 
         m.configure_motors(
             C_UV_HWP=UVHWP_angle,
@@ -420,7 +428,8 @@ if __name__ == '__main__':
         with open(f'int_state_sweep/rho_{state_n}.npy', 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
         
-        m.close_output()
+        tomo_df = m.output_data(f'int_state_sweep/tomo_data_{state}.csv')
+        # m.close_output()
         
     m.shutdown()
 
