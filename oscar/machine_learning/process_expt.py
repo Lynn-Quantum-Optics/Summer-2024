@@ -6,6 +6,9 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
+from uncertainties import ufloat
+from uncertainties import unumpy as unp
+
 from sample_rho import *
 from rho_methods import *
 
@@ -61,6 +64,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
         # rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
         rho, unc, Su, un_proj, un_proj_unc, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
+    
 
         ## update df with info about this trial ##
         if "E0" in filename: # if E0, split up into eta and chi
@@ -82,13 +86,11 @@ def get_rho_from_file(filename, verbose=True, angles=None):
             print('trace of measublue rho', np.trace(rho))
             print('eigenvalues of measublue rho', np.linalg.eigvals(rho))
 
-        return trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles
-
+        return trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc
     except:
         rho, unc, Su, rho_actual, _, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-        print(np.load(join(DATA_PATH,filename), allow_pickle=True))
+        # print(np.load(join(DATA_PATH,filename), allow_pickle=True))
         
-
         ## since angles were not saved, this means we also have the phi sign error as described in the comment to the function, so will need to recalculate the target. ##
 
         def split_filename():
@@ -107,7 +109,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
         if "E0" in filename: # if E0, split up into eta and chi
             trial, eta, chi = split_filename()
 
-            chi*=-1 # have to switch sign of chi
+            # chi*=-1 # have to switch sign of chi
 
             # calculate target rho
             targ_rho = get_E0(np.deg2rad(eta), np.deg2rad(chi))
@@ -163,10 +165,10 @@ def analyze_rhos(filenames, settings=None, id='id'):
     # initialize df
     df = pd.DataFrame()
 
-    for i, file in enumerate(filenames):
+    for i, file in tqdm(enumerate(filenames)):
         if settings is None:
             try:
-                trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles = get_rho_from_file(file, verbose=False)
+                trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
             except:
                 trial, rho, unc, Su, rho_actual, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
                 eta, chi = None, None
@@ -183,7 +185,7 @@ def analyze_rhos(filenames, settings=None, id='id'):
         W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi]) # adjusted theory
 
         # calculate W and W' expt
-        W_expt_ls = compute_witnesses(rho = rho, expt=True, stokes_unc=Su)
+        W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
 
         # parse lists
         W_min_T = W_T_ls[0]
@@ -196,14 +198,19 @@ def analyze_rhos(filenames, settings=None, id='id'):
         Wp_t2_AT = W_AT_ls[2]
         Wp_t3_AT = W_AT_ls[3]
         # ---- #
-        W_min_expt = W_expt_ls[0][0][0]
-        W_min_unc = W_expt_ls[0][1][0]
-        Wp_t1_expt = W_expt_ls[1][0]
-        Wp_t1_unc = W_expt_ls[1][1]
-        Wp_t2_expt = W_expt_ls[2][0]
-        Wp_t2_unc = W_expt_ls[2][1]
-        Wp_t3_expt = W_expt_ls[3][0]
-        Wp_t3_unc = W_expt_ls[3][1]
+        # using propogated uncertainty
+        try: # handle the observed difference in python 3.9.7 and 3.10
+            W_min_expt = unp.nominal_values(W_expt_ls[0][0][0])
+            W_min_unc = unp.std_devs(W_expt_ls[0][0][0])
+        except: 
+            W_min_expt = unp.nominal_values(W_expt_ls[0][0])
+            W_min_unc = unp.std_devs(W_expt_ls[0][0])
+        Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
+        Wp_t1_unc = unp.std_devs(W_expt_ls[1])
+        Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
+        Wp_t2_unc = unp.std_devs(W_expt_ls[2])
+        Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
+        Wp_t3_unc = unp.std_devs(W_expt_ls[3])
 
         if eta is not None and chi is not None:
             adj_fidelity= get_adj_fidelity(rho_actual, angles, purity)
@@ -285,7 +292,7 @@ def make_plots_E0(dfname):
         ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
         ax[0,i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
 
-        ax[0,i].set_title(f'$\eta = {eta}$')
+        ax[0,i].set_title(f'$\eta = {np.round(eta,3)}$')
         ax[0,i].set_ylabel('Witness value')
         ax[0,i].legend(ncol=2)
         ax[1,i].set_xlabel('$\chi$')
@@ -370,7 +377,7 @@ if __name__ == '__main__':
     # settings_60 = [[36.80717351236577,38.298986094951985,45.0], [35.64037134135345,36.377936778443754,44.99999], [32.421520781235735,35.46619180422062,44.99998], [28.842682522467676,34.97796909446873,44.61235], [25.8177216842833,34.72228985431089,44.74163766], [21.614459228879422,34.622127766985436,44.9666]]
     # settings = settings_45 + settings_60
     # analyze rho files
-    id = 'neg3'
+    id = 'neg3_cor_unc'
     analyze_rhos(filenames,id=id)
 
     make_plots_E0(f'rho_analysis_{id}.csv')

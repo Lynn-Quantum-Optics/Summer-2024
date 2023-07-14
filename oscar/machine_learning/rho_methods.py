@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize, approx_fprime
 from tqdm import trange
 
+from uncertainties import ufloat
+from uncertainties import unumpy as unp
+
 ##############################################
 ## for more basic stats about a state ##
 
@@ -73,10 +76,10 @@ def Bures_distance(rho1, rho2):
 def get_expec_vals(rho):
     ''' Returns all 16 expectation vals given density matrix. '''
     # pauli matrices
-    I = np.eye(2)
-    X = np.matrix([[0, 1], [1, 0]])
-    Y = np.matrix([[0, -1j], [1j, 0]])
-    Z = np.matrix([[1, 0], [0, -1]])
+    I = np.eye(2, dtype=complex)
+    X = np.matrix([[0, 1], [1, 0]], dtype=complex)
+    Y = np.matrix([[0, -1j], [1j, 0]], dtype=complex)
+    Z = np.matrix([[1, 0], [0, -1]], dtype=complex)
 
     expec_vals=[]
 
@@ -86,6 +89,45 @@ def get_expec_vals(rho):
             expec_vals.append(np.trace(np.kron(Pa1, Pa2) @ rho))
 
     return np.array(expec_vals).reshape(4,4)
+
+def get_expec_vals_counts(raw_data):
+    '''Takes in unumpy array with counts and count uncertainities. Returns expectation values and uncertainties.'''
+    # normalize groups of orthonormal measurements to get projections
+    projs = np.zeros_like(raw_data)
+    for i in range(0,6,2):
+        for j in range(0,6,2):
+            total_rate = np.sum(raw_data[i:i+2, j:j+2])
+            projs[i:i+2, j:j+2] = raw_data[i:i+2, j:j+2]/total_rate
+    
+    
+    HH, HV, HD, HA, HR, HL = projs[0]
+    VH, VV, VD, VA, VR, VL = projs[1]
+    DH, DV, DD, DA, DR, DL = projs[2]
+    AH, AV, AD, AA, AR, AL = projs[3]
+    RH, RV, RD, RA, RR, RL = projs[4]
+    LH, LV, LD, LA, LR, LL = projs[5]
+
+    # build the stokes's parameters
+    S = np.zeros((4,4), dtype=object)
+    S[0,0] = 1
+    S[0,1] = DD - DA + AD - AA
+    S[0,2] = RR + LR - RL - LL
+    S[0,3] = HH - HV + VH - VV
+    S[1,0] = DD + DA - AD - AA
+    S[1,1] = DD - DA - AD + AA
+    S[1,2] = DR - DL - AR + AL
+    S[1,3] = DH - DV - AH + AV
+    S[2,0] = RR - LR + RL - LL
+    S[2,1] = RD - RA - LD + LA
+    S[2,2] = RR - RL - LR + LL
+    S[2,3] = RH - RV - LH + LV
+    S[3,0] = HH + HV - VH - VV
+    S[3,1] = HD - HA - VD + VA
+    S[3,2] = HR - HL - VR + VL
+    S[3,3] = HH - HV - VH + VV
+
+    return S
+    
 
 def compute_proj(basis1, basis2, rho):
     ''' Computes projection into desired bases using projection operations on both qubits'''
@@ -253,14 +295,16 @@ def get_adj_fidelity(rho, angles, expt_purity, state='E0'):
 
 
 
-def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes_unc = None, expt_purity = None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_counts = False, calc_unc=False, stokes_unc = None, expt_purity = None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
+            counts: raw unp array of counts and unc
             expt: bool, whether to compute the Ws assuming input is experimental data
             do_stokes: bool, whether to compute 
-            calc_unc: bool, whether to compute the uncertainty in the Ws; uses the Stokes params -- must have do_stokes=True
+            calc_unc: bool, whether to compute the uncertainty in the Ws; uses the Stokes params -- must have do_stokes=True. NOTE: THIS OPTION IS DEPRICATED BECAUSE USING THE STOKES UNCERTAINTIES DOESNT PROPPAGATE THE UNCERTAINTIES IN THE Ws CORRECTLY. INSTEAD, PROVIDE A UNUMPY ARRAY OF COUNTS AND UNCERTAINTIES AND PASS EXPT=TRUE.
             stokes_unc: the uncertainty in the stokes params; 4x4 matrix
+            do_counts: use the raw definition in terms of counts
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
             angles: angles of eta, chi for E0 states to adjust theory
             num_reps: int, number of times to run the optimization
@@ -271,10 +315,11 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
     '''
 
     # check if experimental data
-    if expt:
-        do_stokes = True
-        calc_unc = True
-        assert stokes_unc is not None, "Must provide uncertainty in Stokes params"
+    if expt and counts is not None:
+        do_stokes = False
+        do_counts = True
+        calc_unc = False # don't explitictly calculate uncertainty in Ws for experimental data
+        # assert stokes_unc is not None, "Must provide uncertainty in Stokes params"
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
     if expt_purity is not None and angles is not None:
@@ -283,9 +328,10 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
         # # adjust only antidiagonals
         # rho[1,2] = expt_purity*rho[1,2]
         # rho[2,1] = expt_purity*rho[2,1]
-
-    if do_stokes:
-        expec_vals = get_expec_vals(rho)
+    if do_stokes or do_counts:
+        if not(do_counts): expec_vals = get_expec_vals(rho)
+        else:
+            expec_vals = get_expec_vals_counts(counts)
 
         def get_W1(theta, expec_vals):
             a, b = np.cos(theta), np.sin(theta)
@@ -384,6 +430,12 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
                 theta, alpha, beta = params[0], params[1], params[2]
                 return np.sqrt(np.real(0.5*(np.cos(theta)**4*np.cos(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.cos(theta)**4*np.sin(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.cos(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.sin(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.cos(alpha)*np.cos(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.sin(alpha)*np.sin(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + np.cos(theta)**4*np.sin(2*alpha)**2*(stokes_unc[0,1]**2 + stokes_unc[3,1]**2) + (np.sin(theta)**2*np.sin(2*beta))**2*(stokes_unc[0,1]**2 + stokes_unc[3,1]**2) + (np.sin(2*theta)*np.cos(alpha)*np.sin(beta))**2*(stokes_unc[1,0]**2 + stokes_unc[1,3]**2)+ (np.sin(2*theta)*np.sin(alpha)*np.cos(beta))**2*(stokes_unc[1,0]**2 + stokes_unc[1,3]**2))))
 
+
+        def get_nom(params, expec_vals, func):
+            '''For use in error propagation; returns the nominal value of the function'''
+            w = func(params, expec_vals)
+            return unp.nominal_values(w)
+
         # now perform optimization; break into three groups based on the number of params to optimize
         all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
         W_expec_vals = []
@@ -393,8 +445,12 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
             if calc_unc: get_unc_W = all_W_unc[i]
             if i <= 5: # just theta optimization
                 # get initial guess at boundary
-                def min_W(x0):
-                    return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])
+                if not(expt):
+                    def min_W(x0):
+                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])
+                else:
+                    def min_W(x0):
+                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -439,9 +495,12 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
                         else:
                             isi+=1
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
-                
-                def min_W(x0):
-                    return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                if not(expt):
+                    def min_W(x0):
+                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                else:
+                    def min_W(x0):
+                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -488,8 +547,12 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
                 
 
             else:# theta and alpha
-                def min_W(x0):
-                    return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])
+                if not(expt):
+                    def min_W(x0):
+                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])
+                else:
+                    def min_W(x0):
+                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2),(0, np.pi*2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -534,8 +597,10 @@ def compute_witnesses(rho, expt = False, do_stokes=False, calc_unc=False, stokes
                         else:
                             isi+=1
 
-            if expt:
+            if calc_unc:
                 W_expec_vals.append(((w_min_val), get_unc_W(w_min_params, stokes_unc)))
+            elif expt: # automatically calculate uncertainty
+                W_expec_vals.append(W(w_min_params, expec_vals))
             else:
                 W_expec_vals.append(w_min_val)
     
