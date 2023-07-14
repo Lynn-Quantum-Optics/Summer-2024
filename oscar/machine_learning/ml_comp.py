@@ -20,11 +20,12 @@ def get_labels(Y_pred, task, eps=0.9):
     '''
     if task=='w':
         Y_pred_argmax = np.argmax(Y_pred, axis=1)
+        Y_pred_labels = np.zeros(Y_pred.shape)
+        Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
+        Y_pred_labels = Y_pred_labels.astype(int)
     else:
-        Y_pred_argmax = np.where(Y_pred >= eps, 1, 0)
-    Y_pred_labels = np.zeros(Y_pred.shape)
-    Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
-    Y_pred_labels = Y_pred_labels.astype(int)
+        Y_pred_labels = np.where(Y_pred >= eps, 1, 0)
+    
     return Y_pred_labels
 
 def get_labels_pop(file):
