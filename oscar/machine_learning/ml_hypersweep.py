@@ -663,7 +663,7 @@ if __name__=='__main__':
                 best_model.save(join('random_gen', 'models', savename+'_'+'nn1_{size}_{lr}_{epochs}'+'.h5'))
             elif wtr==3:
                 lr_ls = np.linspace(0.01, 1, 10)
-                size_ls = np.linspace(20, 200, 5)
+                size_ls = np.linspace(50, 500, 5)
                 size_ls = size_ls.astype(int)
                 size_ls = np.unique(size_ls)
                 epochs=100
@@ -777,14 +777,16 @@ if __name__=='__main__':
                 max_depth = int(input('Enter max_depth:'))
                 early_stopping = int(input('Enter early_stopping:'))
                 xgb = custom_train_xgb(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, early_stopping=early_stopping)
-                eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                print('val', eval_perf(xgb, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)]))
+                print(eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
                 xgb.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_estimators}_{learning_rate}_{max_depth}_{early_stopping}'+'.json'))
             elif wtr==1:
                 size = int(input('Enter size:'))
                 learning_rate = float(input('Enter learning_rate:'))
                 epochs=100
                 nn1 = custom_train_nn1h(size=size, learning_rate = learning_rate, batch_size=256, epochs=epochs)
-                eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                print('val', eval_perf(nn1, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)]))
+                print(eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
                 nn1.save(join('random_gen', 'models', savename+f'_{size}_{learning_rate}_{epochs}.h5'))
             elif wtr==3:
                 size1 = int(input('Enter size1:'))
@@ -793,7 +795,8 @@ if __name__=='__main__':
                 learning_rate = float(input('Enter learning_rate:'))
                 epochs=100
                 nn3 = custom_train_nn3h(size1=size1, size2=size2, size3=size3, learning_rate = learning_rate, batch_size=256, epochs=epochs)
-                eval_perf(nn3, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                print('val', eval_perf(nn3, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)]))
+                print(eval_perf(nn3, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
                 nn3.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{learning_rate}_{epochs}.h5'))
             elif wtr==5:
                 size1 = int(input('Enter size1:'))
@@ -804,5 +807,6 @@ if __name__=='__main__':
                 learning_rate = float(input('Enter learning_rate:'))
                 epochs=100
                 nn5 = custom_train_nn5h(size1=size1, size2=size2, size3=size3, size4=size4, size5=size5, learning_rate = learning_rate, batch_size=256, epochs=epochs)
-                eval_perf(nn5, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)
+                print('val', eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)], task=task, input_method=input_method))
+                print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
                 nn5.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{size4}_{size5}_{learning_rate}_{epochs}.h5'))
