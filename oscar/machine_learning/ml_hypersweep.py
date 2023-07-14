@@ -5,7 +5,7 @@ import numpy as np
 from xgboost import XGBRegressor
 from keras import layers
 from keras.models import Model, Sequential
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD, RMSprop, Adagrad, Adadelta
 
 #######################################################
 ## XGBOOST ##
@@ -252,7 +252,7 @@ def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, epochs=5
         model.add(layers.Dense(len(Y_train[0])))
         model.add(layers.Activation('sigmoid'))
 
-        optimizer = Adam(learning_rate = learning_rate, clipnorm=1)
+        optimizer = Adam(learning_rate = learning_rate)
         model.compile(optimizer=optimizer, loss='binary_crossentropy')
 
         return model
@@ -627,7 +627,7 @@ if __name__=='__main__':
                 print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
                 best_model.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_est}_{lr}_{max_depth}_{early_stopping}'+'.json'))
             elif wtr==1:   
-                lr_ls = np.linspace(0.01, 1, 10)
+                lr_ls = np.linspace(0.0001, 1, 10)
                 size_ls = np.linspace(20, 200, 10)
                 size_ls = size_ls.astype(int)
                 size_ls = np.unique(size_ls)
@@ -655,15 +655,15 @@ if __name__=='__main__':
                             print('Best lr: ', best_lr)
                             print('Best size: ', best_size)
                             print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
-                            best_model.save(join('random_gen', 'models', savename+'_'+'nn1_{size}_{lr}_{epochs}'+'.h5'))
+                            best_model.save(join('random_gen', 'models', savename+'_'+f'nn1_{size}_{lr}_{epochs}'+'.h5'))
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size: ', best_size)
                 print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
-                best_model.save(join('random_gen', 'models', savename+'_'+'nn1_{size}_{lr}_{epochs}'+'.h5'))
+                best_model.save(join('random_gen', 'models', savename+'_'+f'nn1_{size}_{lr}_{epochs}'+'.h5'))
             elif wtr==3:
-                lr_ls = np.linspace(0.01, 1, 10)
-                size_ls = np.linspace(50, 500, 5)
+                lr_ls = np.linspace(0.0001, 1, 10)
+                size_ls = np.linspace(20, 300, 5)
                 size_ls = size_ls.astype(int)
                 size_ls = np.unique(size_ls)
                 epochs=100
@@ -699,16 +699,16 @@ if __name__=='__main__':
                                     print('Best size2: ', best_size2)
                                     print('Best size3: ', best_size3)
                                     print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
-                                    best_model.save(join('random_gen', 'models', savename+'_'+'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
+                                    best_model.save(join('random_gen', 'models', savename+'_'+f'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
                 print('Best size2: ', best_size2)
                 print('Best size3: ', best_size3)
                 print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
-                best_model.save(join('random_gen', 'models', savename+'_'+'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
+                best_model.save(join('random_gen', 'models', savename+'_'+f'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
             elif wtr==5:
-                lr_ls = np.linspace(0.01, 1, 10)
+                lr_ls = np.linspace(0.0001, 1, 10)
                 size_ls = np.linspace(20, 200, 5)
                 size_ls = size_ls.astype(int)
                 size_ls = np.unique(size_ls)
@@ -758,7 +758,7 @@ if __name__=='__main__':
                                             print('Best size5: ', best_size5)
                                             print('Best acc: ', best_acc)
                                             print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
-                                            best_model.save(join('random_gen', 'models', savename+'_'+'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
+                                            best_model.save(join('random_gen', 'models', savename+'_'+f'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
                 print('Best size2: ', best_size2)
@@ -766,7 +766,7 @@ if __name__=='__main__':
                 print('Best size4: ', best_size4)
                 print('Best size5: ', best_size5)
                 print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method)['acc'].values[0])
-                best_model.save(join('random_gen', 'models', savename+'_'+'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
+                best_model.save(join('random_gen', 'models', savename+'_'+f'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
                 print('Best lr: ', best_lr)
 
         else:
