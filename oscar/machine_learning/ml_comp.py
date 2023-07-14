@@ -28,7 +28,7 @@ def get_labels(Y_pred, task, eps=0.9):
     
     return Y_pred_labels
 
-def get_labels_pop(file):
+def get_pop_raw(file):
     ''' Function to assign labels based on Eritas's population method.'''
     df =pd.read_csv(join('random_gen', 'data', file))
     df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0))]
@@ -39,6 +39,11 @@ def get_labels_pop(file):
     pop_df['d_HandV'] = prob_HandV
     pop_df['d_DandA'] = prob_DandA
     pop_df['d_RandL'] = prob_RandL
+    return pop_df
+
+def get_labels_pop(file):
+    ''' Function to assign labels based on Eritas's population method.'''
+    pop_df = get_pop_raw(file)
 
     # prediction is max value per row
     Y_pred = pop_df[['d_HandV', 'd_DandA', 'd_RandL']].idxmax(axis=1).apply(lambda x: pop_df.columns.get_loc(x))
@@ -69,7 +74,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
             Y_pred = model.predict(X)
             Y_pred_labels = get_labels(Y_pred, task)
         else: # population method
-            Y_pred_labels = get_labels_pop(file, task)
+            Y_pred_labels = get_labels_pop(file)
 
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
@@ -158,6 +163,67 @@ def comp_overlap(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = '
     plt.savefig(join('random_gen', 'models', 'PCA-tsne_comp.pdf'))
     plt.show()
 
+def comp_disagreement(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = 'w', input_method='prob_9'):
+    '''Find the states that disagree between two models and look at confidence levels.'''
+    X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
+    N_correct_ls = []
+    for i, model in enumerate(model_ls):
+        # take dot product of Y and Y_pred_labels to get number of correct predictions
+        if not(names[i] == 'population'):
+            Y_pred = model.predict(X)
+            Y_pred_labels = get_labels(Y_pred, task=task)
+        else:
+            Y_pred_labels = get_labels_pop(file)
+        # compute overlap with previous models
+        N_correct = np.einsum('ij,ij->i', Y, Y_pred_labels)
+        N_correct_ls.append(N_correct)
+    # look at where model A is correct and model B is incorrect
+    A_pred = get_pop_raw(file).to_numpy()
+    B_pred = model_ls[1].predict(X)
+    
+    A_correct_B_incorrect = np.logical_and(N_correct_ls[0] > 0, N_correct_ls[1] == 0)
+    # get the confidence levels of model A for these states
+    A_confidence = np.max(A_pred[A_correct_B_incorrect], axis=1)
+    # get the confidence levels of model B for these states
+    B_confidence = np.max(B_pred[A_correct_B_incorrect], axis=1)
+
+    print('A mean', np.mean(A_confidence))
+    print('B mean', np.mean(B_confidence))
+    print('A sem', np.std(A_confidence) / np.sqrt(len(A_confidence))) 
+    print('B sem', np.std(B_confidence) / np.sqrt(len(B_confidence)))
+
+    # do the same for B correct and A incorrect
+    B_correct_A_incorrect = np.logical_and(N_correct_ls[1] > 0, N_correct_ls[0] == 0)
+    B_confidence2 = np.max(B_pred[B_correct_A_incorrect], axis=1)
+    A_confidence2 = np.max(A_pred[B_correct_A_incorrect], axis=1)
+
+    print('A2 mean', np.mean(A_confidence2))
+    print('B2 mean', np.mean(B_confidence2))
+    print('A2 sem', np.std(A_confidence2) / np.sqrt(len(A_confidence2)))
+    print('B2 sem', np.std(B_confidence2) / np.sqrt(len(B_confidence2)))
+
+    # plot the confidence levels
+    fig, ax = plt.subplots(1, 2, figsize=(12,7))
+    ax[0].hist(A_confidence, bins=20, alpha=0.5, label=names[0])
+    ax[0].hist(B_confidence, bins=20, alpha=0.5, label=names[1])
+    ax[0].set_xlabel('Confidence')
+    ax[0].set_ylabel('Count')
+    ax[0].legend()
+    ax[0].set_title(f'Model {names[0]} correct, Model {names[1]} incorrect')
+    ax[1].hist(A_confidence2, bins=20, alpha=0.5, label=names[0])
+    ax[1].hist(B_confidence2, bins=20, alpha=0.5, label=names[1])
+    ax[1].set_xlabel('Confidence')
+    ax[1].set_ylabel('Count')
+    ax[1].legend()
+    ax[1].set_title(f'Model {names[1]} correct, Model {names[0]} incorrect')
+    plt.tight_layout()
+    plt.suptitle('Confidence levels for states where models disagree')
+    plt.subplots_adjust(top=0.85)
+    plt.savefig(join('random_gen', 'models', 'disagreement_confidence.pdf'))
+    plt.show()
+
+
+
 if __name__ == '__main__':
 
 
@@ -186,10 +252,11 @@ if __name__ == '__main__':
 
 
     ## evaluate ##
-    model_ls = [1, xgb, nn1, nn3, nn5]
-    model_names = ['population', 'xgb', 'nn1', 'nn3', 'nn5']
+    # model_ls = [1, xgb, nn1, nn3, nn5]
+    # model_names = ['population', 'xgb', 'nn1', 'nn3', 'nn5']
 
-    comp_overlap(model_ls, model_names)
+    # comp_overlap(model_ls, model_names)
+    comp_disagreement(model_ls=[1, nn5], names=['population', 'nn5'])
 
 
 
