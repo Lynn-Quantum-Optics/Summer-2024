@@ -24,7 +24,7 @@ class HyperBell():
         self.precision = 6 # precision for soluttion vec and inner product to be 0
         self.not0_precision = 3 # precision for input vector to not be 0
 
-        self.k_groups, self.k_groups_indices = self.get_all_kbell() # initialize all k-groups of bell states
+        self.k_groups_indices = self.get_all_k_indices() # initialize all k-groups of bell states
         self.num_ksys = len(self.k_groups) # number of k-systems
 
         self.start_time = time.time() # start timer
@@ -58,19 +58,20 @@ class HyperBell():
             bell += phase * numb
         return bell * 1/np.sqrt(d) # normalize)
 
-    def get_all_kbell(self):
+    def get_all_k_indices(self):
         '''Returns all unique k-groups of bell states for a given dimension d.'''
-        d = self.d
-        bell_ls = []
-        for c in range(d):
-            for p in range(d):
-                bell_ls.append(self.get_bell(c,p))
-        
-        k_groups_indices = list(combinations(np.arange(0, len(bell_ls)),self.k))
-        k_groups = []
-        for index_group in k_groups_indices:
-            k_groups.append([bell_ls[i] for i in index_group])
-        return k_groups, k_groups_indices
+        k_groups_indices = list(combinations(np.arange(0, self.d**2),self.k))
+        return k_groups_indices
+
+    def get_m_kgroup(self):
+        '''Returns mth k-group of bell states.'''
+        k_group_indices = self.k_groups_indices[self.m]
+        k_group = []
+        for i in k_group_indices:
+            c = i // self.d
+            p = i % self.d
+            k_group.append(self.get_bell(c,p))
+        return k_group
 
     def get_meas(self, bell):
         '''Performs LELM measurement on bell state b.
@@ -140,8 +141,7 @@ class HyperBell():
             i (int): index of system in 
             coeff (np.array, 4*d x 1): coefficients for measurement
         '''
-        m= self.m
-        k_group = self.k_groups[m] # get ith k-group
+        k_group = self.get_m_kgroup() # get ith k-group
         # take inner product of all pairs of k bell states
         k_sys = [] # list of all inner products for a given group, which make up a system
         for i in range(len(k_group)):
