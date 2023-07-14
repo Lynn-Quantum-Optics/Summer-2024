@@ -275,16 +275,26 @@ def make_plots_E0(dfname):
         def sinsq(x, a, b, c, d):
             return a*np.sin(b*np.deg2rad(x) + c)**2 + d
 
-        popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
-        popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
+        def line(x, a, b):
+            return a*x + b
+        try: # if W is really close to 0, it will have hard time fitting sinusoid, so fit line instead
+            popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
+            popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
+        except:
+            popt_W_T_eta, pcov_W_T_eta = curve_fit(line, chi_eta, W_min_T)
+            popt_W_AT_eta, pcov_W_AT_eta = curve_fit(line, chi_eta, W_min_AT)
 
         popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T)
         popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
 
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
-        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
-        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+        try:
+            ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
+            ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+        except:
+            ax[0,i].plot(chi_eta_ls, line(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
+            ax[0,i].plot(chi_eta_ls, line(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
         ax[0,i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
 
 
@@ -377,8 +387,9 @@ if __name__ == '__main__':
     # settings_60 = [[36.80717351236577,38.298986094951985,45.0], [35.64037134135345,36.377936778443754,44.99999], [32.421520781235735,35.46619180422062,44.99998], [28.842682522467676,34.97796909446873,44.61235], [25.8177216842833,34.72228985431089,44.74163766], [21.614459228879422,34.622127766985436,44.9666]]
     # settings = settings_45 + settings_60
     # analyze rho files
-    id = 'neg3_cor_unc'
-    analyze_rhos(filenames,id=id)
+    id = 'richard'
+    # id = 'neg3_cor_unc'
+    # analyze_rhos(filenames,id=id)
 
     make_plots_E0(f'rho_analysis_{id}.csv')
 
