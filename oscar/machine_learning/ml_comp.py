@@ -20,11 +20,12 @@ def get_labels(Y_pred, task, eps=0.9):
     '''
     if task=='w':
         Y_pred_argmax = np.argmax(Y_pred, axis=1)
+        Y_pred_labels = np.zeros(Y_pred.shape)
+        Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
+        Y_pred_labels = Y_pred_labels.astype(int)
     else:
-        Y_pred_argmax = np.where(Y_pred >= eps, 1, 0)
-    Y_pred_labels = np.zeros(Y_pred.shape)
-    Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
-    Y_pred_labels = Y_pred_labels.astype(int)
+        Y_pred_labels = np.where(Y_pred >= eps, 1, 0)
+    
     return Y_pred_labels
 
 def get_labels_pop(file):
@@ -56,7 +57,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
 
     '''
 
-    def per_file(file, data=None):
+    def per_file(file, task, data=None):
         
         if data is None:
             assert file is not None, 'file or data must be provided'
@@ -66,9 +67,9 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
             X, Y = data
         if not(name == 'population'):
             Y_pred = model.predict(X)
-            Y_pred_labels = get_labels(Y_pred)
+            Y_pred_labels = get_labels(Y_pred, task)
         else: # population method
-            Y_pred_labels = get_labels_pop(file)
+            Y_pred_labels = get_labels_pop(file, task)
 
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
@@ -79,12 +80,12 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
     p_df = pd.DataFrame()
     if data_ls is None:
         for file in file_ls:
-            acc, N_correct, N_total = per_file(file)
+            acc, N_correct, N_total = per_file(file, task)
             p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file.split('_')[0], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
         return p_df
     else:
         for data in data_ls:
-            acc, N_correct, N_total = per_file(None, data = data)
+            acc, N_correct, N_total = per_file(None, data = data, task=task)
             p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
         return p_df
 
