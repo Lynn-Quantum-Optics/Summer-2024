@@ -1,3 +1,15 @@
+## 7/14/23
+MP: R
+
+Came to warm up laser at 9:33 am. Started running experiment at 10:40 am. I reran the alpha = 45, beta = 18 degrees point and obtained the new data. I then tried rerunning the alpha = 60 degrees case, but an error appeared early on in the experiment. The error was "Exception: Getting status failed: Time out while waiting for hardware unit to respond." I am now going to retry running the code at 2:41 pm, but I am unsure whether the same error will appear again. After rerunning, the same error appeared immediately. I will now try exiting VSCode and running Ello, then coming back to see if the error fixes itself.
+
+## 7/13/23
+MP: A, R
+
+A here, removed bob's creation QWP and started warming up the laser at 8:43. Desk thermometer reads 18.8C.
+
+R: I updated interesting_state_sweep to run with the new framework, but added the old analysis file to the folder for convenience since my code heavily depends on that formatting. I also edited full_tomo by creating a new file called full_tomo_updated_richard.py which adds a temporary fix to the methods in full_tomo by converting the ufloats from take_data back into floats and uncs. I obtained new data for alpha = 45, beta = 0, and the purity and fidelity are looking a lot higher at ~98-99%. The angle is also 40.98 degrees, which is likely the shift of 4 degrees that occurred. I'm now running alpha = 60 degrees.
+
 ## 7/12/13
 MP: A, O
 
