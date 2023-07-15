@@ -3,8 +3,10 @@ import numpy as np
 from os.path import join, dirname, abspath
 import pandas as pd
 from tqdm import tqdm
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import seaborn as sns
 
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
@@ -315,58 +317,79 @@ def make_plots_E0(dfname):
     plt.savefig(join(DATA_PATH, f'exp_witnesses_E0_{id}.pdf'))
     plt.show()
 
-    # def make_settings_plots():
-        # '''Make plots of the settings for the different experiments'''
-        # from matplotlib.colors import ListedColormap
+    # plot angle settings as a function of chi
+    fig, ax = plt.subplots(len(eta_vals),3, figsize=(25,10))
 
-        # # load data
-        # UV_HWP = np.deg2rad(df['UV_HWP'].to_numpy())
-        # QP = np.deg2rad(df['QP'].to_numpy())
-        # B_HWP = np.deg2rad(df['B_HWP'].to_numpy())
-        # trials = df['trial'].to_numpy()
-        # chi_total = np.append(chi_45, chi_60)
-        # chi_total = np.deg2rad(chi_total)
-        # eta_total = np.deg2rad(df['eta'].to_numpy())
+    for i, eta in enumerate(eta_vals):
+        # get df for each eta
+        df_eta = df[df['eta'] == eta]
+    
+        UV_HWP = df_eta['UV_HWP'].to_numpy()
+        QP = df_eta['QP'].to_numpy()
+        B_HWP = df_eta['B_HWP'].to_numpy()
 
-        # # UV_HWP = df['UV_HWP'].to_numpy()
-        # # QP = df['QP'].to_numpy()
-        # # B_HWP = df['B_HWP'].to_numpy()
-        # # trials = df['trial'].to_numpy()
-        # # chi_total = np.append(chi_45, chi_60)
-        # # eta_total = df['eta'].to_numpy()
+        # plot
+        ax[i, 0].scatter(chi_eta, UV_HWP)
+        ax[i, 1].scatter(chi_eta, QP)
+        ax[i, 2].scatter(chi_eta, B_HWP)
+        ax[i, 0].set_title(f'$\eta = {np.round(eta,3)}$, UV HWP')
+        ax[i, 0].set_ylabel('Angle (deg)')
+        ax[i, 0].set_xlabel('$\chi$')
+        ax[i, 1].set_title(f'$\eta = {np.round(eta,3)}$, QP')
+        ax[i, 1].set_ylabel('Angle (deg)')
+        ax[i, 1].set_xlabel('$\chi$')
+        ax[i, 2].set_title(f'$\eta = {np.round(eta,3)}$, B HWP')
+        ax[i, 2].set_ylabel('Angle (deg)')
+        ax[i, 2].set_xlabel('$\chi$')
+    plt.suptitle('Angle settings for $E_0$ states, $\cos(\eta)|\Psi^+\\rangle + \sin(\eta)e^{i \chi}|\Psi^-\\rangle $')
+    plt.tight_layout()
+    plt.savefig(join(DATA_PATH, f'exp_angles_E0_{id}.pdf'))
+    plt.show()
 
-        # fig, ax = plt.subplots(1, 3, figsize=(15, 5), subplot_kw={'projection': 'polar'})
+def analyze_diff(filenames, settings=None):
+    '''Compare difference of actual and experimental density matrices for each chi and eta
+    '''
 
-        # colormap = plt.cm.get_cmap('tab20')
-        # colors = [colormap(i) for i in range(len(UV_HWP))]
+    for i, file in tqdm(enumerate(filenames)):
+        print('----------')
+        print(file)
+        if settings is None:
+            try:
+                trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+            except:
+                trial, rho, unc, Su, rho_actual, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
+                eta, chi = None, None
+        else:
+            try:
+                trial, rho, _, Su, rho_actual, fidelity, purity, eta, chi, angles = get_rho_from_file(file, angles = settings[i], verbose=False)
+            except:
+                trial, rho, _, Su, rho_actual, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
+                eta, chi = None, None
+        # take difference of actual and experimental density matrices
+        diff = rho - rho_actual
+        diff_real = np.real(diff)
+        diff_imag = np.imag(diff)
 
-        # # plot UV HWP settings
-        # for i, angle in enumerate(UV_HWP):
-        #     ax[0].plot(angle, 1, label='$(%.3g^\degree, %.3g^\degree, %.3g)$' % (np.rad2deg(eta_total[i]), np.rad2deg(chi_total[i]), trials[i]), marker='o', color=colors[i])
-        # ax[0].set_title('UV HWP settings')
-        # ax[0].set_xlim(min(UV_HWP)-0.1, max(UV_HWP)+0.1)
-        # ax[0].legend(ncol=2)
+        # compute cartesian to polar coordinates
+        def cart2pol(x, y):
+            rho = np.sqrt(abs(x)**2 + abs(y)**2)
+            try: 
+                phi = np.arctan2(y, x)
+            except:
+                phi = np.pi/2
+            return rho, phi
 
-        # # plot QP settings
-        # for i, angle in enumerate(QP):
-        #     ax[1].plot(angle, 1, label='$(%.3g^\degree, %.3g^\degree, %.3g)$' % (np.rad2deg(eta_total[i]), np.rad2deg(chi_total[i]), trials[i]), marker='o', color=colors[i])
-        # ax[1].set_title('QP settings')
-        # ax[1].set_xlim(min(QP)-0.1, max(QP)+0.1)
-        # ax[1].legend(ncol=2)
+        diff_r, diff_phi = cart2pol(diff_real, diff_imag)
 
-        # # plot B HWP settings
-        # for i, angle in enumerate(B_HWP):
-        #     ax[2].plot(angle, 1, label='$(%.3g^\degree, %.3g^\degree, %.3g)$' % (np.rad2deg(eta_total[i]), np.rad2deg(chi_total[i]),  trials[i]), marker='o', color=colors[i])
-        # ax[2].set_title('B HWP settings')
-        # ax[2].set_xlim(min(B_HWP)-.1, max(B_HWP)+.1)
-        # ax[2].legend(ncol=2)
-
-        # fig.suptitle('Settings for different experiments')
-
-        # plt.savefig(join(DATA_PATH, f'settings_{id}.pdf'))
-
-        # plt.show()
-
+        fig, ax = plt.subplots(1,2, figsize=(20,10))
+        sns.heatmap(diff_r, cmap='coolwarm', annot=True, fmt='.2f', ax=ax[0])
+        ax[0].set_title('Magnitude')
+        sns.heatmap(diff_phi, cmap='coolwarm', annot=True, fmt='.2f', ax=ax[1])
+        ax[1].set_title('Phase')
+        plt.suptitle(f'Matrix for $\eta = {np.round(eta,3)}, \chi={np.round(chi,3)}$')
+        plt.tight_layout()
+        plt.savefig(join(DATA_PATH, 'diff_r_phi', f'diff_{eta}_{chi}.pdf'))
+    
   
 
 if __name__ == '__main__':
@@ -387,10 +410,13 @@ if __name__ == '__main__':
     # settings_60 = [[36.80717351236577,38.298986094951985,45.0], [35.64037134135345,36.377936778443754,44.99999], [32.421520781235735,35.46619180422062,44.99998], [28.842682522467676,34.97796909446873,44.61235], [25.8177216842833,34.72228985431089,44.74163766], [21.614459228879422,34.622127766985436,44.9666]]
     # settings = settings_45 + settings_60
     # analyze rho files
-    id = 'richard'
+    # id = 'richard'
+    
     # id = 'neg3_cor_unc'
-    # analyze_rhos(filenames,id=id)
+    # # analyze_rhos(filenames,id=id)
 
-    make_plots_E0(f'rho_analysis_{id}.csv')
+    # make_plots_E0(f'rho_analysis_{id}.csv')
 
     # get_rho_from_file_depricated("rho_('PhiP',)_19.npy", PhiP)
+
+    analyze_diff(filenames)
