@@ -11,21 +11,21 @@ from sklearn.manifold import TSNE
 
 from train_prep import prepare_data
 
-def get_labels(Y_pred, task, eps=0.9):
+def get_labels(Y_pred, task, eps=None):
     ''' Function to assign labels based on argmax per row.
     Params:
         Y_pred: array of predictions after calling model.predict(X)
         task: 'w' or 'e'
-        eps: threshold for assigning label if task is 'e'
+        eps: threshold for assigning label if task is 'e'; can either be float or None if we want to use argmax
     '''
-    if task=='w':
+    if task=='w' or (task=='e' and eps is None):
         Y_pred_argmax = np.argmax(Y_pred, axis=1)
         Y_pred_labels = np.zeros(Y_pred.shape)
         Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
         Y_pred_labels = Y_pred_labels.astype(int)
     else:
         Y_pred_labels = np.where(Y_pred >= eps, 1, 0)
-    
+
     return Y_pred_labels
 
 def get_pop_raw(file):
@@ -93,6 +93,16 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
             acc, N_correct, N_total = per_file(None, data = data, task=task)
             p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
         return p_df
+
+def eval_perf_multiple(model_ls, model_names, input_methods, tasks, savename):
+    '''Generalizes eval_perf to multiple models and saves to csv.'''
+    df = pd.DataFrame()
+    for i, model_name in enumerate(list(zip(model_ls, model_names))):
+        model = model_name[0]
+        name = model_name[1]
+        df = pd.concat([df, eval_perf(model, name, task=tasks[i], input_method=input_methods[i])])
+    print('saving!')
+    df.to_csv(join(new_model_path, savename+'.csv'))
 
 def comp_overlap(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = 'w', input_method='prob_9'):
     '''Compare overlap of different predictors on 400k test set; computes PCA on inputs and plots overlap of predictions.
@@ -222,14 +232,13 @@ def comp_disagreement(model_ls, names, file = 'roik_True_400000_r_os_t.csv', tas
     plt.savefig(join('random_gen', 'models', 'disagreement_confidence.pdf'))
     plt.show()
 
-
-
 if __name__ == '__main__':
 
 
     # define models
     new_model_path= join('random_gen', 'models', 'saved_models')
     old_model_path = 'old_models'
+    roik_etal_path = join('roik_etal', 'ANN', 'parameters_of_ANN')
 
     ## load models ##
 
@@ -250,25 +259,27 @@ if __name__ == '__main__':
     # load weights into new model
     model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
 
+    ## actual roik et al models ##
+    ra_3 = keras.models.load_model(join(roik_etal_path, 'model_3_8333.h5'))
+    ra_5 = keras.models.load_model(join(roik_etal_path, 'model_5_8796.h5')) 
+    ra_6 = keras.models.load_model(join(roik_etal_path, 'model_6_8946.h5'))
+    ra_12 = keras.models.load_model(join(roik_etal_path, 'model_12_937.h5'))
+    ra_15 = keras.models.load_model(join(roik_etal_path, 'model_15_9653.h5'))
+
 
     ## evaluate ##
     # model_ls = [1, xgb, nn1, nn3, nn5]
     # model_names = ['population', 'xgb', 'nn1', 'nn3', 'nn5']
 
     # comp_overlap(model_ls, model_names)
-    comp_disagreement(model_ls=[1, nn5], names=['population', 'nn5'])
+    # comp_disagreement(model_ls=[1, nn5], names=['population', 'nn5'])
 
+    model_ls = [ra_3, ra_5, ra_6, ra_12, ra_15]
+    model_names = ['ra_3', 'ra_5', 'ra_6', 'ra_12', 'ra_15']
+    input_methods = ['prob_3', 'prob_5', 'prob_6', 'prob_12', 'prob_15']
+    tasks = ['e' for _ in range(len(model_ls))]
+    savename='roik_etal_noeps'
 
+    eval_perf_multiple(model_ls, model_names, input_methods = input_methods, tasks = tasks, savename=savename)
 
-
-
-
-
-    # model_ls = [1]
-    # model_names = ['population']
-    # eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'])
-    # df = pd.DataFrame()
-    # for model, name in zip(model_ls, model_names):
-    #     df = pd.concat([df, eval_perf(model, name)])
-    # print('saving!')
-    # df.to_csv(join(new_model_path, 'model_perf.csv'))
+    
