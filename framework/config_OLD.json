@@ -48,22 +48,22 @@
         "B_HWP": {
             "type": "ThorLabs",
             "sn": 83811901,
-            "offset": 0
+            "offset": -6.12
         },
         "B_QWP": {
             "type": "ThorLabs",
             "sn": 83811646,
-            "offset": 0
+            "offset": 97.08
         },
         "A_HWP": {
             "type": "ThorLabs",
             "sn": 83811904,
-            "offset": 0
+            "offset": -1.1
         },
         "A_QWP": {
             "type": "ThorLabs",
             "sn": 83811667,
-            "offset": 0
+            "offset": 0.46
         }
     },
     "basis_presets": {

@@ -1,7 +1,185 @@
-## 7/14/23
-MP: R
+## 7/16/23
+MP: A
 
-Came to warm up laser at 9:33 am. Started running experiment at 10:40 am. I reran the alpha = 45, beta = 18 degrees point and obtained the new data. I then tried rerunning the alpha = 60 degrees case, but an error appeared early on in the experiment. The error was "Exception: Getting status failed: Time out while waiting for hardware unit to respond." I am now going to retry running the code at 2:41 pm, but I am unsure whether the same error will appear again. After rerunning, the same error appeared immediately. I will now try exiting VSCode and running Ello, then coming back to see if the error fixes itself.
+Started laset at 1055. Kinda sad about all these motor problems! Going to first try restarting all ThorLabs motors. 
+
+## Basic Setup Stuff
+- Starting by launching ThorLabs APT user and setting all positions to zero.
+- Alice's measurement waveplates do appear to have maintained their zero position despite the crash yesterday.
+- Closing ThorLabs APT and unplugging and re-plugging all ThorLabs motor power units.
+    - APT User crashed while doing this :( But I relaunched it to double check that the crash didn't affect anything then I closed it correctly.
+    - So all motors read 0+/-0.0010 (deg) in ThorLabs APT when I unplugged them.
+    - While doing the restart I'm downloading and installing the newer ThorLabs Kinesis software for motor control (the replacement for ThorLabs APT User) this will require a reboot which I'll do after confirming motor zeroing after restart using the old APT User
+    - First unplugged all PC connections, then power supplies, then re-plugged in power supplies then PC connections.
+- Only 3 Motors appeared in device manager after the reboot... double checking PC connections
+    - Slight jiggling of all the MicroUSB ports to the control units made the fourth show up. Don't know which one didn't show up originally, but they are all here now.
+- Launched APT User... only three showed up! Missing SN ending in 904 (Alice's QWP)
+    - Rebooting device manager.. took so many tries! It crashed at least 3 times.
+    - Also noticed APT User didn't entire close out in task manager ahg. Ended those tasks restarting APT user now.
+    - Still missing 904. Restarting just that motor and re-connecting it now.
+    - Restarting APT user then only showed 2 motors??? But found some APT user tasks, ended them, and restarted again.
+    - **FINALLY SEEING ALL FOUR MOTORS AGAIN**! All perfectly zeroed (no more +/- 0.001) so indeed this does reset the zero position of the motors
+
+## Kinesis Software
+- Rebooting this PC now. Took a while but went A-okay. Finishing Kinesis install now.
+- Booted up Kinesis and it was so much more informative
+    - Every motor hit "Motor Error Detected: (Value - Position Error(0)) (Value - Position Error(0))"
+    - Every motor also hit "Unable to resolve Issue ("Internal serial number is incorrect")"
+    - The program forced me to do some default settings stuff for each motor, so I'm going to reboot Kinesis to see if the errors persist.
+- Rebooted Kinesis, errors persisted and it was missing Alice's QWP (SN...904)
+    - Re-pluged in both sides of the micro USB cable, and rebooted again. Errors persisted but Alice's QWP showed up.
+    - Note all except Alice's QWP (SN.904) are "Homed" in Kinesis.
+- Trying a few things to resolve errors
+    - Without restarting Kinesis, closed and re-connected to all motors. Didn't fix it.
+    - Changed all motors to use device persistent settings on start up. Then closed and re-connected to all the motors (again without closing Kinesis). Didn't fix errors. At this point now SN.901 and SN.667 are "not homed" according to kinesis (the other two are?). All motors still read 0 position here.
+    - Closing Kinesis as I work on this.
+- Googling around it would seem our setup is really _really_ old and support is quite lacking. Going to try a firmware update but I don't know if that will help our specific problem. Tried the Kinesis Firmware Update Utility but none of the firmware on these controllers is programmable. Ah!
+- Tried booting Kinesis with "ignore device startup settings." This did not fix any errors but now all motors say that they are "homed".
+- Rebooting without this option shows that all except SN.904 are "Homed"
+- Going to try not to think about the errors anymore.
+
+## A little more messing around with Kinesis
+- Uninstalled Kinesis 1.14.37
+- Installing Kinesis 1.14.36
+- Nothing fixed
+- Realizing Kinesis' lack of actuators is actually quite a problem here.
+
+## Notes for an ideal world
+I think the best case scenario here is we replace each of the TDC001 controllers with TDC101 controllers that have updated firmware/drivers that will almost certainly work better with everything else in the lab.
+
+## Trying to get things workin in python
+- Manually using `thorlabs_apt.Motor` worked to modify the position of Bob's HWP.
+- The Elliptec ports seem to have gotten goofed up (likely due to the restarts). Running Ello to figure it out. `B_C_HWP` and `B_C_QWP` have moved to `COM7`.
+- Basic commands seem to be working.
+- If anything **FIXED** the issues that we have 
+
+## Basic motor testing
+- Bob's QWP
+    - Startup position -97.08 consistent with offset. Dial reads 9ish degrees.
+    - `goto(0)` sent it to 106ish degrees.
+    - `hardware_home()` returned dial to 9ish.
+    - **OKAY** 
+- Bob's HWP
+    - Init pos 6.12, dial at 37.somethingish.
+    - `goto(0)` sent to 31ish
+    - `hardware_home()` sent to 37ish
+    - **OKAY**
+- Alice QWP
+    - Init position -0.45, dial at 0.3ish degrees.
+    - `goto(20)` caused a crash! "Exception: Getting status failed: Time out while waiting for hardware unit to respond."
+    - The motor moved! After the crash the dial reads 3.2ish degrees.
+- During shutdown, all Motors except A_QWP successfully zeroed (however they were all already at 0 so not sure if that means they all *work* work).
+- Exiting python, booting APT User.
+    - Christ. ThorLabs APT now shows all motors at 0 position, even Alice's QWP that moved from it's zero position before the crash. This means that **Alice's measurement waveplates are almost certainly not aligned anymore.**
+- I'm confused why this one crashed and the others didn't.
+    - I notice that in Kinesis that is now the only motor giving the "Motor Error Detected: (Value - Position Error(0)) (Value - Position Error(0))" error now! Fascinating!!! (Note: all of the motors are still giving the serial number error.)
+    - I don't know why... hmmmmmmm!
+- Restarting Alice's QWP (SN.904) since it has already lost it's home and is now the only one causing problems.
+- I tried moving the USB for Alice's QWP to the USB hub on the table instead of the PC port it was using.
+- Booting Kinesis again to checkout error logs. 904 is still giving the position error.
+- Tried moving it using ThorLabs APT. No motion, instant USB communications error. Recommended restart. Trying that now. This time I'm restarting it without unplugging the USB.
+- Booting Kinesis. The motor didn't even appear! Accidentally booted User APT and it did appear. Trying to move it crashed at 0.0031 degrees, showing the same FT_IO_ERROR.
+- Attempting to reconnect the cable to the same port on the computer that it was using before.
+- Booting Kinesis shows the same position error.
+- Trying to move the motor in python resulted in the same "internal error"
+- Launching Kinesis real quick to make sure nothing changed, then I'm going to try a careful system reboot. Yep nothing changed, same position error only on SN.904.
+
+## Updating Thorlabs APT?
+- version was like 1.0.?? really really old newest version is 3.21.6
+- a bit nervous because I was expecting it to ask me if i wanted to uninstall the old one and my plan was to figure out how to maintain both of them but it never asked it just automatically uninstalled it. hopefully this works i guess!!!
+- It works exactly the same. Same error and everything lol.
+
+## Whole system reboot
+- Rebooting computer and all ThorLabs motors.
+- Fixed nothing, now different motors are throwing errors. I'm going to take a break.
+
+## Returning at 1952
+- Status: SN904 not connecting SN667, SN646, and SN901 are all throwing SN error and position errors. Agh.
+- Attempting manual homing of SN667. This actually did get rid of the position error!!!
+- Disconnecting SN646, and 901, then manually homing those and 904 and reconnecting.
+    - Manual homning on 904 seemed to just cause power cycles and on 901 the active light is just continuously lit.
+    - Reconnecting to 646 resolved position error.
+    - 904 still failed to load.
+    - 901 still has position error.
+- Rebooted 901, still had position error. Homed it in Kinesis, then disconnected and reconnected and it resolved the position error.
+- Manually disconnected, rebooted, and reconnected SN904. Now connection is successful but I am seeing device not responding.
+- Restarted Kinesis. Problem persisted.
+- Unplugged 904 motor from servo and plugged it back in. While doing this, 667 randomly started having issues i.e. the position error (the 904 servo wasn't even connected to the computer or to power! Agh.)
+- Manually homed 667, didn't resolve. I closed Kinesis, gave the velocity knob a little flick up then down, and it seemed to get better? Restarted kinesis and yep! No more position error.
+- Back to 904. Powered back up, reconnected to PC. Attempted to connect in Kinesis and it worked!! The connection. We still have the position error. I tried hitting home in kinesis and it seemed to power cycle? Threw a ton of errors and had to reconnect. Position error persisted. Every single thing I do to this motor turns it off and on again. Touching either jog button or the velocity knob, even when the computer is not connected.
+- Launching APT user to see if it has any help here. It just threw a ton of errors no matter what I touched so I'm going back to kinesis.
+
+## Deciding that SN904 is totally busted
+I grabbed SN83828234-I2-M0 from optics lab. I want to try using it with AQWP motor but first I want to make sure that I won't break it. So first I'm going to disconnect AHWP and AQWP from 667 904 respectively and try conecting AQWP to 667 to see if that can establish control over the motor. If that doesn't break the 667 control unit, then I will try swapping in the one I stole from optics lab.
+- Connected AQWP to 667. Booted Kinesis, and it is so much more operational, BUT! It refuses to home WITHOUT throwing the position error. GAHHHHHH! I'm  debugging...
+- I literally just flicked the velocity knob up/down a few times and the active light STOPPED blinking! (It had been blinking continuously before this).
+- It worked! I was able to home it and not get the position error.
+- I'm going to really quick try connecting AHWP to 904 to see if that works? Loaded it into Kinesis and got the position error. Tried to home and it WORKED!?!? It homed and everything didn't throw the error! INSANE.
+- Didn't need to use the one from optics lab! Woot woot. I'm going to try rebooting kinesis and see what happens?
+- I'm going to try powering those two off and swapping back to see what happens! Weeeeee
+- Both of them showed up with the position error. Homing 667 worked but homing 904 halted communication and a second attempt caused a power cycle. Swapping back to run some more tests.
+
+## Everything is Working?
+- Swapped back and reconnected in Kinesis. Both initialized with position errors, but Homing was able to resolve the errors for both.
+- Booting up ipython to try interfacing with `thorlabs_apt`
+- AQWP starts at position 0, dial reading 8.8ish; sent to 20 and dial read 28.8; sent back; **OKAY**
+- AHWP starts at position 0, dial reading 8.8ish; sent to 20 and dial read 28.8; sent back; **OKAY**
+- sent AHWP to 180 to test `is_in_motion` -> all good!
+- BHWP and QWP work as well. Zero is around 9ish degrees...hmmm
+- So that all works!!!
+
+## Fixing zero offset? But actually messing everything up instead.
+- In above testing, all home positions were at around 9 degrees. I'm wondering if we can make that be zero.
+- I'm going to mess with SN901 (BHWP) since why not. It's been fine overall. I went into ThorLabs User APT and changed the Home offset from 4 to 0. Unfortunately, the User APT home routine just spins it in circles whoops!
+- Booted Kinesis and 904 has the goddamn position eror again! I'm trying to home 901 and it failed. Moved to some random angle and just sat there with homing blinking. 904 and 901 are raising the position error still.
+- Rebooted 901 and 904. 904 showed up in Kinesis with position error that was able to be fixed. 901 had to be initialized manually and also raised the position error, however homing caused a power cycle.
+- Didn't even reboot 901, just connected and disconnected via Kinesis and was able to home it and resolve the error.
+
+## I'M NOT MESSING WITH THE MOTOR SETUP ANYMORE
+So here is the situation: Alice's HWP and QWP swapped motor drivers. The errors are consistently buggy in both Kinesis and User APT but at least kinesis seems to be able to home things consistently.
+
+### Testing Kinesis Homing!
+- at home, Alice's QWP dial reads ~8.5 degrees
+- in ipython i moved Alice's QWP (now 667) to 90 degrees. The dial now reads 98.5ish
+- i quit ipython, and reboooted the motor controller
+- booted up kinesis, where the motor indeed now shows position 0 and that it is not homed.
+- homed the motor in kinesis and the dial is now at 8.5 ish degrees!! kinesis homing works!!! **AHHHH THIS IS HUGE**
+
+## 7/16/23 continued: RECALIBRATING EVERYTHING
+
+- _NOTE: While taking photos for documentation, I bumped Alice's QWP a bit. I would like to check it's alignment later._
+- Calibrating A's QWP is actually the first step, so I'm going to check the alignment of that right now. Went just fine. The mount was actually super loose and theres no vertical control but i got it retroreflecting as much as possible. Then I tightened the HELL out of the mounting. While I did that, I also went ahead and also made sure that Alice's HWP on the magnetic mount was also retro-reflecting as much as possible.
+- Then I got everything set up and checked the count rates and they were incredible!!! On the order of 3000 which is perfect, exactly as they used to be.
+
+## Calibrating AQWP and Creating HH
+- I have already removed Alice and Bob's HWPs, I left Bob's creation HWP in because it doesn't actually matter right now since...
+- The first step of the procedure that I came up with is the scary removal of Bob's PBS. The time has come. But not today. It is midnight. Signing off <3
+
+## 7/15/23
+MP: A
+
+Started warming the laser at 9:48, although I don't think there will be any issues with that since the first thing I want to do is produce only HH states. Much of today's lab notes will be encapsulated by the calibration routine latex document I will be writing as I go. Looking back at data/drift_diagnosis_min_VV we see that the VV counts are minimized at the (effectively) exactly the same angle when the setup was cold or warm, and so indeed warming up the laser doesn't actually matter this morning, so we should be able to get going sooner than expected.
+
+I was kind of hoping for the measurement QWPs to be on magnetic mounts as well so that we could fully re-calibrate **everything** but I can still make it work I think.
+
+2156: after slacking with Lynn we are going to try *not* to re-calibrate **everything** by first taking some data for a well-known state.
+
+Well first things first i re-pip installed the lab framework (now on version 1.0.7) to incorperate motor homing into the shutdown procedure.
+
+Noticed nitrogen flow was kinda strong so I turned it down a bit, though it still feels substantial. Also noticed the placement of the nitrogen lines was quite iffy so i got them nice and close.
+
+Okay the experiment failed immediately trying to move Bob's QWP. I shut everything down and I'm going to come back tomorrow.
+
+## 7/14/23
+MP: R, (later) A
+
+Came to warm up laser at 9:33 am. Started running experiment at 10:40 am. I reran the alpha = 45, beta = 18 degrees point and obtained the new data. I then tried rerunning the alpha = 60 degrees case, but an error appeared early on in the experiment. The error was "Exception: Getting status failed: Time out while waiting for hardware unit to respond." I am now going to retry running the code at 2:41 pm, but I am unsure whether the same error will appear again. After rerunning, the same error appeared immediately. I will now try exiting VSCode and running Ello, then coming back to see if the error fixes itself. Running Ello did not fix the error.
+
+A here to debug these motors let's check it out. Ahh hmm so first weird thing is that this is a problem with the ThorLabs motors, not the Elliptec Motors. This is not looking like a normal error that we've seen before. Problem seems to be with Bob's measurement HWP and is two-fold: (1) the checking if the motor is moving every 0.1s causes something in the motor to fail and (2) once failed, the motor doesn't want to come back to life.
+
+I tried booting User APT while running the Manager and only Bob's HWP showed up - as though it was not in touch with the Manager at all! Furthermore every software that pings the motors position is returning 6.12. B_HWP's offset is -6.12, so this means that the motor hardware believes it is in the zero position. Looking at the dial it appears to be at ~41 degrees. This is not good, because reconstructing Richard's code indicates that the motor should have been set to a true position of 196.337 degrees. There is nothing special about the 41 degree number, and so it would seem to me (especially from the stack-trace of the error message I saw) that the Motor failed mid-move, giving us no way of knowing it's true position or how to get it back to zero. Huge yikes!
+
+I found some documentation on returning motors to the manufacturer's home position, but I'm going to try one more thing (moving the motor 10 degrees) before doing anything with that. Moving the motor and sending commands seems to work, but given the loss of home position i tried the manufacturer's homing sequence which simply did not work :( the program crashed once more, losing the home position for Bob's measurement QWP as well :(. After this I gave up trying to fix things, but the good news is that control over the thorlabs motors appears to have been re-established.
 
 ## 7/13/23
 MP: A, R
