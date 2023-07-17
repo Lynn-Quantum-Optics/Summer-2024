@@ -13,7 +13,7 @@ from roik_gen import * # actual roik code
 from random_gen import *
 from jones import *
 
-def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_params = False, verbose=True):
+def gen_rand_info(func, return_prob, log_roik_prob=False, do_stokes=False, include_w = True, log_params = False, verbose=False):
     ''' Function to compute random state based on imput method and return measurement projections, witness values, concurrence, and purity.
         params:
             func: function to generate random state
@@ -40,55 +40,37 @@ def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_para
             II, IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ = np.real(get_expec_vals(rho).reshape(16,))
             return IX, IY, IZ, XI, XX, XY, XZ, YI, YX, YY, YZ, ZI, ZX, ZY, ZZ, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity
         else:
-            all_projs = get_all_projs(rho)
-            HH = all_projs[0,0]
-            HV = all_projs[0,1]
-            HD = all_projs[0,2]
-            HA = all_projs[0,3]
-            HR = all_projs[0,4]
-            HL = all_projs[0,5]
-            VH = all_projs[1,0]
-            VV = all_projs[1,1]
-            VD = all_projs[1,2]
-            VA = all_projs[1,3]
-            VR = all_projs[1,4]
-            VL = all_projs[1,5]
-            DH = all_projs[2,0]
-            DV = all_projs[2,1]
-            DD = all_projs[2,2]
-            DA = all_projs[2,3]
-            DR = all_projs[2,4]
-            DL = all_projs[2,5]
-            AH = all_projs[3,0]
-            AV = all_projs[3,1]
-            AD = all_projs[3,2]
-            AA = all_projs[3,3]
-            AR = all_projs[3,4]
-            AL = all_projs[3,5]
-            RH = all_projs[4,0]
-            RV = all_projs[4,1]
-            RD = all_projs[4,2]
-            RA = all_projs[4,3]
-            RR = all_projs[4,4]
-            RL = all_projs[4,5]
-            LH = all_projs[5,0]
-            LV = all_projs[5,1]
-            LD = all_projs[5,2]
-            LA = all_projs[5,3]
-            LR = all_projs[5,4]
-            LL = all_projs[5,5]
+            projs = get_all_projs(rho)
+            HH, HV, HD, HA, HR, HL = projs[0]
+            VH, VV, VD, VA, VR, VL = projs[1]
+            DH, DV, DD, DA, DR, DL = projs[2]
+            AH, AV, AD, AA, AR, AL = projs[3]
+            RH, RV, RD, RA, RR, RL = projs[4]
+            LH, LV, LD, LA, LR, LL = projs[5]
+            if not(log_roik_prob):
+                if not(log_params): return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig
 
-            if not(log_params): return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig
-
-            else: 
-                return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
-
+                else: 
+                    return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
+            else:
+                # get roik probabilities
+                roik_probs = get_all_roik_projs(rho)
+                r_HH, r_HV, r_HD, r_HA, r_HR, r_HL = roik_probs[0]
+                r_VH, r_VV, r_VD, r_VA, r_VR, r_VL = roik_probs[1]
+                r_DH, r_DV, r_DD, r_DA, r_DR, r_DL = roik_probs[2]
+                r_AH, r_AV, r_AD, r_AA, r_AR, r_AL = roik_probs[3]
+                r_RH, r_RV, r_RD, r_RA, r_RR, r_RL = roik_probs[4]
+                r_LH, r_LV, r_LD, r_LA, r_LR, r_LL = roik_probs[5]
+                if not(log_params):
+                    return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, r_HH, r_HV, r_HD, r_HA, r_HR, r_HL, r_VH, r_VV, r_VD, r_VA, r_VR, r_VL, r_DH, r_DV, r_DD, r_DA, r_DR, r_DL, r_AH, r_AV, r_AD, r_AA, r_AR, r_AL, r_RH, r_RV, r_RD, r_RA, r_RR, r_RL, r_LH, r_LV, r_LD, r_LA, r_LR, r_LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig
+                else:
+                    return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, r_HH, r_HV, r_HD, r_HA, r_HR, r_HL, r_VH, r_VV, r_VD, r_VA, r_VR, r_VL, r_DH, r_DV, r_DD, r_DA, r_DR, r_DL, r_AH, r_AV, r_AD, r_AA, r_AR, r_AL, r_RH, r_RV, r_RD, r_RA, r_RR, r_RL, r_LH, r_LV, r_LD, r_LA, r_LR, r_LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
     else:
         if not(log_params): return concurrence, purity, min_eig
         
         else: return concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
 
-def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, verbose=True):
+def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False):
     ''' Fuction to build a dataset of randomly generated states.
     params:
         random_method: string, either 'simplex', 'jones_I','jones_C' or 'random'
@@ -97,6 +79,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
         do_stokes: bool, whether to use stokes's params to calc witnesses or operator
         include_w: bool, whether to include witness values in dataset
         log_params: bool, whether to collect the parameters that make up the 3rd unitary
+        log_roik_prob: bool, whether to collect the probabilities using the roik et al definition
         verbose: bool, whether to print progress
     '''
 
@@ -110,13 +93,17 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
         if not(log_params):
             if not(return_prob):
                 columns = ['IX', 'IY', 'IZ', 'XI', 'XX', 'XY', 'XZ', 'YI', 'YX', 'YY', 'YZ', 'ZI', 'ZX', 'ZY', 'ZZ', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity', 'min_eig']
-            else:
+            elif return_prob and not(log_roik_prob):
                 columns = ['HH', 'HV', 'HD', 'HA', 'HR', 'HL', 'VH', 'VV', 'VD', 'VA', 'VR', 'VL', 'DH', 'DV', 'DD', 'DA', 'DR', 'DL', 'AH', 'AV', 'AD', 'AA', 'AR', 'AL', 'RH', 'RV', 'RD', 'RA', 'RR', 'RL', 'LH', 'LV', 'LD', 'LA', 'LR', 'LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity', 'min_eig']
+            else:
+                columns = ['HH', 'HV', 'HD', 'HA', 'HR', 'HL', 'VH', 'VV', 'VD', 'VA', 'VR', 'VL', 'DH', 'DV', 'DD', 'DA', 'DR', 'DL', 'AH', 'AV', 'AD', 'AA', 'AR', 'AL', 'RH', 'RV', 'RD', 'RA', 'RR', 'RL', 'LH', 'LV', 'LD', 'LA', 'LR', 'LL', 'r_HH', 'r_HV', 'r_HD', 'r_HA', 'r_HR', 'r_HL', 'r_VH', 'r_VV', 'r_VD', 'r_VA', 'r_VR', 'r_VL', 'r_DH', 'r_DV', 'r_DD', 'r_DA', 'r_DR', 'r_DL', 'r_AH', 'r_AV', 'r_AD', 'r_AA', 'r_AR', 'r_AL', 'r_RH', 'r_RV', 'r_RD', 'r_RA', 'r_RR', 'r_RL', 'r_LH', 'r_LV', 'r_LD', 'r_LA', 'r_LR', 'r_LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity', 'min_eig']
         else:
             if not(return_prob):
                 columns = ['IX', 'IY', 'IZ', 'XI', 'XX', 'XY', 'XZ', 'YI', 'YX', 'YY', 'YZ', 'ZI', 'ZX', 'ZY', 'ZZ', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity', 'min_eig', 'alpha', 'psi', 'chi', 'phi']
-            else:
+            elif return_prob and not(log_roik_prob):
                 columns = ['HH', 'HV', 'HD', 'HA', 'HR', 'HL', 'VH', 'VV', 'VD', 'VA', 'VR', 'VL', 'DH', 'DV', 'DD', 'DA', 'DR', 'DL', 'AH', 'AV', 'AD', 'AA', 'AR', 'AL', 'RH', 'RV', 'RD', 'RA', 'RR', 'RL', 'LH', 'LV', 'LD', 'LA', 'LR', 'LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity', 'min_eig', 'alpha', 'psi', 'chi', 'phi']
+            else:
+                columns = ['HH', 'HV', 'HD', 'HA', 'HR', 'HL', 'VH', 'VV', 'VD', 'VA', 'VR', 'VL', 'DH', 'DV', 'DD', 'DA', 'DR', 'DL', 'AH', 'AV', 'AD', 'AA', 'AR', 'AL', 'RH', 'RV', 'RD', 'RA', 'RR', 'RL', 'LH', 'LV', 'LD', 'LA', 'LR', 'LL', 'r_HH', 'r_HV', 'r_HD', 'r_HA', 'r_HR', 'r_HL', 'r_VH', 'r_VV', 'r_VD', 'r_VA', 'r_VR', 'r_VL', 'r_DH', 'r_DV', 'r_DD', 'r_DA', 'r_DR', 'r_DL', 'r_AH', 'r_AV', 'r_AD', 'r_AA', 'r_AR', 'r_AL', 'r_RH', 'r_RV', 'r_RD', 'r_RA', 'r_RR', 'r_RL', 'r_LH', 'r_LV', 'r_LD', 'r_LA', 'r_LR', 'r_LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3', 'concurrence', 'purity', 'min_eig', 'alpha', 'psi', 'chi', 'phi']
     else:
         if not(log_params): columns = ['concurrence', 'purity', 'min_eig']
         else: columns = ['concurrence', 'purity', 'min_eig', 'alpha', 'psi', 'chi', 'phi']
@@ -134,6 +121,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
         savename+=f'_method_{method}'
         func = partial(get_random_hurwitz, method=method, log_params=log_params)
     elif random_method=='roik': # from actual roik code
+        
         func = partial(get_random_rho, log_params=log_params)
 
     # build multiprocessing pool ##
@@ -185,6 +173,7 @@ if __name__=='__main__':
         special = input("Enter special name for file: ")
         datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
         log_params = bool(int(input('Log parameters (1) or not (0): ')))
+        log_roik_prob = bool(int(input('log roik prob? 0, 1: ')))
 
         if not(isdir('random_gen')):
             os.makedirs('random_gen')
@@ -198,6 +187,6 @@ if __name__=='__main__':
         else:
             savename = join('random_gen', 'test', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
 
-        print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {do_stokes}')
+        print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {do_stokes}, {log_params}, {log_roik_prob}')
 
-        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes, log_params=log_params)
+        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes, log_params=log_params, log_roik_prob=log_roik_prob)

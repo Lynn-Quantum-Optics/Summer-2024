@@ -52,7 +52,7 @@ def get_labels_pop(file):
     Y_pred_labels = Y_pred_labels.astype(int)
     return Y_pred_labels
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=None, task='w', input_method='prob_9'):
+def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9'):
     ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.
     Params:
         model: ml model object to evaluate
@@ -84,9 +84,9 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
     # file_ls = ['../../S22_data/all_qual_102_tot.csv']
     p_df = pd.DataFrame()
     if data_ls is None:
-        for file in file_ls:
+        for i, file in enumerate(file_ls):
             acc, N_correct, N_total = per_file(file, task)
-            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file.split('_')[0], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
+            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file_names[i], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
         return p_df
     else:
         for data in data_ls:
@@ -94,13 +94,13 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], data_ls=No
             p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
         return p_df
 
-def eval_perf_multiple(model_ls, model_names, input_methods, tasks, savename):
+def eval_perf_multiple(model_ls, model_names, input_methods, tasks, savename, file_ls = ['roik_True_400000_r_os_t.csv'], file_names=['Test']):
     '''Generalizes eval_perf to multiple models and saves to csv.'''
     df = pd.DataFrame()
     for i, model_name in enumerate(list(zip(model_ls, model_names))):
         model = model_name[0]
         name = model_name[1]
-        df = pd.concat([df, eval_perf(model, name, task=tasks[i], input_method=input_methods[i])])
+        df = pd.concat([df, eval_perf(model, name, task=tasks[i], input_method=input_methods[i], file_ls=file_ls, file_names=file_names)])
     print('saving!')
     df.to_csv(join(new_model_path, savename+'.csv'))
 

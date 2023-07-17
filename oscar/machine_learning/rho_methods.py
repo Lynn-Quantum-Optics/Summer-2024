@@ -244,40 +244,26 @@ def compute_roik_proj(basis1, basis2, rho):
     except ZeroDivisionError:
         return 0
 
-def get_all_roik_projections(rho):
-    ''' Computes the 16 projections as defined in Roik et al'''
+def get_all_roik_projs(rho):
+    ''' Computes the projections as defined in Roik et al'''
 
     # define the single bases for projection
-    H = np.array([[1,0],[0,0]])
-    V = np.array([[0,0],[0,1]])    
-    D = np.array([[1/2,1/2],[1/2,1/2]])
-    A = np.array([[1/2,-1/2],[-1/2,1/2]])
-    R = np.array([[1/2,1j/2],[-1j/2,1/2]])
-    L = np.array([[1/2,-1j/2],[1j/2,1/2]])
+    H = np.array([[1], [0]])
+    V = np.array([[0], [1]])
+    D = np.array([[1], [1]])/np.sqrt(2)
+    A = np.array([[1], [-1]])/np.sqrt(2)
+    R = np.array([[1], [1j]])/np.sqrt(2)
+    L = np.array([[1], [-1j]])/np.sqrt(2)
 
-    HH = compute_roik_proj(H, H, rho)
-    VV = compute_roik_proj(V, V, rho)
-    HV = compute_roik_proj(H, V, rho)
+    basis_ls =[H, V, D, A, R, L]
+    all_projs =[]
+    for basis in basis_ls:
+        for basis2 in basis_ls:
+            all_projs.append(compute_roik_proj(basis, basis2, rho))
 
-    DD = compute_roik_proj(D, D, rho)
-    AA = compute_roik_proj(A, A, rho)
+    return np.array(all_projs).reshape(6,6)
 
-    RR = compute_roik_proj(R,R, rho)
-    LL = compute_roik_proj(L, L, rho)
-
-    DL = compute_roik_proj(D,L, rho)
-    AR = compute_roik_proj(A,R, rho)
-    DH = compute_roik_proj(D,H, rho)
-    AV = compute_roik_proj(A,V, rho)
-    LH = compute_roik_proj(L,H, rho)
-    RV = compute_roik_proj(R,V, rho)
-
-    DR = compute_roik_proj(D,R, rho)
-    DV = compute_roik_proj(D,V, rho)
-    LV = compute_roik_proj(L,V, rho)
-
-    return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
-
+    
 def adjust_rho(rho, angles, expt_purity, state='E0'):
     ''' Adjusts density matrix to account for experimental impurity.'''
     if state=='E0':
