@@ -1,3 +1,30 @@
+## 7/17/23
+MP: A
+
+Started laser at 0820. Going to start by removing Bob's PBS, after a little bit more practice in the optics lab. Just removed it. It went great! I took it super slow and I don't think there were any sudden jolts that could have dislodged the PBS. I put it on the table next to the lenses for now.
+
+### Calibrating Alice's QWP
+Whipped up a quick program `calibration/AQWP.py` to do a sweep of Alice's QWP. Setting up BBO and such right now. Briefly booted Kinesis to ensure that all motors are still homed (they were). Started the program, count rates look very good (since Bob's PBS was removed we are seeing many more C4 coincidences than otherwise would for these angles ~2000).
+
+Noticed that at UVHWP=22.5 (I think?) there was not much of a difference in detections as I rotated the measurement waveplate. Testing UVHWP=0 seemed to work okay though (significant difference in detection rates). I used 0 for the rest of the measurement waveplate testing.
+
+Did three sweeps of Alice's QWP to narrow find the extremal value. With the UVHWP at 0 degrees, alpha is around 90 degrees and so we are looking for a minimum where the fast axis is horizontal which I found to be at -8.703564837399183+/-0.018681468778457503 = -8.704 +/- 0.018 using a quadratic fitting technique. I'm putting this value into the config file for Alice's QWP's offset for all future testing.
+
+### Calibrating UVHWP
+To find where the UVHWP is perfectly vertical we know this means we will be producing only VVs, and so we want to minimize the detection counts when we set Alice's QWP to the calibrated zero position so that we are measuring HX coincidence counts. I did a rough and a fine sweep, and using a quadratic fit I came up with an offset of -1.02928163397581+/-0.008774118772442973 = -1.029 +/- 0.009 degrees.
+
+### Creating VV
+The UVHWP angle is really all we need to create the VX state (UVHWP->0). I'm putting an entry in the config file for this. I'll use the 4.005 deg value for the PCC and 0 for the QP. I'm not putting an entry for Bob's Creation HWP yet since we still don't care about that photon.
+
+### Calibrating Alice's HWP (~ 1100)
+Now that we can make VX I'm going to put Alice's HWP back in and sweep that to minimize C4 detections which should happen when its fast axis has an angle of 0 degrees to the horizontal. Based on old config data, this should be *somewhere* around 0 degrees ish. I put the HWP in _extremely_ gently, since I had just realigned it yesterday and noticed that the post is a little bit jiggly in its holder.
+
+I'm doing another two sweeps here, one coarse and then a fine one to establish the zero position that minimizes these count rates. I'm noticing with jus tthe coarse sweep that this position is going to be ~ -9 degrees which is a lot more than in the previous config file, however, I think we can chalk that up to the fact that those used to have the zero position at around zero on the dial, and the new (hardware) offset (i.e. difference between Kinesis reading and dial reading) for all measurement motors is now ~ -9 degees.
+
+Indeed, the second sweep indicates that the offset angle that minimizes counts for this motor is -9.470004030055916+/-0.01174697291490038 = -9.470 +/- 0.012. I'm now putting this offset into the config file for A_HWP.
+
+
+
 ## 7/16/23
 MP: A
 
