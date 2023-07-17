@@ -1,146 +1,146 @@
 # file to solve distinguisability systems numerically using gradient descent optimization on the initally guesses to the fsolve function
 import numpy as np
-from scipy.optimize import minimize, approx_fprime
+from scipy.optimize import minimize
 from multiprocessing import Pool, cpu_count
 from functools import partial
 from tqdm import tqdm
 import time
 from os.path import join
+import matplotlib.pyplot as plt
 
 from solve_prep import HyperBell # import HyperBell class to handle system generation
 
-def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
+def solve_ksys(m, hb, verbose=True, opt=False):
     '''Function to solve the mth k-system using gradient descent optimization on the initally guesses to the fsolve function.
     --
     Params: 
         i (int): index of k-system to solve
         hb (HyperBell): HyperBell class object
-        zeta: learning rate, float
-        f: how often to break the GD and get random inputs, float
         verbose: whether to update progress per individual search, bool
         opt: whether this solve is for parallel or single process, bool
     '''
-    N = hb.num_attempts # number of attempts to find solutions
     
     hb.set_m(m) # set mth k-system
 
-    def loss(x0, x_ls = None): 
-        '''Compute loss function for given coefficients x0. Two parts: RSE for function values and RSE for inner products with existing solutions'''
+    def loss(nq0, x_ls = None): 
+        '''Compute loss function for given coefficients x0. Three parts: 
+            l0: absolute difference in norm from 1
+            l1: RSE for function values
+            l2: RSE for inner products with existing solutions'''
+        x0 = hb.get_coeff(nq0)
+
+        l0 = abs(1-hb.get_norm(x0))
+
         l1 =  np.sqrt(sum([abs(hb.get_ksys(x0)[i])**2 for i in range(len(hb.get_ksys(x0)))]))
 
         if x_ls is not None:
-            v_sol = hb.construct_v(x0)
             ip_ls = []
             for x in x_ls:
                 if not(np.all(x0 == x)):
-                    v_x = hb.construct_v(x)
-                    ip = v_sol.conj().T @ v_x
-                    ip = ip[0][0]
+                    ip = x.conj().T @ x0
+                    try:
+                        ip = ip[0][0]
+                    except IndexError:
+                        pass
                     ip = np.real(ip)
                     ip_ls.append(ip)
             l2 = np.sqrt(sum([abs(ip_ls[i])**2 for i in range(len(ip_ls))]))
-            return l1 + l2
+            return l0 + l1 + l2
         else:
-            return l1
+            return l0 + l1
 
-    bounds = hb.bounds # get bounds for coefficients
-
-    # get initial guess
-    x0 = hb.rand_guess()
-    def get_soln(x0, x_ls):
+    def get_soln(nq0, x_ls):
         '''Attempt to find single solution of system with given initial guess x0.'''
-        def try_solve(x0):
-            soln= minimize(loss, args=(x_ls,), x0=x0, bounds=bounds)
+        def try_solve(nq0):
+            soln= minimize(loss, args=(x_ls,), x0 = nq0, bounds=hb.bounds)
             s_loss = soln.fun
-            x_sol = soln.x
-            f_vals = hb.get_ksys(x_sol)
+            # create tuple of (n,q) values
+            nq_sol = soln.x
+            nq_sol = np.round(nq_sol, hb.nq_precision)
+            nq_sol_r = np.reshape(nq_sol, (2,hb.num_coeff))
+            n_ls = nq_sol_r[0, :]
+            q_ls = nq_sol_r[1, :]
+            nq_sol_r = np.array(list(zip(n_ls, q_ls)))
+
+            x_sol = hb.get_coeff(nq_sol)
             
-            valid_soln = np.all(np.round(f_vals, hb.precision) == 0) and not(np.all(np.round(x_sol, hb.not0_precision) == 0))# check if solution is valid
+            valid_soln = hb.is_valid_soln(x_sol)# check if solution is valid
 
-
-            # valid_soln = soln.success and np.isclose(soln.fun, 0, rtol=1e-9) and np.all(np.isclose(hb.get_ksys(soln.x), 0, rtol=1e-9)) and not(np.all(np.isclose(soln.x, 0, rtol=1e-4)))# check if solution is valid 
+            soln_vec = hb.get_ksys(x_sol)
+            soln_vec = np.round(soln_vec, hb.precision)
         
-            return s_loss, x_sol, valid_soln
+            return s_loss, soln_vec, x_sol, nq_sol_r, valid_soln
 
-        soln, x_sol, valid_soln = try_solve(x0)
-        grad_x0= x0
-        n = 0
-        while not(valid_soln) and n <N:
+        s_loss, soln_vec, x_sol,nq_sol, valid_soln = try_solve(nq0)
+        it = 0
+        while not(valid_soln):
+            nq0 = hb.rand_guess()
             # if verbose:
-            #     print(n, loss(x0))
-            # if n % (f * N)==0:
-            #     x0 = hb.rand_guess()
-            # else:
-            #     gradient = approx_fprime(grad_x0, loss, epsilon=1e-8)
-            #     try:
-            #         x0 = [grad_x0[i] - zeta*gradient[i] for i in range(len(grad_x0))]
-            #         # x0 = hb.rand_guess()
-            #         assert np.all(np.array(x0) > 0)
-            #     except AssertionError:
-            #         x0 = hb.rand_guess()
-            x0 = hb.rand_guess()
-            soln, x_sol, valid_soln = try_solve(x0)
-            n+=1
+            #     print('trying guess x0', x0)
+            s_loss, soln_vec, x_sol,nq_sol, valid_soln = try_solve(nq0)
+            it+=1
 
         if valid_soln:
             if verbose: 
-                print('found soln! Loss: ', soln)
-                print('soln vector', hb.get_ksys(x_sol))
-                print('given x0 = ', x0)
+                print('found soln! Loss: ', s_loss)
+                print('soln vector', soln_vec)
                 print('soln x = ', x_sol)
-            return soln, x_sol
-        else:
-            if verbose: 
-                print('no soln found')
-                print('given x0 = ', x0)
-                print('soln x = ', x_sol)
-
-            return None
+                print('(m,q) soln = ',nq_sol)
+            return soln_vec, x_sol, nq_sol, it
 
     # initializing
     x_ls = []
-    n = 0
-    while (len(x_ls) < hb.soln_limit) and (n < N): # try to find all solution
-        try:
-            soln, x_sol = get_soln(x0, x_ls)
-            if len(x_ls) > 0 and soln is not None:
-                             
-                v_sol = hb.construct_v(x_sol)
-                orthogonal = True
-                in_x_ls = False
-                print('x_ls', x_ls)
-                for x in x_ls:
-                    if not(np.all(x_sol == x)):
-                        v_x = hb.construct_v(x)
-                        ip = v_sol.conj().T @ v_x
-                        try: ip = ip[0][0]
-                        except IndexError: pass
-                        # ip = np.real(ip)
-                        if ip > 10**(-hb.precision): 
-                            orthogonal= False # check if orthogonal
-                            print('not orthogonal', ip)
-                    else:
-                        in_x_ls = True
-                        break
-                if orthogonal and not(in_x_ls):
-                    print('adding to x_ls!')
-                    x_ls.append(x_sol)
-            
-            else:
-                print('first solution!')
+    nq_ls = [] # tuples of (n,q) values
+    soln_ls = [] # list of solution vectors
+    it_ls = [] # list of number of iterations required to find a valid solution
+    s = 0
+    # get initial guess
+    nq0 = hb.rand_guess()
+    while (len(x_ls) < hb.soln_limit) and (s < hb.soln_limit): 
+        soln_vec, x_sol, nq_sol, it = get_soln(nq0, x_ls)
+        if len(x_ls) > 0:
+            orthogonal, in_x_ls = hb.is_orthogonal(x_sol, x_ls)
+            if orthogonal and not(in_x_ls):
+                print('adding to x_ls!')
                 x_ls.append(x_sol)
-        except TypeError:
-            print('no soln found')
-        n+=1
-        x0 = hb.rand_guess()
+                nq_ls.append(nq_sol)
+                soln_ls.append(soln_vec)
+                it_ls.append(it)
+                s+=1 # increment number of successful attempts
+        else:
+            print('first solution!')
+            x_ls.append(x_sol)
+            nq_ls.append(nq_sol)
+            soln_ls.append(soln_vec)
+            it_ls.append(it)
+            s+=1 # increment number of successful attempts
+        
+        nq0 = hb.rand_guess()
+
     if len(x_ls) == hb.soln_limit:
         if verbose: print('found all solns with m = %i, d = %i, k = %i'%(m,hb.d, hb.k ))
         if opt: 
             print('x_ls', x_ls)
+            print('nq_ls', nq_ls)
 
             print('saving!')
+            nq_ls = np.array(nq_ls)
             x_ls = np.array(x_ls)
-            np.save(join('results','solns_d%i_k%i_m%i_p%ipn%i_N%i.npy'%(hb.d, hb.k, m, hb.precision, hb.not0_precision, hb.num_attempts)), x_ls)
+            soln_ls = np.array(soln_ls)
+            it_ls = np.array(it_ls)
+            print('nq_ls shape', nq_ls.shape)
+            print('x_ls shape', x_ls.shape)
+            print('soln_ls shape', soln_ls.shape)
+            print('it_ls shape', it_ls.shape)
+            np.savez(join('results','solns_d%i_k%i_m%i_p%i_nqp%i.npz'%(hb.d, hb.k, m, hb.precision, hb.nq_precision)), array1=nq_ls, array2=x_ls, array3=soln_ls, array4=it_ls)
+
+            # make histogram of number of iterations
+            plt.figure(figsize=(10,5))
+            plt.hist(it_ls)
+            plt.xlabel('Number of Iterations')
+            plt.ylabel('Frequency')
+            plt.title('Finding Valid Solution for $m = %i, d = %i, k = %i$'%(m, hb.d, hb.k))
+            plt.savefig(join('results','it_hist_d%i_k%i_m%i_p%i_nqp%i.pdf'%(hb.d, hb.k, m, hb.precision, hb.nq_precision)))
 
             tf = time.time()
             print('time elapsed: ', tf-hb.start_time)
@@ -156,18 +156,15 @@ def solve_ksys(m, hb, zeta = 1, f=0.1, verbose=True, opt=False):
             print('time elapsed: ', tf-hb.start_time) 
         return x_ls
                 
-def solve_all_ksys(hb, zeta = 1, f=0.1, verbose=True):
+def solve_all_ksys(hb, verbose=True):
     '''Function to solve all k-systems using gradient descent optimization on the initally guesses to the fsolve function.
     --
     Params: 
         hb (HyperBell): HyperBell class object
-        zeta: learning rate, float
-        f: how often to break the GD and get random inputs, float
-        N (int): number of iterations to run gradient descent
     '''
     ## initialize parallelization ##
     pool = Pool(cpu_count())
-    solve_ksys_set = partial(solve_ksys, hb=hb, zeta=zeta, f=f, verbose=verbose, opt=True)
+    solve_ksys_set = partial(solve_ksys, hb=hb,verbose=verbose, opt=True)
     inputs = [m for m in range(hb.num_ksys)]
     try:
         # Process the data using the multiprocessing pool
@@ -176,32 +173,11 @@ def solve_all_ksys(hb, zeta = 1, f=0.1, verbose=True):
 
     except StopIteration as e:
         print("Condition satisfied:", e)
-    # except StopAsyncIteration as e:
-    #     print(e)
-    #     print(results)
-    #     ## end multiprocessing ##
-    #     pool.close()
-    #     pool.join()
-    #     return results
-    # finally:
-        ## end multiprocessing ##
+
+   
     pool.close()
     pool.join()
 
-    # filter None results out
-    # results = [result for result in results if result is not None and len(result) > 0] 
-
-    # def check_solns(results):
-    #     '''Check if all k-systems have been solved.'''
-    #     return len(results) == hb.num_ksys
-    
-    # if check_solns(results):
-    #     print('found all solns for all k groups!')
-    #     print(results)
-    #     return results
-    # else:
-    #     print('could not distinguish')
-    #     return results
 
 if __name__ == '__main__':
     # define d and k vals
@@ -211,27 +187,25 @@ if __name__ == '__main__':
     hb = HyperBell() 
     hb.init(d, k) # starts timer
 
-    N_fac = int(input('What multiple of solution limit to run for: '))
-    hb.set_num_attempts(N_fac*hb.soln_limit)
-    precision = int(input('Enter precision for func soln and inner products as negative of exponent (e.g., 9 for 10^-9): '))
-    hb.set_precision(precision)
-    not0_precision = int(input('Enter precision for how far away from 0 >=1 value in input must be as negative of exponent (e.g., 9 for 10^-9): '))
-    hb.set_not0_precision(not0_precision)
+    # N_fac = int(input('What multiple of solution limit to run for: '))
+    # hb.set_num_attempts(N_fac*hb.soln_limit)
+    # precision = int(input('Enter precision for func soln and inner products as negative of exponent (e.g., 9 for 10^-9): '))
+    # hb.set_precision(precision)
+    # not0_precision = int(input('Enter precision for how far away from 0 >=1 value in input must be as negative of exponent (e.g., 9 for 10^-9): '))
+    # hb.set_not0_precision(not0_precision)
 
     # solve all k-systems
-    opt = bool(int(input('Parallelize (1) or sequential (0): ')))
-
-    if opt:
-        solns = solve_all_ksys(hb)
-    else:
-        m_ls = range(hb.num_ksys)
-        for m in tqdm(m_ls):
-            solns = solve_ksys(m=m, hb = hb, opt=False)
-            if len(solns) >= hb.soln_limit:
-                print('found %i solns for k-system %i'%(len(solns), m))
-                print('solns', solns)
-                solns = np.array(solns)
-                np.save(join('results', 'solns_d%i_k%i_m%i_p%ipn%i_N%i.npy'%(hb.d, hb.k, m, hb.precision, hb.not0_precision, hb.num_attempts)), solns)
-                break
-            else:
-                print('did not find all solns for k-system %i'%m)
+    
+    solns = solve_all_ksys(hb)
+    # else:
+    #     m_ls = range(hb.num_ksys)
+    #     for m in tqdm(m_ls):
+    #         solns = solve_ksys(m=m, hb = hb, opt=False)
+    #         if len(solns) >= hb.soln_limit:
+    #             print('found %i solns for k-system %i'%(len(solns), m))
+    #             print('solns', solns)
+    #             solns = np.array(solns)
+    #             np.save(join('results', 'solns_d%i_k%i_m%i_p%ipn%i_N%i.npy'%(hb.d, hb.k, m, hb.precision, hb.not0_precision, hb.num_attempts)), solns)
+    #             break
+    #         else:
+    #             print('did not find all solns for k-system %i'%m)

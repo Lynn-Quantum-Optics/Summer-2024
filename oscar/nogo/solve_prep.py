@@ -15,28 +15,22 @@ class HyperBell():
 
         self.soln_limit = 2*d # must find solutions for all detectors to fuflill sufficient condition
 
-        self.num_coeff = 4*d # number of coefficients in measurement operator
+        self.num_coeff = 2*d # number of coefficients in measurement operator
 
-        self.bounds = [(-1,1) for _ in range(self.num_coeff)] # set bounds for coefficients
+        self.n_bounds = [(0, self.d) for _ in range(self.num_coeff)] # set bounds for m
+        self.q_bounds = [(0, self.d-1) for _ in range(self.num_coeff)] # set bounds for q
+        self.bounds = self.n_bounds + self.q_bounds # set bounds for m and q
 
-        self.num_attempts=2*self.soln_limit # number of attempts to find solutions
+        self.precision = 6 # precision for solution vec, orthoginality, and normalization
 
-        self.precision = 6 # precision for soluttion vec and inner product to be 0
-        self.not0_precision = 3 # precision for input vector to not be 0
+        self.nq_precision = 3 # precision for rounding up n and q values
 
         self.k_groups_indices = self.get_all_k_indices() # initialize all k-groups of bell states
-        self.num_ksys = len(self.k_groups) # number of k-systems
+        self.num_ksys = self.d**2# number of k-systems
 
         self.start_time = time.time() # start timer
 
         self.set_m(0)
-
-    def construct_v(self, coeff):
-        '''Returns vector of a_i + i*b_i'''
-        v_c = np.zeros((2*self.d, 1), dtype='complex128')
-        for o in range(2*self.d):
-            v_c[o] = coeff[o] + 1j*coeff[o+2*self.d]
-        return v_c
 
     def get_bell(self, c, p):
         '''Define bell state for given correlation and phase class c, p and dimension d, represented in number basis.
@@ -73,6 +67,29 @@ class HyperBell():
             k_group.append(self.get_bell(c,p))
         return k_group
 
+    def get_one_coeff(self, nq):
+        '''Returns input coefficients for measurement operator.
+        Params:
+            nq (tuple): (n,q) tuple of integers; form of exact solution is sqrt(n) / sqrt(d) *e^(2pi i q / d)
+        
+        '''
+        n, q = nq
+        d = self.d
+        m = np.sqrt(n)
+        return m / np.sqrt(d) * np.exp(2*np.pi*1j*q/d)  
+
+    def get_coeff(self, nq_ls):
+        '''Returns input coefficients for measurement operator.
+            ---
+            Params:
+                nq_ls (np.array): array of integers: first 2d are n, second 2d are q
+        '''
+        d = self.d
+        coeff = []
+        for i in range(len(nq_ls)//2):
+            coeff.append(self.get_one_coeff((nq_ls[i], nq_ls[2*d+i])))
+        return np.array(coeff)
+
     def get_meas(self, bell):
         '''Performs LELM measurement on bell state b.
         --
@@ -91,15 +108,22 @@ class HyperBell():
                 if bell[l]!=0: # if state is occupied
                     bell_c = bell.copy()
                     bell_c[l]=0 # annihilate state
-                    bell_m += (coeff[l] + 1j*coeff[2*d+l]) * bell_c # mutliply by coefficient
+                    bell_m += coeff[l] * bell_c # mutliply by coefficient
             return bell_m
 
         return meas
 
+    def get_norm(self, coeff):
+        '''Computes norm of input vector.'''
+        return np.sqrt(sum([abs(coeff[i])**2 for i in range(len(coeff))]))
+
     def get_meas_ip(self, bell_ls, coeff):
         ''' Computes inner product between two measured bell states'''
         # unpack bell states ls
-        bell1, bell2 = bell_ls
+        try:
+            bell1, bell2 = bell_ls
+        except:
+            print(bell_ls)
         # get measurement functions
         bell1_meas_func = self.get_meas(bell1)
         bell2_meas_func = self.get_meas(bell2)
@@ -113,6 +137,36 @@ class HyperBell():
         ip = ip[0][0] # extract scalar from array
         return ip
 
+    def is_valid_soln(self, coeff):
+        '''Checks if a single solution is valid.'''
+        # check if solution is valid
+        valid_soln = np.all(np.round(self.get_ksys(coeff), self.precision) == 0) and np.round(self.get_norm(coeff), self.precision) == 1 # check if solution is valid
+        # if not(valid_soln):
+        #     print('invalid soln')
+        #     print('soln vector', self.get_ksys(coeff))
+        #     print('soln x = ', coeff)
+        #     print('norm = ', self.get_norm(coeff))
+        return valid_soln
+
+    def is_orthogonal(self, coeff, coeff_ls):
+        '''Checks if a single solution is orthogonal to all existing solutions.'''
+        valid_soln = True
+        in_coeff_ls = False
+        for x in coeff_ls:
+            if not(np.all(coeff == x)):
+                ip = x.conj().T @ coeff
+                try:
+                    ip = ip[0][0]
+                except IndexError:
+                    pass
+                    ip = np.real(ip)
+                if np.round(ip, self.precision) != 0:
+                    valid_soln = False
+                    break
+            else:
+                in_coeff_ls = True
+        return valid_soln, in_coeff_ls
+
     def set_m(self, m):
         '''Sets m to be the number of the k-system under investigation.'''
         self.m = m
@@ -125,14 +179,9 @@ class HyperBell():
         '''Sets precision as the negative exponent for declaring solutions in terms of 
             - func vector = 0
             - inner product = 0
+            - normalization = 1
         '''
         self.precision = precision
-
-    def set_not0_precision(self, not0_precision):
-        '''Sets precision as the negative exponent for declaring solutions in terms of 
-            - func input != 0
-        '''
-        self.not0_precision = not0_precision
 
     def get_ksys(self, coeff):
         '''Function to return the mth k-system as a function of 4*d real coefficients.
@@ -163,20 +212,20 @@ class HyperBell():
         return np.array(all_sys)
 
     def rand_guess(self):
-        '''Returns random simplex guess for coefficients'''
-        d = self.d
-        # uses stick method
-        rand = 2*np.random.rand(4*d-1)
+        '''Returns random guess for m, q val.'''
+        # random stick for m, guess random q
+        rand = np.random.randint(low = 0, high= self.d+1, size=(self.num_coeff-1))
         rand = np.sort(rand)
-        guess = np.zeros(4*d)
-        guess[0] = rand[0] # set initial guess
+        n_guess = np.zeros(self.num_coeff)
+        n_guess[0] = rand[0]
         for i in range(1, len(rand), 1):
-            guess[i] = rand[i] - rand[i-1] # set remaining guesses by taking difference, i.e. "lengths" of sticks
-        guess[-1] = 2 - rand[-1] # set final guess
-        guess -= 1 # shift so that guess is centered around 0
-        # guess = np.sqrt(guess) # since we want the sum of squares to be 1
-        # print('random guess: ', guess)
-        return guess
+            n_guess[i] = rand[i] + rand[i-1]
+        n_guess[-1] = self.d- rand[-1]
+        # random guess for q
+        q_guess = np.random.randint(0, self.d, size=(self.num_coeff))
+        return np.concatenate((n_guess, q_guess))
+
+   
 
 if __name__ == '__main__':
     # test
