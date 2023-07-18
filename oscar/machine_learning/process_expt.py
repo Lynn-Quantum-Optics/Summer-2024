@@ -526,7 +526,7 @@ def analyze_diff(filenames, settings=None):
         plt.tight_layout()
         plt.savefig(join(DATA_PATH, 'diff_r_phi', f'diff_{eta}_{chi}.pdf'))
 
-def det_offsets(filenames, N=1000, zeta=.7, f=.01, loss_lim = 1e-6):
+def det_offsets(filenames, N=1000, zeta=1, f=.2, loss_lim = 1e-6):
     '''Determine offsets in UV HWP, QP, and B HWP that minimize the loss function (sum of squares of fidelity differences)
     --
     Params:
@@ -576,8 +576,10 @@ def det_offsets(filenames, N=1000, zeta=.7, f=.01, loss_lim = 1e-6):
     index_since_improvement = 0
     while n < N and abs(best_loss) > loss_lim:
         # get new x0
-        if index_since_improvement % (f*N)==0: # periodic random search (hop)
+        if index_since_improvement == (f*N): # periodic random search (hop)
             x0 = get_random_offset()
+            grad_offset = x0
+            print('Random search...')
         else:
             gradient = approx_fprime(grad_offset, loss_func, epsilon=1e-8) # epsilon is step size in finite difference
             # if verbose: print(gradient)
@@ -593,12 +595,12 @@ def det_offsets(filenames, N=1000, zeta=.7, f=.01, loss_lim = 1e-6):
         loss = soln.fun
         if abs(loss) < abs(best_loss):
             best_loss = loss
-            best_x0 = x0
+            best_offset = x0
             index_since_improvement = 0
         else:
             index_since_improvement += 1
         n += 1
-        print(f'Iteration {n}: loss = {loss}')
+        print(f'Iteration {n}: loss = {loss}, best loss = {best_loss}')
 
     print('Best loss: ', best_loss)
     print('Best offset: ', best_offset)
