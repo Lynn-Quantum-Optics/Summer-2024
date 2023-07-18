@@ -246,14 +246,20 @@ def compute_roik_proj(basis1, basis2, rho):
 
 def get_all_roik_projs(rho):
     ''' Computes the projections as defined in Roik et al'''
-
     # define the single bases for projection
-    H = np.array([[1], [0]])
-    V = np.array([[0], [1]])
-    D = np.array([[1], [1]])/np.sqrt(2)
-    A = np.array([[1], [-1]])/np.sqrt(2)
-    R = np.array([[1], [1j]])/np.sqrt(2)
-    L = np.array([[1], [-1j]])/np.sqrt(2)
+    h = np.array([[1], [0]])
+    v = np.array([[0], [1]])
+    d = np.array([[1], [1]])/np.sqrt(2)
+    a = np.array([[1], [-1]])/np.sqrt(2)
+    r = np.array([[1], [1j]])/np.sqrt(2)
+    l = np.array([[1], [-1j]])/np.sqrt(2)
+
+    H = np.kron(h, adjoint(h))
+    V = np.kron(v, adjoint(v))
+    D = np.kron(d, adjoint(d))
+    A = np.kron(a, adjoint(a))
+    R = np.kron(r, adjoint(r))
+    L = np.kron(l, adjoint(l))
 
     basis_ls =[H, V, D, A, R, L]
     all_projs =[]
@@ -262,7 +268,6 @@ def get_all_roik_projs(rho):
             all_projs.append(compute_roik_proj(basis, basis2, rho))
 
     return np.array(all_projs).reshape(6,6)
-
     
 def adjust_rho(rho, angles, expt_purity, state='E0'):
     ''' Adjusts density matrix to account for experimental impurity.'''
@@ -278,8 +283,6 @@ def get_adj_fidelity(rho, angles, expt_purity, state='E0'):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
     adj_rho = adjust_rho(rho, angles, expt_purity, state=state)
     return get_fidelity(adj_rho, rho)
-
-
 
 def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_counts = False, calc_unc=False, stokes_unc = None, expt_purity = None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
