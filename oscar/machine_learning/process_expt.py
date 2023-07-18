@@ -1,5 +1,6 @@
 # file to read and process experimentally collected density matrices
 import numpy as np
+from scipy.optimize import minimize, approx_fprime
 from os.path import join, dirname, abspath
 import pandas as pd
 from tqdm import tqdm
@@ -13,6 +14,7 @@ from uncertainties import unumpy as unp
 
 from sample_rho import *
 from rho_methods import *
+from jones import *
 
 # set path
 current_path = dirname(abspath(__file__))
@@ -161,8 +163,8 @@ def analyze_rhos(filenames, settings=None, id='id'):
         - chi (if they exist)
         - fidelity
         - purity
-        - W theory (adjusted for purity) and W expt and W unc
-        - W' theory (adjusted for purity) and W' expt and W' unc
+        - W theory (Purity Corrected for purity) and W expt and W unc
+        - W' theory (Purity Corrected for purity) and W' expt and W' unc
     '''
     # initialize df
     df = pd.DataFrame()
@@ -184,7 +186,7 @@ def analyze_rhos(filenames, settings=None, id='id'):
 
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual) # theory
-        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi]) # adjusted theory
+        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi]) # Purity Corrected theory
 
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
@@ -258,7 +260,7 @@ def make_plots_E0(dfname):
         ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
         ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
 
-        # plot adjusted theory purity
+        # plot Purity Corrected theory purity
         ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
         # extract witness values
@@ -349,6 +351,17 @@ def make_plots_E0(dfname):
 def analyze_diff(filenames, settings=None):
     '''Compare difference of actual and experimental density matrices for each chi and eta
     '''
+    diagonal1_mag = []
+    diagonal1_mag_c2 = []
+    anti_diagonal_mag = []
+    anti_diagonal_phase = []
+    anti_diagonal_mag_c = []
+    anti_diagonal_phase_c = []
+    anti_diagonal_mag_c2 = []
+    anti_diagonal_phase_c2 = []
+    UV_HWP_ls = []
+    QP_ls = []
+    B_HWP_ls = []
 
     for i, file in tqdm(enumerate(filenames)):
         print('----------')
@@ -365,30 +378,231 @@ def analyze_diff(filenames, settings=None):
             except:
                 trial, rho, _, Su, rho_actual, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
                 eta, chi = None, None
+
+        # get corrected rho
+        rho_adj = adjust_rho(rho, [eta, chi], purity)
+        # adjust UV HWP by 1 degree
+        angles_c = angles.copy()
+        angles_c[0] += -.5
+        angles_c[1] += -.5
+        angles_c = np.deg2rad(angles_c)
+        rho_adj2 = get_Jrho(angles_c)
+        rho_adj2 = adjust_rho(rho_adj2, [eta, chi], purity)
+
+        if i == 0: # set initial value of eta
+            eta_0 = eta
+            chi_ls = [chi]
+            fidelity_ls = [fidelity]
+            purity_ls = [purity]
+            fidelity_adj_ls = [get_adj_fidelity(rho_actual, angles, purity)]
+            purity_adj_ls = [get_purity(rho_adj)]
+            fidelity_adj2_ls = [get_fidelity(rho_adj2, rho)]
+            purity_adj2_ls = [get_purity(rho_adj2)]
+            UV_HWP_ls = [angles[0]]
+            QP_ls = [angles[1]]
+            B_HWP_ls = [angles[2]]
+        if eta != eta_0 or i==len(filenames)-1: # if different eta, reset chi_ls
+            # plot the magnitudes and phase
+            fig, ax = plt.subplots(2,4, figsize=(20,10), sharex=True)
+            ax[0,0].scatter(chi_ls, diagonal1_mag, label='Actual')
+            ax[0,0].scatter(chi_ls, diagonal1_mag_c2, label='UVHWP-0.5 QP-0.5 + Purity')
+            ax[0,0].set_title('Diagonal 1 Magnitude')
+            ax[0,0].legend()
+            ax[0,1].scatter(chi_ls, anti_diagonal_mag, label='Actual')
+            ax[0,1].scatter(chi_ls, anti_diagonal_mag_c, label='Purity Corrected')
+            ax[0,1].scatter(chi_ls, anti_diagonal_mag_c2, label='UVHWP-0.5 QP-0.5 + Purity')
+            ax[0,1].legend()
+            ax[0,1].set_title('Anti-Diagonal Magnitude')
+            ax[0,2].scatter(chi_ls, anti_diagonal_phase, label='Actual')
+            ax[0,2].scatter(chi_ls, anti_diagonal_phase_c, label='Purity Corrected')
+            ax[0,2].scatter(chi_ls, anti_diagonal_phase_c2, label='UVHWP-0.5 QP-0.5 + Purity')
+            ax[0,2].legend()
+            ax[0,2].set_title('Anti-Diagonal Phase')
+            ax[0,3].scatter(chi_ls, fidelity_ls, label='Actual')
+            ax[0,3].scatter(chi_ls, fidelity_adj_ls, label='Purity Corrected')
+            ax[0,3].scatter(chi_ls, fidelity_adj2_ls, label='UVHWP-0.5 QP-0.5 + Purity')
+            ax[0,3].legend()
+            ax[0,3].set_title('Fidelity')
+            ax[1,3].scatter(chi_ls, purity_ls, label='Actual')
+            ax[1,3].scatter(chi_ls, purity_adj_ls, label='Purity Corrected')
+            ax[1,3].scatter(chi_ls, purity_adj2_ls, label='UVHWP-0.5 QP-0.5 + Purity')
+            ax[1,3].legend()
+            ax[1,3].set_title('Purity')
+            ax[1,0].scatter(chi_ls, UV_HWP_ls)
+            ax[1,0].set_title('UV HWP')
+            ax[1,1].scatter(chi_ls, QP_ls)
+            ax[1,1].set_title('QP')
+            ax[1,2].scatter(chi_ls, B_HWP_ls)
+            ax[1,2].set_title('B HWP')
+
+            ax[0,0].set_ylabel('$\\frac{r_{\\rho_{Th}}}{r_{\\rho_{Expt}}}$')
+            ax[0,1].set_ylabel('$\\frac{r_{\\rho_{Th}}}{r_{\\rho_{Expt}}}$')
+            ax[0,2].set_ylabel('$\\frac{\\theta_{\\rho_{Th}}} {\\theta_{\\rho_{Expt}}}$')
+            ax[1,0].set_xlabel('$\chi$')
+            ax[1,1].set_xlabel('$\chi$')
+            ax[1,2].set_xlabel('$\chi$')
+            ax[1,3].set_xlabel('$\chi$')
+            plt.suptitle(f'Differences for $\eta = {np.round(eta_0,3)}$')
+            plt.tight_layout()
+            plt.savefig(join(DATA_PATH, 'diff_r_phi', f'analysis_{eta_0}.pdf'))
+            
+
+            # reset vals
+            eta_0 = eta
+            chi_ls = [chi]
+            fidelity_ls = [fidelity]
+            purity_ls = [purity]
+            diagonal1_mag = []
+            anti_diagonal_mag = []
+            anti_diagonal_phase = []
+            anti_diagonal_mag_c = []
+            anti_diagonal_phase_c = []
+            anti_diagonal_mag_c2 = []
+            anti_diagonal_phase_c2 = []
+            diagonal1_mag_c2 = []
+            fidelity_adj_ls = [get_adj_fidelity(rho_actual, angles, purity)]
+            purity_adj_ls = [get_purity(rho_adj)]
+            fidelity_adj2_ls = [get_fidelity(rho_adj2, rho)]
+            purity_adj2_ls = [get_purity(rho_adj2)]
+            UV_HWP_ls = [angles[0]]
+            QP_ls = [angles[1]]
+            B_HWP_ls = [angles[2]]
+            
+        elif i!=0:
+            chi_ls.append(chi)
+            fidelity_ls.append(fidelity)
+            purity_ls.append(purity)
+            fidelity_adj_ls.append(get_adj_fidelity(rho_actual, angles, purity))
+            purity_adj_ls.append(get_purity(rho_adj))
+            fidelity_adj2_ls.append(get_fidelity(rho_adj2, rho))
+            purity_adj2_ls.append(get_purity(rho_adj2))
+            UV_HWP_ls.append(angles[0])
+            QP_ls.append(angles[1])
+            B_HWP_ls.append(angles[2])
         # take difference of actual and experimental density matrices
-        diff = rho - rho_actual
-        diff_real = np.real(diff)
-        diff_imag = np.imag(diff)
+        phi_act = np.angle(rho_actual, deg=True)
+        phi = np.angle(rho, deg=True)
+        # get magnitude diff
+        rho_actual_mag = np.abs(rho_actual)
+        rho_mag = np.abs(rho)
+        
+        diff_r = rho_actual_mag / rho_mag
+        diff_phi = phi_act  / phi
 
-        # compute cartesian to polar coordinates
-        def cart2pol(x, y):
-            rho = np.sqrt(abs(x)**2 + abs(y)**2)
-            try: 
-                phi = np.arctan2(y, x)
-            except:
-                phi = np.pi/2
-            return rho, phi
+        # log diagonal magntidues and anti-diagonal magnitude
+        # log antidiagonal phase
+        diagonal1_mag.append(diff_r[1,1])
+        anti_diagonal_mag.append(diff_r[1,2])
+        anti_diagonal_phase.append(diff_phi[1,2])
 
-        diff_r, diff_phi = cart2pol(diff_real, diff_imag)
+        #### correction ####
+        phi_adj = np.angle(rho_adj, deg=True)
+        rho_adj_mag = np.abs(rho_adj)
 
+        diff_r_adj = rho_adj_mag / rho_mag
+        diff_phi_adj = phi_adj  / phi
+
+        anti_diagonal_mag_c.append(diff_r_adj[1,2])
+        anti_diagonal_phase_c.append(diff_phi_adj[1,2])
+
+        #### correction 2 ####
+        phi_adj2 = np.angle(rho_adj2, deg=True)
+        rho_adj_mag2 = np.abs(rho_adj2)
+
+        diff_r_adj2 = rho_adj_mag2 / rho_mag
+        diff_phi_adj2 = phi_adj2  / phi
+
+        anti_diagonal_mag_c2.append(diff_r_adj2[1,2])
+        anti_diagonal_phase_c2.append(diff_phi_adj2[1,2])
+        diagonal1_mag_c2.append(diff_r_adj2[1,1])
+        
         fig, ax = plt.subplots(1,2, figsize=(20,10))
         sns.heatmap(diff_r, cmap='coolwarm', annot=True, fmt='.2f', ax=ax[0])
-        ax[0].set_title('Magnitude')
+        ax[0].set_title('Magnitude Ratio $\\frac{r_{\\rho_{Th}}}{r_{\\rho_{Expt}}}$')
         sns.heatmap(diff_phi, cmap='coolwarm', annot=True, fmt='.2f', ax=ax[1])
-        ax[1].set_title('Phase')
+
+        ax[1].set_title('Phase Difference $\\frac{\\theta_{\\rho_{Th}}} {\\theta_{\\rho_{Expt}}}$')
         plt.suptitle(f'Matrix for $\eta = {np.round(eta,3)}, \chi={np.round(chi,3)}$')
         plt.tight_layout()
         plt.savefig(join(DATA_PATH, 'diff_r_phi', f'diff_{eta}_{chi}.pdf'))
+
+def det_offsets(filenames, N=1000, zeta=.7, f=.01, loss_lim = 1e-6):
+    '''Determine offsets in UV HWP, QP, and B HWP that minimize the loss function (sum of squares of fidelity differences)
+    --
+    Params:
+    filenames: list of str, filenames of rho files to use
+    N: int, number of iterations to run
+    zeta: float, learning rate
+    f: float, fraction of times to exit gd and do random
+    loss_lim: float, loss limit to exit gd
+    
+    '''
+    def get_new_fidelity(x0, angles, purity, eta, chi, rho):
+        a, b, c = x0 # offsets for UV HWP, QP, B HWP
+        angles_c = angles.copy()
+        angles_c[0] += a
+        angles_c[1] += b
+        angles_c[2] += c
+        rho_adj = get_Jrho(np.deg2rad(angles_c))
+        rho_adj = adjust_rho(rho_adj, [eta, chi], purity)
+        return get_fidelity(rho_adj, rho)
+
+    def loss_func(x0):
+        '''Helper function to compute loss between adjusted rho and rho_actual'''
+        a, b, c = x0 # offsets for UV HWP, QP, B HWP
+        fidelity_ls = []
+        # populate lists
+        for file in filenames:
+            trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+
+            fidelity_ls.append(abs(fidelity - get_new_fidelity(x0, angles, purity, eta, chi, rho)))
+
+        # calculate loss
+        fidelity_ls = np.array(fidelity_ls)
+        return np.sqrt(np.sum(fidelity_ls**2))
+
+    # optimize
+    def get_random_offset():
+        '''Helper function to get random offset, in degrees'''
+        return np.random.rand(3)*10 - 5 # random offset between -5 and 5 degrees
+    
+    # get initial random guess
+    x0 = get_random_offset()
+    best_loss = loss_func(x0)
+    grad_offset = x0
+    best_offset = x0
+
+    n = 0
+    index_since_improvement = 0
+    while n < N and abs(best_loss) > loss_lim:
+        # get new x0
+        if index_since_improvement % (f*N)==0: # periodic random search (hop)
+            x0 = get_random_offset()
+        else:
+            gradient = approx_fprime(grad_offset, loss_func, epsilon=1e-8) # epsilon is step size in finite difference
+            # if verbose: print(gradient)
+            # update angles
+            x0 = [best_offset[i] - zeta*gradient[i] for i in range(len(best_offset))]
+            grad_offset = x0
+
+        # minimize angles
+        soln = minimize(loss_func, x0)
+
+        # update best loss and best x0
+        x = soln.x
+        loss = soln.fun
+        if abs(loss) < abs(best_loss):
+            best_loss = loss
+            best_x0 = x0
+            index_since_improvement = 0
+        else:
+            index_since_improvement += 1
+        n += 1
+        print(f'Iteration {n}: loss = {loss}')
+
+    print('Best loss: ', best_loss)
+    print('Best offset: ', best_offset)
+            
     
   
 
@@ -419,4 +633,54 @@ if __name__ == '__main__':
 
     # get_rho_from_file_depricated("rho_('PhiP',)_19.npy", PhiP)
 
-    analyze_diff(filenames)
+    # analyze_diff(filenames)
+    det_offsets(filenames)
+
+
+
+    '''
+        a, b, c = x # offsets for UV HWP, QP, B HWP
+        diag_mag_ls = []
+        anti_diag_mag_ls = []
+        anti_diag_phase_ls = []
+        diag_mag_c_ls = []
+        anti_diag_mag_c_ls = []
+        anti_diag_phase_c_ls = []
+        # populate lists
+        for file in filenames:
+            trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+            angles_c = angles.copy()
+            angles_c[0] += a
+            angles_c[1] += b
+            angles_c[2] += c
+            rho_adj = get_Jrho(np.deg2rad(angles_c))
+            rho_adj = adjust_rho(rho_adj, [eta, chi], purity)
+
+            # take difference of actual and experimental density matrices
+
+            # get magnitude diff
+            rho_actual_mag = np.abs(rho_actual)
+            rho_mag = np.abs(rho)
+            phi_act = np.angle(rho_actual, deg=True)
+            phi = np.angle(rho, deg=True)
+
+            diff_r = rho_actual_mag / rho_mag
+            diff_phi = phi_act  / phi
+
+            # log diagonal magntidues and anti-diagonal magnitude
+            # log antidiagonal phase
+            diag_mag_ls.append(diff_r[1,1])
+            anti_diag_mag_ls.append(diff_r[1,2])
+            anti_diag_phase_ls.append(diff_phi[1,2])
+
+            #### correction ####
+            phi_adj = np.angle(rho_adj, deg=True)
+            rho_adj_mag = np.abs(rho_adj)
+
+            diff_r_adj = rho_adj_mag / rho_mag
+            diff_phi_adj = phi_adj  / phi
+
+            diag_mag_c_ls.append(diff_r_adj[1,1])
+            anti_diag_mag_c_ls.append(diff_r_adj[1,2])
+            anti_diag_phase_c_ls.append(diff_phi_adj[1,2])
+    '''
