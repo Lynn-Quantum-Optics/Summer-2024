@@ -1,0 +1,48 @@
+0:00:00	Manager started at 2023-07-17_16-44-39.
+0:00:00	Configuration file: "../config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:06	BQWP.py TRIAL # 0; SWEEP PARAMS = [75, 110, 20, 5, 1]
+0:00:06	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:00:17	Sweeping B_QWP from 75 to 110 degrees in 20 steps.
+0:00:25	Taking data; sampling 5 x 1 s.
+0:00:31	Taking data; sampling 5 x 1 s.
+0:00:37	Taking data; sampling 5 x 1 s.
+0:00:43	Taking data; sampling 5 x 1 s.
+0:00:50	Taking data; sampling 5 x 1 s.
+0:00:56	Taking data; sampling 5 x 1 s.
+0:01:02	Taking data; sampling 5 x 1 s.
+0:01:08	Taking data; sampling 5 x 1 s.
+0:01:15	Taking data; sampling 5 x 1 s.
+0:01:21	Taking data; sampling 5 x 1 s.
+0:01:27	Taking data; sampling 5 x 1 s.
+0:01:33	Taking data; sampling 5 x 1 s.
+0:01:40	Taking data; sampling 5 x 1 s.
+0:01:47	Taking data; sampling 5 x 1 s.
+0:01:53	Taking data; sampling 5 x 1 s.
+0:01:59	Taking data; sampling 5 x 1 s.
+0:02:05	Taking data; sampling 5 x 1 s.
+0:02:12	Taking data; sampling 5 x 1 s.
+0:02:18	Taking data; sampling 5 x 1 s.
+0:02:24	Taking data; sampling 5 x 1 s.
+0:02:30	Saving data to "BQWP_sweep0.csv".
+0:02:30	Clearing output data.
+0:02:30	Beginning shutdown procedure.
+0:02:30	Shutting down motor objects.
+0:02:31	C_UV_HWP returned to true position 359.97237723214283 degrees.
+0:02:31	Deleting C_UV_HWP object.
+0:02:31	C_QP returned to true position 359.99246651785717 degrees.
+0:02:31	Deleting C_QP object.
+0:02:32	C_PCC returned to true position 0.007533482142857143 degrees.
+0:02:32	Deleting C_PCC object.
+0:02:32	B_HWP returned to true position 0.0 degrees.
+0:02:32	Deleting B_HWP object.
+0:02:45	B_QWP returned to true position 0.0 degrees.
+0:02:45	Deleting B_QWP object.
+0:02:50	A_HWP returned to true position 0.0 degrees.
+0:02:50	Deleting A_HWP object.
+0:02:52	A_QWP returned to true position 359.99896240234375 degrees.
+0:02:52	Deleting A_QWP object.
+0:02:52	Closing COM ports.
+0:02:52	Closing CCU.
+0:02:54	Closing log file.

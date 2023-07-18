@@ -23,6 +23,63 @@ I'm doing another two sweeps here, one coarse and then a fine one to establish t
 
 Indeed, the second sweep indicates that the offset angle that minimizes counts for this motor is -9.470004030055916+/-0.01174697291490038 = -9.470 +/- 0.012. I'm now putting this offset into the config file for A_HWP.
 
+### Checkpoint A
+I added a folder `calibration/checka` that has some files to do a peace-of-mind mini-sweep on each of the components that have been calibrated so far, just to check that they indeed minimize the count rates around 0 degrees. Unfortunately, the peace-of-mind check is not giving me much peace-of-mind.
+
+See `calibration/checka/seven_sweeps/mini_notebook.md` for bad ideas (too small ranges on the sweeps made the offset adjustments meaningless).
+
+Now we're going to use 16 data points between -4 and 4 degrees, 5 x 3s samples per point in order to narrow in on the offsets for the calibrated componentes (UVHWP, AHWP, AQWP) before moving on to Bob's side.
+- UVHWP -1.029 - 0.368 -> -1.397
+- AHWP -9.470 - 0.026 -> -9.496
+- AQWP -8.704 + 0.23 -> -8.474 (this one had weirdly a lot of noise)
+I forgot to save the plots for these sweeps. Sad.
+
+The second set of sweeps completed (savedd in `calibration/checka/sweeps1`) and indicate updated values
+- UVHWP -1.397 + 0.109 -> -1.288
+- AHWP -9.496 + 0.157 -> -9.339
+- AQWP -8.474 - 0.03 -> -8.504
+
+The third set of sweeps are in `sweeps2`. These are looking super promising! I'm going to make some small changes and then 
+- UVHWP -1.288 - 0.053 -> -1.341 **NOTE: I actually forgot to update this one! But took the best data yet anyways.**
+- AHWP -9.339 - 0.083 -> -9.422
+- AQWP -8.504 + 0.119 -> -8.385
+The adjustments appear to be getting smaller, which is quite promising. Hopefully after this final run of updates we will have some offsets within 0.1 degrees.
+
+These data (in `sweeps3`) are great!!! Offsets have finally dipped below 0.1 degrees but the UVHWP offset of -0.093 and the fact that I forgot to update it last round makes me want to try just one more round to see if we can't squeeze a little more out of it. Here are the updates I made for this round:
+- UVHWP -1.288 - 0.093 ->  -1.381
+- AHWP -9.422 + 0.071 -> -9.351
+- AQWP had 0.02 +/- 0.04
+
+Final round of sweeps are in `sweeps4_final`. These gave us offsets of
+- UVHWP -0.006 +/- 0.022
+- AHWP -0.022 +/- 0.018
+- AQWP -0.024 +/- 0.027
+I am not going to modify the config file offsets for these motors anymore! So they are
+- UVHWP: -1.381
+- AHWP: -9.351
+- AQWP: -8.385
+
+### Checking Alice's Measurements in the V basis
+I did a little sweep of Alice's measurement HWP to check that counts were maximized around 45 degrees. It looked fine!
+
+## Moving to Bob's Side
+
+Now we are locking in the UVHWP and will not be messing with it or its offset any longer. I have removed Bob's Creation HWP and measurement HWP to perform the sweep/zeroing on his measurement QWP. I also put the PBS back in _very carefully_ and it seems to have gone okay!! The count rates still look very decent.
+
+### Bob's Measurement QWP
+
+So the offset for Bob's QWP came out to 88.88671845585692 +/- 0.022142714825859715 based on the fits in the calibration folder.
+
+### Bob's Creation HWP
+
+Sweeps indicated an offset of 0.11797772180123152+/-0.01615794120861485 = 0.118. I added this to the config file.
+
+### Bob's Measurement HWP
+
+Sweep fits gave us -14.805680946708112+/-0.01413407436314716. I added this to the config file.
+
+### PCC
+Make HH + VV, measure in A/D and minimize AD and DA counts (best job at getting a zero phase shift between HH and VV).
 
 
 ## 7/16/23

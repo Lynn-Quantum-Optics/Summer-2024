@@ -1,0 +1,43 @@
+0:00:00	Manager started at 2023-07-17_16-24-50.
+0:00:00	Configuration file: "../config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:07	Loading state preset "VX" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:00:10	Moving Alice's QWP to calibrated zero
+0:00:13	Sweeping A_HWP from 40 to 50 degrees in 11 steps.
+0:00:17	Taking data; sampling 5 x 1 s.
+0:00:23	Taking data; sampling 5 x 1 s.
+0:00:29	Taking data; sampling 5 x 1 s.
+0:00:36	Taking data; sampling 5 x 1 s.
+0:00:42	Taking data; sampling 5 x 1 s.
+0:00:48	Taking data; sampling 5 x 1 s.
+0:00:55	Taking data; sampling 5 x 1 s.
+0:01:01	Taking data; sampling 5 x 1 s.
+0:01:08	Taking data; sampling 5 x 1 s.
+0:01:14	Taking data; sampling 5 x 1 s.
+0:01:20	Taking data; sampling 5 x 1 s.
+0:01:25	Saving data to "measv_ahwp_sweep.csv".
+0:01:25	Clearing output data.
+0:01:25	Beginning shutdown procedure.
+0:01:25	Shutting down motor objects.
+0:01:26	C_UV_HWP returned to true position 359.98744419642856 degrees.
+0:01:26	Deleting C_UV_HWP object.
+0:01:27	C_QP returned to true position 359.99246651785717 degrees.
+0:01:27	Deleting C_QP object.
+0:01:27	C_PCC returned to true position 0.007533482142857143 degrees.
+0:01:27	Deleting C_PCC object.
+0:01:28	B_C_HWP returned to true position 359.9974888392857 degrees.
+0:01:28	Deleting B_C_HWP object.
+0:01:28	B_C_QWP returned to true position 359.9974888392857 degrees.
+0:01:28	Deleting B_C_QWP object.
+0:01:28	B_HWP returned to true position 0.0 degrees.
+0:01:28	Deleting B_HWP object.
+0:01:28	B_QWP returned to true position 0.0 degrees.
+0:01:28	Deleting B_QWP object.
+0:01:34	A_HWP returned to true position 0.0 degrees.
+0:01:34	Deleting A_HWP object.
+0:01:36	A_QWP returned to true position 359.9984436035156 degrees.
+0:01:36	Deleting A_QWP object.
+0:01:36	Closing COM ports.
+0:01:36	Closing CCU.
+0:01:37	Closing log file.
