@@ -6,9 +6,10 @@ if __name__ == '__main__':
     # TRIAL = 0
     # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
     
-    TRIAL = 1
+    # TRIAL = 1
+    TRIAL = 2
     SWEEP_PARAMS = [-4, 4, 20, 5, 3]
-    '''
+    
     # initialize the manager
     m = Manager(config='../config.json')
 
@@ -29,10 +30,12 @@ if __name__ == '__main__':
     # save the output
     df = m.output_data(f'BCHWP_sweep{TRIAL}.csv')
     m.shutdown()
+    
     '''
     df = Manager.load_data('BCHWP_sweep1.csv')
     angles, rates = df['B_C_HWP'], df['C4']
-    
+    '''
+
     # fit the function
     params = analysis.fit('quadratic', angles, rates)
 

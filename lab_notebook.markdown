@@ -1,3 +1,27 @@
+## 7/18/23
+MP: A
+
+Started the laser at 0922. Going to wait about an hour.
+
+Back at 1111. Setup the BBO nitrogen flow. Started by connecting Bob's Creation QWP to the bus distributor. Then I booted up Kinesis to ensure that all the ThorLabs motors were still homed (they were), followed by Ello to ensure that the creation QWP has the correct address. It was not, (since it was disconnected) and had to be reassigned to address "B".
+
+### Experimenting with Elliptec Homing
+
+I initialized Bob's CQWP motor outside of the manager using the `ElliptecMotor` class. I tried playing with it and learned that indeed the Elliptec Motors will lose their home positions if power is cut, and so they should always be returned to the zero position before leaving them alone if this is a possibility.
+
+### Making Sure Everything is Relatively Okay
+I started by running a sweep on BCHWP (2, though I forgot to use the calibrated zero of BHWP, and so the data was quite goofed up) and a sweep on BHWP (3) to ensure that those calibration values essentially stayed the same over night. The sweep on Bob's measurement HWP revealod a minimum of -0.022 (well within 0.1 deg! yay!)
+
+### Aligning and Calibrating Bob's Creation QWP
+
+After the basic test, I got the lights back on and worked on aligning Bob's creation QWP by retroreflecting the redlight laser. This process went swimmingly!
+
+Now I'm running the code in `calibration/BCQWP` to perform a coarse sweep (0) to find the angle that minimized C4 coincidence count (while Alice is measuring in the V basis). The coarse sweep found the minimum ~ 2.4 degrees, so I'm running another sweep across the 8 degree range centered on 2.4 with finer measurement parameters. Weirdly, this did not produce satisfactory results! There ended up being a lot of noise near that minimum, and so I am taking a slightly broader sweep with more precise sampling from -5 to 10 degrees. But even this one is looking super weird! Broadening the range once more to -10 to 10 degrees.
+
+The QWP is giving quite a bit of trouble. We are seeing weird bumps in the plot around zero, and we also are seeing the motor rotating a full 360 degrees when it crosses zero. That along with the shifting minimum is making us think perhaps the mounting is indeed not as secure as it needs to be. I'm going to take it out, wrench it in there real good, realign it, and see what happens!
+
+I think I was able to get it a little bit tighter!
+
 ## 7/17/23
 MP: A
 
