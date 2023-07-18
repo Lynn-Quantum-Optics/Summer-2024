@@ -128,6 +128,67 @@ def get_expec_vals_counts(raw_data):
 
     return S
     
+def get_raw_stokes(raw_data, r, c):
+    '''Takes in unumpy array with counts and count uncertainities. Returns expectation values and uncertainties.
+    --
+    Params:
+        raw_data: unumpy array with counts and count uncertainties
+        r: int, row index of stokes param
+        c: int, col index of stokes param
+    '''
+    # normalize groups of orthonormal measurements to get projections
+     # normalize groups of orthonormal measurements to get projections
+    projs = np.zeros_like(raw_data)
+    for i in range(0,6,2):
+        for j in range(0,6,2):
+            total_rate = np.sum(raw_data[i:i+2, j:j+2])
+            projs[i:i+2, j:j+2] = raw_data[i:i+2, j:j+2]/total_rate
+    
+    
+    HH, HV, HD, HA, HR, HL = projs[0]
+    VH, VV, VD, VA, VR, VL = projs[1]
+    DH, DV, DD, DA, DR, DL = projs[2]
+    AH, AV, AD, AA, AR, AL = projs[3]
+    RH, RV, RD, RA, RR, RL = projs[4]
+    LH, LV, LD, LA, LR, LL = projs[5]
+
+    # build the stokes's parameters
+    if r == 0:
+        if c == 0:
+            return ufloat(1,0)
+        if c ==1:
+            return DD - DA + AD - AA
+        if c==2:
+            return RR + LR - RL - LL
+        if c==3:
+            return HH - HV + VH - VV
+    if r == 1:
+        if c == 0:
+            return DD + DA - AD - AA
+        if c ==1:
+            return DD - DA - AD + AA
+        if c==2:
+            return DR - DL - AR + AL
+        if c==3:
+            return DH - DV - AH + AV
+    if r == 2:
+        if c == 0:
+            return RR - LR + RL - LL
+        if c ==1:
+            return RD - RA - LD + LA
+        if c==2:
+            return RR - RL - LR + LL
+        if c==3:
+            return RH - RV - LH + LV
+    if r == 3:
+        if c == 0:
+            return HH + HV - VH - VV
+        if c ==1:
+            return HD - HA - VD + VA
+        if c==2:
+            return HR - HL - VR + VL
+        if c==3:
+            return HH - HV - VH + VV
 
 def compute_proj(basis1, basis2, rho):
     ''' Computes projection into desired bases using projection operations on both qubits'''
@@ -244,26 +305,40 @@ def compute_roik_proj(basis1, basis2, rho):
     except ZeroDivisionError:
         return 0
 
-def get_all_roik_projs(rho):
-    ''' Computes the projections as defined in Roik et al'''
+def get_all_roik_projections(rho):
+    ''' Computes the 16 projections as defined in Roik et al'''
 
     # define the single bases for projection
-    H = np.array([[1], [0]])
-    V = np.array([[0], [1]])
-    D = np.array([[1], [1]])/np.sqrt(2)
-    A = np.array([[1], [-1]])/np.sqrt(2)
-    R = np.array([[1], [1j]])/np.sqrt(2)
-    L = np.array([[1], [-1j]])/np.sqrt(2)
+    H = np.array([[1,0],[0,0]])
+    V = np.array([[0,0],[0,1]])    
+    D = np.array([[1/2,1/2],[1/2,1/2]])
+    A = np.array([[1/2,-1/2],[-1/2,1/2]])
+    R = np.array([[1/2,1j/2],[-1j/2,1/2]])
+    L = np.array([[1/2,-1j/2],[1j/2,1/2]])
 
-    basis_ls =[H, V, D, A, R, L]
-    all_projs =[]
-    for basis in basis_ls:
-        for basis2 in basis_ls:
-            all_projs.append(compute_roik_proj(basis, basis2, rho))
+    HH = compute_roik_proj(H, H, rho)
+    VV = compute_roik_proj(V, V, rho)
+    HV = compute_roik_proj(H, V, rho)
 
-    return np.array(all_projs).reshape(6,6)
+    DD = compute_roik_proj(D, D, rho)
+    AA = compute_roik_proj(A, A, rho)
 
-    
+    RR = compute_roik_proj(R,R, rho)
+    LL = compute_roik_proj(L, L, rho)
+
+    DL = compute_roik_proj(D,L, rho)
+    AR = compute_roik_proj(A,R, rho)
+    DH = compute_roik_proj(D,H, rho)
+    AV = compute_roik_proj(A,V, rho)
+    LH = compute_roik_proj(L,H, rho)
+    RV = compute_roik_proj(R,V, rho)
+
+    DR = compute_roik_proj(D,R, rho)
+    DV = compute_roik_proj(D,V, rho)
+    LV = compute_roik_proj(L,V, rho)
+
+    return HH, VV, HV, DD, AA, RR, LL, DL, AR, DH, AV, LH, RV, DR, DV, LV
+
 def adjust_rho(rho, angles, expt_purity, state='E0'):
     ''' Adjusts density matrix to account for experimental impurity.'''
     if state=='E0':
@@ -315,57 +390,54 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
         # rho[1,2] = expt_purity*rho[1,2]
         # rho[2,1] = expt_purity*rho[2,1]
     if do_stokes or do_counts:
-        if not(do_counts): expec_vals = get_expec_vals(rho)
-        else:
-            expec_vals = get_expec_vals_counts(counts)
 
-        def get_W1(theta, expec_vals):
+        def get_W1(theta, counts):
             a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] + expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] + expec_vals[0,3])))
-        def get_W2(theta, expec_vals):
+            return np.real(0.25*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3) + (a**2 - b**2)*get_raw_stokes(counts, 1, 1) + (a**2 - b**2)*get_raw_stokes(counts, 2, 2) + 2*a*b*(get_raw_stokes(counts, 3, 0) + get_raw_stokes(counts, 0, 3))))
+        def get_W2(theta, counts):
             a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] - expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] - (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] - expec_vals[0,3])))
-        def get_W3(theta, expec_vals):
+            return np.real(0.25*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3) + (a**2 - b**2)*get_raw_stokes(counts, 1, 1) - (a**2 - b**2)*get_raw_stokes(counts, 2, 2) + 2*a*b*(get_raw_stokes(counts, 3, 0) - get_raw_stokes(counts, 0, 3))))
+        def get_W3(theta, counts):
             a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] + expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[1,0] + expec_vals[0,1])))
-        def get_W4(theta, expec_vals):
+            return np.real(0.25*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 1, 1) + (a**2 - b**2)*get_raw_stokes(counts, 3, 3) + (a**2 - b**2)*get_raw_stokes(counts, 2, 2) + 2*a*b*(get_raw_stokes(counts, 1, 0) + get_raw_stokes(counts, 0, 1))))
+        def get_W4(theta, counts):
             a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] - expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[2,2] - 2*a*b*(expec_vals[1,0] - expec_vals[0,1])))
-        def get_W5(theta, expec_vals):
+            return np.real(0.25*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 1, 1) + (a**2 - b**2)*get_raw_stokes(counts, 3, 3) - (a**2 - b**2)*get_raw_stokes(counts, 2, 2) - 2*a*b*(get_raw_stokes(counts, 1, 0) - get_raw_stokes(counts, 0, 1))))
+        def get_W5(theta, counts):
             a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] + expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + 2*a*b*(expec_vals[2,0] + expec_vals[0,2])))
-        def get_W6(theta, expec_vals):
+            return np.real(0.25*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 2, 2) + (a**2 - b**2)*get_raw_stokes(counts, 3, 3) + (a**2 - b**2)*get_raw_stokes(counts, 1, 1) + 2*a*b*(get_raw_stokes(counts, 2, 0) + get_raw_stokes(counts, 0, 2))))
+        def get_W6(theta, counts):
             a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] - expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[1,1] - 2*a*b*(expec_vals[2,0] - expec_vals[0,2])))
+            return np.real(0.25*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 2, 2) + (a**2 - b**2)*get_raw_stokes(counts, 3, 3) - (a**2 - b**2)*get_raw_stokes(counts, 1, 1) - 2*a*b*(get_raw_stokes(counts, 2, 0) - get_raw_stokes(counts, 0, 2))))
         
         ## W' from summer 2022 ##
-        def get_Wp1(params, expec_vals):
+        def get_Wp1(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] + expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]+expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1])))
-        def get_Wp2(params, expec_vals):
+            return np.real(.25*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3) + np.cos(2*theta)*(get_raw_stokes(counts, 1, 1)+get_raw_stokes(counts, 2, 2))+np.sin(2*theta)*np.cos(alpha)*(get_raw_stokes(counts, 3, 0) + get_raw_stokes(counts, 0, 3)) + np.sin(2*theta)*np.sin(alpha)*(get_raw_stokes(counts, 1, 2) - get_raw_stokes(counts, 2, 1))))
+        def get_Wp2(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] - expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]-expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] - expec_vals[0,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1])))
-        def get_Wp3(params, expec_vals):
+            return np.real(.25*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3) + np.cos(2*theta)*(get_raw_stokes(counts, 1, 1)-get_raw_stokes(counts, 2, 2))+np.sin(2*theta)*np.cos(alpha)*(get_raw_stokes(counts, 3, 0) - get_raw_stokes(counts, 0, 3)) - np.sin(2*theta)*np.sin(alpha)*(get_raw_stokes(counts, 1, 2) - get_raw_stokes(counts, 2, 1))))
+        def get_Wp3(params, counts):
             theta, alpha, beta = params[0], params[1], params[2]
-            return np.real(.25 * (np.cos(theta)**2*(expec_vals[0,0] + expec_vals[3,3]) + np.sin(theta)**2*(expec_vals[0,0] - expec_vals[3,3]) + np.cos(theta)**2*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(theta)**2*np.cos(2*alpha - beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*expec_vals[1,0] + np.sin(2*theta)*np.cos(alpha - beta)*expec_vals[0,1] + np.sin(2*theta)*np.sin(alpha)*expec_vals[2,0] + np.sin(2*theta)*np.sin(alpha - beta)*expec_vals[0,2]+np.cos(theta)**2*np.sin(beta)*(expec_vals[2,1] - expec_vals[1,2]) + np.sin(theta)**2*np.sin(2*alpha - beta)*(expec_vals[2,1] + expec_vals[1,2])))
-        def get_Wp4(params, expec_vals):
+            return np.real(.25 * (np.cos(theta)**2*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3)) + np.sin(theta)**2*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3)) + np.cos(theta)**2*np.cos(beta)*(get_raw_stokes(counts, 1, 1) + get_raw_stokes(counts, 2, 2)) + np.sin(theta)**2*np.cos(2*alpha - beta)*(get_raw_stokes(counts, 1, 1) - get_raw_stokes(counts, 2, 2)) + np.sin(2*theta)*np.cos(alpha)*get_raw_stokes(counts, 1, 0) + np.sin(2*theta)*np.cos(alpha - beta)*get_raw_stokes(counts, 0, 1) + np.sin(2*theta)*np.sin(alpha)*get_raw_stokes(counts, 2, 0) + np.sin(2*theta)*np.sin(alpha - beta)*get_raw_stokes(counts, 0, 2)+np.cos(theta)**2*np.sin(beta)*(get_raw_stokes(counts, 2, 1) - get_raw_stokes(counts, 1, 2)) + np.sin(theta)**2*np.sin(2*alpha - beta)*(get_raw_stokes(counts, 2, 1) + get_raw_stokes(counts, 1, 2))))
+        def get_Wp4(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0]+expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] + expec_vals[1,0]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2])))
-        def get_Wp5(params, expec_vals):
+            return np.real(.25*(get_raw_stokes(counts, 0, 0)+get_raw_stokes(counts, 1, 1)+np.cos(2*theta)*(get_raw_stokes(counts, 3, 3) + get_raw_stokes(counts, 2, 2)) + np.sin(2*theta)*np.cos(alpha)*(get_raw_stokes(counts, 0, 1) + get_raw_stokes(counts, 1, 0)) + np.sin(2*theta)*np.sin(alpha)*(get_raw_stokes(counts, 2, 3) - get_raw_stokes(counts, 3, 2))))
+        def get_Wp5(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0]-expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] - expec_vals[1,0]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2])))
-        def get_Wp6(params,expec_vals):
+            return np.real(.25*(get_raw_stokes(counts, 0, 0)-get_raw_stokes(counts, 1, 1)+np.cos(2*theta)*(get_raw_stokes(counts, 3, 3) - get_raw_stokes(counts, 2, 2)) + np.sin(2*theta)*np.cos(alpha)*(get_raw_stokes(counts, 0, 1) - get_raw_stokes(counts, 1, 0)) - np.sin(2*theta)*np.sin(alpha)*(get_raw_stokes(counts, 2, 3) - get_raw_stokes(counts, 3, 2))))
+        def get_Wp6(params,counts):
             theta, alpha, beta = params[0], params[1], params[2]
-            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[2,3] + expec_vals[2,0]) + np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[2,3] - expec_vals[2,0]) - np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[3,2] + expec_vals[0,2]) - np.sin(theta)**2*np.sin(2*beta)*(expec_vals[3,2] - expec_vals[0,2])))
-        def get_Wp7(params, expec_vals):
+            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3) + get_raw_stokes(counts, 3, 0) + get_raw_stokes(counts, 0, 3)) + np.cos(theta)**2*np.sin(alpha)**2*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3) + get_raw_stokes(counts, 3, 0) - get_raw_stokes(counts, 0, 3)) + np.sin(theta)**2*np.cos(beta)**2*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3) - get_raw_stokes(counts, 3, 0) - get_raw_stokes(counts, 0, 3)) + np.sin(theta)**2*np.sin(beta)**2*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3) - get_raw_stokes(counts, 3, 0) + get_raw_stokes(counts, 0, 3)) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(get_raw_stokes(counts, 1, 1) + get_raw_stokes(counts, 2, 2)) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(get_raw_stokes(counts, 1, 1) - get_raw_stokes(counts, 2, 2)) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(get_raw_stokes(counts, 2, 3) + get_raw_stokes(counts, 2, 0)) + np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(get_raw_stokes(counts, 2, 3) - get_raw_stokes(counts, 2, 0)) - np.cos(theta)**2*np.sin(2*alpha)*(get_raw_stokes(counts, 3, 2) + get_raw_stokes(counts, 0, 2)) - np.sin(theta)**2*np.sin(2*beta)*(get_raw_stokes(counts, 3, 2) - get_raw_stokes(counts, 0, 2))))
+        def get_Wp7(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] + expec_vals[2,2]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1] - expec_vals[1,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0]+expec_vals[0,2])))
-        def get_Wp8(params, expec_vals):
+            return np.real(.25*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 2, 2)+np.cos(2*theta)*(get_raw_stokes(counts, 3, 3) + get_raw_stokes(counts, 1, 1)) + np.sin(2*theta)*np.cos(alpha)*(get_raw_stokes(counts, 3, 1) - get_raw_stokes(counts, 1, 3)) - np.sin(2*theta)*np.sin(alpha)*(get_raw_stokes(counts, 2, 0)+get_raw_stokes(counts, 0, 2))))
+        def get_Wp8(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] - expec_vals[2,2] + np.cos(2*theta)*(expec_vals[3,3]-expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1]+expec_vals[1,3])+np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0] - expec_vals[0,2])))
-        def get_Wp9(params, expec_vals):
+            return np.real(.25*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 2, 2) + np.cos(2*theta)*(get_raw_stokes(counts, 3, 3)-get_raw_stokes(counts, 1, 1)) + np.sin(2*theta)*np.cos(alpha)*(get_raw_stokes(counts, 3, 1)+get_raw_stokes(counts, 1, 3))+np.sin(2*theta)*np.sin(alpha)*(get_raw_stokes(counts, 2, 0) - get_raw_stokes(counts, 0, 2))))
+        def get_Wp9(params, counts):
             theta, alpha, beta = params[0], params[1], params[2]
-            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[0,1] + expec_vals[3,1]) + np.sin(theta)**2*np.sin(2*beta)*(expec_vals[0,1] - expec_vals[3,1]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[1,0] + expec_vals[1,3])+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[1,0] - expec_vals[1,3])))
+            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3) + get_raw_stokes(counts, 3, 0) + get_raw_stokes(counts, 0, 3)) + np.cos(theta)**2*np.sin(alpha)**2*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3) + get_raw_stokes(counts, 3, 0) - get_raw_stokes(counts, 0, 3)) + np.sin(theta)**2*np.cos(beta)**2*(get_raw_stokes(counts, 0, 0) + get_raw_stokes(counts, 3, 3) - get_raw_stokes(counts, 3, 0) - get_raw_stokes(counts, 0, 3)) + np.sin(theta)**2*np.sin(beta)**2*(get_raw_stokes(counts, 0, 0) - get_raw_stokes(counts, 3, 3) - get_raw_stokes(counts, 3, 0) + get_raw_stokes(counts, 0, 3)) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(get_raw_stokes(counts, 1, 1) + get_raw_stokes(counts, 2, 2)) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(get_raw_stokes(counts, 1, 1) - get_raw_stokes(counts, 2, 2)) + np.cos(theta)**2*np.sin(2*alpha)*(get_raw_stokes(counts, 0, 1) + get_raw_stokes(counts, 3, 1)) + np.sin(theta)**2*np.sin(2*beta)*(get_raw_stokes(counts, 0, 1) - get_raw_stokes(counts, 3, 1)) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(get_raw_stokes(counts, 1, 0) + get_raw_stokes(counts, 1, 3))+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(get_raw_stokes(counts, 1, 0) - get_raw_stokes(counts, 1, 3))))
 
         if calc_unc:
             def get_unc_W1(theta, stokes_unc):
@@ -433,10 +505,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
                 # get initial guess at boundary
                 if not(expt):
                     def min_W(x0):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])
+                        return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2)])
+                        return minimize(get_nom, x0=x0, args=(counts,W), bounds=[(0, np.pi/2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -483,10 +555,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
                 if not(expt):
                     def min_W(x0):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                        return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                        return minimize(get_nom, x0=x0, args=(counts,W), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -535,10 +607,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             else:# theta and alpha
                 if not(expt):
                     def min_W(x0):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])
+                        return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi/2),(0, np.pi*2)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2),(0, np.pi*2)])
+                        return minimize(get_nom, x0=x0, args=(counts,W), bounds=[(0, np.pi/2),(0, np.pi*2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -586,7 +658,9 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             if calc_unc:
                 W_expec_vals.append(((w_min_val), get_unc_W(w_min_params, stokes_unc)))
             elif expt: # automatically calculate uncertainty
-                W_expec_vals.append(W(w_min_params, expec_vals))
+                W_expec_vals.append(W(w_min_params, counts))
+                print(w_min_params)
+                print(W(w_min_params, counts))
             else:
                 W_expec_vals.append(w_min_val)
     
