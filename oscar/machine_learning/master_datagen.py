@@ -13,7 +13,7 @@ from roik_gen import * # actual roik code
 from random_gen import *
 from jones import *
 
-def gen_rand_info(func, return_prob, log_roik_prob=False, do_stokes=False, include_w = True, log_params = False, verbose=False):
+def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_params = False, verbose=False, log_roik_prob=False):
     ''' Function to compute random state based on imput method and return measurement projections, witness values, concurrence, and purity.
         params:
             func: function to generate random state
@@ -33,7 +33,7 @@ def gen_rand_info(func, return_prob, log_roik_prob=False, do_stokes=False, inclu
     purity = get_purity(rho)
     min_eig = get_min_eig(rho)
     if verbose: print(f'made state with concurrence {concurrence} and purity {purity}')
-
+    
     if include_w:
 
         if not(return_prob): # if we want to return stokes's parameters
@@ -48,7 +48,9 @@ def gen_rand_info(func, return_prob, log_roik_prob=False, do_stokes=False, inclu
             RH, RV, RD, RA, RR, RL = projs[4]
             LH, LV, LD, LA, LR, LL = projs[5]
             if not(log_roik_prob):
-                if not(log_params): return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig
+                if not(log_params): 
+                    return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig
+        
 
                 else: 
                     return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
@@ -121,13 +123,12 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
         savename+=f'_method_{method}'
         func = partial(get_random_hurwitz, method=method, log_params=log_params)
     elif random_method=='roik': # from actual roik code
-        
         func = partial(get_random_rho, log_params=log_params)
 
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
     # gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_params = False, verbose=True)
-    inputs = [(func, return_prob, do_stokes, include_w, log_params, verbose) for _ in range(num_to_gen)]
+    inputs = [(func, return_prob, do_stokes, include_w, log_params, verbose, log_roik_prob) for _ in range(num_to_gen)]
     results = pool.starmap_async(gen_rand_info, inputs).get()
 
     ## end multiprocessing ##
@@ -189,4 +190,5 @@ if __name__=='__main__':
 
         print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {do_stokes}, {log_params}, {log_roik_prob}')
 
-        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes, log_params=log_params, log_roik_prob=log_roik_prob)
+        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes, include_w=True, log_params=log_params, log_roik_prob=log_roik_prob)
+        # random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False
