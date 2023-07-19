@@ -4,10 +4,11 @@ classdef HyperBell
     properties
         d; % number of dimensions
         k; % number of bell states
-        m; % index of particular k-group of states
         m_limit; % total number of systems to solve
         soln_limit; % number of solutions to find
         num_coeffs; % number of coefficients
+        l_bound; % lower bound
+        u_bound; % upper bound
         bounds; % bounds on the coefficients
         precision; % precision for solving: negative exponent. used for solution vec, orthogonality, and normalization
         k_group_indices; % indices of the k-groups of bell states
@@ -18,13 +19,20 @@ classdef HyperBell
         function obj = HyperBell(d, k) % constructor
             obj.d = d;
             obj.k = k;
-            obj.m = 0;
             obj.m_limit = nchoosek(d^2, k);
             obj.soln_limit = 2*d;
             obj.num_coeffs = 4*d; % splitting imag and real
+            obj.l_bound = zeros(obj.num_coeffs, 1);
+            for i = 1:obj.num_coeffs
+                obj.l_bound(i) = -1;
+            end
+            obj.u_bound = zeros(obj.num_coeffs, 1);
+            for i = 1:obj.num_coeffs
+                obj.u_bound(i) = 1;
+            end
             obj.bounds = {};
             for i = 1:obj.num_coeffs
-                obj.bounds{end+1} = [-1, 1];
+                obj.bounds{end+1} = [-1; 1];
             end
             obj.precision = 6;
             obj.k_group_indices = get_k_group_indices(obj);
@@ -35,10 +43,6 @@ classdef HyperBell
         function obj = set_precision(obj, precision)
             %%% set the precision for solving
             obj.precision = precision;
-        end
-        function obj = set_m(obj, m) 
-            %%% choose which mth system to analyze
-            obj.m = m;
         end
         function comb_unique = get_k_group_indices(obj)
             %%% construct indices of d^2 choose k states
@@ -78,7 +82,6 @@ classdef HyperBell
                         end
                         if new_elem
                             comb_unique{end+1} = comb(:, i);
-                            disp(cell2mat(comb(:, i)))
                         end
                     else
                         comb_unique{end+1} = comb(:, i);
@@ -116,33 +119,33 @@ classdef HyperBell
             %%% perform LELM measurement on bell state; takes in coeff vector
             bell_m = zeros(2*obj.d, 1);
             for i = 1:2*obj.d
-                if bell(i) ~= 0 % if the state is occupied
-                    bell_c = copy(bell);
+                if bell(i)~= 0 % if the state is occupied
+                    bell_c = bell;
                     bell_c(i) = 0; % annihilate the state
                     v = get_full_coeff(obj, coeff);
-                    bell_m = bell_m + v*(i)*bell_c; % add to measurement
+                    bell_m = bell_m + v(i)*bell_c; % add to measurement
                 end
             end
         end
         function ip = get_meas_ip(obj, bell1, bell2, coeff)
             %%% get the inner product of two measured states
-            bell1_m = get_measurement(obj, bell1, coeff);
-            bell2_m = get_measurement(obj, bell2, coeff);
+            bell1_m = get_measurement(obj, cell2mat(bell1), coeff);
+            bell2_m = get_measurement(obj, cell2mat(bell2), coeff);
             ip = bell1_m'*bell2_m;
         end
-        function k_group = get_m_kgroup(obj)
+        function k_group = get_m_kgroup(obj, m)
             %%% get the mth k-group of bell states
-            k_group_index = obj.k_group_indices(:, obj.m);
-            k_group = zeros(obj.k, 1);
+            k_group_index = obj.k_group_indices(:, m);
+            k_group = {};
             for i = 1:obj.k % recover the c and p indices from the k_group_index
-                c = fix(k_group_index(i)/obj.d); % integer division
-                p = mod(k_group_index(i), obj.d); 
-                k_group(i) = get_bell(obj, c, p);
+                c = fix(i/obj.d); % integer division
+                p = mod(i, obj.d); 
+                k_group{i} = get_bell(obj, c, p);
             end
         end
-        function k_sys = get_k_sys(obj, coeff)
+        function k_sys = get_k_sys(obj, coeff, m)
             %%% get the k-system of bell states
-            k_group = get_m_kgroup(obj);
+            k_group = get_m_kgroup(obj, m);
             k_sys = zeros(numel(k_group), 1); % initialize k_sys array
             for i = 1:obj.k
                 for j = i+1:obj.k
