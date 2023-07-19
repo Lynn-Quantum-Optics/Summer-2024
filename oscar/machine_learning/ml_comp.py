@@ -28,12 +28,13 @@ def get_labels(Y_pred, task, eps=None):
 
     return Y_pred_labels
 
-def get_pop_raw(file, X=None):
+def get_pop_raw(file, X=None, Y=None):
     ''' Function to assign labels based on Eritas's population method.'''
     if X is None:
         df =pd.read_csv(join('random_gen', 'data', file))
     else:
-        df = pd.DataFrame(X, columns=['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL'])
+        data = np.concatenate((X, Y), axis=1)
+        df = pd.DataFrame(X, columns=['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3'] )
     df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0))]
     prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
     prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
@@ -238,19 +239,18 @@ def comp_disagreement(model_ls, names, file = 'roik_True_400000_r_os_t.csv', tas
     plt.savefig(join('random_gen', 'models', 'disagreement_confidence.pdf'))
     plt.show()
 
-def det_threshold(nn5, file = 'roik_True_4000000_r_os_tv.csv', task = 'w', input_method='prob_9'):
+def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_method='prob_9'):
     '''Look at the distribution of confidence levels for all states between the models on the validation data.'''
-    X_train, Y_train, X_test, Y_test = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=True)
-
+    X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
     # get predictions for each
-    Y_pred_nn5 = nn5.predict(X_test)
+    Y_pred_nn5 = nn5.predict(X)
     confidence_nn5 = np.max(Y_pred_nn5, axis=1)
     Y_pred_nn5_labels = get_labels(Y_pred_nn5, task=task)
-    Y_pred_nn5_ncorrect = np.einsum('ij,ij->i', Y_test, Y_pred_nn5_labels)
-    Y_pred_pop = get_pop_raw(X=X_test, file=None)
+    Y_pred_nn5_ncorrect = np.einsum('ij,ij->i', Y, Y_pred_nn5_labels)
+    Y_pred_pop = get_pop_raw(file=file)
     confidence_pop = np.max(Y_pred_pop.to_numpy(), axis=1)
-    Y_pred_pop_labels = get_labels_pop(Y_pred_pop = Y_pred_pop)
-    Y_pred_pop_ncorrect = np.einsum('ij,ij->i', Y_test, Y_pred_pop_labels)
+    Y_pred_pop_labels = get_labels_pop(pop_df = Y_pred_pop)
+    Y_pred_pop_ncorrect = np.einsum('ij,ij->i', Y, Y_pred_pop_labels)
 
     # plot the confidence levels, with correct states in green and incorrect in red
     fig, ax = plt.subplots(1, 2, figsize=(12,7))
@@ -276,7 +276,7 @@ def det_threshold(nn5, file = 'roik_True_4000000_r_os_tv.csv', task = 'w', input
     plt.savefig(join('random_gen', 'models', 'det_threshold.pdf'))
     plt.show()
 
-
+# def 
 
     
 
@@ -291,28 +291,28 @@ if __name__ == '__main__':
     ## load models ##
 
     # new models ---
-    xgb = XGBRegressor()
-    xgb.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_xgb_all.json'))
-    nn1 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_nn1_all.h5'))
-    nn3 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_300_300_300_0.0001_100.h5'))
+    # xgb = XGBRegressor()
+    # xgb.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_xgb_all.json'))
+    # nn1 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_nn1_all.h5'))
+    # nn3 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_300_300_300_0.0001_100.h5'))
     nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
 
     # # old models ---
-    xgb_old = XGBRegressor()
-    xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
-    json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    model_bl = keras.models.model_from_json(loaded_model_json)
-    # load weights into new model
-    model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
+    # xgb_old = XGBRegressor()
+    # xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
+    # json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
+    # loaded_model_json = json_file.read()
+    # json_file.close()
+    # model_bl = keras.models.model_from_json(loaded_model_json)
+    # # load weights into new model
+    # model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
 
-    ## actual roik et al models ##
-    ra_3 = keras.models.load_model(join(roik_etal_path, 'model_3_8333.h5'))
-    ra_5 = keras.models.load_model(join(roik_etal_path, 'model_5_8796.h5')) 
-    ra_6 = keras.models.load_model(join(roik_etal_path, 'model_6_8946.h5'))
-    ra_12 = keras.models.load_model(join(roik_etal_path, 'model_12_937.h5'))
-    ra_15 = keras.models.load_model(join(roik_etal_path, 'model_15_9653.h5'))
+    # ## actual roik et al models ##
+    # ra_3 = keras.models.load_model(join(roik_etal_path, 'model_3_8333.h5'))
+    # ra_5 = keras.models.load_model(join(roik_etal_path, 'model_5_8796.h5')) 
+    # ra_6 = keras.models.load_model(join(roik_etal_path, 'model_6_8946.h5'))
+    # ra_12 = keras.models.load_model(join(roik_etal_path, 'model_12_937.h5'))
+    # ra_15 = keras.models.load_model(join(roik_etal_path, 'model_15_9653.h5'))
 
 
     ## evaluate ##
