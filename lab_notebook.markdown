@@ -1,3 +1,57 @@
+## 7/19/23
+MP: A
+Started laser at 837.
+Back at 1107 to get going.
+
+### Fixing the issue with Elliptec BCQWP Motor
+First I am going to reproduce the problem by modifying the code to perform a manual sweep (instead of updating the manager to an older version) and using angles modulo 360. I put this code in `BCQWP_err.py`. I also confirmed that all the ThorLabs motors were homed, just to be safe. I was able to reproduce the error and saved this as the file `BCQWP/optimization/BCQWP0.png`
+
+I wrote a small script to send the optimize motor instruction and wait to listen to the but the Elliptec motor documentation was relatively unclear about the response that should be expected and I also wrote the script pretty poorly so now I am just waiting "several minutes" for the instruction to be executed. I opened an ipython terminal, connected to the serial port and just waited to get the 'BGS00' status message. This really did take several minutes, about 10 if I had to guess.
+
+Now that it is complete, I'm running the same script that reproduced the error a few minutes ago (`BCQWP_err.py`) and observe the output. Uh oh! We hit an error from the motor that was just optimized -> `BGS02` which is a mechanical timeout error according to Elliptec documentation. Well. If at first you don't succeed, right? I tried re-running the same script and I hit the same error.
+
+The mechanical time out status keeps coming up, not sure what is going on. I'm going to connect to the motor using Ello, as the documentation says we might be able to do the homing/optimizing/cleaning and such from there. Indeed there are buttons for that, but after sending the motor to its home position it came back to life! It was able to move without timing out and such. So I went back to python and it was also able to move there. Then I re-ran the test.
+
+This did not fix the problem weirdly enough. Still have a jump in the graph, and furthermore we are seeing different count rates than before optimization! Much higher, even though the home position should not have changed. I'm going to boot the manager in an ipython terminal to see what is going on with these count rates!
+
+All angles here are based on calibrated zeros
+- UVHWP to 0
+- QP to 0
+- PCC to 4.005
+- AHWP to 0
+- AQWP to 0
+
+These count rates should be tiny no matter Bob's settings, and indeed they are! Less than 20, around 10. Moving AHWP to 45 so that we will see count rates based on Bob's basis. Now I'm sending
+
+- BQWP to 0
+- BHWP to 0
+- BCHWP to 0
+
+Now seeing count rates on the order of 1200. Now I'm going to visually inspect things real quick. And I'm officially quite confused. The count rates should be low but they are decidedly not. I hit the ThorLabs motor error while trying to mess around with BHWP to see if that was the problem. YIKES!
+
+### Debugging ThorLabs Motor error
+
+I'm booting Kinesis and I see the fatal position error. I'm requesting that it home the motor. It just sat there blinking homing for a while, and did not move the motor. In the mean time I sent all the other motors to their zero positions and they look consistent with the recorded home of ~9 degrees. I tried disconnecting, reconnecting, and homing again. Same problem.
+
+**THE FIX**: Disconnecting in kinesis, Jogging the motor back and forth a couple times manually, then reconnecting and homing in kinesis.
+
+While I was here I homed all the other motors but they had already been homed so nothing really happened. I visually checked that all the thorlabs motors were at about 9 degrees at this point and they were.
+
+### Back to debugging count rates
+Booted ipython and performed the following
+- UVHWP, QP, AQWP, AHWP to 0, PCC to 4.005
+- Witnessed count rates between 10 and 30.
+- Moved A_HWP to 45.
+- Count rates jumpted to ~1000 for both C4 and C6.
+- Moved BQWP, BHWP, BCHWP, and BCQWP to zero but count rates remained high, ~1200 on C4 and ~900 on C6. BCQWP is not calibrated, but its fast axis is visually relatively vertical. However, if I move the fast axis to -30 degrees from the vertical, we see a minimum of ~5 counts/second! I hypothesize that I likely wrenched this component in there so hard that I knocked the plate holding the crystal about 30 degrees! Yikes. Whatever, as long as we can find the minimum, right?
+
+### Back to debugging the jump
+It still exists!!! I'm going to try restoring the motor to factory settings to see what happens. The process is described in section 4.5 of the ELL-14-Manual.pdf from ThorLabs website. To be minimally disruptive, I'm going to disconnect the new motor from the bus distributor, and then use the hand-held controller that shipped with the motor to drive it seperately. I couldn't find the one that shipped with it so I used the one from the other motor that we had ordered. This process went just fine.
+
+Visually it appeared just a bit better, and the data (optimization/3) seems to suggest it might be a bit better as well. Unfortunately, the piece of the sweep that we were looking at (near a weird, anti-symmetric maximum) makes it difficult to determine just how poorly it is doing. I decided to use ipython/Manager to determine where the minimum position now is (~40 degrees), then I used Ello to reset the motor's home position ('factory' home offset of 10 -> 50) and then I re-ran the script that reproduces the error.
+
+Still there!!! Ahg. I'm going to use Ello to do cleaning and optimization and come back after the meeting to check on it.
+
 ## 7/18/23
 MP: A
 
@@ -20,7 +74,7 @@ Now I'm running the code in `calibration/BCQWP` to perform a coarse sweep (0) to
 
 The QWP is giving quite a bit of trouble. We are seeing weird bumps in the plot around zero, and we also are seeing the motor rotating a full 360 degrees when it crosses zero. That along with the shifting minimum is making us think perhaps the mounting is indeed not as secure as it needs to be. I'm going to take it out, wrench it in there real good, realign it, and see what happens!
 
-I think I was able to get it a little bit tighter!
+I think I was able to get it a little bit tighter! But that didn't fix the issue! I was able to fix the problem by allowing the code to accurately pass on negative angles to the motors, but the real problem is that the motors don't know have an accurate "this many pulses = 360 degrees". Going to debug tmro.
 
 ## 7/17/23
 MP: A

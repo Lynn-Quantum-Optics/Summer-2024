@@ -1,9 +1,10 @@
 from lab_framework import Manager, analysis
 from numpy import sin, cos, deg2rad, inf
 import matplotlib.pyplot as plt
+import numpy as np
 
 if __name__ == '__main__':
-    TRIAL = 0
+    TRIAL = 3
     SWEEP_PARAMS = [-5, 5, 11, 5, 1]
 
     # TRIAL = 1
@@ -45,7 +46,15 @@ if __name__ == '__main__':
 
     # sweep bob's creation half waveplate
     m.log('Beginning BCQWP Sweep')
-    angles, rates = m.sweep('B_C_QWP', *SWEEP_PARAMS)
+
+    # here we do the sweep manually
+    angles = np.linspace(*SWEEP_PARAMS[:3])
+    actual_angles = np.linspace(*SWEEP_PARAMS[:3]) % 360
+    rates = []
+    for a in actual_angles:
+        m.configure_motor('B_C_QWP', a)
+        rates.append(m.take_data(*SWEEP_PARAMS[3:], 'C4'))
+    rates = np.array(rates)
 
     # save the output
     df = m.output_data(f'BCQWP_sweep{TRIAL}.csv')
