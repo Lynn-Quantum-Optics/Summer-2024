@@ -28,9 +28,12 @@ def get_labels(Y_pred, task, eps=None):
 
     return Y_pred_labels
 
-def get_pop_raw(file):
+def get_pop_raw(file, X=None):
     ''' Function to assign labels based on Eritas's population method.'''
-    df =pd.read_csv(join('random_gen', 'data', file))
+    if X is None:
+        df =pd.read_csv(join('random_gen', 'data', file))
+    else:
+        df = pd.DataFrame(X, columns=['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL'])
     df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0))]
     prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
     prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
@@ -41,9 +44,12 @@ def get_pop_raw(file):
     pop_df['d_RandL'] = prob_RandL
     return pop_df
 
-def get_labels_pop(file):
+def get_labels_pop(file=None, pop_df=None):
     ''' Function to assign labels based on Eritas's population method.'''
-    pop_df = get_pop_raw(file)
+    if pop_df is None and file is not None:
+        pop_df = get_pop_raw(file)
+    elif pop_df is not None:
+        pass
 
     # prediction is max value per row
     Y_pred = pop_df[['d_HandV', 'd_DandA', 'd_RandL']].idxmax(axis=1).apply(lambda x: pop_df.columns.get_loc(x))
@@ -232,6 +238,48 @@ def comp_disagreement(model_ls, names, file = 'roik_True_400000_r_os_t.csv', tas
     plt.savefig(join('random_gen', 'models', 'disagreement_confidence.pdf'))
     plt.show()
 
+def det_threshold(nn5, file = 'roik_True_4000000_r_os_tv.csv', task = 'w', input_method='prob_9'):
+    '''Look at the distribution of confidence levels for all states between the models on the validation data.'''
+    X_train, Y_train, X_test, Y_test = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=True)
+
+    # get predictions for each
+    Y_pred_nn5 = nn5.predict(X_test)
+    confidence_nn5 = np.max(Y_pred_nn5, axis=1)
+    Y_pred_nn5_labels = get_labels(Y_pred_nn5, task=task)
+    Y_pred_nn5_ncorrect = np.einsum('ij,ij->i', Y_test, Y_pred_nn5_labels)
+    Y_pred_pop = get_pop_raw(X=X_test, file=None)
+    confidence_pop = np.max(Y_pred_pop.to_numpy(), axis=1)
+    Y_pred_pop_labels = get_labels_pop(Y_pred_pop = Y_pred_pop)
+    Y_pred_pop_ncorrect = np.einsum('ij,ij->i', Y_test, Y_pred_pop_labels)
+
+    # plot the confidence levels, with correct states in green and incorrect in red
+    fig, ax = plt.subplots(1, 2, figsize=(12,7))
+    confidence_nn5_correct = confidence_nn5[Y_pred_nn5_ncorrect > 0]
+    confidence_nn5_incorrect = confidence_nn5[Y_pred_nn5_ncorrect == 0]
+    ax[0].hist(confidence_nn5_correct, bins=20, alpha=0.5, label='correct', color='green')
+    ax[0].hist(confidence_nn5_incorrect, bins=20, alpha=0.5, label='incorrect', color='red')
+    ax[0].set_xlabel('Confidence')
+    ax[0].set_ylabel('Count')
+    ax[0].legend()
+    ax[0].set_title(f'NN5')
+    confidence_pop_correct = confidence_pop[Y_pred_pop_ncorrect > 0]
+    confidence_pop_incorrect = confidence_pop[Y_pred_pop_ncorrect == 0]
+    ax[1].hist(confidence_pop_correct, bins=20, alpha=0.5, label='correct', color='green')
+    ax[1].hist(confidence_pop_incorrect, bins=20, alpha=0.5, label='incorrect', color='red')
+    ax[1].set_xlabel('Confidence')
+    ax[1].set_ylabel('Count')
+    ax[1].legend()
+    ax[1].set_title(f'Population')
+    plt.tight_layout()
+    plt.suptitle('Confidence levels for states on validation data')
+    plt.subplots_adjust(top=0.85)
+    plt.savefig(join('random_gen', 'models', 'det_threshold.pdf'))
+    plt.show()
+
+
+
+    
+
 if __name__ == '__main__':
 
 
@@ -274,12 +322,14 @@ if __name__ == '__main__':
     # comp_overlap(model_ls, model_names)
     # comp_disagreement(model_ls=[1, nn5], names=['population', 'nn5'])
 
-    model_ls = [ra_3, ra_5, ra_6, ra_12, ra_15]
-    model_names = ['ra_3', 'ra_5', 'ra_6', 'ra_12', 'ra_15']
-    input_methods = ['prob_3', 'prob_5', 'prob_6', 'prob_12', 'prob_15']
-    tasks = ['e' for _ in range(len(model_ls))]
-    savename='roik_etal_noeps'
+    # model_ls = [ra_3, ra_5, ra_6, ra_12, ra_15]
+    # model_names = ['ra_3', 'ra_5', 'ra_6', 'ra_12', 'ra_15']
+    # input_methods = ['prob_3', 'prob_5', 'prob_6', 'prob_12', 'prob_15']
+    # tasks = ['e' for _ in range(len(model_ls))]
+    # savename='roik_etal_noeps'
 
-    eval_perf_multiple(model_ls, model_names, input_methods = input_methods, tasks = tasks, savename=savename)
+    # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, tasks = tasks, savename=savename)
+
+    det_threshold(nn5)
 
     

@@ -270,7 +270,7 @@ def get_all_roik_projs(rho):
     return np.array(all_projs).reshape(6,6)
     
 def adjust_rho(rho, angles, expt_purity, state='E0'):
-    ''' Adjusts density matrix to account for experimental impurity.'''
+    ''' Adjusts theoretical density matrix to account for experimental impurity.'''
     if state=='E0':
         r_hv = (1 + np.cos(np.deg2rad(angles[1]))*np.sin(2*np.deg2rad(angles[0]))) / 2
         r_vh = 1 - r_hv
@@ -278,6 +278,19 @@ def adjust_rho(rho, angles, expt_purity, state='E0'):
         VH = np.array([0, 0, 1, 0]).reshape(4,1)
         rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
         return rho_adj
+
+def adjust_rho_general(x, rho_actual, purity):
+    ''' Adjusts theoretical density matrix to account for experimental impurity, but generalized to any state.'''
+    # define standard basis vecs
+    HH = np.array([1,0,0,0]).reshape((4,1))
+    HV = np.array([0,1,0,0]).reshape((4,1))
+    VH = np.array([0,0,1,0]).reshape((4,1))
+    VV = np.array([0,0,0,1]).reshape((4,1))
+    # impleemnet correction
+    x /= np.sum(x)
+    r_hh, r_hv, r_vh, r_vv = x
+    rho_c = purity * rho_actual + (1-purity)*(r_hh*HH + r_hv*HV + r_vh*VH + r_vv*VV)
+    return rho_c
 
 def get_adj_fidelity(rho, angles, expt_purity, state='E0'):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
