@@ -317,77 +317,89 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
         # # adjust only antidiagonals
         # rho[1,2] = expt_purity*rho[1,2]
         # rho[2,1] = expt_purity*rho[2,1]
-    if do_stokes or do_counts:
-        if not(do_counts): expec_vals = get_expec_vals(rho)
-        else:
-            expec_vals = get_expec_vals_counts(counts)
-
-        def get_W1(theta, expec_vals):
-            a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] + expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] + expec_vals[0,3])))
-        def get_W2(theta, expec_vals):
-            a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] - expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] - (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[3,0] - expec_vals[0,3])))
-        def get_W3(theta, expec_vals):
-            a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] + expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[2,2] + 2*a*b*(expec_vals[1,0] + expec_vals[0,1])))
-        def get_W4(theta, expec_vals):
-            a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] - expec_vals[1,1] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[2,2] - 2*a*b*(expec_vals[1,0] - expec_vals[0,1])))
-        def get_W5(theta, expec_vals):
-            a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] + expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] + (a**2 - b**2)*expec_vals[1,1] + 2*a*b*(expec_vals[2,0] + expec_vals[0,2])))
-        def get_W6(theta, expec_vals):
-            a, b = np.cos(theta), np.sin(theta)
-            return np.real(0.25*(expec_vals[0,0] - expec_vals[2,2] + (a**2 - b**2)*expec_vals[3,3] - (a**2 - b**2)*expec_vals[1,1] - 2*a*b*(expec_vals[2,0] - expec_vals[0,2])))
+    if do_counts:
+        counts = np.reshape(counts, (36,1))
+        def get_W1(params, counts):
+            a, b = np.cos(params), np.sin(params)
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(0.25*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) + (a**2 - b**2)*((RR - RL - LR + LL) / (RR + RL + LR + LL)) + 2*a*b*(((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV)))))
+        def get_W2(params, counts):
+            a, b = np.cos(params), np.sin(params)
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(0.25*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) - (a**2 - b**2)*((RR - RL - LR + LL) / (RR + RL + LR + LL)) + 2*a*b*(((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV)))))
+        def get_W3(params, counts):
+            a, b = np.cos(params), np.sin(params)
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(0.25*(1 + ((DD - DA - AD + AA) / (DD + DA + AD + AA)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((RR - RL - LR + LL) / (RR + RL + LR + LL)) + 2*a*b*(((DD + DA - AD - AA) / (DD + DA + AD + AA)) + ((DD - DA + AD - AA) / (DD + DA + AD + AA)))))
+        def get_W4(params, counts):
+            a, b = np.cos(params), np.sin(params)
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(0.25*(1 - ((DD - DA - AD + AA) / (DD + DA + AD + AA)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) - (a**2 - b**2)*((RR - RL - LR + LL) / (RR + RL + LR + LL)) - 2*a*b*(((DD + DA - AD - AA) / (DD + DA + AD + AA)) - ((DD - DA + AD - AA) / (DD + DA + AD + AA)))))
+        def get_W5(params, counts):
+            a, b = np.cos(params), np.sin(params)
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(0.25*(1 + ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) + 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) + ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+        def get_W6(params, counts):
+            a, b = np.cos(params), np.sin(params)
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(0.25*(1 - ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) - (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) - 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
         
         ## W' from summer 2022 ##
-        def get_Wp1(params, expec_vals):
+        def get_Wp1(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] + expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]+expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1])))
-        def get_Wp2(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + np.cos(2*theta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA))+((RR - RL - LR + LL) / (RR + RL + LR + LL)))+np.sin(2*theta)*np.cos(alpha)*(((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(2*theta)*np.sin(alpha)*(((DR - DL - AR + AL) / (DR + DL + AR + AL)) - ((RD - RA - LD + LA) / (RD + RA + LD + LA)))))
+        def get_Wp2(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] - expec_vals[3,3] + np.cos(2*theta)*(expec_vals[1,1]-expec_vals[2,2])+np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,0] - expec_vals[0,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[1,2] - expec_vals[2,1])))
-        def get_Wp3(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + np.cos(2*theta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA))-((RR - RL - LR + LL) / (RR + RL + LR + LL)))+np.sin(2*theta)*np.cos(alpha)*(((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) - np.sin(2*theta)*np.sin(alpha)*(((DR - DL - AR + AL) / (DR + DL + AR + AL)) - ((RD - RA - LD + LA) / (RD + RA + LD + LA)))))
+        def get_Wp3(params, counts):
             theta, alpha, beta = params[0], params[1], params[2]
-            return np.real(.25 * (np.cos(theta)**2*(expec_vals[0,0] + expec_vals[3,3]) + np.sin(theta)**2*(expec_vals[0,0] - expec_vals[3,3]) + np.cos(theta)**2*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(theta)**2*np.cos(2*alpha - beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*expec_vals[1,0] + np.sin(2*theta)*np.cos(alpha - beta)*expec_vals[0,1] + np.sin(2*theta)*np.sin(alpha)*expec_vals[2,0] + np.sin(2*theta)*np.sin(alpha - beta)*expec_vals[0,2]+np.cos(theta)**2*np.sin(beta)*(expec_vals[2,1] - expec_vals[1,2]) + np.sin(theta)**2*np.sin(2*alpha - beta)*(expec_vals[2,1] + expec_vals[1,2])))
-        def get_Wp4(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25 * (np.cos(theta)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV))) + np.cos(theta)**2*np.cos(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) + ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(theta)**2*np.cos(2*alpha - beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.cos(alpha)*((DD + DA - AD - AA) / (DD + DA + AD + AA)) + np.sin(2*theta)*np.cos(alpha - beta)*((DD - DA + AD - AA) / (DD + DA + AD + AA)) + np.sin(2*theta)*np.sin(alpha)*((RR - LR + RL - LL) / (RR + LR + RL + LL)) + np.sin(2*theta)*np.sin(alpha - beta)*((RR + LR - RL - LL) / (RR + LR + RL + LL))+np.cos(theta)**2*np.sin(beta)*(((RD - RA - LD + LA) / (RD + RA + LD + LA)) - ((DR - DL - AR + AL) / (DR + DL + AR + AL))) + np.sin(theta)**2*np.sin(2*alpha - beta)*(((RD - RA - LD + LA) / (RD + RA + LD + LA)) + ((DR - DL - AR + AL) / (DR + DL + AR + AL)))))
+        def get_Wp4(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0]+expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] + expec_vals[1,0]) + np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2])))
-        def get_Wp5(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(1+((DD - DA - AD + AA) / (DD + DA + AD + AA))+np.cos(2*theta)*(((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.cos(alpha)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) + ((DD + DA - AD - AA) / (DD + DA + AD + AA))) + np.sin(2*theta)*np.sin(alpha)*(((RH - RV - LH + LV) / (RH + RV + LH + LV)) - ((HR - HL - VR + VL) / (HR + HL + VR + VL)))))
+        def get_Wp5(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0]-expec_vals[1,1]+np.cos(2*theta)*(expec_vals[3,3] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[0,1] - expec_vals[1,0]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,3] - expec_vals[3,2])))
-        def get_Wp6(params,expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(1-((DD - DA - AD + AA) / (DD + DA + AD + AA))+np.cos(2*theta)*(((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.cos(alpha)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) - ((DD + DA - AD - AA) / (DD + DA + AD + AA))) - np.sin(2*theta)*np.sin(alpha)*(((RH - RV - LH + LV) / (RH + RV + LH + LV)) - ((HR - HL - VR + VL) / (HR + HL + VR + VL)))))
+        def get_Wp6(params, counts):
             theta, alpha, beta = params[0], params[1], params[2]
-            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[2,3] + expec_vals[2,0]) + np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[2,3] - expec_vals[2,0]) - np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[3,2] + expec_vals[0,2]) - np.sin(theta)**2*np.sin(2*beta)*(expec_vals[3,2] - expec_vals[0,2])))
-        def get_Wp7(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.cos(theta)**2*np.sin(alpha)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*np.cos(beta)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*np.sin(beta)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) + ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(((RH - RV - LH + LV) / (RH + RV + LH + LV)) + ((RR - LR + RL - LL) / (RR + LR + RL + LL))) + np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(((RH - RV - LH + LV) / (RH + RV + LH + LV)) - ((RR - LR + RL - LL) / (RR + LR + RL + LL))) - np.cos(theta)**2*np.sin(2*alpha)*(((HR - HL - VR + VL) / (HR + HL + VR + VL)) + ((RR + LR - RL - LL) / (RR + LR + RL + LL))) - np.sin(theta)**2*np.sin(2*beta)*(((HR - HL - VR + VL) / (HR + HL + VR + VL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+        def get_Wp7(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] + expec_vals[2,2]+np.cos(2*theta)*(expec_vals[3,3] + expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1] - expec_vals[1,3]) - np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0]+expec_vals[0,2])))
-        def get_Wp8(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(1 + ((RR - RL - LR + LL) / (RR + RL + LR + LL))+np.cos(2*theta)*(((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((DD - DA - AD + AA) / (DD + DA + AD + AA))) + np.sin(2*theta)*np.cos(alpha)*(((HD - HA - VD + VA) / (HD + HA + VD + VA)) - ((DH - DV - AH + AV) / (DH + DV + AH + AV))) - np.sin(2*theta)*np.sin(alpha)*(((RR - LR + RL - LL) / (RR + LR + RL + LL))+((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+        def get_Wp8(params, counts):
             theta, alpha = params[0], params[1]
-            return np.real(.25*(expec_vals[0,0] - expec_vals[2,2] + np.cos(2*theta)*(expec_vals[3,3]-expec_vals[1,1]) + np.sin(2*theta)*np.cos(alpha)*(expec_vals[3,1]+expec_vals[1,3])+np.sin(2*theta)*np.sin(alpha)*(expec_vals[2,0] - expec_vals[0,2])))
-        def get_Wp9(params, expec_vals):
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(1 - ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + np.cos(2*theta)*(((HH - HV - VH + VV) / (HH + HV + VH + VV))-((DD - DA - AD + AA) / (DD + DA + AD + AA))) + np.sin(2*theta)*np.cos(alpha)*(((HD - HA - VD + VA) / (HD + HA + VD + VA))+((DH - DV - AH + AV) / (DH + DV + AH + AV)))+np.sin(2*theta)*np.sin(alpha)*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+        def get_Wp9(params, counts):
             theta, alpha, beta = params[0], params[1], params[2]
-            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(expec_vals[0,0] + expec_vals[3,3] + expec_vals[3,0] + expec_vals[0,3]) + np.cos(theta)**2*np.sin(alpha)**2*(expec_vals[0,0] - expec_vals[3,3] + expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.cos(beta)**2*(expec_vals[0,0] + expec_vals[3,3] - expec_vals[3,0] - expec_vals[0,3]) + np.sin(theta)**2*np.sin(beta)**2*(expec_vals[0,0] - expec_vals[3,3] - expec_vals[3,0] + expec_vals[0,3]) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(expec_vals[1,1] + expec_vals[2,2]) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(expec_vals[1,1] - expec_vals[2,2]) + np.cos(theta)**2*np.sin(2*alpha)*(expec_vals[0,1] + expec_vals[3,1]) + np.sin(theta)**2*np.sin(2*beta)*(expec_vals[0,1] - expec_vals[3,1]) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(expec_vals[1,0] + expec_vals[1,3])+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(expec_vals[1,0] - expec_vals[1,3])))
+            HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
+            return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.cos(theta)**2*np.sin(alpha)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*np.cos(beta)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*np.sin(beta)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) + ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.cos(theta)**2*np.sin(2*alpha)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) + ((HD - HA - VD + VA) / (HD + HA + VD + VA))) + np.sin(theta)**2*np.sin(2*beta)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) - ((HD - HA - VD + VA) / (HD + HA + VD + VA))) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(((DD + DA - AD - AA) / (DD + DA + AD + AA)) + ((DH - DV - AH + AV) / (DH + DV + AH + AV)))+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(((DD + DA - AD - AA) / (DD + DA + AD + AA)) - ((DH - DV - AH + AV) / (DH + DV + AH + AV)))))
 
         if calc_unc:
             def get_unc_W1(theta, stokes_unc):
-                a, b = np.cos(theta), np.sin(theta)
+                a, b = np.cos(params), np.sin(params)
                 return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2))))
             def get_unc_W2(theta, stokes_unc):
-                a, b = np.cos(theta), np.sin(theta)
+                a, b = np.cos(params), np.sin(params)
                 return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2))))
             def get_unc_W3(theta, stokes_unc):
-                a, b = np.cos(theta), np.sin(theta)
+                a, b = np.cos(params), np.sin(params)
                 return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[1,1]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[1,0]**2 + stokes_unc[0,1]**2))))
             def get_unc_W4(theta, stokes_unc):
-                a, b = np.cos(theta), np.sin(theta)
+                a, b = np.cos(params), np.sin(params)
                 return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[1,1]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[1,0]**2 + stokes_unc[0,1]**2))))
             def get_unc_W5(theta, stokes_unc):
-                a, b = np.cos(theta), np.sin(theta)
+                a, b = np.cos(params), np.sin(params)
                 return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + (2*a*b)**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
             def get_unc_W6(theta, stokes_unc):
-                a, b = np.cos(theta), np.sin(theta)
+                a, b = np.cos(params), np.sin(params)
                 return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + (2*a*b)**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
             
             ## W' from summer 2022 ##
@@ -436,10 +448,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
                 # get initial guess at boundary
                 if not(expt):
                     def min_W(x0):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi)])
+                        return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2)])
+                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0, np.pi/2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -486,10 +498,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             elif i==8 or i==11 or i==14: # theta, alpha, and beta
                 if not(expt):
                     def min_W(x0):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                        return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -538,10 +550,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             else:# theta and alpha
                 if not(expt):
                     def min_W(x0):
-                        return minimize(W, x0=x0, args=(expec_vals,), bounds=[(0, np.pi/2),(0, np.pi*2)])
+                        return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi/2),(0, np.pi*2)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(expec_vals,W), bounds=[(0, np.pi/2),(0, np.pi*2)])
+                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0, np.pi/2),(0, np.pi*2)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -589,7 +601,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             if calc_unc:
                 W_expec_vals.append(((w_min_val), get_unc_W(w_min_params, stokes_unc)))
             elif expt: # automatically calculate uncertainty
-                W_expec_vals.append(W(w_min_params, expec_vals))
+                W_val = W(w_min_params, counts)
+                print(w_min_params)
+                print(W_val)
+                W_expec_vals.append(W(w_min_params, counts))
             else:
                 W_expec_vals.append(w_min_val)
     
@@ -826,6 +841,20 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
 
             return W2_val, W2_param[0]
 
+def test_witnesses():
+    '''Calculate witness vals for select experimental states'''
+    r1 = np.load("../../framework/decomp_test/rho_('E0', (45.0, 18.0))_32.npy", allow_pickle=True)
+    counts1 = unp.uarray(r1[3], r1[4])
+    print('45, 18, 32')
+    print(counts1)
+    print(compute_witnesses(r1[0], counts1, expt=True))
+    print('------')
+    r2 = np.load("../../framework/decomp_test/rho_('E0', (59.99999999999999, 72.0))_32.npy", allow_pickle=True)
+    counts2 = unp.uarray(r2[3], r2[4])
+    print('60, 72, 32')
+    print(counts2)
+    print(compute_witnesses(r2[0], counts2, expt=True))
+    print('------')
 
 ##############################################
 ## for entanglement verification ##
@@ -916,21 +945,25 @@ def check_conc_min_eig(rho, printf=False):
 ##############################################
 ## for testing ##
 if __name__ == '__main__':
-    from random_gen import *
-    import matplotlib.pyplot as plt
-    def sample_reconstruct(num=100):
-        ''' Samples random density matrices and reconstructs them using the 36 projections. Returns the average fidelity.'''
-        fidelity_ls =[]
-        for i in trange(num):
-            rho = get_random_hurwitz()
-            rho_prob= get_all_projs(rho)
-            rho_recon = reconstruct_rho(rho_prob)
-            print(is_valid_rho(rho_recon))
-            fidelity_ls.append(get_fidelity(rho, rho_recon))
-        plt.hist(fidelity_ls, bins=20)
-        plt.show()
-        print(np.mean(fidelity_ls), np.std(fidelity_ls) / np.sqrt(num))
-    sample_reconstruct(100)
+
+    ## testing witness functions ##
+    test_witnesses()
+
+    # from random_gen import *
+    # import matplotlib.pyplot as plt
+    # def sample_reconstruct(num=100):
+    #     ''' Samples random density matrices and reconstructs them using the 36 projections. Returns the average fidelity.'''
+    #     fidelity_ls =[]
+    #     for i in trange(num):
+    #         rho = get_random_hurwitz()
+    #         rho_prob= get_all_projs(rho)
+    #         rho_recon = reconstruct_rho(rho_prob)
+    #         print(is_valid_rho(rho_recon))
+    #         fidelity_ls.append(get_fidelity(rho, rho_recon))
+    #     plt.hist(fidelity_ls, bins=20)
+    #     plt.show()
+    #     print(np.mean(fidelity_ls), np.std(fidelity_ls) / np.sqrt(num))
+    # sample_reconstruct(100)
 #     ## testing randomization processes ##
 #     # random state gen imports #
 #     from jones import get_random_jones
