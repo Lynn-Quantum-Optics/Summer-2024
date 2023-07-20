@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 if __name__ == '__main__':
-    TRIAL = 3
-    SWEEP_PARAMS = [-5, 5, 11, 5, 1]
+    TRIAL = 6
+    SWEEP_PARAMS = [-2, 2, 15, 5, 3]
 
     # TRIAL = 1
     # SWEEP_PARAMS = [-30, 0, 20, 5, 1]

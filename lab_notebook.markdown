@@ -1,3 +1,115 @@
+## 7/20/23
+MP: A
+Testing file outputs for today are in BCQWP/fwrv_freq_tuning
+
+The last thing we did yesterday was mess around with the fwd/rev frequencies of the Elliptec Motors. Unfortunately, we accidentally did a reset on the B_C_HWP motor (instead of the B_C_QWP). First things first, I'm going to try to re-run the same testing program we've been using to reproduce the error (`BCQWP_err.py`). Indeed this did show that the error is still present (0).
+
+Note: Factory reset/search on BCHWP left everything as
+
+- M1 FWD: 80.1
+- M1 REV: 102.4
+- M2 FWD: 78.8
+- M2 REV: 100.3
+
+Then I opened Ello and did a factory reset on the correct motor (BCQWP). This did not change anything, but Ello says we must re-search the frequencies. Doing this achieved
+
+- M1 FWD: 80.5 -> 80.1
+- M1 REV: 101.0 (no change)
+- M2 FWD: 79.7 (no change)
+- M2 REV: 103.1 (no change)
+
+Seeing the change, I re-ran the same testing script with the exact same parameters (1). The same error is still present. SAD! I'm going to try now using the "fix" button which warns that it may cause malfunction? But how much worse could it really get.
+
+- M1 FWD: 80.1 (no change)
+- M1 REV: 101.0 -> 101.7
+- M2 FWD: 79.7 -> 80.1
+- M2 REV: 103.1 -> 103.8
+
+I notice that if you don't hit the set button, the changes don't get made in the device (i.e. after fix, read settings will reset the change). After this change I re-ran the same script with the same parameters (2).
+
+I'm going to try something else now. I'm re-searching the frequencies real quick so now we have
+
+- M1 FWD: 80.1
+- M1 REV: 101.7
+- M2 FWD: 79.7
+- M2 REV: 103.1
+
+Then I'm disconnecting from ello and re-installing a version of the lab framework where the Elliptec motors are required to have an integer value for the ppmu. Now I'm re-running the same script with the same parameters (3). The test pretty convincingly showed that a jump was still present, but to be absolutely sure I'm going to re-run the same test once more with finer sampling and longer sample times (4). I am noticing that we are actually having it jump from like -1 degree to zero degrees... I am thinking that maybe narrowing in on the range might shed more light on the issue? So now I am setting the testing script sweep to be from -2 to 2 instead of -5 to 5. We'll see what happens (5)? Indeed the jump is still there. For one last sanity check I am going to reinstall the old version of the lab framework (where ppmu will not be an integer, instead something like 398.22) and run the same zoomed in test to see what happens (6).
+
+Still there!!! Ahg. I'm going to use Ello to do cleaning and optimization and come back after the meeting to check on it. Ello seems to have completed cleaning and optimization just fine! Now I am running the same sweep as before (optimization/4) to assess if it helped to cut down the error. It did not help :( Indeed the error is still there!!! Darn it. I'm thinking about what our next steps here are going to be
+
+### Briefly testing the fast-axis offset thing...
+I tried again booting an ipython terminal and doing AQWP/BHWP/BQWP/BCHWP/UVHWP/QP/PCC to zero and AHWP to 45. This time when I found the minimum of the C4 count rates it DID occur when the fast axis was (visually) vertical. I think that this might be due to some errors on my part but I really don't know what. The console logs (not saved) back up everything that I noted earlier...
+
+### Misc notes/checking things
+- ppmu on BCQWP motor is the same as other elliptec motors (UVHWP/BCHWP/PCC)
+
+Tried using weird commands like search frequenies, also verified that motor info matched calculated values. 
+
+Next step ideas:
+- Just now, reset the motor frequencies to defaults using ello so first thing is to test that when I get back. But shoot! That was on bob's creation HWP. Oh well. they all had the same problem (according to testing) anyways.
+    - Relevant test: with HWP at 0.1155 deg count rates at 7.55+/-0.76
+    - HWP at 360-0.1155 count rates were 5.5+/-0.44
+- Also might be worth trying to use ello to "fix" the motor frequencies. 
+
+Also what the heck! Now the problem is back where count rates are NOT being minimzied when the motor is visually vertical?? I'm so confused! And I just did some really concerning tests, rotating the motor back and forth 180 degrees and noticing count rates going all over the place. I need to record this data but first I want to make absolutely sure that the ThorLabs motors are "homed".
+
+### Homing ThorLabs 
+tldr; I tried a bunch of things that didn't work. long: I tried just opening Kinesis and pressing home, but this zeroed the position of the motors and did not move them back to their 'factory' home of ~9 degrees. Shoot! So I unplugged Bob's QWP from the PC, power cycled it, and used the manual homing function of the driver. This seems to have done the trick for that motor. I tried homing Alice's QWP manually without unplugging from the PC and it didn't work. I tried disconnecting all 3 other motors from kinesis and manually homing but this caused continuous rotation. I power cycled Alice's HWP then manually homed before re-connecting the USB cable. This worked, so I did the same on the other devices.
+
+**WHAT DID WORK:** connecting all motors to PC, disconnecting from them in Kinesis, power cycling all of them, then reconnecting in kinesis and pressing home.
+
+### I also Double-Checked Detector Voltages at This Point
+
+### Very Bad No Good Data
+I wrote a small script to just rotate the wave plate 180 degrees back and forth and take 30 seconds worth of data each time. I'll run 30 trials so this should take about 30 minutes. Lets see what happens!
+
+This revealed exactly what I suspected -- the QWP must be loose inside of its housing as not only does the count rate change due to turning the motor back and forth, but the two lines also diverge from each other, so the 180 degree rotations which should not be affecting the waveplate's affect are indeed changing _something_. As I mentioned, I believe the QWP is loose in its housing. I am going to remove it from the apparatus for now to complete the calibration of Bob's waveplates and check the calibrations on the others.
+
+### Checking in on Bob's Creation HWP
+Since some of the frequency settings changed, it is probably a good idea to check that it does not suffer from the same 360 degree rotation error that the other one has. I'm modifying `BCQWP_err.py` to run a simmilar test for BCHWP, putting this code in `BCHWP_err.py`.
+
+I ran the first sweep (0) but I'm realizing that BCHWP still had a small offset in the config file (of 0.118) and that may affect things since the manager will the angle. For example 359.9 would be 360.018 which would be changed to 0.018 which might obsucre any jump? I don't think it would, but to be sure I'm going to zero out the offset in the config (`config_ZO_BCHWP.json`) and re-run the experiment (1). This experiment to me confirmed the absense of a jump.
+
+I did notice a bit that Bob's creation HWP's configured zero might not exactly be at the desired position, but since it was configured before Bob's QWP I think the best corse of action is just to continue on with...
+
+### CHECKPOINT B (First Try)
+The code for this is in `checkb/check.py`. Since Bob's QWP was goofed up, I've commented out the code that was intended to mess with it. This first attempt (-1) went pretty poorly. Some of the offsets were up to 5 degrees off! I'm really not sure what happened here. I really want to re-run checkpoint A to ensure that everything there is groovy. This will involve removing Bob's PBS.
+
+### CHECKPOINT A (Testing Again)
+I went ahead and re-vamped the `checka.py` script. Now I'm running the test again to see how we are doing on the calibration of Alice's components. In the mean time, I have removed Bob's PBS and Creation HWP to simplify re-calibration when we move back to that side of the apparatus.
+
+I ran this script once with some coarse sampling just to get a vibe for what was going on (-1). The data was mighty coarse, but suggests we are still at least within the ballpark of calibrated. I'm re-running with finer more detailed sampling to get the final updates to use. Note that in these runs, the magnitude of the minima found were practically identical to the minima found in the previous sweeps a few days ago (~30 counts/sec).
+
+#### ROUND 0
+- UVHWP extrema: 0.022+/-0.020
+- UVHWP Update: -1.381 + 0.022 -> -1.359
+- AHWP extrema: **0.202**+/-0.021
+- AHWP Update: -9.351 + 0.202 -> -9.149
+- AQWP extrema: **0.116**+/-0.035
+- AQWP Update: -8.385 + 0.116 -> -8.269
+
+#### ROUND 1
+- UVHWP extrema: -0.054+/-0.014
+- UVHWP Update: -1.359 + -0.054 -> -1.413
+- AHWP extrema: -0.018+/-0.015
+- AHWP Update: -9.149 + -0.018 -> -9.167
+- AQWP extrema: **0.12**+/-0.04
+- AQWP Update: -8.269 + 0.118 -> -8.151
+
+#### ROUND 2 (FINAL -- NO MORE UPDATES)
+UVHWP extrema: 0.073+/-0.019
+AHWP extrema: 0.072+/-0.021
+AQWP extrema: -0.04+/-0.04
+
+### Bob's QWP
+I reinstalled the PBS and ran the calibration script (after zeroing the calibration value in the config) to find a minimum detection angle of 88.80605032403813+/-0.022804069066468032 = 88.806
+
+### Alignment
+Realigned (using redlight retro-reflecting) Bob's QWP, then HWP, then removed HWP and aligned Bob's creation QWP. All seems well, count rates (checked in ipython) still good, maybe even a little higher (~3250 max).
+
+### 
+
 ## 7/19/23
 MP: A
 Started laser at 837.
@@ -42,7 +154,7 @@ Booted ipython and performed the following
 - UVHWP, QP, AQWP, AHWP to 0, PCC to 4.005
 - Witnessed count rates between 10 and 30.
 - Moved A_HWP to 45.
-- Count rates jumpted to ~1000 for both C4 and C6.
+- Count rates jumped to ~1000 for both C4 and C6.
 - Moved BQWP, BHWP, BCHWP, and BCQWP to zero but count rates remained high, ~1200 on C4 and ~900 on C6. BCQWP is not calibrated, but its fast axis is visually relatively vertical. However, if I move the fast axis to -30 degrees from the vertical, we see a minimum of ~5 counts/second! I hypothesize that I likely wrenched this component in there so hard that I knocked the plate holding the crystal about 30 degrees! Yikes. Whatever, as long as we can find the minimum, right?
 
 ### Back to debugging the jump
@@ -50,7 +162,6 @@ It still exists!!! I'm going to try restoring the motor to factory settings to s
 
 Visually it appeared just a bit better, and the data (optimization/3) seems to suggest it might be a bit better as well. Unfortunately, the piece of the sweep that we were looking at (near a weird, anti-symmetric maximum) makes it difficult to determine just how poorly it is doing. I decided to use ipython/Manager to determine where the minimum position now is (~40 degrees), then I used Ello to reset the motor's home position ('factory' home offset of 10 -> 50) and then I re-ran the script that reproduces the error.
 
-Still there!!! Ahg. I'm going to use Ello to do cleaning and optimization and come back after the meeting to check on it.
 
 ## 7/18/23
 MP: A
