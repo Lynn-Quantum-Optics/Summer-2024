@@ -28,13 +28,9 @@ def get_labels(Y_pred, task, eps=None):
 
     return Y_pred_labels
 
-def get_pop_raw(file, X=None, Y=None):
+def get_pop_raw(file):
     ''' Function to assign labels based on Eritas's population method.'''
-    if X is None:
-        df =pd.read_csv(join('random_gen', 'data', file))
-    else:
-        data = np.concatenate((X, Y), axis=1)
-        df = pd.DataFrame(X, columns=['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL', 'W_min', 'Wp_t1', 'Wp_t2', 'Wp_t3'] )
+    df =pd.read_csv(join('random_gen', 'data', file))
     df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0))]
     prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
     prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
@@ -241,7 +237,7 @@ def comp_disagreement(model_ls, names, file = 'roik_True_400000_r_os_t.csv', tas
 
 def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_method='prob_9'):
     '''Look at the distribution of confidence levels for all states between the models on the validation data.'''
-    X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
+    X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, pop_method='none', task=task, split=False)
     # get predictions for each
     Y_pred_nn5 = nn5.predict(X)
     confidence_nn5 = np.max(Y_pred_nn5, axis=1)
@@ -249,35 +245,77 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     Y_pred_nn5_ncorrect = np.einsum('ij,ij->i', Y, Y_pred_nn5_labels)
     Y_pred_pop = get_pop_raw(file=file)
     confidence_pop = np.max(Y_pred_pop.to_numpy(), axis=1)
+    # get difference bewtween max and next max for pop
+    pop_diff_max = np.max(Y_pred_pop.to_numpy(), axis=1) - np.partition(Y_pred_pop.to_numpy(), -2, axis=1)[:,-2] # partition is faster than argsort; -2 is second largest, orders from smallest to largest
+    # get difference between max  and second next max for pop
+    pop_diff_max2 = np.max(Y_pred_pop.to_numpy(), axis=1) - np.partition(Y_pred_pop.to_numpy(), -3, axis=1)[:,-3]
+    # get 
     Y_pred_pop_labels = get_labels_pop(pop_df = Y_pred_pop)
     Y_pred_pop_ncorrect = np.einsum('ij,ij->i', Y, Y_pred_pop_labels)
 
     # plot the confidence levels, with correct states in green and incorrect in red
-    fig, ax = plt.subplots(1, 2, figsize=(12,7))
+    fig, ax = plt.subplots(3, 2, figsize=(30,15))
     confidence_nn5_correct = confidence_nn5[Y_pred_nn5_ncorrect > 0]
     confidence_nn5_incorrect = confidence_nn5[Y_pred_nn5_ncorrect == 0]
-    ax[0].hist(confidence_nn5_correct, bins=20, alpha=0.5, label='correct', color='green')
-    ax[0].hist(confidence_nn5_incorrect, bins=20, alpha=0.5, label='incorrect', color='red')
-    ax[0].set_xlabel('Confidence')
-    ax[0].set_ylabel('Count')
-    ax[0].legend()
-    ax[0].set_title(f'NN5')
+    ax[0,0].hist(confidence_nn5_correct, bins=20, alpha=0.5, label='correct', color='green')
+    ax[0,0].hist(confidence_nn5_incorrect, bins=20, alpha=0.5, label='incorrect', color='red')
+    ax[0,0].set_xlabel('Confidence')
+    ax[0,0].set_ylabel('Count')
+    ax[0,0].legend()
+    ax[0,0].set_title(f'NN5')
+    # replot, but with values <= .6
+    nc, binc, _ = ax[1,0].hist(confidence_nn5_correct[confidence_nn5_correct <= .6], bins=5, alpha=0.5, label='correct', color='green')
+    ni, bini, _ = ax[1,0].hist(confidence_nn5_incorrect[confidence_nn5_incorrect <= 0.6], bins=5, alpha=0.5, label='incorrect', color='red')
+    # annotate with counts
+    for i in range(len(nc)):
+        ax[1,0].annotate(str(int(nc[i])), xy=(binc[i], nc[i]), xytext=(binc[i]+2e-2, nc[i]+10), ha='center', va='center')
+        ax[1,0].annotate(str(int(ni[i])), xy=(bini[i], ni[i]), xytext=(bini[i]+2e-2, ni[i]+10), ha='center', va='center')
+    ax[1,0].set_xlabel('Confidence')
+    ax[1,0].set_ylabel('Count')
+    ax[1,0].legend()
+    ax[1,0].set_title(f'NN5')
+
     confidence_pop_correct = confidence_pop[Y_pred_pop_ncorrect > 0]
     confidence_pop_incorrect = confidence_pop[Y_pred_pop_ncorrect == 0]
-    ax[1].hist(confidence_pop_correct, bins=20, alpha=0.5, label='correct', color='green')
-    ax[1].hist(confidence_pop_incorrect, bins=20, alpha=0.5, label='incorrect', color='red')
-    ax[1].set_xlabel('Confidence')
-    ax[1].set_ylabel('Count')
-    ax[1].legend()
-    ax[1].set_title(f'Population')
+    ax[0,1].hist(confidence_pop_correct, bins=20, alpha=0.5, label='correct', color='green')
+    ax[0,1].hist(confidence_pop_incorrect, bins=20, alpha=0.5, label='incorrect', color='red')
+    ax[0,1].set_xlabel('Confidence')
+    ax[0,1].set_ylabel('Count')
+    ax[0,1].legend()
+    ax[0,1].set_title(f'Population')
+    nc, binc, _ = ax[1,1].hist(confidence_pop_correct[confidence_pop_correct >= .4], bins=5, alpha=0.5, label='correct', color='green')
+    ni, bini, _ = ax[1,1].hist(confidence_pop_incorrect[confidence_pop_incorrect >= .4], bins=5, alpha=0.5, label='incorrect', color='red')
+    # annotate with counts
+    for i in range(len(nc)):
+        ax[1,1].annotate(f'{nc[i]}', ((binc[i]+binc[i+1])/2, nc[i]), ha='center', va='bottom')
+        ax[1,1].annotate(f'{ni[i]}', ((bini[i]+bini[i+1])/2, ni[i]), ha='center', va='bottom')
+    ax[1,1].set_xlabel('Confidence')
+    ax[1,1].set_ylabel('Count')
+    ax[1,1].legend()
+    ax[1,1].set_title(f'Population')
+    ax[2,0].hist(pop_diff_max, bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[2,0].hist(pop_diff_max2, bins=20, alpha=0.5, label='max - second next max', color='red')
+    ax[2,0].set_xlabel('Confidence')
+    ax[2,0].set_ylabel('Count')
+    ax[2,0].legend()
+    ax[2,0].set_title(f'Population Differences')
+    nmax, binmax, _ = ax[2,1].hist(pop_diff_max[pop_diff_max >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
+    nmax2, binmax2, _ = ax[2,1].hist(pop_diff_max2[pop_diff_max2 >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
+    # annotate with counts
+    for i in range(len(nmax)):
+        ax[2,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
+        ax[2,1].annotate(f'{nmax2[i]}', ((binmax2[i]+binmax2[i+1])/2, nmax2[i]), ha='center', va='bottom')
+    ax[2,1].set_xlabel('Confidence')
+    ax[2,1].set_ylabel('Count')
+    ax[2,1].legend()
+    ax[2,1].set_title(f'Population Differences')
+
     plt.tight_layout()
     plt.suptitle('Confidence levels for states on validation data')
     plt.subplots_adjust(top=0.85)
     plt.savefig(join('random_gen', 'models', 'det_threshold.pdf'))
-    plt.show()
-
-# def 
-
+    # plt.show()
+    plt.close()
     
 
 if __name__ == '__main__':
