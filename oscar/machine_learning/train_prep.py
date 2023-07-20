@@ -4,12 +4,13 @@ from os.path import join
 import pandas as pd
 import numpy as np
 
-def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
+def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0.8):
     ''' Function to prepare data for training.
     params:
         datapath: path to csv
         savename: what to name the prepped data
         input_method: how to prepare the input data: e.g., diag for XX, YY, ZZ
+        pop_method: whether to include pop data inputs: raw, diff, rd, or none
         task: what task to train on: e.g., witness, entangled
         split: boolean for whether to split data into train and test
         p: fraction of data to use for training
@@ -35,7 +36,23 @@ def prepare_data(datapath, file, input_method, task, split=True, p=0.8):
         inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV', 'DR', 'DV', 'LV']
     elif input_method=='stokes_0': # diag
         inputs=['XX', 'YY', 'ZZ']
+    if pop_method=='raw':
+        try:
+            inputs += ['d_HandV', 'd_DandA', 'd_RandL']
+        except:
+            inputs = ['d_HandV', 'd_DandA', 'd_RandL']
+    elif pop_method=='diff':
+        try:
+            inputs += ['HV_DA', 'HV_RL', 'DA_RL']
+        except:
+            inputs = ['HV_DA', 'HV_RL', 'DA_RL']
+    elif pop_method=='rd':
+        try:
+            inputs += ['d_HandV', 'd_DandA', 'd_RandL', 'HV_DA', 'HV_RL', 'DA_RL']
+        except:
+            inputs = ['d_HandV', 'd_DandA', 'd_RandL', 'HV_DA', 'HV_RL', 'DA_RL']
 
+    print('inputs', inputs)
 
     if task=='w':
         df_full = df.copy()

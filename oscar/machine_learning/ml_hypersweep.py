@@ -558,20 +558,22 @@ if __name__=='__main__':
         wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
         run_sweep(wtr)
     elif op==0:
-        file = 'roik_True_4000000_r_os_tv.csv'
+        # file = 'roik_True_4000000_r_os_tv.csv'
+        file = 'roik_4m_wpop_rd.csv'
         task = input('w or e for task: ')
         if task=='e':
             num = int(input('Enter number of prob inputs:'))
             input_method = 'prob_%i'%num
         else:
-            input_method = 'prob_9'
+            input_method = input('Enter input method: ')
+            pop_method = input('Enter pop method: ')
         do_sweep = bool(int(input('Enter 1 to do sweep, 0 to train single instance:')))
         trial = int(input('Enter trial number:'))
         identifier = 'r4_s0_%i'%trial
         savename= identifier+'_'+task+'_'+input_method
         # load data here
         DATA_PATH = 'random_gen/data'
-        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, task=task)
+        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, pop_method = pop_method, task=task)
 
         if do_sweep:   
             wtr = int(input('Which model to run? 0 for XGB, 1 for NN1H, 3 for NN3H, 5 for NN5H:'))
@@ -770,7 +772,9 @@ if __name__=='__main__':
                 print('Best lr: ', best_lr)
 
         else:
-            wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
+            wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H, or 5 for NN5H:'))
+            # file_ls = ['roik_True_400000_r_os_t.csv']
+            file_ls  = ['roik_400k_wpop_rd.csv', 'roik_400k_extra_wpop_rd.csv'] # this is for testing
             if wtr==0:
                 n_estimators = int(input('Enter n_estimators:'))
                 learning_rate = float(input('Enter learning_rate:'))
@@ -778,7 +782,7 @@ if __name__=='__main__':
                 early_stopping = int(input('Enter early_stopping:'))
                 xgb = custom_train_xgb(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, early_stopping=early_stopping)
                 print('val', eval_perf(xgb, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)]))
-                print(eval_perf(xgb, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
+                print(eval_perf(xgb, identifier+'_'+str(wtr), file_ls = file_ls, task=task, input_method=input_method))
                 xgb.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_estimators}_{learning_rate}_{max_depth}_{early_stopping}'+'.json'))
             elif wtr==1:
                 size = int(input('Enter size:'))
@@ -786,7 +790,7 @@ if __name__=='__main__':
                 epochs=100
                 nn1 = custom_train_nn1h(size=size, learning_rate = learning_rate, batch_size=256, epochs=epochs)
                 print('val', eval_perf(nn1, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)]))
-                print(eval_perf(nn1, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
+                print(eval_perf(nn1, identifier+'_'+str(wtr), file_ls = file_ls, task=task, input_method=input_method))
                 nn1.save(join('random_gen', 'models', savename+f'_{size}_{learning_rate}_{epochs}.h5'))
             elif wtr==3:
                 size1 = int(input('Enter size1:'))
@@ -796,7 +800,7 @@ if __name__=='__main__':
                 epochs=100
                 nn3 = custom_train_nn3h(size1=size1, size2=size2, size3=size3, learning_rate = learning_rate, batch_size=256, epochs=epochs)
                 print('val', eval_perf(nn3, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)]))
-                print(eval_perf(nn3, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
+                print(eval_perf(nn3, identifier+'_'+str(wtr), file_ls = file_ls, task=task, input_method=input_method))
                 nn3.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{learning_rate}_{epochs}.h5'))
             elif wtr==5:
                 size1 = int(input('Enter size1:'))
@@ -808,28 +812,39 @@ if __name__=='__main__':
                 epochs=100
                 nn5 = custom_train_nn5h(size1=size1, size2=size2, size3=size3, size4=size4, size5=size5, learning_rate = learning_rate, batch_size=256, epochs=epochs)
                 print('val', eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)], task=task, input_method=input_method))
-                print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method))
+                print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls =file_ls, task=task, input_method=input_method))
                 nn5.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{size4}_{size5}_{learning_rate}_{epochs}.h5'))
     elif op==2:
         # for now just load in nn5
         MODEL_PATH = 'random_gen/models'
         DATA_PATH = 'random_gen/data'
         from keras.models import load_model
-        from ml_comp import get_labels
+        from ml_comp import get_labels, eval_perf
 
-        nn5 = load_model(join(MODEL_PATH, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+        nn5 = load_model(join(MODEL_PATH, 'r4_s0_7_w_prob_9_200_200_200_200_200_0.0001_100.h5'))
         # look at performance on training and validation set
-        tv_file = 'roik_True_4000000_tv.csv'
-        tv_X, tv_Y = prepare_data(datapath=DATA_PATH, file=tv_file, input_method='prob_9', task='w')
+        # tv_file = 'roik_True_4000000_tv.csv'
+        tv_file = 'roik_True_10000_extra.csv'
+        _, _, tv_X, tv_Y = prepare_data(datapath=DATA_PATH, file=tv_file, input_method='prob_9', task='w', split=True)
         tv_predY = nn5.predict(tv_X)
-        tv_predY = get_labels(tv_predY)
+        tv_predY = get_labels(tv_predY, task='w')
         dot = np.einsum('ij,ij->i', tv_Y, tv_predY)
+        # get baseline performance
+        print('baseline', np.sum(dot)/len(dot))
+        # double check eval_perf
+        # now look at performance on test set
+        file_ls = ['roik_True_400000_s0_extra0.csv', 'roik_True_400000_r_os_t.csv']
+        print(eval_perf(nn5, 'nn5', file_ls=file_ls, file_names = ['Test_extra', 'Test'], task='w', input_method='prob_9'))
         # find inputs that resulted into incorrect outputs
         bad_tvX = tv_X[dot==0]
         bad_tvY = tv_Y[dot==0]
         # now resume training
         epochs = 100
         batch_size = 256
-        nn5.fit(bad_tvX, bad_tvY, batch_size=batch_size, epochs=epochs)
-        nn5.save(join(MODEL_PATH, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100_retrain.h5'))
+        nn5.fit(tv_X, tv_Y, batch_size=batch_size, epochs=epochs)
+        # nn5.fit(bad_tvX, bad_tvY, batch_size=batch_size, epochs=epochs)
+        # nn5.save(join(MODEL_PATH, 'r4_s0_7_w_prob_9_200_200_200_200_200_0.0001_100_retraintv.h5'))
+        print(eval_perf(nn5, 'nn5_retrain', file_ls=file_ls, file_names = ['Test_extra', 'Test'], task='w', input_method='prob_9'))
+
+        
 
