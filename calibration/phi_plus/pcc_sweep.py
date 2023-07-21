@@ -4,15 +4,14 @@ import pandas as pd
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    # SWEEP_PARAMS = [-35, 0, 20, 5, 3]
-    SWEEP_PARAMS = [-25.8+3, -25.8-3, 10, 5, 3]
+    SWEEP_PARAMS = [-8, 8, 20, 5, 1]
 
     # initialize the manager
     m = Manager('../config.json')
 
     # setup the superposition state
-    m.C_UV_HWP.goto(65.38956684313322) # based on the ratio finding
-    m.C_QP.goto(-25.8119041041324)
+    m.C_UV_HWP.goto(22.5)
+    m.C_QP.goto(0)
     m.C_PCC.goto(4.005) # ballpark based on an old calibration
     m.B_C_HWP.goto(0)
     

@@ -1,3 +1,14 @@
+## 7/21/23
+MP: A
+
+Started warming up the laser at 0700 so that I can get started with calibration right away. Back now at 0920.
+
+Before running phase_finding I opened kinesis and noticed that 646 was at 3455.355mm but also visually at ~9 deg (i.e. home). To be safe,  I used kinesis to send it to zero before quitting out and running the tests. At zero it is still visually at 9 degreees (i.e. the hardware home).
+
+I wasn't super great at writing down everything I did today but basically I just calibrated phi plus. I started with a full QP sweep then I had some sign errors so i rotated the UVHWP to 67.5 to get rid of them. Then I did a ratio tuning sweep and then another phi sweep and then another ratio tuning sweep to really narrow in on the state. Unfortunately, I really do think the drift of the laser is the major limiting factor in these experiments, so I don't know if it's really all that possible to do much better than we have already done in the past.
+
+I'm running a full tomography of phi plus now to check it out. The full tomography crashed twice but I got the data the second time and fixed the bugs.
+
 ## 7/20/23
 MP: A
 Testing file outputs for today are in BCQWP/fwrv_freq_tuning
