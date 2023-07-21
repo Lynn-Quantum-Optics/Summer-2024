@@ -1,4 +1,5 @@
-{
+{   
+    "info": "Calibrated on 7/20/23 by Alec Roberson, 2024 (aroberson@hmc.edu/alectroberson@gmail.com)",
     "channel_keys": ["A", "B", "Ap", "Bp", "C4", "C5", "C6", "C7"],
     "ccu": {
         "port": "COM4",
@@ -37,18 +38,12 @@
             "type": "Elliptec",
             "port": "COM7",
             "address": "A",
-            "offset": 0
-        },
-        "B_C_QWP": {
-            "type": "Elliptec",
-            "port": "COM7",
-            "address": "B",
-            "offset": 0
+            "offset": -0.043
         },
         "B_HWP": {
             "type": "ThorLabs",
             "sn": 83811901,
-            "offset": 0
+            "offset": -15.625
         },
         "B_QWP": {
             "type": "ThorLabs",

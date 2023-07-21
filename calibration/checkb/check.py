@@ -40,8 +40,10 @@ def reset(m:Manager):
 
 if __name__ == '__main__':
     # output folder
-    TRIAL = 0
-    SWEEP_PARAMS = (-4, 4, 15, 5, 1)
+    # TRIAL = 0
+    # SWEEP_PARAMS = (-4, 4, 15, 5, 1)
+    TRIAL = 1
+    SWEEP_PARAMS = (-4, 4, 20, 5, 3)
 
     # make output folder
     outdir = f'./sweeps{TRIAL}'
@@ -75,8 +77,8 @@ if __name__ == '__main__':
     print(f'BHWP extrema: {BHWP_ext}')
     print(f'BHWP Update: {BHWP_off:.3f} + {BHWP_ext.n:.3f} -> {BHWP_off + BHWP_ext.n:.3f}')
     print(f'BQWP extrema: {BQWP_ext}')
-    print(f'BQWP Update: {m.B_QWP.offset:.3f} + {BQWP_ext.n:.3f} -> {m.B_QWP.offset + BQWP_ext.n:.3f}')
+    print(f'BQWP Update: {BQWP_off:.3f} + {BQWP_ext.n:.3f} -> {BQWP_off + BQWP_ext.n:.3f}')
     print(f'BCHWP extrema: {BCHWP_ext}')
-    print(f'BCHWP Update: {m.B_C_HWP.offset:.3f} + {BCHWP_ext.n:.3f} -> {m.B_C_HWP.offset + BCHWP_ext.n:.3f}')
+    print(f'BCHWP Update: {BCHWP_off:.3f} + {BCHWP_ext.n:.3f} -> {BCHWP_off + BCHWP_ext.n:.3f}')
     # print(f'BCQWP extrema: {BCQWP_ext}')
     # print(f'BCQWP Update: {m.B_C_QWP.offset:.3f} + {BCQWP_ext.n:.3f} -> {m.B_C_QWP.offset + BCQWP_ext.n:.3f}')
