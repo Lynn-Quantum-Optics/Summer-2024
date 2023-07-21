@@ -108,7 +108,19 @@ I reinstalled the PBS and ran the calibration script (after zeroing the calibrat
 ### Alignment
 Realigned (using redlight retro-reflecting) Bob's QWP, then HWP, then removed HWP and aligned Bob's creation QWP. All seems well, count rates (checked in ipython) still good, maybe even a little higher (~3250 max).
 
-### 
+### Bob's Creation HWP
+Calibration found a zero position of -0.04332648860882957+/-0.019312100787063153 = -0.043 degrees for the creation HWP. Put 
+
+### Bob's HWP
+I reinstall Bob's HWP on the magnetic mount and at this point I removed Bob's QWP from the config file. It was sufficiently screwed up enough that we saw the need to remove the plate from the housing. At this point I ended up doing two coarse-ish sweeps of the HWP (0) before doing a finer sweep about the minimum, which would appear to be at around -15.625032742716252+/-0.01652463743600131 = -15.625. I put this into the config file.
+
+### CHECKPOINT B FINALLY
+With offsets for Bob's QWP, HWP, and CHWP updated in the config, I can now finally run with the second checkpoint. The first time I ran it (0) I accidentally left coarse sweep parameters in the file (-4,4,15,5,1). Subsequent tests will use fine sweep parameters (-4,4,20,5,3) however I don't see a problem with using these coarse sweeps to at least narrow in a bit on the minima for the offsets. 
+
+#### ROUND 0
+These calibration data used a coarse sweep, but indicated that all errors were within 0.1 degree! Crazy! I'm running the sweeps again more carefully to double check this before determining the setup to be calibrated.
+
+
 
 ## 7/19/23
 MP: A
