@@ -7,7 +7,7 @@ if __name__ == '__main__':
     # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
     
     # TRIAL = 1
-    TRIAL = 2
+    TRIAL = 0
     SWEEP_PARAMS = [-4, 4, 20, 5, 3]
     
     # initialize the manager

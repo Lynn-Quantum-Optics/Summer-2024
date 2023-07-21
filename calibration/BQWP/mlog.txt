@@ -1,48 +1,28 @@
-0:00:00	Manager started at 2023-07-17_16-49-16.
+0:00:00	Manager started at 2023-07-20_16-05-20.
 0:00:00	Configuration file: "../config.json".
 0:00:00	Initializing CCU.
 0:00:00	Initializing motors.
-0:00:06	BQWP.py TRIAL # 1; SWEEP PARAMS = [83, 96, 20, 5, 3]
-0:00:06	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
-0:00:17	Sweeping B_QWP from 83 to 96 degrees in 20 steps.
-0:00:26	Taking data; sampling 5 x 3 s.
-0:00:42	Taking data; sampling 5 x 3 s.
-0:00:58	Taking data; sampling 5 x 3 s.
-0:01:14	Taking data; sampling 5 x 3 s.
-0:01:30	Taking data; sampling 5 x 3 s.
-0:01:46	Taking data; sampling 5 x 3 s.
-0:02:02	Taking data; sampling 5 x 3 s.
-0:02:19	Taking data; sampling 5 x 3 s.
-0:02:34	Taking data; sampling 5 x 3 s.
-0:02:51	Taking data; sampling 5 x 3 s.
-0:03:07	Taking data; sampling 5 x 3 s.
-0:03:23	Taking data; sampling 5 x 3 s.
-0:03:38	Taking data; sampling 5 x 3 s.
-0:03:54	Taking data; sampling 5 x 3 s.
-0:04:10	Taking data; sampling 5 x 3 s.
-0:04:27	Taking data; sampling 5 x 3 s.
-0:04:44	Taking data; sampling 5 x 3 s.
-0:05:00	Taking data; sampling 5 x 3 s.
-0:05:16	Taking data; sampling 5 x 3 s.
-0:05:32	Taking data; sampling 5 x 3 s.
-0:05:47	Saving data to "BQWP_sweep1.csv".
-0:05:47	Clearing output data.
-0:05:47	Beginning shutdown procedure.
-0:05:47	Shutting down motor objects.
-0:05:48	C_UV_HWP returned to true position 359.96986607142856 degrees.
-0:05:48	Deleting C_UV_HWP object.
-0:05:49	C_QP returned to true position 359.99246651785717 degrees.
-0:05:49	Deleting C_QP object.
-0:05:49	C_PCC returned to true position 359.99497767857144 degrees.
-0:05:49	Deleting C_PCC object.
-0:05:50	B_HWP returned to true position 0.0 degrees.
-0:05:50	Deleting B_HWP object.
-0:06:01	B_QWP returned to true position 0.0 degrees.
-0:06:01	Deleting B_QWP object.
-0:06:06	A_HWP returned to true position 0.0 degrees.
-0:06:06	Deleting A_HWP object.
-0:06:08	A_QWP returned to true position 359.9984436035156 degrees.
-0:06:08	Deleting A_QWP object.
-0:06:08	Closing COM ports.
-0:06:09	Closing CCU.
-0:06:10	Closing log file.
+0:00:23	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:01:31	Beginning shutdown procedure.
+0:01:31	Shutting down motor objects.
+0:01:31	C_UV_HWP returned to true position 359.9799107142857 degrees.
+0:01:31	Deleting C_UV_HWP object.
+0:01:32	C_QP returned to true position 0.0 degrees.
+0:01:32	Deleting C_QP object.
+0:01:32	C_PCC returned to true position 0.0 degrees.
+0:01:32	Deleting C_PCC object.
+0:01:33	B_C_HWP returned to true position 0.002511160714285714 degrees.
+0:01:33	Deleting B_C_HWP object.
+0:01:33	B_C_QWP returned to true position 0.002511160714285714 degrees.
+0:01:33	Deleting B_C_QWP object.
+0:01:33	B_HWP returned to true position 0.0 degrees.
+0:01:33	Deleting B_HWP object.
+0:01:44	B_QWP returned to true position 359.9999694824219 degrees.
+0:01:44	Deleting B_QWP object.
+0:01:49	A_HWP returned to true position 0.0 degrees.
+0:01:49	Deleting A_HWP object.
+0:01:51	A_QWP returned to true position 0.0 degrees.
+0:01:51	Deleting A_QWP object.
+0:01:51	Closing COM ports.
+0:01:51	Closing CCU.
+0:01:52	Closing log file.

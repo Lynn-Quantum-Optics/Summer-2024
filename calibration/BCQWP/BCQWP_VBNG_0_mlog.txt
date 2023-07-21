@@ -1,0 +1,155 @@
+0:00:00	Manager started at 2023-07-20_11-49-23.
+0:00:00	Configuration file: "../config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:07	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:00:08	Sending AQWP to 0
+0:00:11	Sending AHWP to 45
+0:00:16	Sending BHWP to 0
+0:00:19	Sending BQWP to 0
+0:00:29	Sending BCHWP to 0
+0:00:30	Taking data; sampling 6 x 5 s.
+0:00:30		Note: "A"
+0:01:01	Taking data; sampling 6 x 5 s.
+0:01:01		Note: "B"
+0:01:32	Taking data; sampling 6 x 5 s.
+0:01:32		Note: "A"
+0:02:03	Taking data; sampling 6 x 5 s.
+0:02:03		Note: "B"
+0:02:35	Taking data; sampling 6 x 5 s.
+0:02:35		Note: "A"
+0:03:06	Taking data; sampling 6 x 5 s.
+0:03:06		Note: "B"
+0:03:37	Taking data; sampling 6 x 5 s.
+0:03:37		Note: "A"
+0:04:08	Taking data; sampling 6 x 5 s.
+0:04:08		Note: "B"
+0:04:39	Taking data; sampling 6 x 5 s.
+0:04:39		Note: "A"
+0:05:10	Taking data; sampling 6 x 5 s.
+0:05:10		Note: "B"
+0:05:41	Taking data; sampling 6 x 5 s.
+0:05:41		Note: "A"
+0:06:12	Taking data; sampling 6 x 5 s.
+0:06:12		Note: "B"
+0:06:43	Taking data; sampling 6 x 5 s.
+0:06:43		Note: "A"
+0:07:14	Taking data; sampling 6 x 5 s.
+0:07:14		Note: "B"
+0:07:46	Taking data; sampling 6 x 5 s.
+0:07:46		Note: "A"
+0:08:17	Taking data; sampling 6 x 5 s.
+0:08:17		Note: "B"
+0:08:48	Taking data; sampling 6 x 5 s.
+0:08:48		Note: "A"
+0:09:19	Taking data; sampling 6 x 5 s.
+0:09:19		Note: "B"
+0:09:50	Taking data; sampling 6 x 5 s.
+0:09:50		Note: "A"
+0:10:21	Taking data; sampling 6 x 5 s.
+0:10:21		Note: "B"
+0:10:53	Taking data; sampling 6 x 5 s.
+0:10:53		Note: "A"
+0:11:24	Taking data; sampling 6 x 5 s.
+0:11:24		Note: "B"
+0:11:55	Taking data; sampling 6 x 5 s.
+0:11:55		Note: "A"
+0:12:26	Taking data; sampling 6 x 5 s.
+0:12:26		Note: "B"
+0:12:57	Taking data; sampling 6 x 5 s.
+0:12:57		Note: "A"
+0:13:28	Taking data; sampling 6 x 5 s.
+0:13:28		Note: "B"
+0:14:00	Taking data; sampling 6 x 5 s.
+0:14:00		Note: "A"
+0:14:31	Taking data; sampling 6 x 5 s.
+0:14:31		Note: "B"
+0:15:02	Taking data; sampling 6 x 5 s.
+0:15:02		Note: "A"
+0:15:33	Taking data; sampling 6 x 5 s.
+0:15:33		Note: "B"
+0:16:04	Taking data; sampling 6 x 5 s.
+0:16:04		Note: "A"
+0:16:35	Taking data; sampling 6 x 5 s.
+0:16:35		Note: "B"
+0:17:05	Taking data; sampling 6 x 5 s.
+0:17:05		Note: "A"
+0:17:37	Taking data; sampling 6 x 5 s.
+0:17:37		Note: "B"
+0:18:08	Taking data; sampling 6 x 5 s.
+0:18:08		Note: "A"
+0:18:39	Taking data; sampling 6 x 5 s.
+0:18:39		Note: "B"
+0:19:10	Taking data; sampling 6 x 5 s.
+0:19:10		Note: "A"
+0:19:41	Taking data; sampling 6 x 5 s.
+0:19:41		Note: "B"
+0:20:12	Taking data; sampling 6 x 5 s.
+0:20:12		Note: "A"
+0:20:43	Taking data; sampling 6 x 5 s.
+0:20:43		Note: "B"
+0:21:14	Taking data; sampling 6 x 5 s.
+0:21:14		Note: "A"
+0:21:45	Taking data; sampling 6 x 5 s.
+0:21:45		Note: "B"
+0:22:16	Taking data; sampling 6 x 5 s.
+0:22:16		Note: "A"
+0:22:47	Taking data; sampling 6 x 5 s.
+0:22:47		Note: "B"
+0:23:18	Taking data; sampling 6 x 5 s.
+0:23:18		Note: "A"
+0:23:50	Taking data; sampling 6 x 5 s.
+0:23:50		Note: "B"
+0:24:21	Taking data; sampling 6 x 5 s.
+0:24:21		Note: "A"
+0:24:52	Taking data; sampling 6 x 5 s.
+0:24:52		Note: "B"
+0:25:23	Taking data; sampling 6 x 5 s.
+0:25:23		Note: "A"
+0:25:54	Taking data; sampling 6 x 5 s.
+0:25:54		Note: "B"
+0:26:25	Taking data; sampling 6 x 5 s.
+0:26:25		Note: "A"
+0:26:56	Taking data; sampling 6 x 5 s.
+0:26:56		Note: "B"
+0:27:27	Taking data; sampling 6 x 5 s.
+0:27:27		Note: "A"
+0:27:58	Taking data; sampling 6 x 5 s.
+0:27:58		Note: "B"
+0:28:29	Taking data; sampling 6 x 5 s.
+0:28:29		Note: "A"
+0:29:00	Taking data; sampling 6 x 5 s.
+0:29:00		Note: "B"
+0:29:32	Taking data; sampling 6 x 5 s.
+0:29:32		Note: "A"
+0:30:03	Taking data; sampling 6 x 5 s.
+0:30:03		Note: "B"
+0:30:34	Taking data; sampling 6 x 5 s.
+0:30:34		Note: "A"
+0:31:05	Taking data; sampling 6 x 5 s.
+0:31:05		Note: "B"
+0:31:35	Saving data to "BCQWP_VBNG_0.csv".
+0:31:35	Clearing output data.
+0:31:35	Beginning shutdown procedure.
+0:31:35	Shutting down motor objects.
+0:31:36	C_UV_HWP returned to true position 359.97488839285717 degrees.
+0:31:36	Deleting C_UV_HWP object.
+0:31:36	C_QP returned to true position 0.0 degrees.
+0:31:36	Deleting C_QP object.
+0:31:37	C_PCC returned to true position 359.99246651785717 degrees.
+0:31:37	Deleting C_PCC object.
+0:31:37	B_C_HWP returned to true position 359.99497767857144 degrees.
+0:31:37	Deleting B_C_HWP object.
+0:31:38	B_C_QWP returned to true position 0.0 degrees.
+0:31:38	Deleting B_C_QWP object.
+0:31:40	B_HWP returned to true position 0.002083722036331892 degrees.
+0:31:40	Deleting B_HWP object.
+0:31:51	B_QWP returned to true position 0.0 degrees.
+0:31:51	Deleting B_QWP object.
+0:31:57	A_HWP returned to true position 0.0 degrees.
+0:31:57	Deleting A_HWP object.
+0:31:58	A_QWP returned to true position 359.99896240234375 degrees.
+0:31:58	Deleting A_QWP object.
+0:31:58	Closing COM ports.
+0:31:59	Closing CCU.
+0:31:59	Closing log file.
