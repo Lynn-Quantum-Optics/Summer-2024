@@ -4,7 +4,9 @@ import scipy.linalg as la
 from scipy.optimize import minimize, approx_fprime
 from os.path import join, dirname, abspath
 import pandas as pd
+
 from tqdm import tqdm
+from functools import partial
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -187,7 +189,7 @@ def analyze_rhos(filenames, settings=None, id='id'):
 
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual) # theory
-        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi]) # Purity Corrected theory
+        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi], model=3) # Purity Corrected theory
 
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
@@ -218,7 +220,7 @@ def analyze_rhos(filenames, settings=None, id='id'):
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
 
         if eta is not None and chi is not None:
-            adj_fidelity= get_adj_fidelity(rho_actual, angles, purity)
+            adj_fidelity= get_adj_E0_fidelity(rho, rho_actual, purity, eta, chi, model=3)
 
             df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity,
             'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
@@ -251,7 +253,8 @@ def make_plots_E0(dfname):
 
     for i, eta in enumerate(eta_vals):
         # get df for each eta
-        df_eta = df[df['eta'] == eta]
+        df_eta = df.loc[np.round(df['eta'], 4) == np.round(eta,3)]
+        print(df_eta)
         purity_eta = df_eta['purity'].to_numpy()
         fidelity_eta = df_eta['fidelity'].to_numpy()
         chi_eta = df_eta['chi'].to_numpy()
@@ -300,12 +303,12 @@ def make_plots_E0(dfname):
         except:
             ax[0,i].plot(chi_eta_ls, line(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
             ax[0,i].plot(chi_eta_ls, line(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
-        ax[0,i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, marker='o', color='slateblue', label='$W_{expt}$')
+        ax[0,i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue', label='$W_{expt}$')
 
 
         ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
         ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
-        ax[0,i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, marker='o', color='salmon', label="$W_{expt}'$")
+        ax[0,i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon', label="$W_{expt}'$")
 
         ax[0,i].set_title(f'$\eta = {np.round(eta,3)}$')
         ax[0,i].set_ylabel('Witness value')
@@ -712,47 +715,79 @@ def det_offsets(filenames, N=500, zeta=1, f=.02, loss_lim = 1e-9):
     print('Best loss: ', best_loss)
     print('Best offset: ', best_offset)
             
-def det_noise(filenames, N=500, zeta=.7, f=.1, fidelity_lim = 0.999):
-    '''Determine the probabilties in noise model that minimize the loss function (sum of squares of fidelity differences)'''
-    # define functions for loss
-    def get_corrected_fidelity(x0, rho_actual, rho, purity):
-        '''Adjust the theoretical rho to match the experimental rho, then compute fidelity and purity'''
-        # unpack probabilties for noise
-        x0 /= np.sum(x0) # normalize
-        r_hh, r_hv, r_vh, r_vv = x0  
-        rho_c = purity * rho_actual + (1-purity)*(r_hh*HH + r_hv*HV + r_vh*VH + r_vv*VV)
-        return get_fidelity(rho_c, rho), get_purity(rho_c)
-    def loss_func(x0, rho_actual, rho, purity):
+def det_noise(filenames, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
+    '''Determine the probabilties in noise model that minimize the loss function (sum of squares of fidelity differences)
+    --
+        model: which noise model to assume.
+            4 for random r_hh, r_hv, etc
+            3 for no cohernece
+            1 for coherence
+            (i.e., number of fit params)
+    
+    '''
+    model = int(input('Which noise model to compute? 1, 2, or 4: '))
+    def loss_func(x0, rho_actual, rho, purity, eta, chi):
         '''Helper function to compute loss between adjusted rho and rho'''    
         # normalize
-        x0 = x0/np.sum(x0)
+        if len(x0)>1:
+            x0 = x0/np.sum(x0)
         # get fidelity loss
+        # if model==4:
         try:
-            fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity)
+            fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi)
 
             loss =  1 / np.sqrt(fidelity_c)  + abs(purity_c - purity)  # want to maximize fidelity and minimize purity difference and need normalized
         except:
             loss = 1e10
+        # else:
+        #     fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi)
+        #     loss = 1 - np.sqrt(fidelity_c)
+
         return loss
-    def minimize_loss(x0, rho_actual, rho, purity):
+    def minimize_loss(x0, rho_actual, rho, purity, eta, chi, model):
         # normalize guess
         # x0 = x0/np.sum(x0)
-        S = minimize(loss_func, x0, bounds = [(0, 1), (0, 1), (0, 1), (0, 1)], args=(rho_actual, rho, purity))
-        fidelity_c, purity_c = get_corrected_fidelity(S.x, rho_actual, rho, purity)
-        return S.x, S.fun, fidelity_c, purity_c # return best prob, best loss, fidelity, purity
-    def random_guess():
+        S = minimize(loss_func, x0, bounds = [(0, 1) for _ in range(model)], args=(rho_actual, rho, purity, eta, chi))
+        fidelity_c, purity_c = get_corrected_fidelity(S.x, rho_actual, rho, purity, eta, chi)
+        return  S.x, S.fun, fidelity_c, purity_c # return best prob, best loss, fidelity, purity
+    def random_guess(model):
         '''Stick random simplex'''
         # get random simplex
-        rand = np.random.rand(3)
-        rand = np.sort(rand)
-        guess = np.zeros(4)
-        guess[0] = rand[0]
-        for i in range(1,len(rand)):
-            guess[i] = rand[i] - rand[i-1]
-        guess[-1] = 1 - np.sum(guess[:-1])
-        return guess
-    # initialize df to store results
-    results = pd.DataFrame(columns=['eta', 'chi', 'fidelity', 'fidelity_gdcorr', 'purity', 'purity_gdcorr', 'r_hh', 'r_hv', 'r_vh', 'r_vv'])
+        if model >1:
+            rand = np.random.rand(model-1)
+            rand = np.sort(rand)
+            guess = np.zeros(model)
+            guess[0] = rand[0]
+            for i in range(1,len(rand)):
+                guess[i] = rand[i] - rand[i-1]
+            guess[-1] = 1 - np.sum(guess[:-1])
+            return guess
+        else:
+            return np.random.rand(1)
+    # define functions for loss
+    def get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi):
+        '''Adjust the theoretical rho to match the experimental rho, then compute fidelity and purity'''
+
+        rho_c = adjust_E0_rho_general(x0, rho_actual, purity, eta, chi)
+        try:
+            fidelity_c = get_fidelity(rho_c, rho)
+        except ValueError:
+            fidelity_c = 1e-3
+        purity_c = get_purity(rho_c)
+        return fidelity_c, purity_c
+
+    if model==4:
+        # initialize df to store results
+        results = pd.DataFrame(columns=['eta', 'chi', 'fidelity', 'fidelity_gdcorr', 'purity', 'purity_gdcorr', 'r_hh', 'r_hv', 'r_vh', 'r_vv'])
+
+    elif model==3:
+        # initialize df to store results
+        results = pd.DataFrame(columns=['eta', 'chi', 'fidelity', 'fidelity_gdcorr', 'purity', 'purity_gdcorr', 'e1', 'e2'])
+    elif model==1:
+        # initialize df to store results
+        results = pd.DataFrame(columns=['eta', 'chi', 'fidelity', 'fidelity_gdcorr', 'purity', 'purity_gdcorr', 'e'])
+
+    random_guess = partial(random_guess, model=model)
     for file in tqdm(filenames):
         print('----------')
         print(file)
@@ -766,13 +801,15 @@ def det_noise(filenames, N=500, zeta=.7, f=.1, fidelity_lim = 0.999):
         print('original fidelity', fidelity)
         x0 = random_guess()
         print('first guess', x0)
-        ploss_func = lambda x: loss_func(x, rho_actual, rho, purity)
+        ploss_func = lambda x: loss_func(x, rho_actual, rho, purity, eta, chi)
         best_loss = ploss_func(x0)
         best_prob = x0
         grad_prob = x0
-        fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity)
+        fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi)
         print('first try fidelity_c', fidelity_c)
         best_fidelity = fidelity_c
+        if best_fidelity > 1:
+            best_fidelity = 1e-3
         best_purity = purity_c
         n = 0
         index_since_improvement = 0
@@ -791,34 +828,74 @@ def det_noise(filenames, N=500, zeta=.7, f=.1, fidelity_lim = 0.999):
                 x0 = [best_prob[i] - zeta*gradient[i] for i in range(len(best_prob))]
                 grad_prob = x0
             # minimize loss
-            try:
-                x, loss, fidelity_c, purity_c = minimize_loss(x0, rho_actual, rho, purity)
-                # update best loss and best x0
-                if fidelity_c > best_fidelity and fidelity_c <=1 and purity_c < 1:
-                    best_fidelity = fidelity_c
-                    best_purity = purity_c
-                    best_loss = loss
-                    best_prob = x
-                    index_since_improvement = 0
-                else:
-                    index_since_improvement += 1
-                
-                n += 1
-            except ValueError:
-                pass
+            # try:
+            x, loss, fidelity_c, purity_c = minimize_loss(x0, rho_actual, rho, purity, eta, chi, model)
+            # update best loss and best x0
+            if fidelity_c > best_fidelity and fidelity_c <=1 and purity_c < 1:
+                best_fidelity = fidelity_c
+                best_purity = purity_c
+                best_loss = loss
+                best_prob = x
+                index_since_improvement = 0
+            else:
+                index_since_improvement += 1
+            
+            n += 1
+            # except ValueError:
+            #     print('problem')
+            #     x0 = random_guess()
         # best_prob /= np.sum(best_prob) # normalize guess, since that's what we input into loss
         print('Best fidelity: ', best_fidelity)
-        print('Best fidelity this func', get_corrected_fidelity(best_prob, rho_actual, rho, purity)[0])
-        print('Best fidelity rechecked rho methods', get_fidelity(adjust_rho_general(best_prob, rho_actual, purity), rho))
+        print('Best fidelity this func', get_corrected_fidelity(best_prob, rho_actual, rho, purity, eta, chi)[0])
+        print('Best fidelity rechecked rho methods', get_fidelity(adjust_E0_rho_general(best_prob, rho_actual, purity, eta, chi), rho))
         print('Best prob: ', best_prob)
         print('Best loss: ', best_loss)
         print('n', n)
 
-        results = pd.concat([results, pd.DataFrame.from_records([{'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity, 'r_hh': best_prob[0], 'r_hv': best_prob[1], 'r_vh': best_prob[2], 'r_vv': best_prob[3]}])])
+        if model == 4:
+            results = pd.concat([results, pd.DataFrame.from_records([{'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity, 'r_hh': best_prob[0], 'r_hv': best_prob[1], 'r_vh': best_prob[2], 'r_vv': best_prob[3]}])])
+        elif model ==3:
+            results =pd.concat([results, pd.DataFrame.from_records([{'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity, 'e1': best_prob[0], 'e2': best_prob[1]}])]) 
+        elif model==1:
+            results =pd.concat([results, pd.DataFrame.from_records([{'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity, 'e': best_prob[0],}])]) 
+
     # save results
     print('saving!')
-    results.to_csv(join(DATA_PATH, 'noise_model.csv'))
+    results.to_csv(join(DATA_PATH, f'noise_model_{model}.csv'))
 
+def plot_adj():
+    fig, ax = plt.subplots(2, 3, figsize=(20,7))
+    for j, model in enumerate([1, 3, 4]):
+
+        adjust_df = pd.read_csv(f'../../framework/decomp_test/noise_model_{model}.csv')
+
+        for i, eta in enumerate(list(set(adjust_df['eta'].values))):
+            eta_adjust_df = adjust_df.loc[np.round(adjust_df['eta'], 4) == np.round(eta, 4)]
+            # get chi_ls
+            chi_ls = eta_adjust_df['chi'].values
+            fidelity_c_ls = eta_adjust_df['fidelity_gdcorr'].values
+            fidelity_ls = eta_adjust_df['fidelity'].values
+            purity_c_ls = eta_adjust_df['purity_gdcorr'].values
+            purity_ls = eta_adjust_df['purity'].values
+
+            ax[0, i].scatter(chi_ls, fidelity_c_ls, label=f'model {model}')
+            ax[1, i].scatter(chi_ls, purity_c_ls, label=f'model {model}')
+            if j == 2:
+                ax[0, i].plot(chi_ls, fidelity_ls, linestyle='--', color='r', label='actual')
+                ax[1, i].plot(chi_ls, purity_ls, linestyle='--', color='r', label='actual')
+
+            ax[0, i].legend()
+            ax[1, i].legend()
+            
+            ax[0, i].set_ylabel('Fidelity')
+            ax[1, i].set_ylabel('Purity')
+
+            ax[1, i].set_xlabel('$\chi$')
+            ax[0, i].set_title('$\eta = %.3g$'%eta)
+    plt.tight_layout()
+    plt.suptitle('Adjustment for noise')
+    plt.subplots_adjust(top=0.9)
+    plt.savefig(join(DATA_PATH, 'noise_plots.pdf'))
             
   
 
@@ -841,17 +918,17 @@ if __name__ == '__main__':
     # settings = settings_45 + settings_60
     # analyze rho files
     # id = 'richard'
+
+    ## do calculations ##
+
     
-    # id = 'neg3_cor_unc'
-    # # analyze_rhos(filenames,id=id)
+    id = 'neg3_model3'
+    # analyze_rhos(filenames,id=id) # calculate csv with witness vals
 
-    # make_plots_E0(f'rho_analysis_{id}.csv')
+    make_plots_E0(f'rho_analysis_{id}.csv') # make plots based on witness calcs
 
-    # get_rho_from_file_depricated("rho_('PhiP',)_19.npy", PhiP)
-
-    # analyze_diff(filenames)
-    # det_offsets(filenames)
-    det_noise(filenames)
+   
+    # plot_adj()
 
 
 
