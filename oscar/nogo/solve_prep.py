@@ -1,7 +1,7 @@
 # file to generate systems by enforcing orthogonality of measured states
 import numpy as np
 import time
-from itertools import combinations
+from scipy.special import comb
 
 class HyperBell():
     '''HyperBell class to generate systems of measured bell states for a given dimension d and number of states in group k.'''
@@ -17,16 +17,16 @@ class HyperBell():
 
         self.num_coeff = 2*d # number of coefficients in measurement operator
 
-        self.n_bounds = [(0, self.d) for _ in range(self.num_coeff)] # set bounds for m
-        self.q_bounds = [(0, self.d-1) for _ in range(self.num_coeff)] # set bounds for q
-        self.bounds = self.n_bounds + self.q_bounds # set bounds for m and q
+        self.m_limit = comb(d**2, k)
+
+        # self.n_bounds = [(0, self.d) for _ in range(self.num_coeff)] # set bounds for m
+        # self.q_bounds = [(0, self.d-1) for _ in range(self.num_coeff)] # set bounds for q
+        # self.bounds = self.n_bounds + self.q_bounds # set bounds for m and q
+        self.bounds = [(-1, 1) for _ in range(self.num_coeff)]
 
         self.precision = 6 # precision for solution vec, orthoginality, and normalization
 
-        self.nq_precision = 3 # precision for rounding up n and q values
-
-        self.k_groups_indices = self.get_all_k_indices() # initialize all k-groups of bell states
-        self.num_ksys = self.d**2# number of k-systems
+        # self.nq_precision = 3 # precision for rounding up n and q values
 
         self.start_time = time.time() # start timer
 
@@ -50,16 +50,52 @@ class HyperBell():
             numb[l]=1
             numb[d+(l+c)%d]=1
             bell += phase * numb
-        return bell * 1/np.sqrt(d) # normalize)
+        return bell * 1/np.sqrt(d) # normalize
 
-    def get_all_k_indices(self):
-        '''Returns all unique k-groups of bell states for a given dimension d.'''
-        k_groups_indices = list(combinations(np.arange(0, self.d**2),self.k))
-        return k_groups_indices
+    def get_m_k_ind(self):
+        '''Returns the mth combination of d^2 choose k elements; uses CNS (combinaitorial number system)'''
+        m= self.m
+        d = self.d
+        k = self.k
+        if m > comb(d**2, k):
+            raise ValueError(f'Must have m in comb(d^2, k). You have m={m}')
+        def do_round(targ, n):
+            '''Funds the largest value of d^2 choose n to targ'''
+            if targ==0:
+                largest_val = 0
+                ind = n-1;
+                return largest_val, ind
+            elif targ==1:
+                largest_val = 0
+                ind = n
+                return largest_val, ind
+            i=-1
+            largest_val = 0
+            while largest_val <= targ and n+1+i <= d**2:
+                largest_val = comb(n+1+i, n)
+                if largest_val > targ:
+                    i-=1
+                    ind = n+i+1
+                    if n+1+i == n-1:
+                        largest_val = 0
+                        ind = n-1
+                    else:
+                        largest_val = comb(n+1+i, n)
+                        ind = n+1+i
+                    return largest_val, ind
+            return largest_val, ind
+        # targ starts at m
+        targ = m
+        m_k_ind = []
+        for j in range(k, 0, -1):
+            largest_val, ind = do_round(targ, j)
+            m_k_ind.append(ind)
+            targ = abs(targ-largest_val)
+        return m_k_ind
 
     def get_m_kgroup(self):
         '''Returns mth k-group of bell states.'''
-        k_group_indices = self.k_groups_indices[self.m]
+        k_group_indices = self.get_m_k_ind()
         k_group = []
         for i in k_group_indices:
             c = i // self.d
@@ -75,8 +111,8 @@ class HyperBell():
         '''
         n, q = nq
         d = self.d
-        m = np.sqrt(n)
-        return m / np.sqrt(d) * np.exp(2*np.pi*1j*q/d)  
+        # m = np.sqrt(n)
+        return n / d**2 * np.exp(2*np.pi*1j*q/d)  
 
     def get_coeff(self, nq_ls):
         '''Returns input coefficients for measurement operator.
@@ -212,18 +248,34 @@ class HyperBell():
         return np.array(all_sys)
 
     def rand_guess(self):
-        '''Returns random guess for m, q val.'''
-        # random stick for m, guess random q
-        rand = np.random.randint(low = 0, high= self.d+1, size=(self.num_coeff-1))
+        '''Random stick simplex to guess input vector'''
+        rand = np.random.rand(self.num_coeff-1)
         rand = np.sort(rand)
-        n_guess = np.zeros(self.num_coeff)
-        n_guess[0] = rand[0]
+        guess = np.zeros(self.num_coeff)
+        guess[0] = rand[0]
         for i in range(1, len(rand), 1):
-            n_guess[i] = rand[i] + rand[i-1]
-        n_guess[-1] = self.d- rand[-1]
-        # random guess for q
-        q_guess = np.random.randint(0, self.d, size=(self.num_coeff))
-        return np.concatenate((n_guess, q_guess))
+            guess[i] = rand[i] - rand[i-1]
+        guess[-1] = 1 - rand[-1]
+        # extend the simplex into the negatives
+        for i in range(len(guess)):
+            n = np.random.rand() < 0.5
+            if n:
+                guess[i] *= -1
+        return guess
+
+    # def rand_guess(self):
+    #     '''Returns random guess for m, q val.'''
+    #     # random stick for m, guess random q
+    #     rand = np.random.randint(low = 0, high= self.d+1, size=(self.num_coeff-1))
+    #     rand = np.sort(rand)
+    #     n_guess = np.zeros(self.num_coeff)
+    #     n_guess[0] = rand[0]
+    #     for i in range(1, len(rand), 1):
+    #         n_guess[i] = rand[i] + rand[i-1]
+    #     n_guess[-1] = self.d- rand[-1]
+    #     # random guess for q
+    #     q_guess = np.random.randint(0, self.d, size=(self.num_coeff))
+    #     return np.concatenate((n_guess, q_guess))
 
    
 
