@@ -22,12 +22,11 @@ def solve_ksys(m, hb, verbose=True, opt=False):
     
     hb.set_m(m) # set mth k-system
 
-    def loss(nq0, x_ls = None): 
+    def loss(x0, x_ls = None): 
         '''Compute loss function for given coefficients x0. Three parts: 
             l0: absolute difference in norm from 1
             l1: RSE for function values
             l2: RSE for inner products with existing solutions'''
-        x0 = hb.get_coeff(nq0)
 
         l0 = abs(1-hb.get_norm(x0))
 
@@ -42,42 +41,47 @@ def solve_ksys(m, hb, verbose=True, opt=False):
                         ip = ip[0][0]
                     except IndexError:
                         pass
-                    ip = np.real(ip)
+                    ip = abs(ip)
                     ip_ls.append(ip)
             l2 = np.sqrt(sum([abs(ip_ls[i])**2 for i in range(len(ip_ls))]))
             return l0 + l1 + l2
         else:
             return l0 + l1
 
-    def get_soln(nq0, x_ls):
+    def get_soln(x0, x_ls):
         '''Attempt to find single solution of system with given initial guess x0.'''
-        def try_solve(nq0):
-            soln= minimize(loss, args=(x_ls,), x0 = nq0, bounds=hb.bounds)
+        def try_solve(x0):
+            soln= minimize(loss, args=(x_ls,), x0 = x0, bounds=hb.bounds)
             s_loss = soln.fun
             # create tuple of (n,q) values
-            nq_sol = soln.x
-            nq_sol = np.round(nq_sol, hb.nq_precision)
-            nq_sol_r = np.reshape(nq_sol, (2,hb.num_coeff))
-            n_ls = nq_sol_r[0, :]
-            q_ls = nq_sol_r[1, :]
-            nq_sol_r = np.array(list(zip(n_ls, q_ls)))
+            # nq_sol = soln.x
+            # nq_sol = np.round(nq_sol, hb.nq_precision)
+            # nq_sol_r = np.reshape(nq_sol, (2,hb.num_coeff))
+            # n_ls = nq_sol_r[0, :]
+            # q_ls = nq_sol_r[1, :]
+            # nq_sol_r = np.array(list(zip(n_ls, q_ls)))
 
-            x_sol = hb.get_coeff(nq_sol)
+            x_sol = soln.x
             
             valid_soln = hb.is_valid_soln(x_sol)# check if solution is valid
 
             soln_vec = hb.get_ksys(x_sol)
             soln_vec = np.round(soln_vec, hb.precision)
         
-            return s_loss, soln_vec, x_sol, nq_sol_r, valid_soln
+            return s_loss, soln_vec, x_sol, valid_soln
 
-        s_loss, soln_vec, x_sol,nq_sol, valid_soln = try_solve(nq0)
+        s_loss, soln_vec, x_sol, valid_soln = try_solve(x0)
         it = 0
         while not(valid_soln):
-            nq0 = hb.rand_guess()
+            x0 = hb.rand_guess()
+            # print('not valid soln, using x0=', x0)
+            # print('coeff', x_sol)
+            # print('soln_vec', soln_vec)
+            # print('loss', s_loss)
+            
             # if verbose:
             #     print('trying guess x0', x0)
-            s_loss, soln_vec, x_sol,nq_sol, valid_soln = try_solve(nq0)
+            s_loss, soln_vec, x_sol, valid_soln = try_solve(x0)
             it+=1
 
         if valid_soln:
@@ -85,54 +89,54 @@ def solve_ksys(m, hb, verbose=True, opt=False):
                 print('found soln! Loss: ', s_loss)
                 print('soln vector', soln_vec)
                 print('soln x = ', x_sol)
-                print('(m,q) soln = ',nq_sol)
-            return soln_vec, x_sol, nq_sol, it
+                # print('(m,q) soln = ',nq_sol)
+            return soln_vec, x_sol, it
 
     # initializing
     x_ls = []
-    nq_ls = [] # tuples of (n,q) values
+    # nq_ls = [] # tuples of (n,q) values
     soln_ls = [] # list of solution vectors
     it_ls = [] # list of number of iterations required to find a valid solution
     s = 0
     # get initial guess
-    nq0 = hb.rand_guess()
+    x0 = hb.rand_guess()
     while (len(x_ls) < hb.soln_limit) and (s < hb.soln_limit): 
-        soln_vec, x_sol, nq_sol, it = get_soln(nq0, x_ls)
+        soln_vec, x_sol, it = get_soln(x0, x_ls)
         if len(x_ls) > 0:
             orthogonal, in_x_ls = hb.is_orthogonal(x_sol, x_ls)
             if orthogonal and not(in_x_ls):
                 print('adding to x_ls!')
                 x_ls.append(x_sol)
-                nq_ls.append(nq_sol)
+                # nq_ls.append(nq_sol)
                 soln_ls.append(soln_vec)
                 it_ls.append(it)
                 s+=1 # increment number of successful attempts
         else:
             print('first solution!')
             x_ls.append(x_sol)
-            nq_ls.append(nq_sol)
+            # nq_ls.append(nq_sol)
             soln_ls.append(soln_vec)
             it_ls.append(it)
             s+=1 # increment number of successful attempts
         
-        nq0 = hb.rand_guess()
+        x0 = hb.rand_guess()
 
     if len(x_ls) == hb.soln_limit:
         if verbose: print('found all solns with m = %i, d = %i, k = %i'%(m,hb.d, hb.k ))
         if opt: 
             print('x_ls', x_ls)
-            print('nq_ls', nq_ls)
+            # print('nq_ls', nq_ls)
 
             print('saving!')
-            nq_ls = np.array(nq_ls)
+            # nq_ls = np.array(nq_ls)
             x_ls = np.array(x_ls)
             soln_ls = np.array(soln_ls)
             it_ls = np.array(it_ls)
-            print('nq_ls shape', nq_ls.shape)
-            print('x_ls shape', x_ls.shape)
-            print('soln_ls shape', soln_ls.shape)
-            print('it_ls shape', it_ls.shape)
-            np.savez(join('results','solns_d%i_k%i_m%i_p%i_nqp%i.npz'%(hb.d, hb.k, m, hb.precision, hb.nq_precision)), array1=nq_ls, array2=x_ls, array3=soln_ls, array4=it_ls)
+            # print('nq_ls shape', nq_ls.shape)
+            # print('x_ls shape', x_ls.shape)
+            # print('soln_ls shape', soln_ls.shape)
+            # print('it_ls shape', it_ls.shape)
+            np.savez(join('results','solns_d%i_k%i_m%i_p%i_nqp%i.npz'%(hb.d, hb.k, m, hb.precision, hb.nq_precision)), array1=x_ls, array2=soln_ls, array3=it_ls)
 
             # make histogram of number of iterations
             plt.figure(figsize=(10,5))
@@ -165,11 +169,12 @@ def solve_all_ksys(hb, verbose=True):
     ## initialize parallelization ##
     pool = Pool(cpu_count())
     solve_ksys_set = partial(solve_ksys, hb=hb,verbose=verbose, opt=True)
-    inputs = [m for m in range(hb.num_ksys)]
+    inputs = [m for m in range(int(hb.m_limit))]
     try:
-        # Process the data using the multiprocessing pool
+       # Process the data using the multiprocessing pool
         for result in pool.imap_unordered(solve_ksys_set, inputs):
             print(result)  # Print the result
+
 
     except StopIteration as e:
         print("Condition satisfied:", e)

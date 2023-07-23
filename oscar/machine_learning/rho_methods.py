@@ -4,6 +4,7 @@
 # main imports #
 from os.path import join
 import numpy as np
+import pandas as pd
 import scipy.linalg as la
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize, approx_fprime
@@ -279,35 +280,85 @@ def adjust_rho(rho, angles, expt_purity, state='E0'):
         rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
         return rho_adj
 
-def adjust_rho_general(x, rho_actual, purity):
-    ''' Adjusts theoretical density matrix to account for experimental impurity, but generalized to any state.'''
+def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
+    ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
+    --
+    params:
+        x: set of corrective probabilties
+        rho-actual: target density matrix
+        purity: purity of experimental state
+        eta, chi: angles used to create theoretical E0 state
+        model: from det_noise in process_expt.py; corresponds to number of fit params
+    
+    '''
     # define standard basis vecs
     HH = np.array([1,0,0,0]).reshape((4,1))
     HV = np.array([0,1,0,0]).reshape((4,1))
     VH = np.array([0,0,1,0]).reshape((4,1))
     VV = np.array([0,0,0,1]).reshape((4,1))
-    # impleemnet correction
-    x /= np.sum(x)
-    r_hh, r_hv, r_vh, r_vv = x
-    rho_c = purity * rho_actual + (1-purity)*(r_hh*HH + r_hv*HV + r_vh*VH + r_vv*VV)
+    HH_rho = get_rho(HH)
+    HV_rho = get_rho(HV)
+    VH_rho = get_rho(VH)
+    VV_rho = get_rho(VV)
+    # try:
+    #     model = len(x)
+    # except TypeError:
+    #     model=1
+    model = len(x)
+    # implement correction        
+    if model==4:
+        x /= np.sum(x)
+        r_hh, r_hv, r_vh, r_vv = x
+        rho_c = purity * rho_actual + (1-purity)*(r_hh*HH + r_hv*HV + r_vh*VH + r_vv*VV)
+    elif model==3:
+        x/=np.sum(x)
+        e1, e2, e3 = x
+        rho_c = e3*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e1*HH_rho + e2*VV_rho
+    elif model==1:
+        e=x[0]
+        rho_c = (1-e)*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e*(purity * (get_rho((np.cos(eta)+np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*HH + (np.cos(eta)-np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*VV)) + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta))/2)*HH_rho + ((1-np.cos(chi)*np.sin(2*eta))/2)*VV_rho))
+
     return rho_c
 
-def get_adj_fidelity(rho, angles, expt_purity, state='E0'):
+def load_saved_get_E0_rho_c(rho_actual, angles, purity, model, model_path = '../../framework/decomp_test/'):
+    try:
+        adjust_df = pd.read_csv(model_path+f'noise_model_{model}.csv')
+    except:
+        raise ValueError(f'You are missing the file oise_model_{model}.csv; your current path is {model_path}.')
+    
+    if model==4:
+        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
+        adjust_df = adjust_df[['r_hh', 'r_hv', 'r_vh', 'r_vv']]
+    elif model==3:
+        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
+        adjust_df['e3'] = 1-adjust_df['e1'] - adjust_df['e2']
+        adjust_df = adjust_df[['e1', 'e2', 'e3']]
+    elif model==1:
+        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
+        adjust_df = adjust_df[['e']]
+    
+    adjust_df = adjust_df.to_numpy()
+    adjust_df = adjust_df.reshape((3,))
+    
+    adj_rho = adjust_E0_rho_general(adjust_df, rho_actual, purity, angles[0], angles[1])
+    return adj_rho
+
+def get_adj_E0_fidelity(rho, rho_actual, purity, eta, chi, model):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
-    adj_rho = adjust_rho(rho, angles, expt_purity, state=state)
+    adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model)
     return get_fidelity(adj_rho, rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_counts = False, calc_unc=False, stokes_unc = None, expt_purity = None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
             counts: raw unp array of counts and unc
             expt: bool, whether to compute the Ws assuming input is experimental data
             do_stokes: bool, whether to compute 
-            calc_unc: bool, whether to compute the uncertainty in the Ws; uses the Stokes params -- must have do_stokes=True. NOTE: THIS OPTION IS DEPRICATED BECAUSE USING THE STOKES UNCERTAINTIES DOESNT PROPPAGATE THE UNCERTAINTIES IN THE Ws CORRECTLY. INSTEAD, PROVIDE A UNUMPY ARRAY OF COUNTS AND UNCERTAINTIES AND PASS EXPT=TRUE.
-            stokes_unc: the uncertainty in the stokes params; 4x4 matrix
             do_counts: use the raw definition in terms of counts
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
+            model: which model to correct for noise; see det_noise in process_expt.py for more info
+            model_path: path to noise model csvs.
             angles: angles of eta, chi for E0 states to adjust theory
             num_reps: int, number of times to run the optimization
             optimize: bool, whether to optimize the Ws with random or gradient descent or to just check bounds
@@ -318,18 +369,14 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
 
     # check if experimental data
     if expt and counts is not None:
-        do_stokes = False
         do_counts = True
         calc_unc = False # don't explitictly calculate uncertainty in Ws for experimental data
         # assert stokes_unc is not None, "Must provide uncertainty in Stokes params"
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
-    if expt_purity is not None and angles is not None:
-        rho = adjust_rho(rho, angles, expt_purity)
+    if expt_purity is not None and angles is not None and model is not None:
+        rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model)
 
-        # # adjust only antidiagonals
-        # rho[1,2] = expt_purity*rho[1,2]
-        # rho[2,1] = expt_purity*rho[2,1]
     if do_counts:
         counts = np.reshape(counts, (36,1))
         def get_W1(params, counts):
@@ -395,56 +442,6 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RL, RR, LH, LV, LD, LA, LR, LL  = counts
             return np.real(.25*(np.cos(theta)**2*np.cos(alpha)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.cos(theta)**2*np.sin(alpha)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) + ((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*np.cos(beta)**2*(1 + ((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((HH + HV - VH - VV) / (HH + HV + VH + VV)) - ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(theta)**2*np.sin(beta)**2*(1 - ((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((HH + HV - VH - VV) / (HH + HV + VH + VV)) + ((HH - HV + VH - VV) / (HH + HV + VH + VV))) + np.sin(2*theta)*np.cos(alpha)*np.cos(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) + ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.sin(alpha)*np.sin(beta)*(((DD - DA - AD + AA) / (DD + DA + AD + AA)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.cos(theta)**2*np.sin(2*alpha)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) + ((HD - HA - VD + VA) / (HD + HA + VD + VA))) + np.sin(theta)**2*np.sin(2*beta)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) - ((HD - HA - VD + VA) / (HD + HA + VD + VA))) + np.sin(2*theta)*np.cos(alpha)*np.sin(beta)*(((DD + DA - AD - AA) / (DD + DA + AD + AA)) + ((DH - DV - AH + AV) / (DH + DV + AH + AV)))+ np.sin(2*theta)*np.sin(alpha)*np.cos(beta)*(((DD + DA - AD - AA) / (DD + DA + AD + AA)) - ((DH - DV - AH + AV) / (DH + DV + AH + AV)))))
 
-        if calc_unc:
-            def get_unc_W1(theta, stokes_unc):
-                a, b = np.cos(params), np.sin(params)
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2))))
-            def get_unc_W2(theta, stokes_unc):
-                a, b = np.cos(params), np.sin(params)
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2))))
-            def get_unc_W3(theta, stokes_unc):
-                a, b = np.cos(params), np.sin(params)
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[1,1]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[1,0]**2 + stokes_unc[0,1]**2))))
-            def get_unc_W4(theta, stokes_unc):
-                a, b = np.cos(params), np.sin(params)
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[1,1]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[2,2])**2 + (2*a*b)**2*(stokes_unc[1,0]**2 + stokes_unc[0,1]**2))))
-            def get_unc_W5(theta, stokes_unc):
-                a, b = np.cos(params), np.sin(params)
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + (2*a*b)**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
-            def get_unc_W6(theta, stokes_unc):
-                a, b = np.cos(params), np.sin(params)
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + ((a**2 - b**2)*stokes_unc[3,3])**2 + ((a**2 - b**2)*stokes_unc[1,1])**2 + (2*a*b)**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
-            
-            ## W' from summer 2022 ##
-            def get_unc_Wp1(params, stokes_unc):
-                theta, alpha = params[0], params[1]
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + (np.cos(2*theta))**2*(stokes_unc[1,1]**2+stokes_unc[2,2]**2)+(np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[1,2]**2 + stokes_unc[2,1]**2))))
-            def get_unc_Wp2(params, stokes_unc):
-                theta, alpha = params[0], params[1]
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + (np.cos(2*theta))**2*(stokes_unc[1,1]**2+stokes_unc[2,2]**2)+(np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[1,2]**2 + stokes_unc[2,1]**2))))
-            def get_unc_Wp3(params, stokes_unc):
-                theta, alpha, beta = params[0], params[1], params[2]
-                return np.sqrt(np.real(0.5 * (np.cos(theta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2) + np.sin(theta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2) + np.cos(theta)**4*np.cos(beta)**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + np.sin(theta)**4*np.cos(2*alpha - beta)**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha)*stokes_unc[1,0])**2 + (np.sin(2*theta)*np.cos(alpha - beta)*stokes_unc[0,1])**2 + (np.sin(2*theta)*np.sin(alpha)*stokes_unc[2,0])**2 + (np.sin(2*theta)*np.sin(alpha - beta)*stokes_unc[0,2])**2+(np.cos(theta)**2*np.sin(beta))**2*(stokes_unc[2,1]**2 + stokes_unc[1,2]**2) + np.sin(theta)**4*np.sin(2*alpha - beta)**2*(stokes_unc[2,1]**2 + stokes_unc[1,2]**2))))
-            def get_unc_Wp4(params, stokes_unc):
-                theta, alpha = params[0], params[1]
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2+stokes_unc[1,1]**2+np.cos(2*theta)**2*(stokes_unc[3,3]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[0,1]**2 + stokes_unc[1,0]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,3]**2 + stokes_unc[3,2]**2))))
-            def get_unc_Wp5(params, stokes_unc):
-                theta, alpha = params[0], params[1]
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2+stokes_unc[1,1]**2+np.cos(2*theta)**2*(stokes_unc[3,3]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[0,1]**2 + stokes_unc[1,0]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,3]**2 + stokes_unc[3,2]**2))))
-            def get_unc_Wp6(params,stokes_unc):
-                theta, alpha, beta = params[0], params[1], params[2]
-                return np.sqrt(np.real(0.5*(np.cos(theta)**2*np.cos(alpha)**2*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.cos(theta)**4*np.sin(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.cos(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.sin(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0] **2+ stokes_unc[0,3]**2) + (np.sin(2*theta)*np.cos(alpha)*np.cos(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.sin(alpha)*np.sin(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.cos(alpha)*np.sin(beta))**2*(stokes_unc[2,3]**2 + stokes_unc[2,0]**2) + (np.sin(2*theta)*np.sin(alpha)*np.cos(beta))**2*(stokes_unc[2,3]**2 + stokes_unc[2,0]**2) + (np.cos(theta)**2*np.sin(2*alpha))**2*(stokes_unc[3,2]**2 + stokes_unc[0,2]**2) + (np.sin(theta)**2*np.sin(2*beta))**2*(stokes_unc[3,2]**2 + stokes_unc[0,2]**2))))
-            def get_unc_Wp7(params, stokes_unc):
-                theta, alpha = params[0], params[1]
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2+np.cos(2*theta)**2*(stokes_unc[3,3]**2 + stokes_unc[1,1]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,1]**2 + stokes_unc[1,3]**2) + (np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,0]**2+stokes_unc[0,2]**2))))
-            def get_unc_Wp8(params, stokes_unc):
-                theta, alpha = params[0], params[1]
-                return np.sqrt(np.real(0.5*(stokes_unc[0,0]**2 + stokes_unc[2,2]**2 + np.cos(2*theta)**2*(stokes_unc[3,3]**2+stokes_unc[1,1]**2) + (np.sin(2*theta)*np.cos(alpha))**2*(stokes_unc[3,1]**2+stokes_unc[1,3]**2)+(np.sin(2*theta)*np.sin(alpha))**2*(stokes_unc[2,0]**2 + stokes_unc[0,2]**2))))
-            def get_unc_Wp9(params, stokes_unc):
-                theta, alpha, beta = params[0], params[1], params[2]
-                return np.sqrt(np.real(0.5*(np.cos(theta)**4*np.cos(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.cos(theta)**4*np.sin(alpha)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.cos(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + np.sin(theta)**4*np.sin(beta)**4*(stokes_unc[0,0]**2 + stokes_unc[3,3]**2 + stokes_unc[3,0]**2 + stokes_unc[0,3]**2) + (np.sin(2*theta)*np.cos(alpha)*np.cos(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + (np.sin(2*theta)*np.sin(alpha)*np.sin(beta))**2*(stokes_unc[1,1]**2 + stokes_unc[2,2]**2) + np.cos(theta)**4*np.sin(2*alpha)**2*(stokes_unc[0,1]**2 + stokes_unc[3,1]**2) + (np.sin(theta)**2*np.sin(2*beta))**2*(stokes_unc[0,1]**2 + stokes_unc[3,1]**2) + (np.sin(2*theta)*np.cos(alpha)*np.sin(beta))**2*(stokes_unc[1,0]**2 + stokes_unc[1,3]**2)+ (np.sin(2*theta)*np.sin(alpha)*np.cos(beta))**2*(stokes_unc[1,0]**2 + stokes_unc[1,3]**2))))
-
-
         def get_nom(params, expec_vals, func):
             '''For use in error propagation; returns the nominal value of the function'''
             w = func(params, expec_vals)
@@ -453,10 +450,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
         # now perform optimization; break into three groups based on the number of params to optimize
         all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
         W_expec_vals = []
-        if calc_unc:
-            all_W_unc = [get_unc_W1, get_unc_W2, get_unc_W3, get_unc_W4, get_unc_W5, get_unc_W6, get_unc_Wp1, get_unc_Wp2, get_unc_Wp3, get_unc_Wp4, get_unc_Wp5, get_unc_Wp6, get_unc_Wp7, get_unc_Wp8, get_unc_Wp9]
         for i, W in enumerate(all_W):
-            if calc_unc: get_unc_W = all_W_unc[i]
             if i <= 5: # just theta optimization
                 # get initial guess at boundary
                 if not(expt):
@@ -611,41 +605,24 @@ def compute_witnesses(rho, counts = None, expt = False, do_stokes=False, do_coun
                         else:
                             isi+=1
 
-            if calc_unc:
-                W_expec_vals.append(((w_min_val), get_unc_W(w_min_params, stokes_unc)))
-            elif expt: # automatically calculate uncertainty
-                W_val = W(w_min_params, counts)
-                print(w_min_params)
-                print(W_val)
+            if expt: # automatically calculate uncertainty
                 W_expec_vals.append(W(w_min_params, counts))
             else:
                 W_expec_vals.append(w_min_val)
-    
-        # find min W expec value; this tells us if first 12 measurements are enough #
-        if not(calc_unc):
-            # try:
-            #     W_min = np.real(min(W_expec_vals[:6]))[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
-            # except TypeError: # if it's a float, then just use that
-            W_min = np.real(min(W_expec_vals[:6]))
 
+        W_min = np.real(min(W_expec_vals[:6]))
+        try:
+            Wp_t1 = np.real(min(W_expec_vals[6:9])[0])
+            Wp_t2 = np.real(min(W_expec_vals[9:12])[0])
+            Wp_t3 = np.real(min(W_expec_vals[12:15])[0])
+        except TypeError:
             Wp_t1 = np.real(min(W_expec_vals[6:9]))
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
 
-            return W_min, Wp_t1, Wp_t2, Wp_t3
+        return W_min, Wp_t1, Wp_t2, Wp_t3
 
-        else: # calculate uncertainty
-            # try:
-            #     W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])[0] ## for some reason, on python 3.9.7 this is a list of length 1, so need to index into it. on 3.10.6 it's just a float 
-            # except TypeError: # if it's a float, then just use that
-            W_min = np.real(sorted(W_expec_vals[:6], key=lambda x:x[0])[0])
-
-            Wp_t1 = np.real(sorted(W_expec_vals[6:9], key=lambda x: x[0])[0])
-            Wp_t2 = np.real(sorted(W_expec_vals[9:12], key=lambda x: x[0])[0])
-            Wp_t3 = np.real(sorted(W_expec_vals[12:15], key=lambda x: x[0])[0])
-
-            return W_min, Wp_t1, Wp_t2, Wp_t3 # these are tuples
-
+        
     else: # use operators instead like in eritas's matlab code
         # bell states #
         PHI_P = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))

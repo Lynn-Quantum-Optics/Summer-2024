@@ -10,8 +10,8 @@ classdef HyperBell
         l_bound; % lower bound
         u_bound; % upper bound
         bounds; % bounds on the coefficients
-        precision; % precision for solving: negative exponent. used for solution vec, orthogonality, and normalization
-        k_group_indices; % indices of the k-groups of bell states
+        soln_precision; % precision for solving: negative exponent. used for solution vec, orthogonality, and normalization
+        coeff_precision;
         t0; % initial time
     end
     methods
@@ -34,8 +34,8 @@ classdef HyperBell
             for i = 1:obj.num_coeffs
                 obj.bounds{end+1} = [-1; 1];
             end
-            obj.precision = 6;
-            obj.k_group_indices = get_k_group_indices(obj);
+            obj.soln_precision = 6;
+            obj.coeff_precision = 3;
             obj.t0 = datetime; % log time at initilization so we can see how long it takes to solve
 
             disp(obj) % display the object with its params
@@ -44,53 +44,54 @@ classdef HyperBell
             %%% set the precision for solving
             obj.precision = precision;
         end
-        function comb_unique = get_k_group_indices(obj)
-            %%% construct indices of d^2 choose k states
-            %% get all combinations, incl redudant (matlab doesn't have a built-in way to not include these elems)
-            arr = {};
-            for i = 1:obj.k
-                arr{end+1} = 1:obj.d^2;
+        function m_k_sys = get_m_k_sys(obj, m)
+            %%% gets the mth combination of d^2 choose k elements; uses CNS
+            %%% (combinatorial number system)
+            % m starts at 1, but need to reset by -1 for alg
+            if m > nchoosek(obj.d^2, obj.k)
+                error fprintf("m=%d exceeds d^2=%d", m, obj.d^2);
             end
-            comb = arr{i};
-            for i = 2:numel(arr)
-                comb = combvec(comb, arr{i});
-            end
-            % get only unique %
-            comb_unique = {};
-            for i = 1:numel(comb(1, :)) % iterate through all cols
-                 keep=true;
-                for j = 1:numel(comb(:, i))-1 
-                    
-                    for l = j+1:numel(comb(:, i))
-                        if comb(j, i)== comb(l, i)
-                            keep=false;
-                            break;
-                        end
-                    end 
+            m = m-1;
+            function [largest_val, ind] = do_round(targ, n)
+                %%% finds the largest value of d^2 choose n to targ
+                if targ==0
+                    largest_val=0;
+                    ind=n-1;
+                    return
+                elseif targ==1
+                    largest_val = 0;
+                    ind = n;
                 end
-                if keep
-                    % make sure other permutation of same indices doesn't
-                    % already exist
-                    disp(numel(comb_unique))
-                    if numel(comb_unique) > 0
-                        new_elem= true;
-                        for o = 1:numel(comb_unique)
-                            if all(unique(comb(:, i)) == unique(cell2mat(comb_unique(o))))
-                                new_elem=false;
-                                break;
-                            end
+                i = -1;
+                largest_val=0;
+                while (largest_val <= targ) & (n+1+i <= obj.d^2)
+                    largest_val = nchoosek(n+1+i, n);
+                    if largest_val > targ
+                        i= i-1;
+                        ind = n+i+1; % get the index corresponding to largest_val
+                        if n+1+i == n-1
+                            largest_val= 0;
+                            ind = n-1;
+                        else
+                            largest_val = nchoosek(n+1+i, n);
+                            ind = n+1+i;
                         end
-                        if new_elem
-                            comb_unique{end+1} = comb(:, i);
-                        end
-                    else
-                        comb_unique{end+1} = comb(:, i);
-                        disp(numel(comb_unique))
+                        return
                     end
+                    i = i+1;
                 end
+                ind = n+i+1;
             end
-            disp(comb_unique)
+            targ= m; % largest val starts at m
+            m_k_sys = zeros(obj.k,1);
+            for j = obj.k:-1:1
+                [largest_val, ind] = do_round(targ, j);
+                m_k_sys(j) = ind;
+                targ=abs(targ-largest_val);
+            end
+            m_k_sys = m_k_sys +1; % offset by +1 so alligns with matlab indicies
         end
+
         %% getters for bell states, measurement, systems %%
         function bell = get_bell(obj, c, p)
             %%% get the (c,p) bell state in fock basis
@@ -102,8 +103,6 @@ classdef HyperBell
                 num_vec = zeros(2*obj.d, 1); % number basis portion
                 num_vec(j) = 1;
                 num_vec(obj.d+mod((j+c-1), obj.d)+1) = 1;
-                disp(phase)
-                disp(num_vec)
                 bell = bell + phase*num_vec;
             end
             bell = bell * 1/sqrt(obj.d);
@@ -135,11 +134,12 @@ classdef HyperBell
         end
         function k_group = get_m_kgroup(obj, m)
             %%% get the mth k-group of bell states
-            k_group_index = obj.k_group_indices(:, m);
+            k_group_indices = obj.get_m_k_sys(m);
             k_group = {};
-            for i = 1:obj.k % recover the c and p indices from the k_group_index
-                c = fix(i/obj.d); % integer division
-                p = mod(i, obj.d); 
+            for i = 1:numel(k_group_indices) % recover the c and p indices from the k_group_index
+                ind= k_group_indices(i);
+                c = fix(ind/obj.d); % integer division
+                p = mod(ind, obj.d); 
                 k_group{i} = get_bell(obj, c, p);
             end
         end
@@ -149,7 +149,7 @@ classdef HyperBell
             k_sys = zeros(numel(k_group), 1); % initialize k_sys array
             for i = 1:obj.k
                 for j = i+1:obj.k
-                    k_sys(i, j) = get_meas_ip(obj, k_group(i), k_group(j), coeff);
+                    k_sys(i) = get_meas_ip(obj, k_group(i), k_group(j), coeff);
                 end
             end
         end
@@ -173,41 +173,69 @@ classdef HyperBell
                 end
             end
         end
-        function valid_soln = is_valid_soln(obj, coeff, coeff_ls)
+        function coeff_ip_ls = get_coeff_ip_ls(obj, coeff, coeff_ls)
+            %%% returns list of inner products of coeff with coeff_ls
+                coeff_ip_ls = zeros(numel(coeff_ls),1);
+                coeff = obj.get_full_coeff(coeff);
+                for i = 1:numel(coeff_ls) % check if solution is orthogonal to all prior solutions
+                    % take inner product with all prior coeffs
+                    x = obj.get_full_coeff(cell2mat(coeff_ls(i)));
+                    if not(all(coeff == x)) % must not exist in list
+                        ip = coeff'*x;
+                        coeff_ip_ls(i) = ip;
+                    else
+                        coeff_ip_ls(i)=100; % punish model if chooses duplicate state
+                    end
+                end
+        end
+        function ortho = is_ortho_coeff(obj, coeff, coeff_ls)
+            %%% uses output from get_coeff_ip_ls
+            ortho=true;
+            coeff_ip_ls = obj.get_coeff_ip_ls(coeff, coeff_ls);
+            if any(abs(round(coeff_ip_ls, obj.soln_precision))>0) % check if any ip have magntude too great
+                ortho=false;
+            end
+        end
+        function valid_soln = is_valid_soln(obj, coeff, coeff_ls, m)
             %%% check if the solution vector is valid.
             %%% coeff is for current found solution
             %%% coeff_ls is list of all prior found solutions
-            soln_0 = all(round(obj.get_ksys(coeff), obj.precision) == 0); % check if all functions in k-system are 0
-            ortho = true;
-            for i = 1:numel(coeff_ls) % check if solution is orthogonal to all prior solutions
-                % take inner product with all prior coeffs
-                x = coeff_ls(i);
-                if not(all(coeff == x)) % must not exist in list
-                    ip = round(coeff'*x, obj.precision); % round inner product to precision
-                    if ip ~= 0 % if not orthogonal
-                        ortho = false;
-                        break;
-                    end
-                else
-                    ortho=false;
-                    break;
-                end
+            coeff_0 = not(all(round(obj.get_full_coeff(coeff), obj.coeff_precision) == 0));
+            soln_0 = all(round(obj.get_k_sys(coeff, m), obj.soln_precision) == 0); % check if all functions in k-system are 0
+            if numel(coeff_ls)>1
+                ortho = obj.is_ortho_coeff(coeff, coeff_ls);
+                valid_soln = coeff_0 & soln_0 & ortho; 
+            else
+                 valid_soln = coeff_0 & soln_0; % don't need to check orthogonal if this is first solution
             end
-            valid_soln = soln_0 & ortho; 
         end
-        function [n,m] = convert_soln(obj, coeff_ls)
+        function [n,m] = convert_soln(obj, coeff)
             %%% convert found soln to pairs of integers n and m in the form
             %%% n / d^2 e^(i 2pi m / d^2)
             % first normalize soln
-            coeff_ls = coeff_ls / sum(coeff_ls.^2);
+            coeff = coeff / sum(coeff.^2);
             % convert to v
-            v_coeff_ls = get_full_coeff(coeff_ls);
+            v_coeff_ls = obj.get_full_coeff(coeff);
             % get mag
             mag = abs(v_coeff_ls);
             ang = angle(v_coeff_ls);
             % convert to n and m
             n = obj.d^2*mag;
             m = ang*obj.d^2 / (2*pi);
+        end
+        function loss = loss_func(obj, coeff, coeff_ls, m)
+         %%% three parts: 
+         % 1. absolute difference in norm from 1
+         % 2. RSE for function values
+         % 3. RSE for inner products with exisiting solutions
+%          coeff = cell2mat(coeff);
+%          coeff_ls = cell2mat(coeff_ls);
+         coeff_v = get_full_coeff(obj, coeff);
+         l1 = sqrt(abs(sum(coeff_v.^2)));
+         l2 = sqrt(abs(sum(get_k_sys(obj, coeff, m).^2)));
+         l3 = sqrt(abs(sum(get_coeff_ip_ls(obj, coeff, coeff_ls).^2)));
+         % sum all 3 together to get complete loss
+         loss = l1+l2+l3;
         end
     end
 end
