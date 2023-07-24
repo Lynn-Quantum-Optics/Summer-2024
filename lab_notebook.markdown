@@ -10,7 +10,7 @@ I realigned BQWP and BCHWP. Now BCHWP doesn't intersect the pump beam at all.
 
 O here. Beam path looks good! At 22:00, rerunning PhiP using preset callibration. Got error: 
     Exception: Getting status failed: Time out while waiting for hardware unit to respond.
-Error persists after killing terminal. Checking kinesis and APT user confirms that it is one of the Thorlab motors; in particular, Bob HWP. Unplugged and replugged motor, homed--dial reads about 40 degrees. Will need to recallibrate.
+Error persists after killing terminal. Checking kinesis and APT user confirms that it is one of the Thorlab motors; in particular, Bob HWP. Unplugged and replugged motor, homed--dial reads about 40 degrees. Properly dswhutdown manager object after the fact as well. Will need to recallibrate.
 
 ## 7/21/23
 MP: A
