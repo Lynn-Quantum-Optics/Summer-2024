@@ -32,9 +32,12 @@ def solve_ksys(m, hb, verbose=True, opt=False):
 
         l1 =  np.sqrt(sum([abs(hb.get_ksys(x0)[i])**2 for i in range(len(hb.get_ksys(x0)))]))
 
+        x0 = hb.get_full_coeff(x0) # combine real and imag parts of coeff vec
+
         if x_ls is not None:
             ip_ls = []
             for x in x_ls:
+                x = hb.get_full_coeff(x)
                 if not(np.all(x0 == x)):
                     ip = x.conj().T @ x0
                     try:
@@ -43,7 +46,8 @@ def solve_ksys(m, hb, verbose=True, opt=False):
                         pass
                     ip = abs(ip)
                     ip_ls.append(ip)
-            l2 = np.sqrt(sum([abs(ip_ls[i])**2 for i in range(len(ip_ls))]))
+            ip_ls = np.array(ip_ls)
+            l2 = np.sqrt(sum(ip_ls**2))
             return l0 + l1 + l2
         else:
             return l0 + l1
@@ -72,7 +76,7 @@ def solve_ksys(m, hb, verbose=True, opt=False):
 
         s_loss, soln_vec, x_sol, valid_soln = try_solve(x0)
         it = 0
-        while not(valid_soln):
+        while not(valid_soln) and it < hb.num_attempts:
             x0 = hb.rand_guess()
             # print('not valid soln, using x0=', x0)
             # print('coeff', x_sol)
@@ -91,16 +95,21 @@ def solve_ksys(m, hb, verbose=True, opt=False):
                 print('soln x = ', x_sol)
                 # print('(m,q) soln = ',nq_sol)
             return soln_vec, x_sol, it
+        else:
+            if verbose: 
+                print(f'could not find soln in limit = {hb.num_attempts}')
+                print('Current loss = ', s_loss)
+                print('Soln vector = ', soln_vec)
+                print('Soln input = ', x_sol)
 
     # initializing
     x_ls = []
     # nq_ls = [] # tuples of (n,q) values
     soln_ls = [] # list of solution vectors
     it_ls = [] # list of number of iterations required to find a valid solution
-    s = 0
     # get initial guess
     x0 = hb.rand_guess()
-    while (len(x_ls) < hb.soln_limit) and (s < hb.soln_limit): 
+    while len(x_ls) < hb.soln_limit: 
         soln_vec, x_sol, it = get_soln(x0, x_ls)
         if len(x_ls) > 0:
             orthogonal, in_x_ls = hb.is_orthogonal(x_sol, x_ls)
@@ -110,14 +119,15 @@ def solve_ksys(m, hb, verbose=True, opt=False):
                 # nq_ls.append(nq_sol)
                 soln_ls.append(soln_vec)
                 it_ls.append(it)
-                s+=1 # increment number of successful attempts
+            else:
+                print('ortho', orthogonal)
+                print('x_ls', x_ls)
         else:
             print('first solution!')
             x_ls.append(x_sol)
             # nq_ls.append(nq_sol)
             soln_ls.append(soln_vec)
             it_ls.append(it)
-            s+=1 # increment number of successful attempts
         
         x0 = hb.rand_guess()
 
@@ -126,7 +136,6 @@ def solve_ksys(m, hb, verbose=True, opt=False):
         if opt: 
             print('x_ls', x_ls)
             # print('nq_ls', nq_ls)
-
             print('saving!')
             # nq_ls = np.array(nq_ls)
             x_ls = np.array(x_ls)

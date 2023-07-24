@@ -110,7 +110,7 @@ classdef HyperBell
          function v = get_full_coeff(obj, coeff)
             %%% get the full coefficient vector from the solution vector
             v = zeros(2*obj.d, 1);
-            for j = 1:obj.d
+            for j = 1:2*obj.d
                 v(j) = coeff(j) + 1i*coeff(2*obj.d+j);
             end
         end
@@ -200,7 +200,8 @@ classdef HyperBell
             %%% check if the solution vector is valid.
             %%% coeff is for current found solution
             %%% coeff_ls is list of all prior found solutions
-            coeff_0 = not(all(round(obj.get_full_coeff(coeff), obj.coeff_precision) == 0));
+%             coeff_0 = not(all(round(obj.get_full_coeff(coeff), obj.coeff_precision) == 0));
+            coeff_0 = round(sum(abs(coeff.^2)), obj.soln_precision)==1;
             soln_0 = all(round(obj.get_k_sys(coeff, m), obj.soln_precision) == 0); % check if all functions in k-system are 0
             if numel(coeff_ls)>1
                 ortho = obj.is_ortho_coeff(coeff, coeff_ls);
