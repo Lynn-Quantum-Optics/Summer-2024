@@ -1,3 +1,32 @@
+## 7/24/23
+MP: A
+
+Opening kinesis. All motors read 0 and none are at 9 degrees so they will all need to be re-homed. Since they are all homed in kinesis, this will have to be done semi-manually.
+
+Testing on 904:
+- disconnected from USB
+- attempted manual jog that failed
+- powercycle
+- manual jog disconnected from USB worked
+- reconnected to USB
+- kinesis failed to connect with it
+- powercycle while connected to usb
+- reconnect in kinesis succeeded (with position error)
+- rehoming in kinesis succeeded
+- dial now reads 9, should be good to go
+
+For the rest (667, 901, 646):
+- disconnect within kinesis
+- powercycle while connected to usb
+- reconnect in kinesis
+- rehome in kinesis
+
+The above only worked for 646. I had to disconnect from 901 and 667 (within kinesis), then re-do the same process for them one at a time.
+
+This still did not work for 901 however. I tried then powercycling and manually homing it, which caused another power cycle. At this point I resorted to diconnecting the USB, power cycling, jogging back and forth a few times, reconnecting the the PC and homing in kinesis which finally worked.
+
+All ThorLabs motors are now homed properly.
+
 ## 7/23/23
 MP: O
 Laser was on from Friday. Experiment 1: setting PhiP, but then analyzed UV_HWP=10, 22.5, 45; taking full tomo so we can try my method and Alec's for measuring phase. Visually, the measurement motors do not look at 0--actually more like 10 degrees.
