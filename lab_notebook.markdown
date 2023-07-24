@@ -1,3 +1,9 @@
+## 7/23/23
+MP: O
+Laser was on from Friday. Experiment 1: setting PhiP, but then analyzed UV_HWP=10, 22.5, 45; taking full tomo so we can try my method and Alec's for measuring phase. Visually, the measurement motors do not look at 0--actually more like 10 degrees.
+
+Purity is looking really low at 10 (.7778) and 22.5 (.4926), but at 45 it's .9475... Tested on settings found in Richard's updated full tomo for PhiP (but left Bob at 0 instead of 45, so realized making PsiM): purity of .9213. Inspected the setup and noticed that the BBO N2 tube was slightly intersecting the beam, so I fixed it and am retaking PsiM. I also noticed that Bob's C_HWP is partially intersecting the beam as well...This slightly increased purity: .92256.
+
 ## 7/21/23
 MP: A
 
