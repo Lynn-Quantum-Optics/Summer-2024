@@ -4,6 +4,10 @@ Laser was on from Friday. Experiment 1: setting PhiP, but then analyzed UV_HWP=1
 
 Purity is looking really low at 10 (.7778) and 22.5 (.4926), but at 45 it's .9475... Tested on settings found in Richard's updated full tomo for PhiP (but left Bob at 0 instead of 45, so realized making PsiM): purity of .9213. Inspected the setup and noticed that the BBO N2 tube was slightly intersecting the beam, so I fixed it and am retaking PsiM. I also noticed that Bob's C_HWP is partially intersecting the beam as well...This slightly increased purity: .92256.
 
+A here. I checked out the pump beam hitting BCHWP and it was a small intersection but definitely present. I also noticed that BQWP was misaligned fairly significantly from retroreflective when I removed BCHWP to realign it.
+
+I realigned BQWP and BCHWP. Now BCHWP doesn't intersect the pump beam at all.
+
 ## 7/21/23
 MP: A
 
