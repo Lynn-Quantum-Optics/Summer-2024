@@ -235,6 +235,9 @@ def compute_roik_proj(basis1, basis2, rho):
     rho_swapped = rho.copy() # swap the subsystems A and B
     rho_swapped[:, 1] = rho[:, 2]
     rho_swapped[:, 2] = rho[:, 1]
+    rho_swapped_c = rho_swapped.copy()
+    rho_swapped[1, :] = rho_swapped_c[2, :]
+    rho_swapped[2, :] = rho_swapped_c[1, :]
 
     M_T = np.kron(rho, rho_swapped)
     num = M_T @ np.kron(np.kron(basis1, Bell_singlet), basis2)
@@ -244,7 +247,7 @@ def compute_roik_proj(basis1, basis2, rho):
         return (np.trace(num) / np.trace(denom)).real
     except ZeroDivisionError:
         return 0
-
+            
 def get_all_roik_projs(rho):
     ''' Computes the projections as defined in Roik et al'''
     # define the single bases for projection
@@ -269,7 +272,49 @@ def get_all_roik_projs(rho):
             all_projs.append(compute_roik_proj(basis, basis2, rho))
 
     return np.array(all_projs).reshape(6,6)
-    
+
+def compute_roik_proj_sc(p_1,p_2,x,m,phi):
+    '''Source code from Roik et al to compute projection'''
+    pp = np.kron(p_1,x)
+    PP = np.kron(pp,p_2)
+    result_PP= phi @ PP
+    r_PP = result_PP.trace()
+    cor_pp = np.kron(p_1,m)
+    cor_PP = np.kron(cor_pp,p_2)
+    cor_res_PP = phi @ cor_PP
+    cor_r_PP = cor_res_PP.trace()
+    #print(r_VV)
+    #print(cor_r_VV)
+    if r_PP == 0:
+        fin_r_PP = 0
+    else:
+        fin_r_PP = r_PP/cor_r_PP
+    try:
+        return np.real(fin_r_PP[0][0])
+    except TypeError:
+        return  fin_r_PP
+
+def get_all_roik_projs_sc(resoult):
+    '''Source code from Roik et al to compute all projections'''
+    # does subsystem swapping
+    resoult2 = np.array([[resoult.item(0, 0),resoult.item(0,2),resoult.item(0, 1),resoult.item(0, 3)],[resoult.item(2, 0),resoult.item(2, 2),resoult.item(2,1),resoult.item(2,3)],[resoult.item(1,0),resoult.item(1,2),resoult.item(1,1),resoult.item(1,3)],[resoult.item(3,0),resoult.item(3,2),resoult.item(3,1),resoult.item(3,3)]])
+
+    h = [[1,0],[0,0]]
+    v = [[0,0],[0,1]]    
+    d = [[1/2,1/2],[1/2,1/2]]
+    r = [[1/2,1j/2],[-1j/2,1/2]]
+    l = [[1/2,-1j/2],[1j/2,1/2]]
+    a = [[1/2,-1/2],[-1/2,1/2]]
+    x = [[0,0,0,0],[0,1/2,-1/2,0],[0,-1/2,1/2,0],[0,0,0,0]]
+    phi = np.kron(resoult,resoult2)
+    m = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]] 
+
+    projs = np.zeros((6,6))
+    for i, p1 in enumerate([h, v, d, a, r, l]):
+        for j, p2 in enumerate([h, v, d, a, r, l]):
+            projs[i, j] = compute_roik_proj_sc(p1,p2,x,m,phi)
+    return projs
+
 def adjust_rho(rho, angles, expt_purity, state='E0'):
     ''' Adjusts theoretical density matrix to account for experimental impurity.'''
     if state=='E0':
@@ -317,12 +362,22 @@ def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     elif model==1:
         e=x[0]
         rho_c = (1-e)*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e*(purity * (get_rho((np.cos(eta)+np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*HH + (np.cos(eta)-np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*VV)) + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta))/2)*HH_rho + ((1-np.cos(chi)*np.sin(2*eta))/2)*VV_rho))
+    elif model==16:
+        # do full correction in all bases, expanding model 4
+        rho_c_1 = purity*rho_actual 
+        stokes = get_expec_vals(rho_actual)
+        rho_c_2 = np.dot(x, stokes.reshape((16,)))
+        rho_c = rho_c_1 + (1-purity)*rho_c_2
+
+    else:
+        raise ValueError(f'model {model} value invalid')
 
     return rho_c
 
-def load_saved_get_E0_rho_c(rho_actual, angles, purity, model, model_path = '../../framework/decomp_test/'):
+def load_saved_get_E0_rho_c(rho_actual, angles, purity, model, UV_HWP_offset, model_path = '../../framework/decomp_test/'):
+    '''Reads in data from files with optimal noise adjusements depending on extra UV_HWP offset (believed to be around 1 degree off during testing)'''
     try:
-        adjust_df = pd.read_csv(model_path+f'noise_model_{model}.csv')
+        adjust_df = pd.read_csv(model_path+f'noise_{UV_HWP_offset}/noise_model_{model}.csv')
     except:
         raise ValueError(f'You are missing the file oise_model_{model}.csv; your current path is {model_path}.')
     
@@ -338,17 +393,17 @@ def load_saved_get_E0_rho_c(rho_actual, angles, purity, model, model_path = '../
         adjust_df = adjust_df[['e']]
     
     adjust_df = adjust_df.to_numpy()
-    adjust_df = adjust_df.reshape((3,))
+    adjust_df = adjust_df.reshape((model,))
     
     adj_rho = adjust_E0_rho_general(adjust_df, rho_actual, purity, angles[0], angles[1])
     return adj_rho
 
-def get_adj_E0_fidelity(rho, rho_actual, purity, eta, chi, model):
+def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_offset):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
-    adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model)
-    return get_fidelity(adj_rho, rho)
+    adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
+    return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, UV_HWP_offset=None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -358,6 +413,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             do_counts: use the raw definition in terms of counts
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
             model: which model to correct for noise; see det_noise in process_expt.py for more info
+            UV_HWP_offset: see description in det_noise in process_expt.py
             model_path: path to noise model csvs.
             angles: angles of eta, chi for E0 states to adjust theory
             num_reps: int, number of times to run the optimization
@@ -370,12 +426,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
     # check if experimental data
     if expt and counts is not None:
         do_counts = True
-        calc_unc = False # don't explitictly calculate uncertainty in Ws for experimental data
-        # assert stokes_unc is not None, "Must provide uncertainty in Stokes params"
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
     if expt_purity is not None and angles is not None and model is not None:
-        rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model)
+        rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model, UV_HWP_offset)
 
     if do_counts:
         counts = np.reshape(counts, (36,1))

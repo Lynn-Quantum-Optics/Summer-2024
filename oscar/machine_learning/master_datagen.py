@@ -55,8 +55,8 @@ def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_para
                 else: 
                     return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
             else:
-                # get roik probabilities
-                roik_probs = get_all_roik_projs(rho)
+                # get roik probabilities; use their code
+                roik_probs = get_all_roik_projs_sc(rho)
                 r_HH, r_HV, r_HD, r_HA, r_HR, r_HL = roik_probs[0]
                 r_VH, r_VV, r_VD, r_VA, r_VR, r_VL = roik_probs[1]
                 r_DH, r_DV, r_DD, r_DA, r_DR, r_DL = roik_probs[2]
