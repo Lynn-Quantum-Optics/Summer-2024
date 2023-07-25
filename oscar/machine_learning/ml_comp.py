@@ -36,9 +36,9 @@ def get_pop_raw(file):
     prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
     prob_RandL = abs(0.5*np.ones_like(df['HH']) - (df['RR'] + df['LL']))
     pop_df = pd.DataFrame()
-    pop_df['d_HandV'] = prob_HandV
+    pop_df['d_HandV'] = prob_HandV 
     pop_df['d_DandA'] = prob_DandA
-    pop_df['d_RandL'] = prob_RandL
+    pop_df['d_RandL'] = prob_RandL 
     return pop_df
 
 def get_labels_pop(file=None, pop_df=None):
@@ -55,7 +55,7 @@ def get_labels_pop(file=None, pop_df=None):
     Y_pred_labels = Y_pred_labels.astype(int)
     return Y_pred_labels
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9'):
+def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none'):
     ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.
     Params:
         model: ml model object to evaluate
@@ -70,7 +70,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names
         if data is None:
             assert file is not None, 'file or data must be provided'
             assert task == 'w' or task =='e', 'task must be w or e'
-            X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
+            X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, pop_method = pop_method, task=task, split=False)
         else:
             X, Y = data
         if not(name == 'population'):
@@ -97,17 +97,17 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names
             p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
         return p_df
 
-def eval_perf_multiple(model_ls, model_names, input_methods, tasks, savename, file_ls = ['roik_True_400000_r_os_t.csv'], file_names=['Test']):
+def eval_perf_multiple(model_ls, model_names, input_methods, pop_methods, tasks, savename, file_ls = ['roik_True_400000_r_os_t.csv'], file_names=['Test']):
     '''Generalizes eval_perf to multiple models and saves to csv.'''
     df = pd.DataFrame()
     for i, model_name in enumerate(list(zip(model_ls, model_names))):
         model = model_name[0]
         name = model_name[1]
-        df = pd.concat([df, eval_perf(model, name, task=tasks[i], input_method=input_methods[i], file_ls=file_ls, file_names=file_names)])
+        df = pd.concat([df, eval_perf(model, name, task=tasks[i], input_method=input_methods[i], pop_method=pop_methods[i], file_ls=file_ls, file_names=file_names)])
     print('saving!')
     df.to_csv(join(new_model_path, savename+'.csv'))
 
-def comp_overlap(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = 'w', input_method='prob_9'):
+def comp_overlap(model_ls, names, input_methods, pop_methods, file = 'roik_400k_extra_wpop_rd.csv', task = 'w'):
     '''Compare overlap of different predictors on 400k test set; computes PCA on inputs and plots overlap of predictions.
     Params:
         model_ls: list of models to compare
@@ -117,30 +117,31 @@ def comp_overlap(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = '
         input_method: how to prepare input data; default is 'prob_9' but will modify code to allow a list.
     
     '''
-    X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
+    # # create PCA for inputs
+    # pca = PCA(n_components=2)
+    # X_pca = pca.fit_transform(X)
 
-    # create PCA for inputs
-    pca = PCA(n_components=2)
-    X_pca = pca.fit_transform(X)
-
-    # tsne = TSNE(n_components=2)
-    # X_tsne = tsne.fit_transform(X)
-    # measure explained variance ratio
-    var_ratio = pca.explained_variance_ratio_
-    # create fig
-    # fig, ax = plt.subplots(1, 2, figsize=(12,7))
-    plt.figure(figsize=(10,7))
-    plt.title('PCA of Input Probabilities')
-    plt.xlabel('PC1: {:.2f}%'.format(var_ratio[0]*100))
-    plt.ylabel('PC2: {:.2f}%'.format(var_ratio[1]*100))
+    # # tsne = TSNE(n_components=2)
+    # # X_tsne = tsne.fit_transform(X)
+    # # measure explained variance ratio
+    # var_ratio = pca.explained_variance_ratio_
+    # # create fig
+    # # fig, ax = plt.subplots(1, 2, figsize=(12,7))
+    # plt.figure(figsize=(10,7))
+    # plt.title('PCA of Input Probabilities')
+    # plt.xlabel('PC1: {:.2f}%'.format(var_ratio[0]*100))
+    # plt.ylabel('PC2: {:.2f}%'.format(var_ratio[1]*100))
     # ax[1].set_xlabel('t-SNE 1')
     # ax[1].set_ylabel('t-SNE 2')
     N_correct_ls = []
     for i, model in enumerate(model_ls):
+        X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_methods[i], pop_method = pop_methods[i], task=task, split=False)
+
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         if not(names[i] == 'population'):
             Y_pred = model.predict(X)
             Y_pred_labels = get_labels(Y_pred, task=task)
+            print(input_methods[i], pop_methods[i])
         else:
             Y_pred_labels = get_labels_pop(file)
         # compute overlap with previous models
@@ -162,22 +163,23 @@ def comp_overlap(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = '
                 print('total perc correct: {}'.format(np.sum(N_sum)/len(Y)))
         print('-------------------')
         N_correct_ls.append(N_correct)
-        # get subset of X where N_correct > 0
-        PC1 = X_pca[:, 0][N_correct > 0]
-        PC2 = X_pca[:, 1][N_correct > 0]
-        plt.scatter(PC1, PC2, label=names[i]+', %.3g'%(np.sum(N_correct) / len(Y)), alpha=0.5)
+        # # get subset of X where N_correct > 0
+        # PC1 = X_pca[:, 0][N_correct > 0]
+        # PC2 = X_pca[:, 1][N_correct > 0]
+        # plt.scatter(PC1, PC2, label=names[i]+', %.3g'%(np.sum(N_correct) / len(Y)), alpha=0.5)
         # TSNE1 = X_tsne[:, 0][N_correct > 0]
         # TSNE2 = X_tsne[:, 1][N_correct > 0]
         # ax[1].scatter(TSNE1, TSNE2, label=names[i]+', %.3g'%(np.sum(N_correct) / len(Y)), alpha=0.5)
     # ax[0].legend()
     # ax[1].legend()
     # plt.tight_layout()
-    plt.legend()
-    plt.savefig(join('random_gen', 'models', 'PCA-tsne_comp.pdf'))
-    plt.show()
+    # plt.legend()
+    # plt.savefig(join('random_gen', 'models', 'PCA-tsne_comp.pdf'))
+    # plt.show()
 
 def comp_disagreement(model_ls, names, file = 'roik_True_400000_r_os_t.csv', task = 'w', input_method='prob_9'):
-    '''Find the states that disagree between two models and look at confidence levels.'''
+    '''Find the states that disagree between two models and look at confidence levels.
+    '''
     X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, task=task, split=False)
     N_correct_ls = []
     for i, model in enumerate(model_ls):
@@ -249,12 +251,17 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     pop_diff_max = np.max(Y_pred_pop.to_numpy(), axis=1) - np.partition(Y_pred_pop.to_numpy(), -2, axis=1)[:,-2] # partition is faster than argsort; -2 is second largest, orders from smallest to largest
     # get difference between max  and second next max for pop
     pop_diff_max2 = np.max(Y_pred_pop.to_numpy(), axis=1) - np.partition(Y_pred_pop.to_numpy(), -3, axis=1)[:,-3]
-    # get 
+  
     Y_pred_pop_labels = get_labels_pop(pop_df = Y_pred_pop)
     Y_pred_pop_ncorrect = np.einsum('ij,ij->i', Y, Y_pred_pop_labels)
 
+    pop_diff_max_correct = pop_diff_max[Y_pred_pop_ncorrect > 0]
+    pop_diff_max_incorrect = pop_diff_max[Y_pred_pop_ncorrect == 0]
+    pop_diff_max2_correct = pop_diff_max2[Y_pred_pop_ncorrect > 0]
+    pop_diff_max2_incorrect = pop_diff_max2[Y_pred_pop_ncorrect == 0]
+
     # plot the confidence levels, with correct states in green and incorrect in red
-    fig, ax = plt.subplots(3, 2, figsize=(30,15))
+    fig, ax = plt.subplots(6, 2, figsize=(30,15))
     confidence_nn5_correct = confidence_nn5[Y_pred_nn5_ncorrect > 0]
     confidence_nn5_incorrect = confidence_nn5[Y_pred_nn5_ncorrect == 0]
     ax[0,0].hist(confidence_nn5_correct, bins=20, alpha=0.5, label='correct', color='green')
@@ -293,14 +300,15 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     ax[1,1].set_ylabel('Count')
     ax[1,1].legend()
     ax[1,1].set_title(f'Population')
-    ax[2,0].hist(pop_diff_max, bins=20, alpha=0.5, label='max - next max', color='blue')
-    ax[2,0].hist(pop_diff_max2, bins=20, alpha=0.5, label='max - second next max', color='red')
+
+    ax[2,0].hist(pop_diff_max_correct, bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[2,0].hist(pop_diff_max2_correct, bins=20, alpha=0.5, label='max - second next max', color='red')
     ax[2,0].set_xlabel('Confidence')
     ax[2,0].set_ylabel('Count')
     ax[2,0].legend()
-    ax[2,0].set_title(f'Population Differences')
-    nmax, binmax, _ = ax[2,1].hist(pop_diff_max[pop_diff_max >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
-    nmax2, binmax2, _ = ax[2,1].hist(pop_diff_max2[pop_diff_max2 >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
+    ax[2,0].set_title(f'Population Differences, Correct')
+    nmax, binmax, _ = ax[2,1].hist(pop_diff_max_correct[pop_diff_max_correct >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
+    nmax2, binmax2, _ = ax[2,1].hist(pop_diff_max2_correct[pop_diff_max2_correct >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
     # annotate with counts
     for i in range(len(nmax)):
         ax[2,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
@@ -308,14 +316,65 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     ax[2,1].set_xlabel('Confidence')
     ax[2,1].set_ylabel('Count')
     ax[2,1].legend()
-    ax[2,1].set_title(f'Population Differences')
+    ax[2,1].set_title(f'Population Differences Correct, zoomed')
+
+    ax[3,0].hist(pop_diff_max_incorrect, bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[3,0].hist(pop_diff_max2_incorrect, bins=20, alpha=0.5, label='max - second next max', color='red')
+    ax[3,0].set_xlabel('Confidence')
+    ax[3,0].set_ylabel('Count')
+    ax[3,0].legend()
+    ax[3,0].set_title(f'Population Differences, Incorrect')
+    nmax, binmax, _ = ax[3,1].hist(pop_diff_max_incorrect[pop_diff_max_incorrect >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
+    nmax2, binmax2, _ = ax[3,1].hist(pop_diff_max2_incorrect[pop_diff_max2_incorrect >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
+    # annotate with counts
+    for i in range(len(nmax)):
+        ax[3,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
+        ax[3,1].annotate(f'{nmax2[i]}', ((binmax2[i]+binmax2[i+1])/2, nmax2[i]), ha='center', va='bottom')
+    ax[3,1].set_xlabel('Confidence')
+    ax[3,1].set_ylabel('Count')
+    ax[3,1].legend()
+    ax[3,1].set_title(f'Population Differences Incorrect, zoomed')
+
+    # plot pop diff max and max2 where nn5 is correct and pop is wrong; and vice versa
+    ax[4,0].hist(pop_diff_max[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[4,0].hist(pop_diff_max2[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='max - second next max', color='red')
+    ax[4,0].set_xlabel('Confidence')
+    ax[4,0].set_ylabel('Count')
+    ax[4,0].legend()
+    ax[4,0].set_title(f'Population Differences, NN5 Correct, Population Incorrect')
+    ax[4,1].hist(pop_diff_max[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[4,1].hist(pop_diff_max2[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='max - second next max', color='red')
+    ax[4,1].set_xlabel('Confidence')
+    ax[4,1].set_ylabel('Count')
+    ax[4,1].legend()
+    ax[4,1].set_title(f'Population Differences, NN5 Incorrect, Population Correct')
+
+    # plot nn5 confidence where pop is correct and nn5 is wrong; and vice versa
+    ax[5,0].hist(confidence_nn5[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='NN5', color='blue')
+    ax[5,0].set_xlabel('Confidence')
+    ax[5,0].set_ylabel('Count')
+    ax[5,0].legend()
+    ax[5,0].set_title(f'NN5 Confidence, NN5 Incorrect, Population Correct')
+    ax[5,1].hist(confidence_nn5[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='NN5', color='blue')
+    ax[5,1].set_xlabel('Confidence')
+    ax[5,1].set_ylabel('Count')
+    ax[5,1].legend()
+    ax[5,1].set_title(f'NN5 Confidence, NN5 Correct, Population Incorrect')
+
 
     plt.tight_layout()
     plt.suptitle('Confidence levels for states on validation data')
-    plt.subplots_adjust(top=0.85)
+    plt.subplots_adjust(top=0.9)
     plt.savefig(join('random_gen', 'models', 'det_threshold.pdf'))
     # plt.show()
     plt.close()
+
+def det_threshold_gd(file = 'roik_True_4000000_r_os_v.csv', task = 'w', input_method='prob_9'):
+    '''Use gradient descent to optimize parameters on how we choose the threshold for combining nn5 and pop'''
+    X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, pop_method='none', task=task, split=False)
+    # get predictions for each
+    Y_pred_nn5 = nn5.predict(X)
+    Y_pred_pop = get_pop_raw(file=file)
     
 
 if __name__ == '__main__':
@@ -334,6 +393,18 @@ if __name__ == '__main__':
     # nn1 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_nn1_all.h5'))
     # nn3 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_300_300_300_0.0001_100.h5'))
     nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+    nn5_wraw = keras.models.load_model(join(new_model_path, 'r4_s0_47_w_prob_9_raw_200_200_200_200_200_0.0001_100.h5'))
+    nn5_wdiff = keras.models.load_model(join(new_model_path, 'r4_s0_48_w_prob_9_diff_200_200_200_200_200_0.0001_100.h5'))
+    nn5_wrd = keras.models.load_model(join(new_model_path, 'r4_s0_49_w_prob_9_rd_200_200_200_200_200_0.0001_100.h5'))
+    nn5_rawonly = keras.models.load_model(join(new_model_path, 'r4_s0_50_w_none_raw_200_200_200_200_200_0.0001_100.h5'))
+    nn5_diffonly = keras.models.load_model(join(new_model_path, 'r4_s0_51_w_none_diff_200_200_200_200_200_0.0001_100.h5'))
+    nn5_rdonly = keras.models.load_model(join(new_model_path, 'r4_s0_52_w_none_rd_200_200_200_200_200_0.0001_100.h5'))
+
+    model_ls = [1, nn5, nn5_wraw, nn5_wdiff, nn5_wrd, nn5_rawonly, nn5_diffonly, nn5_rdonly]
+    model_names = ['population', 'nn5', 'nn5_wraw', 'nn5_wdiff', 'nn5_wrd', 'nn5_rawonly', 'nn5_diffonly', 'nn5_rdonly']
+    input_methods = ['prob_9', 'prob_9', 'prob_9', 'prob_9', 'prob_9', 'none', 'none', 'none']
+    pop_methods = ['none', 'none', 'raw', 'diff', 'rd', 'raw', 'diff', 'rd']
+    # comp_overlap(model_ls=model_ls, names=model_names, input_methods=input_methods, pop_methods=pop_methods)
 
     # # old models ---
     # xgb_old = XGBRegressor()
@@ -352,7 +423,6 @@ if __name__ == '__main__':
     # ra_12 = keras.models.load_model(join(roik_etal_path, 'model_12_937.h5'))
     # ra_15 = keras.models.load_model(join(roik_etal_path, 'model_15_9653.h5'))
 
-
     ## evaluate ##
     # model_ls = [1, xgb, nn1, nn3, nn5]
     # model_names = ['population', 'xgb', 'nn1', 'nn3', 'nn5']
@@ -362,11 +432,12 @@ if __name__ == '__main__':
 
     # model_ls = [ra_3, ra_5, ra_6, ra_12, ra_15]
     # model_names = ['ra_3', 'ra_5', 'ra_6', 'ra_12', 'ra_15']
-    # input_methods = ['prob_3', 'prob_5', 'prob_6', 'prob_12', 'prob_15']
+    # input_methods = ['prob_3_r', 'prob_5_r', 'prob_6_r', 'prob_12_r', 'prob_15_r']
+    # pop_methods = ['none' for _ in range(len(model_ls))]
     # tasks = ['e' for _ in range(len(model_ls))]
     # savename='roik_etal_noeps'
 
-    # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, tasks = tasks, savename=savename)
+    # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, pop_methods = pop_methods, tasks = tasks, savename=savename, file_ls = ['roik_True_400000_w_roik.csv'], file_names=['roik_400k'])
 
     det_threshold(nn5)
 

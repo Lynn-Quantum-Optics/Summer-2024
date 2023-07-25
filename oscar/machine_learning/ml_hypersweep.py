@@ -3,6 +3,7 @@
 import wandb
 import numpy as np
 from xgboost import XGBRegressor
+import keras
 from keras import layers
 from keras.models import Model, Sequential
 from keras.optimizers import Adam, SGD, RMSprop, Adagrad, Adadelta
@@ -268,6 +269,64 @@ def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, epochs=5
       )
     return model
 
+def prep_meta(data_file):
+    '''Prepares data to input to meta model trained on outputs from nn5 and pop method'''
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='none', task='w', split=False)
+    new_model_path= join('random_gen', 'models', 'saved_models')
+    nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+    Y_pred_nn5 = nn5.predict(X)
+    Y_pred_pop = get_pop_raw(file=data_file)
+    # combine predictions
+    Y_comb = np.concatenate((Y_pred_nn5, Y_pred_pop), axis=1)
+    return Y_comb, Y
+
+def train_meta(train_file, size, num_layers, learning_rate=0.0001, n_estimators=5000, max_depth = 15, early_stopping=20, epochs=100, batch_size=256):
+    '''Train meta model on outputs from nn5 and pop method'''
+    # prepare inputs
+    X, Y = prep_meta(train_file)
+    print(X)
+    global X_train, X_test, Y_train, Y_test
+    X_train, X_test = X[:int(len(X)*0.8)], X[int(len(X)*0.8):]
+    Y_train, Y_test = Y[:int(len(Y)*0.8)], Y[int(len(Y)*0.8):]
+
+    # define model
+    if num_layers==5:
+        model = custom_train_nn5h(size, size, size, size, size, learning_rate, epochs, batch_size)
+    elif num_layers==3:
+        model = custom_train_nn3h(size, size, size, learning_rate, epochs, batch_size)
+    elif num_layers==1:
+        model = custom_train_nn1h(size, learning_rate, epochs, batch_size)
+    elif num_layers=='xgb':
+        model = custom_train_xgb(learning_rate=learning_rate, early_stopping=early_stopping, n_estimators=n_estimators, max_depth=max_depth)
+        model.save_model(join('random_gen', 'models', 'saved_models', 'meta_'+train_file[:-4]+'_'+str(n_estimators)+'_'+str(max_depth)+'_'+str(early_stopping)+'_'+str(learning_rate)+'.h5'))
+    if num_layers != 'xgb':
+        model.save(join('random_gen', 'models', 'saved_models', 'meta_'+train_file[:-4]+'_'+str(size)+'_'+str(num_layers)+'_'+str(learning_rate)+'_'+str(epochs)+'.h5'))
+    return model
+
+def test_meta(model_file, data_file, model=None):
+    ''' Function to run model trained on outputs from nn5 and pop method.
+    -- 
+    Params:
+        model_file: name of model file to load
+        data_file: name of data file to test on
+        model: optional model to load
+    '''
+    # load model
+    if model is None:
+        new_model_path= join('random_gen', 'models', 'saved_models')
+        model = keras.models.load_model(join(new_model_path, model_file))
+    # prepare inputs
+    X, Y = prep_meta(data_file)
+    # test
+    Y_pred = model.predict(X)
+    # print results
+    Y_pred_meta = get_labels(Y_pred, task='w')
+    dot = np.einsum('ij,ij->i', Y, Y_pred_meta)
+    print(f'perf on file', np.sum(dot)/len(dot))
+    
+
+
+
 
 ## run on our data ##
 if __name__=='__main__':
@@ -275,7 +334,7 @@ if __name__=='__main__':
 
     from train_prep import prepare_data
     from ml_comp import eval_perf
-    op = int(input('0 for custom run/sweep, 1 for wandb, and 2 for retraining model based on mistakes in tv dataset: '))
+    op = int(input('0 for custom run/sweep, 1 for wandb, and 2 for retraining model based on mistakes in tv dataset, 3 to train meta model: '))
 
     if op==1:
         file = input('Enter file name: ')
@@ -558,12 +617,17 @@ if __name__=='__main__':
         wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H:'))
         run_sweep(wtr)
     elif op==0:
-        # file = 'roik_True_4000000_r_os_tv.csv'
-        file = 'roik_4m_wpop_rd.csv'
+        roik = bool(int(input("Don't do Roik prob: 0; Do Roik prob: 1: ")))
+        if not(roik):
+            file = 'roik_4m_wpop_rd.csv'
+            test_ls = ['roik_True_400000_s0_extra0.csv', 'roik_True_400000_r_os_t.csv']
+        else:
+            file = 'roik_True_4000000_w_roik.csv'
+            pop_method='none'
+            test_ls = ['roik_True_400000_w_roik.csv']
         task = input('w or e for task: ')
         if task=='e':
-            num = int(input('Enter number of prob inputs:'))
-            input_method = 'prob_%i'%num
+            input_method = input('Enter input method: ')
         else:
             input_method = input('Enter input method: ')
             pop_method = input('Enter pop method: ')
@@ -574,7 +638,7 @@ if __name__=='__main__':
         # load data here
         DATA_PATH = 'random_gen/data'
         X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, pop_method = pop_method, task=task)
-
+       
         if do_sweep:   
             wtr = int(input('Which model to run? 0 for XGB, 1 for NN1H, 3 for NN3H, 5 for NN5H:'))
             if wtr==0:
@@ -620,13 +684,13 @@ if __name__=='__main__':
                                     print('Best acc: ', best_acc)
                                     print('Best lr: ', best_lr)
                                     print('Best n_est: ', best_n_est)
-                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                                     best_model.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_est}_{lr}_{max_depth}_{early_stopping}'+'.json'))
                                     
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best n_est: ', best_n_est)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                 best_model.save_model(join('random_gen', 'models', savename+'_'+f'xgb_{n_est}_{lr}_{max_depth}_{early_stopping}'+'.json'))
             elif wtr==1:   
                 lr_ls = np.linspace(0.0001, 1, 10)
@@ -656,12 +720,12 @@ if __name__=='__main__':
                         except KeyboardInterrupt:
                             print('Best lr: ', best_lr)
                             print('Best size: ', best_size)
-                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                             best_model.save(join('random_gen', 'models', savename+'_'+f'nn1_{size}_{lr}_{epochs}'+'.h5'))
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size: ', best_size)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+f'nn1_{size}_{lr}_{epochs}'+'.h5'))
             elif wtr==3:
                 lr_ls = np.linspace(0.0001, 1, 10)
@@ -700,14 +764,14 @@ if __name__=='__main__':
                                     print('Best size1: ', best_size1)
                                     print('Best size2: ', best_size2)
                                     print('Best size3: ', best_size3)
-                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                                    print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                                     best_model.save(join('random_gen', 'models', savename+'_'+f'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
                 print('Best acc: ', best_acc)
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
                 print('Best size2: ', best_size2)
                 print('Best size3: ', best_size3)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+f'nn3_{size1}_{size2}_{size3}_{lr}_{epochs}'+'.h5'))
             elif wtr==5:
                 lr_ls = np.linspace(0.0001, 1, 10)
@@ -759,7 +823,7 @@ if __name__=='__main__':
                                             print('Best size4: ', best_size4)
                                             print('Best size5: ', best_size5)
                                             print('Best acc: ', best_acc)
-                                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                                            print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                                             best_model.save(join('random_gen', 'models', savename+'_'+f'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
                 print('Best lr: ', best_lr)
                 print('Best size1: ', best_size1)
@@ -767,15 +831,20 @@ if __name__=='__main__':
                 print('Best size3: ', best_size3)
                 print('Best size4: ', best_size4)
                 print('Best size5: ', best_size5)
-                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = ['roik_True_400000_r_os_t.csv'], task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
+                print('performance on 400k unknown', eval_perf(best_model, identifier+'_'+str(wtr), file_ls = test_ls, task=task, input_method=input_method, pop_method=pop_method)['acc'].values[0])
                 best_model.save(join('random_gen', 'models', savename+'_'+f'nn5_{size1}_{size2}_{size3}_{size4}_{size5}_{lr}_{epochs}'+'.h5'))
                 print('Best lr: ', best_lr)
 
         else:
             wtr = int(input('Enter 0 for XGB, 1 for NN1H, 3 for NN3H, or 5 for NN5H:'))
-            # file_ls = ['roik_True_400000_r_os_t.csv']
-            file_ls  = ['roik_400k_wpop_rd.csv', 'roik_400k_extra_wpop_rd.csv'] # this is for testing
-            file_names = ['400k', '400k_extra']
+            # file_ls = test_ls
+            roik = bool(int(input("Don't do Roik prob: 0; Do Roik prob: 1: ")))
+            if not(roik):
+                file_ls  = ['roik_400k_wpop_rd.csv', 'roik_400k_extra_wpop_rd.csv'] # this is for testing
+                file_names = ['400k', '400k_extra']
+            else:
+                file_ls = ["roik_True_400000_w_roik.csv"]
+                file_names = ['roik_400k']
             if wtr==0:
                 n_estimators = int(input('Enter n_estimators:'))
                 learning_rate = float(input('Enter learning_rate:'))
@@ -847,5 +916,31 @@ if __name__=='__main__':
         # nn5.save(join(MODEL_PATH, 'r4_s0_7_w_prob_9_200_200_200_200_200_0.0001_100_retraintv.h5'))
         print(eval_perf(nn5, 'nn5_retrain', file_ls=file_ls, file_names = ['Test_extra', 'Test'], task='w', input_method='prob_9'))
 
+    if op==3:
+        '''Train new model based on nn5 and pop model outputs.'''
+        from ml_comp import *
+
+        # new_model_path= join('random_gen', 'models', 'saved_models')
+        # nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+        # X, Y = prepare_data(join('random_gen', 'data'), 'roik_True_4000000_r_os_tv.csv', input_method='prob_9', pop_method='none', task='w', split=False)
+        # # get predictions for each
+        # Y_pred_nn5 = nn5.predict(X)
+        # Y_pred_pop = get_pop_raw(file='roik_True_4000000_r_os_tv.csv')
+
+        # # combine predictions
+        # Y_comb = np.concatenate((Y_pred_nn5, Y_pred_pop), axis=1)
+        # # get train and test
+        # X_train, X_test = Y_comb[:int(len(Y_comb)*0.8)], Y_comb[int(len(Y_comb)*0.8):]
+        # Y_train, Y_test = Y[:int(len(Y_comb)*0.8)], Y[int(len(Y_comb)*0.8):]
+
+        # # train new model
+        # nn5_pop = custom_train_nn1h(size=50, learning_rate=0.0001, epochs=100)
+        # nn5_pop.save(join(new_model_path, 'nn1_meta_0.h5'))
+        # test new model
+        meta = train_meta(train_file = 'roik_True_4000000_r_os_tv.csv', size=200, num_layers=3, learning_rate=0.0001)
+        test_meta(model=meta, model_file=None, data_file='roik_True_400000_r_os_t.csv')
         
+
+
+
 
