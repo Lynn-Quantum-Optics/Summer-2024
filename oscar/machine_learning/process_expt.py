@@ -2,7 +2,7 @@
 import numpy as np
 import scipy.linalg as la
 from scipy.optimize import minimize, approx_fprime
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, isdir
 import pandas as pd
 
 from tqdm import tqdm
@@ -152,11 +152,12 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
             return trial, rho, unc, Su, rho_actual, fidelity, purity, angles
 
-def analyze_rhos(filenames, settings=None, id='id'):
+def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
     '''Extending get_rho_from_file to include multiple files; 
     __
     inputs:
         filenames: list of filenames to analyze
+        UV_HWP_offset: how many degrees to offset UV_HWP since callibration is believed to be off for 
         settings: dict of settings for the experiment
         id: str, special identifier of experiment; used for naming the df
     __
@@ -185,11 +186,13 @@ def analyze_rhos(filenames, settings=None, id='id'):
             except:
                 trial, rho, _, Su, rho_actual, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
                 eta, chi = None, None
-
+        angles[0]+=UV_HWP_offset
+        rho_actual = get_Jrho(angles=np.deg2rad(angles))
+        fidelity = get_fidelity(rho_actual, rho)
 
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual) # theory
-        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi], model=3) # Purity Corrected theory
+        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi], model=model, UV_HWP_offset=UV_HWP_offset) # Purity Corrected theory
 
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
@@ -220,9 +223,9 @@ def analyze_rhos(filenames, settings=None, id='id'):
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
 
         if eta is not None and chi is not None:
-            adj_fidelity= get_adj_E0_fidelity(rho, rho_actual, purity, eta, chi, model=3)
+            adj_fidelity, adj_purity= get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model=model, UV_HWP_offset=UV_HWP_offset)
 
-            df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity,
+            df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity, 'AT_purity': adj_purity,
             'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
 
         else:
@@ -259,12 +262,12 @@ def make_plots_E0(dfname):
         fidelity_eta = df_eta['fidelity'].to_numpy()
         chi_eta = df_eta['chi'].to_numpy()
         adj_fidelity = df_eta['AT_fidelity'].to_numpy()
+        adj_purity = df_eta['AT_purity'].to_numpy()
 
         # do purity and fidelity plots
         ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
+        ax[1,i].plot(chi_eta, adj_purity, color='gold', linestyle='dashed', label='AT Purity')
         ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
-
-        # plot Purity Corrected theory purity
         ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
         # extract witness values
@@ -715,7 +718,7 @@ def det_offsets(filenames, N=500, zeta=1, f=.02, loss_lim = 1e-9):
     print('Best loss: ', best_loss)
     print('Best offset: ', best_offset)
             
-def det_noise(filenames, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
+def det_noise(filenames, model, UV_HWP_offset, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
     '''Determine the probabilties in noise model that minimize the loss function (sum of squares of fidelity differences)
     --
         model: which noise model to assume.
@@ -725,7 +728,6 @@ def det_noise(filenames, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
             (i.e., number of fit params)
     
     '''
-    model = int(input('Which noise model to compute? 1, 2, or 4: '))
     def loss_func(x0, rho_actual, rho, purity, eta, chi):
         '''Helper function to compute loss between adjusted rho and rho'''    
         # normalize
@@ -786,6 +788,12 @@ def det_noise(filenames, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
     elif model==1:
         # initialize df to store results
         results = pd.DataFrame(columns=['eta', 'chi', 'fidelity', 'fidelity_gdcorr', 'purity', 'purity_gdcorr', 'e'])
+    elif model==16:
+        columns= ['eta', 'chi', 'fidelity', 'fidelity_gdcorr', 'purity', 'purity_gdcorr']
+        for l in list('ixyz'):
+            for r in list('ixyz'):
+                columns.append(f'r_{l}{r}')
+        results = pd.DataFrame(columns = columns)
 
     random_guess = partial(random_guess, model=model)
     for file in tqdm(filenames):
@@ -796,6 +804,12 @@ def det_noise(filenames, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
         except:
             trial, rho, unc, Su, rho_actual, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
             eta, chi = None, None
+        
+        # adjust UV_HWP
+        angles[0]+=UV_HWP_offset
+        rho_actual = get_Jrho(angles=np.deg2rad(angles))
+        fidelity = get_fidelity(rho_actual, rho)
+
         # perform loss minimization
         # get initial random guess
         print('original fidelity', fidelity)
@@ -858,10 +872,19 @@ def det_noise(filenames, N=250, zeta=.7, f=.1, fidelity_lim = 0.999):
             results =pd.concat([results, pd.DataFrame.from_records([{'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity, 'e1': best_prob[0], 'e2': best_prob[1]}])]) 
         elif model==1:
             results =pd.concat([results, pd.DataFrame.from_records([{'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity, 'e': best_prob[0],}])]) 
+        elif model==16:
+            soln_dict = {'eta': eta, 'chi': chi, 'fidelity': fidelity, 'fidelity_gdcorr': best_fidelity, 'purity': purity, 'purity_gdcorr': best_purity}
+            best_prob = best_prob.reshape((4,4))
+            for i, l in enumerate(list('ixyz')):
+                for j, r in enumerate(list('ixyz')):
+                    soln_dict[f'r_{l}{r}'] = best_prob[i, j]
+            results = pd.concat([results, pd.DataFrame.from_records([soln_dict])])
 
     # save results
     print('saving!')
-    results.to_csv(join(DATA_PATH, f'noise_model_{model}.csv'))
+    if not(isdir(join(DATA_PATH, f'noise_{UV_HWP_offset}'))):
+        os.makedirs(join(DATA_PATH, f'noise_{UV_HWP_offset}'))
+    results.to_csv(join(DATA_PATH, f'noise_{UV_HWP_offset}/noise_model_{model}.csv'))
 
 def plot_adj():
     fig, ax = plt.subplots(2, 3, figsize=(20,7))
@@ -921,15 +944,18 @@ if __name__ == '__main__':
 
     ## do calculations ##
 
-    
-    id = 'neg3_model3'
-    # analyze_rhos(filenames,id=id) # calculate csv with witness vals
+    UV_HWP_offset = 0
+    model = 16
+
+    # det_noise(filenames, UV_HWP_offset = UV_HWP_offset, model = model)
+
+    id = f'neg3_{model}_{UV_HWP_offset}'
+    analyze_rhos(filenames,id=id, model=model, UV_HWP_offset = UV_HWP_offset) # calculate csv with witness vals
 
     make_plots_E0(f'rho_analysis_{id}.csv') # make plots based on witness calcs
 
    
     # plot_adj()
-
 
 
     '''
