@@ -1,3 +1,21 @@
+## 7/25/23
+MP: A
+
+No notes from yesterday as to what experiments were being run/where things went wrong :( All I know is the ThorLabs motors threw the same error and I'm going to try to fix them again. Booting Kinesis to check out the situation and figure out what is going wrong.
+
+901 Is the one that is freaking out (Bob's HWP). Pressing home in kinesis failed to move it. Disconnecting in Kinesis, manual jog worked, so I'm reconnecting in kinesis. This worked, and then sending the home command worked as well. In the mean time, I'm sending all other devices to zero (through kinesis). This succeeded, and we ended up with all of them at around 9 degrees on their dials.
+
+Turned on detectors and booted up an ipython terminal to check count rates.
+- making state VV and measuring in basis HH produces 30.1 +/- 1.4 counts/sec (5x3s samples)
+- making state HH and measuring in HH produces 2833+/-14 counts/sec (5x3s samples)
+- making HH and measuring in VV produces 9.0 +/- 0.4 counts/sec
+- making VV and measuring in VV produces 3035 +/- 14 counts/sec
+
+Count rates look good!
+
+I'm going to try loading in v1.1 of the lab framework just to see what happens. I don't know if it will really _solve_ the errors that we are seeing, but hey, maybe it helps?
+
+O here. Ran into a key error but reverted to previous lab framework version and copied the channel_keys into the config. Problem with sweep_fits_updated: giving really low count rates as UV HWP -> 0 even when QP = 0; B_C_HWP = 0 whole time. Alec says issue may have to do with setting angles after initializing but before sweeping.
 ## 7/24/23
 MP: A
 
