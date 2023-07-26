@@ -35,12 +35,23 @@ if ds % attempt direct numerical solve
                 disp('found soln!')
 %                 disp(coeff)
 %                 disp(fval)
-                if hb.is_valid_soln(coeff, coeff_ls, m)
+                disp(numel(coeff_ls))
+                if numel(coeff_ls) == 0
+                    disp('found first!')
                     coeff_ls{end+1} = coeff;
                     full_coeff_ls{end+1} = hb.get_full_coeff(coeff);
                     [n,q] = hb.convert_soln(coeff);
                     nq_ls{end+1} = [n, q];
                     soln_ls{end+1} = fval;
+                else
+                    if hb.is_valid_soln(coeff, coeff_ls, m)
+                        disp('not valud soln')
+                        coeff_ls{end+1} = coeff;
+                        full_coeff_ls{end+1} = hb.get_full_coeff(coeff);
+                        [n,q] = hb.convert_soln(coeff);
+                        nq_ls{end+1} = [n, q];
+                        soln_ls{end+1} = fval;
+                    end
                 end
                 if numel(coeff_ls)>=hb.soln_limit
                     disp('soln lim reached!')

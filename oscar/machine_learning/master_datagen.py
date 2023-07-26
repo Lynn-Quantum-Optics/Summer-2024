@@ -13,7 +13,7 @@ from roik_gen import * # actual roik code
 from random_gen import *
 from jones import *
 
-def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_params = False, verbose=False, log_roik_prob=False):
+def gen_rand_info(func, return_prob, include_w = True, log_params = False, verbose=False, log_roik_prob=False):
     ''' Function to compute random state based on imput method and return measurement projections, witness values, concurrence, and purity.
         params:
             func: function to generate random state
@@ -28,7 +28,7 @@ def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_para
     if not(log_params):rho = func()
     else: rho, params = func()
     
-    W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho, do_stokes=do_stokes)
+    W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
     concurrence = get_concurrence(rho)
     purity = get_purity(rho)
     min_eig = get_min_eig(rho)
@@ -55,8 +55,8 @@ def gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_para
                 else: 
                     return HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL, W_min, Wp_t1, Wp_t2, Wp_t3, concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
             else:
-                # get roik probabilities
-                roik_probs = get_all_roik_projs(rho)
+                # get roik probabilities; use their code
+                roik_probs = get_all_roik_projs_sc(rho)
                 r_HH, r_HV, r_HD, r_HA, r_HR, r_HL = roik_probs[0]
                 r_VH, r_VV, r_VD, r_VA, r_VR, r_VL = roik_probs[1]
                 r_DH, r_DV, r_DD, r_DA, r_DR, r_DL = roik_probs[2]
@@ -128,7 +128,7 @@ def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=Fa
     # build multiprocessing pool ##
     pool = Pool(cpu_count())
     # gen_rand_info(func, return_prob, do_stokes=False, include_w = True, log_params = False, verbose=True)
-    inputs = [(func, return_prob, do_stokes, include_w, log_params, verbose, log_roik_prob) for _ in range(num_to_gen)]
+    inputs = [(func, return_prob, include_w, log_params, verbose, log_roik_prob) for _ in range(num_to_gen)]
     results = pool.starmap_async(gen_rand_info, inputs).get()
 
     ## end multiprocessing ##
@@ -169,7 +169,6 @@ if __name__=='__main__':
     else:
         random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', 'hurwitz', or 'roik': ")
         return_prob = bool(int(input("Return probabilities (1) or stokes's parameters (0): ")))
-        do_stokes = bool(int(input("Do stokes's parameters (1) or operators (0) to calculate witnesses: ")))
         num_to_gen = int(input("Enter number of states to generate: "))
         special = input("Enter special name for file: ")
         datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
@@ -188,7 +187,7 @@ if __name__=='__main__':
         else:
             savename = join('random_gen', 'test', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
 
-        print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {do_stokes}, {log_params}, {log_roik_prob}')
+        print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {log_params}, {log_roik_prob}')
 
-        build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=do_stokes, include_w=True, log_params=log_params, log_roik_prob=log_roik_prob)
+        build_dataset(random_method, return_prob, num_to_gen, savename, include_w=True, log_params=log_params, log_roik_prob=log_roik_prob)
         # random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False

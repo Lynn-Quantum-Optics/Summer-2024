@@ -15,9 +15,11 @@ class HyperBell():
 
         self.soln_limit = 2*d # must find solutions for all detectors to fuflill sufficient condition
 
-        self.num_coeff = 2*d # number of coefficients in measurement operator
+        self.num_coeff = 4*d # number of coefficients in measurement operator
 
         self.m_limit = comb(d**2, k)
+
+        self.num_attempts = 100*self.soln_limit
 
         # self.n_bounds = [(0, self.d) for _ in range(self.num_coeff)] # set bounds for m
         # self.q_bounds = [(0, self.d-1) for _ in range(self.num_coeff)] # set bounds for q
@@ -57,40 +59,44 @@ class HyperBell():
         m= self.m
         d = self.d
         k = self.k
-        if m > comb(d**2, k):
+        if m > comb(d**2, k)-1:
             raise ValueError(f'Must have m in comb(d^2, k). You have m={m}')
         def do_round(targ, n):
-            '''Funds the largest value of d^2 choose n to targ'''
+            '''Finds the largest value of d^2 choose n to targ'''
             if targ==0:
                 largest_val = 0
                 ind = n-1;
                 return largest_val, ind
             elif targ==1:
-                largest_val = 0
+                largest_val = 1
                 ind = n
                 return largest_val, ind
-            i=-1
+            i=0
             largest_val = 0
             while largest_val <= targ and n+1+i <= d**2:
                 largest_val = comb(n+1+i, n)
+                # print(largest_val, targ)
                 if largest_val > targ:
                     i-=1
-                    ind = n+i+1
                     if n+1+i == n-1:
                         largest_val = 0
                         ind = n-1
                     else:
                         largest_val = comb(n+1+i, n)
                         ind = n+1+i
+                        # print('exceeded,', largest_val, ind)
                     return largest_val, ind
+                i+=1
             return largest_val, ind
         # targ starts at m
         targ = m
         m_k_ind = []
         for j in range(k, 0, -1):
+            # print('j=', j)
             largest_val, ind = do_round(targ, j)
             m_k_ind.append(ind)
             targ = abs(targ-largest_val)
+            # print('main loop', largest_val, targ)
         return m_k_ind
 
     def get_m_kgroup(self):
@@ -103,28 +109,35 @@ class HyperBell():
             k_group.append(self.get_bell(c,p))
         return k_group
 
-    def get_one_coeff(self, nq):
-        '''Returns input coefficients for measurement operator.
-        Params:
-            nq (tuple): (n,q) tuple of integers; form of exact solution is sqrt(n) / sqrt(d) *e^(2pi i q / d)
+    # def get_one_coeff(self, nq):
+    #     '''Returns input coefficients for measurement operator.
+    #     Params:
+    #         nq (tuple): (n,q) tuple of integers; form of exact solution is sqrt(n) / sqrt(d) *e^(2pi i q / d)
         
-        '''
-        n, q = nq
-        d = self.d
-        # m = np.sqrt(n)
-        return n / d**2 * np.exp(2*np.pi*1j*q/d)  
+    #     '''
+    #     n, q = nq
+    #     d = self.d
+    #     # m = np.sqrt(n)
+    #     return n / d**2 * np.exp(2*np.pi*1j*q/d)  
 
-    def get_coeff(self, nq_ls):
-        '''Returns input coefficients for measurement operator.
-            ---
-            Params:
-                nq_ls (np.array): array of integers: first 2d are n, second 2d are q
-        '''
-        d = self.d
-        coeff = []
-        for i in range(len(nq_ls)//2):
-            coeff.append(self.get_one_coeff((nq_ls[i], nq_ls[2*d+i])))
-        return np.array(coeff)
+    # def get_coeff(self, nq_ls):
+    #     '''Returns input coefficients for measurement operator.
+    #         ---
+    #         Params:
+    #             nq_ls (np.array): array of integers: first 2d are n, second 2d are q
+    #     '''
+    #     d = self.d
+    #     coeff = []
+    #     for i in range(len(nq_ls)//2):
+    #         coeff.append(self.get_one_coeff((nq_ls[i], nq_ls[2*d+i])))
+    #     return np.array(coeff)
+    def get_full_coeff(self, coeff):
+        '''Combines real and imag parts to create one coeff vector of len 2*d'''
+        full_coeff = []
+        for i in range(2*self.d):
+            full_coeff.append(coeff[i]+1j*coeff[i+self.d*2])
+        full_coeff = np.array(full_coeff)
+        return full_coeff
 
     def get_meas(self, bell):
         '''Performs LELM measurement on bell state b.
@@ -139,6 +152,7 @@ class HyperBell():
         d = self.d
         # define measurement coeffients
         def meas(coeff):
+            coeff = self.get_full_coeff(coeff) # combine real and imag
             bell_m = np.zeros((2*d,1), dtype='complex128') # initialize measured bell state
             for l in range(2*d):
                 if bell[l]!=0: # if state is occupied
@@ -151,7 +165,7 @@ class HyperBell():
 
     def get_norm(self, coeff):
         '''Computes norm of input vector.'''
-        return np.sqrt(sum([abs(coeff[i])**2 for i in range(len(coeff))]))
+        return np.sqrt(sum(coeff**2))
 
     def get_meas_ip(self, bell_ls, coeff):
         ''' Computes inner product between two measured bell states'''
@@ -188,15 +202,18 @@ class HyperBell():
         '''Checks if a single solution is orthogonal to all existing solutions.'''
         valid_soln = True
         in_coeff_ls = False
+        coeff = self.get_full_coeff(coeff) # combine real and imag
         for x in coeff_ls:
+            x = self.get_full_coeff(x)
             if not(np.all(coeff == x)):
                 ip = x.conj().T @ coeff
                 try:
                     ip = ip[0][0]
                 except IndexError:
                     pass
-                    ip = np.real(ip)
+                ip = abs(ip)
                 if np.round(ip, self.precision) != 0:
+                    print('not ortho. ip = ', ip)
                     valid_soln = False
                     break
             else:
@@ -234,33 +251,38 @@ class HyperBell():
                 k_sys.append(self.get_meas_ip(coeff=coeff, bell_ls = [k_group[i], k_group[j]]))
         return np.array(k_sys)
 
-    def get_allsys_func(self):
-        '''Returns a vector of all measured states as a function of 4*d real coefficients.
-        --
-        Params:
-            d (int): dimension of system
-            k (int): number of states in group
-            coeff (np.array, 4*d x 1): coefficients for measurement
-        '''
-        all_sys = []
-        for i in range(len(self.k_groups)):
-            all_sys.append(self.get_ksys(i))
-        return np.array(all_sys)
+    # def get_allsys_func(self):
+    #     '''Returns a vector of all measured states as a function of 4*d real coefficients.
+    #     --
+    #     Params:
+    #         d (int): dimension of system
+    #         k (int): number of states in group
+    #         coeff (np.array, 4*d x 1): coefficients for measurement
+    #     '''
+    #     all_sys = []
+    #     for i in range(len(self.k_groups)):
+    #         all_sys.append(self.get_ksys(i))
+    #     return np.array(all_sys)
 
     def rand_guess(self):
-        '''Random stick simplex to guess input vector'''
-        rand = np.random.rand(self.num_coeff-1)
-        rand = np.sort(rand)
-        guess = np.zeros(self.num_coeff)
-        guess[0] = rand[0]
-        for i in range(1, len(rand), 1):
-            guess[i] = rand[i] - rand[i-1]
-        guess[-1] = 1 - rand[-1]
-        # extend the simplex into the negatives
-        for i in range(len(guess)):
-            n = np.random.rand() < 0.5
-            if n:
-                guess[i] *= -1
+        '''Guess input vector with stick simplex'''
+        # rand = 2*np.random.rand(self.num_coeff-1)
+        # rand = np.sort(rand)
+        # guess = np.zeros(self.num_coeff)
+        # guess[0] = rand[0]
+        # for i in range(1, len(rand), 1):
+        #     guess[i] = rand[i]-rand[i-1]
+        # guess[-1] = 1-rand[-1]
+
+        # # extend the simplex into the negatives
+        # for i in range(len(guess)):
+        #     n = np.random.rand() < 0.5
+        #     if n:
+        #         guess[i] *= -1
+        # return guess
+        guess = 2*np.random.rand(self.num_coeff)
+        guess -=  1
+        guess /= np.sum(guess)
         return guess
 
     # def rand_guess(self):
@@ -281,27 +303,57 @@ class HyperBell():
 
 if __name__ == '__main__':
     # test
-    d = 2
+    import matplotlib.pyplot as plt
+    d = 3
     k = 3
     hb = HyperBell()
     hb.init(d,k)
-    coeff=np.array([-0.9496828 , -0.84160771, -0.53092842, -0.83225099, -0.90072945,
-       -0.35618569, -0.86866719, -0.71994774])
-    print(hb.get_meas(hb.get_bell(c=0, p=0))(coeff))
-    print(hb.get_ksys(coeff))
-    print(hb.get_ksys(hb.rand_guess()))
-    # print(hb.get_ksys_func(0)())
-    # print(hb.get_ksys(0, hb.rand_guess()))
+    # try out CNS
+    # m_k_ind_ls = []
+    # for m in range(int(hb.m_limit)):
+    #     hb.set_m(m)
+    #     m_k_ind_ls.append(hb.get_m_k_ind())
+    # hb.set_m(5)
+    # print(hb.get_m_k_ind())
+    tot_guess_0 =[]
+    tot_guess_1 = []
+    tot_guess_2 =  []
+    for i in range(int(1000)):
+        guess = hb.rand_guess()
+        tot_guess_0.append(guess[0])
+        tot_guess_1.append(guess[1])
+        tot_guess_2.append(guess[2])
 
-    def meas(bell, coeff):
-        bell_m = np.zeros((2*d,1), dtype='complex128') # initialize measured bell state
-        print(bell)
-        for l in range(2*d):
-            if bell[l]!=0: # if state is occupied
-                bell_c = bell.copy()
-                bell_c[l]=0 # annihilate state
-                bell_m += (coeff[l] + 1j*coeff[2*d+l]) * bell_c # mutliply by coefficient
-        print(bell_m)
-        return bell_m
-    meas(hb.get_bell(c=0, p=0), coeff)
+    fig, ax = plt.subplots(1,3)
+    ax[0].hist(tot_guess_0)
+    ax[1].hist(tot_guess_1)
+    ax[2].hist(tot_guess_2)
+    plt.show()
+
+
+    # print(len(m_k_ind_ls))
+    # print(m_k_ind_ls)
+    # print(comb(d**2, k))
+    # hb.set_m(3)
+    # print(hb.get_m_k_ind())
+
+    # coeff=np.array([-0.9496828 , -0.84160771, -0.53092842, -0.83225099, -0.90072945,
+    #    -0.35618569, -0.86866719, -0.71994774])
+    # print(hb.get_meas(hb.get_bell(c=0, p=0))(coeff))
+    # print(hb.get_ksys(coeff))
+    # print(hb.get_ksys(hb.rand_guess()))
+    # # print(hb.get_ksys_func(0)())
+    # # print(hb.get_ksys(0, hb.rand_guess()))
+
+    # def meas(bell, coeff):
+    #     bell_m = np.zeros((2*d,1), dtype='complex128') # initialize measured bell state
+    #     print(bell)
+    #     for l in range(2*d):
+    #         if bell[l]!=0: # if state is occupied
+    #             bell_c = bell.copy()
+    #             bell_c[l]=0 # annihilate state
+    #             bell_m += (coeff[l] + 1j*coeff[2*d+l]) * bell_c # mutliply by coefficient
+    #     print(bell_m)
+    #     return bell_m
+    # meas(hb.get_bell(c=0, p=0), coeff)
 
