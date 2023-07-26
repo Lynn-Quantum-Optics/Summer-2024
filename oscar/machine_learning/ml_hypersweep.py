@@ -269,6 +269,45 @@ def custom_train_nn5h(size1, size2, size3, size4, size5, learning_rate, epochs=5
       )
     return model
 
+def custom_train_nn10h(size1, size2, size3, size4, size5, size6, size7, size8, size9, size10, learning_rate, epochs=50, batch_size=256):
+    ''' Function to run wandb sweep for NN.'''
+    
+    def build_model(size1, size2, size3, size4, size5, size6, size7, size8, size9, size10, learning_rate):
+        model = Sequential()
+
+        model.add(layers.Dense(size1, activation='relu'))
+        model.add(layers.Dense(size2, activation='relu'))
+        model.add(layers.Dense(size3, activation='relu'))
+        model.add(layers.Dense(size4, activation='relu'))
+        model.add(layers.Dense(size5, activation='relu'))
+        model.add(layers.Dense(size6, activation='relu'))
+        model.add(layers.Dense(size7, activation='relu'))
+        model.add(layers.Dense(size8, activation='relu'))
+        model.add(layers.Dense(size9, activation='relu'))
+        model.add(layers.Dense(size10, activation='relu'))
+
+        # model.add(layers.Dropout(dropout))
+
+        # return len of class size
+        model.add(layers.Dense(len(Y_train[0])))
+        model.add(layers.Activation('sigmoid'))
+
+        optimizer = Adam(learning_rate = learning_rate)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy')
+
+        return model
+    
+    model = build_model(size1, size2, size3, size4, size5, size6, size7, size8, size9, size10, learning_rate) 
+    
+    # now train
+    history = model.fit(
+        X_train, Y_train,
+        batch_size = batch_size,
+        validation_data=(X_test,Y_test),
+        epochs=epochs                   
+      )
+    return model
+
 def prep_meta(data_file):
     '''Prepares data to input to meta model trained on outputs from nn5 and pop method'''
     X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='none', task='w', split=False)
@@ -884,6 +923,15 @@ if __name__=='__main__':
                 print('val', eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)], task=task, input_method=input_method, pop_method=pop_method))
                 print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls =file_ls,file_names=file_names, task=task, input_method=input_method, pop_method=pop_method))
                 nn5.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{size4}_{size5}_{learning_rate}_{epochs}.h5'))
+            elif wtr==10:
+                size = int(input('Enter size:'))
+                learning_rate = float(input('Enter learning_rate:'))
+                batch_size = int(input('Enter batch_size:'))
+                epochs=100
+                nn5 = custom_train_nn5h(size1=size, size2=size, size3=size, size4=size, size5=size, sie6 = size, size7 = size, size8=size, size9 = size, size10 = size, learning_rate = learning_rate, batch_size=256, epochs=epochs)
+                print('val', eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)], task=task, input_method=input_method, pop_method=pop_method))
+                print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls =file_ls,file_names=file_names, task=task, input_method=input_method, pop_method=pop_method))
+                nn5.save(join('random_gen', 'models', savename+f'_{size}x10_{learning_rate}_{epochs}.h5'))
     elif op==2:
         # for now just load in nn5
         MODEL_PATH = 'random_gen/models'
