@@ -102,23 +102,24 @@ def is_valid_density(rho, tol=1e-10):
         # must be hermitian
         return is_hermitian(rho)
 
-def partial_trace(rho, drop=1):
-    ''' partial trace of a matrix 
+def qubit_trace(rho, keep):
+    ''' partial trace of an n-qubit density matrix 
     
     Parameters
     ----------
-    drop : int
-        The number of qubits to drop. The last qubits will always be the ones dropped.
-    '''
-    # check inputs
-    assert len(rho.shape) == 2, 'rho must be a matrix'
-    assert rho.shape[0] == rho.shape[1], 'rho must be square'
-    assert (np.log2(rho.shape[0]) % 1) < 1e-10, 'rho must have dimensions 2^n x 2^n'
-    assert drop >= 0, 'drop must be non-negative'
+    keep : int
+        The number of qubits to keep. Only the first <keep> qubits will be kept.
     
-    # initialize output matrix
+    Returns
+    -------
+    np.ndarray
+        The reduced density matrix.
+    '''
+    # get input size
     in_size = rho.shape[0]
-    out_size = int(in_size/2**drop)
+    # get output size
+    out_size = 2**keep
+    # initialize output matrix
     out = np.zeros((out_size, out_size), dtype=complex)
     # loop over the submatrices of the input
     for i in range(0, in_size, out_size):
