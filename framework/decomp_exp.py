@@ -6,8 +6,8 @@ if __name__ == '__main__':
     import pandas as pd
     import os
 
-    from core import Manager
-    from full_tomo import *
+    from lab_framework import Manager
+    from full_tomo_updated_richard import *
 
     import sys
     sys.path.insert(0, '../oscar/machine_learning')
@@ -17,8 +17,7 @@ if __name__ == '__main__':
     # set up manager #
     SAMP = (5, 1) # (num measurements per basis, num seconds per meas)
     m = Manager()
-    tnum = 34 # trial number
-    m.new_output(f'decomp_test/decomp_data_{tnum}.csv')
+    tnum = 35 # trial number
 
     expt = int(input('0 to run Phip and PsiP, 1 for E0(60, 36), 2 for E0 eta = 45, 60: '))
 
@@ -28,8 +27,10 @@ if __name__ == '__main__':
     # Bell
     if expt==0:
         df = pd.read_csv('../oscar/machine_learning/decomp/bell_0.999_neg.csv')
-        states_names = [('PhiP',), ('PsiP',)]
-        states = [PhiP, PsiP]
+        # states_names = [('PhiP',), ('PsiP',)]
+        # states = [PhiP, PsiP]
+        states_names = [('PsiM',)]
+        states = [PsiM]
 
     elif expt==1 or expt==2:
         df = pd.read_csv('../oscar/machine_learning/decomp/e0_neg_ci.csv')
@@ -51,6 +52,7 @@ if __name__ == '__main__':
 
     for i, state_n in enumerate(states_names):
         state = states[i]
+        print(state_n, len(state_n))
 
         if len(state_n) == 1:
             UV_HWP_theta = float(df.loc[(df['state'] == state_n[0]) & (df['setup']=='C0')]['UV_HWP'].values[0])
@@ -101,5 +103,5 @@ if __name__ == '__main__':
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
 
     # close out
-    m.close_output()
+    df = m.output_data(f'decomp_test/decomp_data_{tnum}.csv')
     m.shutdown()
