@@ -1,3 +1,29 @@
+## 7/26/23
+MP: O
+
+Three goals tonight: first, full tomo on PsiM to check sign of antidiagonal elements as well as general setup function. Second, redo UVHWP vs phi sweep now that I have corrected the sweep file (m.sweep returns angles, C4!!). Third, depending on results of two, take full tomo data on states sweeping QP to extract phi.
+
+One: for PsiM, using previous settings: trial 35:
+    UV_HWP 24.582709288443688
+    QP 323.733168204273
+    B_C_HWP 45.0
+result: fidelity 94.9%, purity 94.4%. Diagonals bit imbalanced: .566 and .454; also, antiadiaongals real part mag .45 (correct sign), but with -.12i imaginary part...
+    [[ 0.00578295+0.j          0.01839501+0.00791342j -0.01370648+0.00188341j
+    0.0035268 +0.0004162j ]
+    [ 0.01839501-0.00791342j  0.56620353+0.j         -0.45404027-0.12177766j
+    0.0175761 +0.00256338j]
+    [-0.01370648-0.00188341j -0.45404027+0.12177766j  0.42335712+0.j
+    -0.01430214-0.01318927j]
+    [ 0.0035268 -0.0004162j   0.0175761 -0.00256338j -0.01430214+0.01318927j
+    0.0046564 +0.j        ]]
+Result not quite as good as before (~96%) but within a degree of fidelity and purity. 
+
+Second: redoing UVHWP vs phi sweep. Success! Plot for 10 increments from 0 to 45 reveals a sharp increase in phi around 5 degrees and then a slightly positively sloped plateau and then an increase at 45 degrees. Redoing sweep with 30 increments: very nice qubic! The jumps near the ends make complete sense bc at UVHWP=0, we produce only VV and at 45 only HH, which have meaningless phases.
+
+Third: take 6 full tomos sweeping UVHWP from 2 to 43; try to put on same curve as sweep with actual phi, 30 iterations. Trial 36.
+
+Fourth: do 30 iteration QP sweep: -38 to 0. take 6 full tomos sweeping QP: -36 to -2
+
 ## 7/25/23
 MP: A
 
