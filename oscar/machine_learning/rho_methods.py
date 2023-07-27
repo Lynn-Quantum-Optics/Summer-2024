@@ -350,13 +350,13 @@ def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     # except TypeError:
     #     model=1
     model = len(x)
-    # implement correction        
+    # implement correction    
+    if model != 1:
+        x /= np.sum(x)    
     if model==4:
-        x /= np.sum(x)
         r_hh, r_hv, r_vh, r_vv = x
         rho_c = purity * rho_actual + (1-purity)*(r_hh*HH + r_hv*HV + r_vh*VH + r_vv*VV)
     elif model==3:
-        x/=np.sum(x)
         e1, e2, e3 = x
         rho_c = e3*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e1*HH_rho + e2*VV_rho
     elif model==1:
@@ -379,18 +379,23 @@ def load_saved_get_E0_rho_c(rho_actual, angles, purity, model, UV_HWP_offset, mo
     try:
         adjust_df = pd.read_csv(model_path+f'noise_{UV_HWP_offset}/noise_model_{model}.csv')
     except:
-        raise ValueError(f'You are missing the file oise_model_{model}.csv; your current path is {model_path}.')
+        raise ValueError(f'You are missing the file noise_model_{model}.csv; your current path is {model_path}.')
+
+    adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
     
     if model==4:
-        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
         adjust_df = adjust_df[['r_hh', 'r_hv', 'r_vh', 'r_vv']]
     elif model==3:
-        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
         adjust_df['e3'] = 1-adjust_df['e1'] - adjust_df['e2']
         adjust_df = adjust_df[['e1', 'e2', 'e3']]
     elif model==1:
-        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
         adjust_df = adjust_df[['e']]
+    elif model==16:
+        columns = []
+        for l in list('ixyz'):
+            for r in list('ixyz'):
+                columns.append(f'r_{l}{r}')
+        adjust_df = adjust_df[columns]
     
     adjust_df = adjust_df.to_numpy()
     adjust_df = adjust_df.reshape((model,))
@@ -403,7 +408,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, UV_HWP_offset=None, angles = None, num_reps = 20, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
