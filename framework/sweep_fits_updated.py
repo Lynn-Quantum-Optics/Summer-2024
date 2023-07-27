@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from lab_framework import Manager, analysis
+from uncertainties import ufloat
+from uncertainties import unumpy as unp
 
 # +++ PARAMETER CALCULATION FUNCTIONS +++
 
@@ -73,7 +75,7 @@ def calc_beta(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray],
 
     return np.rad2deg(beta), np.rad2deg(unc)
 
-def calc_phi(DL_DR_RR_RL:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], DL_DR_RR_RL_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+def calc_phi(DL_DR_RR_RL):
     ''' Measure phi parameter of the state.
 
     Parameters
@@ -92,26 +94,14 @@ def calc_phi(DL_DR_RR_RL:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], 
     '''
     # unpack the data
     DL, DR, RR, RL = DL_DR_RR_RL
-    DLu, DRu, RRu, RLu = DL_DR_RR_RL_unc
 
     # get total count rates and convert everything to expectation values
-    try:
-        T = DL + DR + RR + RL
-        DL, DR, RR, RL = DL/T, DR/T, RR/T, RL/T
-        DLu, DRu, RRu, RLu = DLu/T, DRu/T, RRu/T, RLu/T
-         # calculate phi
-        phi = np.arctan2(DL-DR, RR-RL)
-        # calculate uncertainty in phi
-        u = (DL-DR)/(RR-RL)
-        unc = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
+    T = DL + DR + RR + RL
+    DL, DR, RR, RL = DL/T, DR/T, RR/T, RL/T
+        # calculate phi
+    phi = np.arctan2(DL-DR, RR-RL)
 
-        return np.rad2deg(phi), np.rad2deg(unc)
-    except:
-        print('no counts!')
-        return 0, 0
-
-
-   
+    return np.rad2deg(phi)
 
 # +++ DATA COLLECTION FUNCTIONS +++
 
@@ -290,22 +280,23 @@ def sweep_uvhwp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:
     angles = np.linspace(pos_min, pos_max, num_step)
 
     # sweeps in different bases
+    # sweep returns angles swept over and then ufloats for counts and unc
     m.meas_basis('DR')
-    DR, DRu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, DR = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('DL')
-    DL, DLu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, DL = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('RR')
-    RR, RRu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, RR = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('RL')
-    RL, RLu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, RL = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
 
     print(DR, DL, RR, RL)
 
     # compute phi
-    phis, phi_uncs = calc_phi((DL, DR, RR, RL), (DRu, DRu, RRu, RLu))
+    phis, phi_uncs = calc_phi((DL, DR, RR, RL))
 
     # repackage data into a dataframe
-    df = pd.DataFrame({'UV_HWP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':DL, 'DR':DR, 'RR':RR, 'RL':RL, 'DLu':DLu, 'DRu':DRu, 'RRu':RRu, 'RLu':RLu})
+    df = pd.DataFrame({'UV_HWP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':DL.nomimal_values, 'DR':DR.nomimal_values, 'RR':RR.nomimal_values, 'RL':RL.nomimal_values, 'DLu':DL.std, 'DRu':DR.std, 'RRu':RR.std, 'RLu':RL.std})
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
@@ -467,7 +458,6 @@ if __name__ == '__main__':
 
     # +++ QP phi sweep experiment
     m = Manager()
-    m.make_state("phi_plus")
     sweep_uvhwp_phi(m, 0, 45, NUM_STEP, SAMP, f'uv_hwp_phi_sweep_{NUM_STEP}.csv')
     m.shutdown()
     # show_data('qp_phi_sweep.csv', 'qp_phi_sweep_nofit.png')
