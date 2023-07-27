@@ -308,16 +308,48 @@ def custom_train_nn10h(size1, size2, size3, size4, size5, size6, size7, size8, s
       )
     return model
 
-def prep_meta(data_file):
-    '''Prepares data to input to meta model trained on outputs from nn5 and pop method'''
+def prep_meta(data_file, separate=False, use_nn5_raw=False, return_orig_input=False):
+    '''Prepares data to input to meta model trained on outputs from nn5 and pop method
+    --
+    Params:
+        separate: whether to return separate outputs for nn5 and pop method, max vals
+        use_nn5_raw: whether to use NN5 trained with only pop raw data as opposed to pop model
+        return_orig_input: whether to return original input data
+    '''
     X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='none', task='w', split=False)
     new_model_path= join('random_gen', 'models', 'saved_models')
     nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
     Y_pred_nn5 = nn5.predict(X)
-    Y_pred_pop = get_pop_raw(file=data_file)
-    # combine predictions
-    Y_comb = np.concatenate((Y_pred_nn5, Y_pred_pop), axis=1)
-    return Y_comb, Y
+    if not(use_nn5_raw):
+        Y_pred_pop = get_pop_raw(file=data_file)
+    else:
+        X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='none', pop_method='raw', task='w', split=False)
+        nn5_raw = keras.models.load_model(join(new_model_path, 'r4_s0_50_w_none_raw_200_200_200_200_200_0.0001_100.h5'))
+        Y_pred_pop = nn5_raw.predict(X)
+    if not(separate):
+        # combine predictions
+        Y_comb = np.concatenate((Y_pred_nn5, Y_pred_pop), axis=1)
+        return Y_comb, Y
+    else:
+        # get max vals and labels
+        Y_pred_nn5_max = np.max(Y_pred_nn5, axis=1)
+        Y_pred_pop_max = np.max(Y_pred_pop, axis=1)
+        # expand dims
+        Y_pred_nn5_max = np.expand_dims(Y_pred_nn5_max, axis=1)
+        Y_pred_pop_max = np.expand_dims(Y_pred_pop_max, axis=1)
+        # copy max val to all entries in row using np.tile
+        Y_pred_nn5_max = np.tile(Y_pred_nn5_max, (1, 3))
+        Y_pred_pop_max = np.tile(Y_pred_pop_max, (1, 3))
+        
+        Y_pred_nn5_labels = get_labels(Y_pred_nn5, task='w')
+        if not(use_nn5_raw):
+            Y_pred_pop_labels = get_labels_pop(pop_df=Y_pred_pop, file=None)
+        else:
+            Y_pred_pop_labels = get_labels(Y_pred_pop, task='w')
+        if not(return_orig_input):
+            return Y_pred_nn5_max, Y_pred_nn5_labels, Y_pred_pop_max, Y_pred_pop_labels, Y
+        else:
+            return Y_pred_nn5_max, Y_pred_nn5_labels, Y_pred_pop_max, Y_pred_pop_labels, Y, X
 
 def train_meta(train_file, size, num_layers, learning_rate=0.0001, n_estimators=5000, max_depth = 15, early_stopping=20, epochs=100, batch_size=256):
     '''Train meta model on outputs from nn5 and pop method'''
@@ -363,10 +395,92 @@ def test_meta(model_file, data_file, model=None):
     dot = np.einsum('ij,ij->i', Y, Y_pred_meta)
     print(f'perf on file', np.sum(dot)/len(dot))
     
+def meta_restrict(data_files, a=.55, b =None):
+    '''Meta model to combine NN5 and pop by conditions on output confidences
+    --
+    data_files: list of data files to test on
+    a: lower lim on NN conf
+    b: upper bound on pop conf
+    '''
+    print('------------------')
+    print('a', a, 'b', b)
+    for data_file in data_files:
+        # load data
+        Y_nn5_max, Y_nn5_labels, Y_raw_max, Y_raw_labels, Y = prep_meta(data_file, separate=True)
+        # implement decision
+        if b is None:
+            Y_pred = np.where(Y_nn5_max>=a, Y_nn5_labels, Y_raw_labels)
+        else:
+            Y_pred = np.where(np.logical_and(Y_nn5_max<a, Y_raw_max>=b), Y_raw_labels, Y_nn5_labels)
+        # compute accuracy
+        # baseline nn5
+        nn5_b_dot = np.einsum('ij,ij->i', Y_nn5_labels, Y)
+        print('baseline nn5 = ', np.sum(nn5_b_dot) / len(nn5_b_dot))
+        # baseline pop
+        raw_b_dot = np.einsum('ij,ij->i', Y_raw_labels, Y)
+        print('baseline pop = ', np.sum(raw_b_dot) / len(raw_b_dot))
+        # straight combine (no decision)
+        comb_b_dot = nn5_b_dot + raw_b_dot
+        # remove 2s
+        comb_b_dot = np.where(comb_b_dot>0, 1, 0)
+        print('straight combine = ', np.sum(comb_b_dot) / len(comb_b_dot))
+        dot = np.einsum('ij,ij->i', Y, Y_pred)
+        print(f'perf on file {data_file}', np.sum(dot)/len(dot))
+
+def meta_restrict_input(params, X, Y, Y_nn5_labels, Y_raw_labels, data_file='roik_True_800000_r_os_v.csv'):
+    '''Meta model to combine NN5 and pop by conditions on input probabilities'''
+    # load data
+    if X is None or Y is None or Y_nn5_labels is None or Y_raw_labels is None:
+            Y_nn5_max, Y_nn5_labels, Y_raw_max, Y_raw_labels, Y,X  = prep_meta(data_file, separate=True, return_orig_input=True)
+
+    # implement decision
+    conditions = []
+    for i in range(0, len(params)-1, 2):
+        # get upper and lower bounds per condition
+        cond_l = params[i]
+        cond_u = params[i+1]
+        # confirm cond_l < cond_u
+        cond_l, cond_u = min(cond_l, cond_u), max(cond_l, cond_u)
+        # get indices of rows that satisfy condition
+        cond_idx = np.logical_and(X[:,i//2]>=cond_l, X[:,i//2]<cond_u)
+        conditions.append(cond_idx)
+    # get intersection of all conditions
+    all_cond =conditions[0] & conditions[1] & conditions[2] & conditions[3] & conditions[4] & conditions[5] & conditions[6] & conditions[7] & conditions[8]
+    # all_cond =conditions[0] | conditions[1] | conditions[2] | conditions[3] | conditions[4] | conditions[5] | conditions[6] | conditions[7] | conditions[8]
+
+    # copy cond using tile
+    all_cond = np.expand_dims(all_cond, axis=1)
+    all_cond = np.tile(all_cond, (1, 3))
+
+    Y_pred = np.where(all_cond, Y_raw_labels, Y_nn5_labels)
+    # compute accuracy
+    dot = np.einsum('ij,ij->i', Y, Y_pred)
+    return np.sum(dot)/len(dot)
+
+def meta_compare(data_files):
+    '''Compare output from NN5 with pop and NN5 with only raw'''
+    for data_file in data_files:
+        # load data
+        Y_nn5_max, Y_nn5_labels, Y_raw_max, Y_raw_labels, Y = prep_meta(data_file, separate=True, use_nn5_raw=True)
+        # implement decision
+        Y_pred = np.where(Y_nn5_max>=Y_raw_max, Y_nn5_labels, Y_raw_labels)
+        # compute accuracy
+        # baseline nn5
+        nn5_b_dot = np.einsum('ij,ij->i', Y_nn5_labels, Y)
+        print('baseline nn5 = ', np.sum(nn5_b_dot) / len(nn5_b_dot))
+        # baseline pop
+        raw_b_dot = np.einsum('ij,ij->i', Y_raw_labels, Y)
+        print('baseline pop = ', np.sum(raw_b_dot) / len(raw_b_dot))
+        # straight combine (no decision)
+        comb_b_dot = nn5_b_dot + raw_b_dot
+        # remove 2s
+        comb_b_dot = np.where(comb_b_dot>0, 1, 0)
+        print('straight combine = ', np.sum(comb_b_dot) / len(comb_b_dot))
+        dot = np.einsum('ij,ij->i', Y, Y_pred)
+        print(f'perf on file {data_file}', np.sum(dot)/len(dot))
 
 
-
-
+#######################################################
 ## run on our data ##
 if __name__=='__main__':
     from os.path import join
@@ -378,6 +492,7 @@ if __name__=='__main__':
     if op==1:
         file = input('Enter file name: ')
         input_method = input('Enter input method: ')
+        pop_method = input('Enter pop method: ')
         task = input('Enter task: ')
         identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
         savename= identifier+'_'+task+'_'+input_method
@@ -918,8 +1033,9 @@ if __name__=='__main__':
                 size4 = int(input('Enter size4:'))
                 size5 = int(input('Enter size5:'))
                 learning_rate = float(input('Enter learning_rate:'))
+                batch_size = int(input('Enter batch_size:'))
                 epochs=100
-                nn5 = custom_train_nn5h(size1=size1, size2=size2, size3=size3, size4=size4, size5=size5, learning_rate = learning_rate, batch_size=256, epochs=epochs)
+                nn5 = custom_train_nn5h(size1=size1, size2=size2, size3=size3, size4=size4, size5=size5, learning_rate = learning_rate, batch_size=batch_size, epochs=epochs)
                 print('val', eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)], task=task, input_method=input_method, pop_method=pop_method))
                 print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls =file_ls,file_names=file_names, task=task, input_method=input_method, pop_method=pop_method))
                 nn5.save(join('random_gen', 'models', savename+f'_{size1}_{size2}_{size3}_{size4}_{size5}_{learning_rate}_{epochs}.h5'))
@@ -928,22 +1044,26 @@ if __name__=='__main__':
                 learning_rate = float(input('Enter learning_rate:'))
                 batch_size = int(input('Enter batch_size:'))
                 epochs=100
-                nn5 = custom_train_nn5h(size1=size, size2=size, size3=size, size4=size, size5=size, sie6 = size, size7 = size, size8=size, size9 = size, size10 = size, learning_rate = learning_rate, batch_size=256, epochs=epochs)
+                nn5 = custom_train_nn10h(size1=size, size2=size, size3=size, size4=size, size5=size, size6 = size, size7 = size, size8=size, size9 = size, size10 = size, learning_rate = learning_rate, batch_size=batch_size, epochs=epochs)
                 print('val', eval_perf(nn5, identifier+'_'+str(wtr), data_ls = [(X_test, Y_test)], task=task, input_method=input_method, pop_method=pop_method))
                 print(eval_perf(nn5, identifier+'_'+str(wtr), file_ls =file_ls,file_names=file_names, task=task, input_method=input_method, pop_method=pop_method))
                 nn5.save(join('random_gen', 'models', savename+f'_{size}x10_{learning_rate}_{epochs}.h5'))
     elif op==2:
         # for now just load in nn5
-        MODEL_PATH = 'random_gen/models'
+        MODEL_PATH = 'random_gen/models/saved_models'
         DATA_PATH = 'random_gen/data'
         from keras.models import load_model
-        from ml_comp import get_labels, eval_perf
+        from ml_comp import *
 
-        nn5 = load_model(join(MODEL_PATH, 'r4_s0_7_w_prob_9_200_200_200_200_200_0.0001_100.h5'))
+        model_file = 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'
+
+        nn5 = load_model(join(MODEL_PATH, model_file))
         # look at performance on training and validation set
-        # tv_file = 'roik_True_4000000_tv.csv'
-        tv_file = 'roik_True_10000_extra.csv'
-        _, _, tv_X, tv_Y = prepare_data(datapath=DATA_PATH, file=tv_file, input_method='prob_9', task='w', split=True)
+        # val_file = 'roik_True_800000_r_os_v.csv'
+        # val_file = 'roik_True_400000_s0_extra0.csv'
+        val_file = 'roik_True_4000000_r_os_tv.csv'
+        # tv_file = 'roik_True_10000_extra.csv'
+        tv_X, tv_Y = prepare_data(datapath=DATA_PATH, file=val_file, input_method='prob_9', pop_method='none', task='w', split=False)
         tv_predY = nn5.predict(tv_X)
         tv_predY = get_labels(tv_predY, task='w')
         dot = np.einsum('ij,ij->i', tv_Y, tv_predY)
@@ -952,19 +1072,21 @@ if __name__=='__main__':
         # double check eval_perf
         # now look at performance on test set
         file_ls = ['roik_True_400000_s0_extra0.csv', 'roik_True_400000_r_os_t.csv']
-        print(eval_perf(nn5, 'nn5', file_ls=file_ls, file_names = ['Test_extra', 'Test'], task='w', input_method='prob_9'))
-        # find inputs that resulted into incorrect outputs
-        bad_tvX = tv_X[dot==0]
-        bad_tvY = tv_Y[dot==0]
+        # file_ls = ['roik_True_400000_r_os_t.csv']
+        # find inputs that resulted into incorrect outputs for nn5, but correct for pop
+        pop_predY = get_labels_pop(file=val_file)
+        pop_dot = np.einsum('ij,ij->i', tv_Y, pop_predY)
+        bad_tvX = tv_X[(dot==0)&(pop_dot==1)]
+        bad_tvY = tv_Y[(dot==0)&(pop_dot==1)]
+        print('size of bad tvX', len(bad_tvX))
         # now resume training
-        epochs = 100
-        batch_size = 256
+        epochs = 50
+        batch_size = 100
         nn5.fit(tv_X, tv_Y, batch_size=batch_size, epochs=epochs)
-        # nn5.fit(bad_tvX, bad_tvY, batch_size=batch_size, epochs=epochs)
-        # nn5.save(join(MODEL_PATH, 'r4_s0_7_w_prob_9_200_200_200_200_200_0.0001_100_retraintv.h5'))
-        print(eval_perf(nn5, 'nn5_retrain', file_ls=file_ls, file_names = ['Test_extra', 'Test'], task='w', input_method='prob_9'))
+        nn5.save(join(MODEL_PATH, model_file.split('.')[0]+'_retrain_tv.h5'))
+        print(eval_perf(nn5, 'nn5_retrain', file_ls=file_ls, file_names = ['Test extra', 'Test'], task='w', input_method='prob_9'))
 
-    if op==3:
+    elif op==3:
         '''Train new model based on nn5 and pop model outputs.'''
         from ml_comp import *
 
@@ -985,8 +1107,63 @@ if __name__=='__main__':
         # nn5_pop = custom_train_nn1h(size=50, learning_rate=0.0001, epochs=100)
         # nn5_pop.save(join(new_model_path, 'nn1_meta_0.h5'))
         # test new model
-        meta = train_meta(train_file = 'roik_True_4000000_r_os_tv.csv', size=200, num_layers=3, learning_rate=0.0001)
-        test_meta(model=meta, model_file=None, data_file='roik_True_400000_r_os_t.csv')
+        # meta = train_meta(train_file = 'roik_True_4000000_r_os_tv.csv', size=200, num_layers=3, learning_rate=0.0001)
+        # test_meta(model=meta, model_file=None, data_file='roik_True_400000_r_os_t.csv')
+
+        meta_restrict(['roik_True_400000_s0_extra0.csv', 'roik_True_400000_r_os_t.csv'], a=.55, b=0.46)
+        # meta_compare(['roik_400k_extra_wpop_rd.csv', 'roik_400k_wpop_rd.csv'])
+    elif op==4:
+        '''Run gd to impose conditions on inputs.'''
+        from ml_comp import *
+        from scipy.optimize import minimize, approx_fprime
+        from functools import partial
+
+        max_targ = 0.89
+
+        Y_nn5_max, Y_nn5_labels, Y_raw_max, Y_raw_labels, Y,X  = prep_meta('roik_True_800000_r_os_v.csv', separate=True, return_orig_input=True)
+
+
+        def guess_params():
+            return np.random.rand(18)
+        
+        def get_loss(params, X, Y, Y_nn5_labels, Y_raw_labels):
+            acc = meta_restrict_input(params, X, Y, Y_nn5_labels, Y_raw_labels)
+            # print('acc', acc)
+            return 0.89 - acc
+
+        loss_func = partial(get_loss, X=X, Y=Y, Y_nn5_labels=Y_nn5_labels, Y_raw_labels=Y_raw_labels)                
+        grad_params = guess_params()
+        best_params = grad_params
+        best_loss = loss_func(grad_params)
+        print('random loss', best_loss)
+
+        lr = 1
+        f = .5
+
+        n = 0
+        N= 200000
+        num_since_best = 0
+        while n < N and best_loss > 1e-3:
+            # minimize loss
+            result = minimize(loss_func, grad_params, bounds = [(0,1) for _ in range(18)])
+            loss, grad_params = result.fun, result.x
+            if loss < best_loss:
+                best_loss = loss
+                best_params = grad_params
+                num_since_best = 0
+            else:
+                num_since_best += 1
+            # get gradient
+            # if num_since_best == int(f*N):
+            #     grad_params = guess_params()
+            # grad = approx_fprime(grad_params, loss_func, 1e-6)
+            # # update params
+            # grad_params -= lr*grad
+            grad_params = guess_params()
+            n += 1
+            print('n', n, 'loss', loss, 'best_loss', best_loss, 'num_since_best', num_since_best)
+
+
         
 
 
