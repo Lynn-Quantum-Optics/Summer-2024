@@ -45,3 +45,11 @@ SIMPLEX_METHODS = dict(
     gauss=gaussian_simplex,
     exp=exponential_simplex
 )
+
+SIMPLEX_NAMES = [
+    'Stick-breaking',
+    'Basic',
+    'Roik',
+    'Gaussian',
+    'Exponential'
+]
