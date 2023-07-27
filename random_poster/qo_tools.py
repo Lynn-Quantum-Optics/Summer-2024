@@ -52,11 +52,56 @@ def two_qubit_partial_transpose(mat):
     out[2:4,2:4] = mat[2:4,2:4].T
     return out
 
-def is_hermitian(arr):
+def is_hermitian(arr, tol=1e-10):
     ''' Check if an array is hermitian. '''
     if (len(arr.shape) != 2) or (arr.shape[0] != arr.shape[1]):
         return False
-    return np.all(arr == adj(arr))
+    else:
+        return np.all(np.abs(arr - adj(arr)) < tol)
+
+def is_unitary(U, tol=1e-10) -> bool:
+    ''' Check if a matrix is unitary.
+    
+    Parameters
+    ----------
+    U : np.ndarray
+        A square matrix to check.
+    tol : float
+        The tolerance for the check.
+    
+    Returns
+    -------
+    bool
+        True if U is unitary, False otherwise.
+    '''
+    if (len(U.shape) != 2) or (U.shape[0] != U.shape[1]):
+        return False
+    else:
+        return np.all(np.abs((U @ U.conj().T) - np.eye(4)) < tol)
+
+def partial_trace(rho, drop=1):
+    ''' partial trace of a matrix 
+    
+    Parameters
+    ----------
+    drop : int
+        The number of qubits to drop. The last qubits will always be the ones dropped.
+    '''
+    # check inputs
+    assert len(rho.shape) == 2, 'rho must be a matrix'
+    assert rho.shape[0] == rho.shape[1], 'rho must be square'
+    assert (np.log2(rho.shape[0]) % 1) < 1e-10, 'rho must have dimensions 2^n x 2^n'
+    assert drop >= 0, 'drop must be non-negative'
+    
+    # initialize output matrix
+    in_size = rho.shape[0]
+    out_size = int(in_size/2**drop)
+    out = np.zeros((out_size, out_size), dtype=complex)
+    # loop over the submatrices of the input
+    for i in range(0, in_size, out_size):
+        out += rho[i:i+out_size, i:i+out_size]
+    # return output
+    return out
 
 # pauli spin matricies
 
@@ -125,6 +170,20 @@ def purity(rho):
 def fidelity(x, y):
     ''' get the fidelity between two states. '''
     return np.real(np.trace(la.sqrtm(la.sqrtm(x) @ y @ la.sqrtm(x))))**2
+
+# hilbert schmidt stuff
+
+def HS_prod(a,b):
+    ''' hilbert-schmidt inner product of two hermitian matrices. '''
+    return np.real(np.trace(adj(a) @ b))
+
+def HS_norm(a):
+    ''' hilbert-schmidt norm of a hermitian matrix. '''
+    return np.sqrt(np.real(np.trace(adj(a) @ a)))
+
+def HS_dist(a,b):
+    ''' hilbert-schmidt distance between two hermitian matrices. '''
+    return HS_norm(a-b)
 
 # one qubit states
 
