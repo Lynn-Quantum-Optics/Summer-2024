@@ -57,6 +57,7 @@ def is_hermitian(arr):
     if (len(arr.shape) != 2) or (arr.shape[0] != arr.shape[1]):
         return False
     return np.all(arr == adj(arr))
+
 # pauli spin matricies
 
 ID = np.array(np.eye(2),dtype=complex)
@@ -177,8 +178,6 @@ LD = np.kron(L,D)
 LA = np.kron(L,A)
 LR = np.kron(L,R)
 LL = np.kron(L,L)
-
-HH = np.kron(H,H)
 
 # bell states
 
