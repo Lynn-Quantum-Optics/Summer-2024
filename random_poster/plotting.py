@@ -59,7 +59,7 @@ def pauli_histograms_2qubit(kets, bins=30, figsize=(12,12), title='my plot'):
 
     # setup the figure
     fig = plt.figure(figsize=figsize)
-    fig.suptitle('Distribution of Bloch Coordinates')
+    fig.suptitle(title)
     # make histograms
     for i, (l, M) in enumerate(zip(labels, basis)):
         ax = fig.add_subplot(8,2,i+1)
@@ -67,6 +67,5 @@ def pauli_histograms_2qubit(kets, bins=30, figsize=(12,12), title='my plot'):
         ax.hist(values, bins=bins)
         ax.set_ylabel('Frequency')
         ax.set_xlabel(l)
-    # set the window title
-    fig.canvas.manager.set_window_title(title)
+    # fix overlap
     fig.tight_layout()
