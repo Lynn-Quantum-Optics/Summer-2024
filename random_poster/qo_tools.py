@@ -134,6 +134,22 @@ SX = np.array([[0,1],[1,0]], dtype=complex)
 SY = np.array([[0,-1j],[1j,0]], dtype=complex)
 SZ = np.array([[1,0],[0,-1]], dtype=complex)
 
+# pauli basis
+
+def generate_pauli_basis(nbits):
+    ''' generate pauli basis for an nbit-qubit system '''
+    # initialize pauli basis
+    basis = [np.copy(ID), np.copy(SX), np.copy(SY), np.copy(SZ)]
+    # loop to expand the basis
+    for _ in range(nbits-1):
+        new_basis = []
+        for a in [ID, SX, SY, SZ]:
+            for b in basis:
+                new_basis.append(np.kron(a,b))
+        basis = new_basis
+    # return the basis as a numpy array
+    return np.array(basis).T
+
 # measurement
 
 def bloch_coords(ket_or_rho):
