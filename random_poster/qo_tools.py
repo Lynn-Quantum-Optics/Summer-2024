@@ -136,8 +136,13 @@ SZ = np.array([[1,0],[0,-1]], dtype=complex)
 
 # pauli basis
 
+GENERATED_PAULI_BASES = {}
+
 def generate_pauli_basis(nbits):
     ''' generate pauli basis for an nbit-qubit system '''
+    # check if basis has already been generated
+    if nbits in GENERATED_PAULI_BASES:
+        return np.copy(GENERATED_PAULI_BASES[nbits])
     # initialize pauli basis
     basis = [np.copy(ID), np.copy(SX), np.copy(SY), np.copy(SZ)]
     # loop to expand the basis
@@ -147,8 +152,10 @@ def generate_pauli_basis(nbits):
             for b in basis:
                 new_basis.append(np.kron(a,b))
         basis = new_basis
-    # return the basis as a numpy array
-    return np.array(basis).T
+    basis = np.array(basis).T
+    # save basis and return
+    GENERATED_PAULI_BASES[nbits] = np.copy(basis)
+    return basis
 
 # measurement
 
