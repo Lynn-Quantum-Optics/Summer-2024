@@ -71,8 +71,11 @@ def random_mixed_op(n, dist='exp'):
     dist : str, optional (default "exp")
         The distribution to sample for the initial parameters. Options are:
         - "exp" : exponential magnitude distribution, uniform phase
-        - "uniform" : uniform distribution [-1, 1] for both re and im
-        - "normal" : normal distribution for both re and im
+        - "uniform" : uniform distribution [0, 1] of magnitudes, uniform phase
+        - "normal" : normal distribution of magnitudes, uniform phase
+        - "exp re-im" : exponential distribution for both re and im
+        - "uniform re-im" : uniform distribution [-1, 1] for both re and im
+        - "normal re-im" : normal distribution for both re and im
     '''
     if dist == 'exp':
         # exponential magnitudes
@@ -80,8 +83,20 @@ def random_mixed_op(n, dist='exp'):
         # add uniform phase
         a = np.multiply(np.exp(2j*np.pi*np.random.rand(n,n)), a)
     elif dist == 'uniform':
-        a = (1-2*np.random.rand(n,n)) + 1j*(1-2*np.random.rand(n,n))
+        # uniform magnitudes
+        a = np.random.rand(n,n)
+        # add uniform phase
+        a = np.multiply(np.exp(2j*np.pi*np.random.rand(n,n)), a)
     elif dist == 'normal':
+        # normal distribution of magnitudes
+        a = np.random.randn(n,n)
+        # add uniform phase
+        a = np.multiply(np.exp(2j*np.pi*np.random.rand(n,n)), a)
+    elif dist == 'exp re-im':
+        a = np.random.exponential(size=(n,n)) + 1j*np.random.exponential(size=(n,n))
+    elif dist == 'uniform re-im':
+        a = (1-2*np.random.rand(n,n)) + 1j*(1-2*np.random.rand(n,n))
+    elif dist == 'normal re-im':
         a = np.random.randn(n,n) + 1j*np.random.randn(n,n)
     else:
         raise ValueError(f'invalid distribution "{dist}"')
