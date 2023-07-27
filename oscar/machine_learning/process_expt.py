@@ -255,7 +255,7 @@ def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=None):
 
         if eta is not None and chi is not None:
             if model is None:
-                adj_rho = adjust_rho(rho, [eta, chi], purity)
+                adj_rho = adjust_rho(rho_actual, [eta, chi], purity)
                 adj_fidelity = get_fidelity(adj_rho, rho)
                 adj_purity = get_purity(adj_rho)
             else:
@@ -278,7 +278,7 @@ def make_plots_E0(dfname):
     num_plots: int, number of separate plots to make (based on eta)
     '''
 
-    id = dfname.split('.')[0] # extract identifier from dfname
+    id = dfname.split('.csv')[0] # extract identifier from dfname
 
     # read in df
     df = pd.read_csv(join(DATA_PATH, dfname))
@@ -982,6 +982,8 @@ if __name__ == '__main__':
 
     UV_HWP_offset = 1
     model = None
+
+    # det_noise(filenames, model, UV_HWP_offset)
     
     id = f'neg3_{UV_HWP_offset}_{model}_corrected'
     analyze_rhos(filenames,id=id, UV_HWP_offset = UV_HWP_offset) # calculate csv with witness vals
