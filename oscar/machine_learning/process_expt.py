@@ -181,7 +181,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
             return trial, rho, unc, Su, rho_actual, fidelity, purity, angles
 
-def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
+def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=None):
     '''Extending get_rho_from_file to include multiple files; 
     __
     inputs:
@@ -189,6 +189,7 @@ def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
         UV_HWP_offset: how many degrees to offset UV_HWP since callibration is believed to be off for 
         settings: dict of settings for the experiment
         id: str, special identifier of experiment; used for naming the df
+        model: which model to use for purity correction; if None, will use the default model
     __
     returns: df with:
         - trial number
@@ -253,9 +254,12 @@ def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
 
         if eta is not None and chi is not None:
-            adj_rho = adjust_rho(rho, [eta, chi], purity)
-            adj_fidelity = get_fidelity(adj_rho, rho)
-            adj_purity = get_purity(adj_rho)
+            if model is None:
+                adj_rho = adjust_rho(rho, [eta, chi], purity)
+                adj_fidelity = get_fidelity(adj_rho, rho)
+                adj_purity = get_purity(adj_rho)
+            else:
+                adj_fidelity, adj_purity = get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_offset)
 
             df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity, 'AT_purity': adj_purity,
             'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
@@ -274,7 +278,7 @@ def make_plots_E0(dfname):
     num_plots: int, number of separate plots to make (based on eta)
     '''
 
-    id = dfname.split('.')[0].split('_')[-1] # extract identifier from dfname
+    id = dfname.split('.')[0] # extract identifier from dfname
 
     # read in df
     df = pd.read_csv(join(DATA_PATH, dfname))
@@ -976,9 +980,10 @@ if __name__ == '__main__':
 
     ## do calculations ##
 
-    UV_HWP_offset = 0
+    UV_HWP_offset = 1
+    model = None
     
-    id = f'neg3_{UV_HWP_offset}_corrected'
+    id = f'neg3_{UV_HWP_offset}_{model}_corrected'
     analyze_rhos(filenames,id=id, UV_HWP_offset = UV_HWP_offset) # calculate csv with witness vals
 
-    make_plots_E0(f'rho_analysis_{id}_.csv') # make plots based on witness calcs
+    make_plots_E0(f'rho_analysis_{id}.csv') # make plots based on witness calcs

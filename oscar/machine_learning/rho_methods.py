@@ -433,8 +433,11 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
         do_counts = True
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
-    if expt_purity is not None and angles is not None and model is not None:
-        rho = adjust_rho(rho, angles, expt_purity)
+    if expt_purity is not None and angles is not None:
+        if model is None:
+            rho = adjust_rho(rho, angles, expt_purity)
+        else:
+            rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model, UV_HWP_offset)
 
     if do_counts:
         counts = np.reshape(counts, (36,1))
