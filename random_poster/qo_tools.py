@@ -80,27 +80,30 @@ def is_unitary(U, tol=1e-10) -> bool:
         return np.all(np.abs((U @ U.conj().T) - np.eye(4)) < tol)
 
 def is_valid_density(rho, tol=1e-10):
+    ''' check if a matrix is a valid density matrix
+
+    Returns
+    -------
+    bool or str
+        True if density matrix is valid, otherwise some string describing how it is invalid.
+    '''
     if len(rho.shape) != 2:
-        # not a matrix
-        return False
+        return 'not a matrix'
     elif rho.shape[0] != rho.shape[1]:
-        # not square
-        return False
+        return 'not square'
     # get eigenvalues
     evs = np.linalg.eigvals(rho)
     # go through checks
     if np.any(np.imag(evs) > tol):
-        # imaginary eigenvalues
-        return False
-    elif np.any(evs < -tol):
-        # negative eigenvalues
-        return False
-    elif np.abs(np.trace(rho) - 1) > tol:
-        # trace = 1
-        return False
+        return 'imaginary eigenvalues'
+    elif np.any(np.real(evs) < -tol):
+        return 'negative eigenvalues'
+    elif np.abs(np.real(np.trace(rho)) - 1) > tol:
+        return f'trace {np.real(np.trace(rho)):.5f} != 1'
+    elif not is_hermitian(rho):
+        return 'not hermitian'
     else:
-        # must be hermitian
-        return is_hermitian(rho)
+        return True
 
 def qubit_trace(rho, keep):
     ''' partial trace of an n-qubit density matrix 
