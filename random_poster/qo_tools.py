@@ -79,6 +79,29 @@ def is_unitary(U, tol=1e-10) -> bool:
     else:
         return np.all(np.abs((U @ U.conj().T) - np.eye(4)) < tol)
 
+def is_valid_density(rho, tol=1e-10):
+    if len(rho.shape) != 2:
+        # not a matrix
+        return False
+    elif rho.shape[0] != rho.shape[1]:
+        # not square
+        return False
+    # get eigenvalues
+    evs = np.linalg.eigvals(rho)
+    # go through checks
+    if np.any(np.imag(evs) > tol):
+        # imaginary eigenvalues
+        return False
+    elif np.any(evs < -tol):
+        # negative eigenvalues
+        return False
+    elif np.abs(np.trace(rho) - 1) > tol:
+        # trace = 1
+        return False
+    else:
+        # must be hermitian
+        return is_hermitian(rho)
+
 def partial_trace(rho, drop=1):
     ''' partial trace of a matrix 
     
