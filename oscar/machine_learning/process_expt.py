@@ -44,6 +44,36 @@ def get_rho_from_file_depricated(filename, rho_actual):
     print('trace of measublue rho', np.trace(rho))
     print('eigenvalues of measublue rho', np.linalg.eigvals(rho))
 
+def comp_rho_rhoadj(file, UV_HWP_offset, model,  path = '../../framework/decomp_test'):
+    '''Reads in experimental file and prints experimetnal rho with corrected'''
+    r = np.load(join(path, file), allow_pickle=True)
+    rho = r[0]
+    # split filename
+    split_filename = file.split('_')
+    # get trial number
+    trial = int(split_filename[-1].split('.')[0])
+    # get eta
+    eta = float(split_filename[1].split(',')[1].split('(')[1])
+    chi = float(split_filename[1].split(',')[2].split(')')[0].split(' ')[1])
+    print(f'trial: {trial}, eta: {eta}, chi: {chi}')
+    # get rho actual
+    angles = r[-3]
+    angles[0]+=UV_HWP_offset
+    rho_actual = get_Jrho(np.deg2rad(angles), setup='C0')
+    purity = r[-1]
+    rho_adj =  load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
+    print(rho)
+    print('---------')
+    print(rho_adj)
+    print('-------')
+    print(f'fidelity: {get_fidelity(rho, rho_adj)}')
+    print(f'purity rho: {get_purity(rho)}')
+    print(f'purity adj: {get_purity(rho_adj)}')
+    print('rho witnesses', compute_witnesses(rho))
+    print('rho_witness_exp', compute_witnesses(rho, expt=True, counts=unp.uarray(r[3], r[4])))
+    print('rho adj witnesses', compute_witnesses(rho_adj))
+
+    
 def get_rho_from_file(filename, verbose=True, angles=None):
     '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23, angles were not saved (but recorded in lab_notebook markdown file). Also note that in trials 20 (E0 eta = 45), 21 (blueo of E0 (eta = 45, chi = 0, 18)), 22 (E0 eta = 60), and 23 (E0 eta = 60, chi = -90), there was a sign error in the phi phase in the Jones matrices, so will recalculate the correct density matrix; ** the one saved in the file as the theoretical density matrix is incorrect **
     --
@@ -195,7 +225,8 @@ def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
         W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi], model=model, UV_HWP_offset=UV_HWP_offset) # Purity Corrected theory
 
         # calculate W and W' expt
-        W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
+        # W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
+        W_expt_ls = compute_witnesses(rho = rho)
 
         # parse lists
         W_min_T = W_T_ls[0]
@@ -209,18 +240,31 @@ def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
         Wp_t3_AT = W_AT_ls[3]
         # ---- #
         # using propogated uncertainty
-        try: # handle the observed difference in python 3.9.7 and 3.10
-            W_min_expt = unp.nominal_values(W_expt_ls[0][0][0])
-            W_min_unc = unp.std_devs(W_expt_ls[0][0][0])
-        except: 
-            W_min_expt = unp.nominal_values(W_expt_ls[0][0])
-            W_min_unc = unp.std_devs(W_expt_ls[0][0])
-        Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
-        Wp_t1_unc = unp.std_devs(W_expt_ls[1])
-        Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
-        Wp_t2_unc = unp.std_devs(W_expt_ls[2])
-        Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
-        Wp_t3_unc = unp.std_devs(W_expt_ls[3])
+        # try: # handle the observed difference in python 3.9.7 and 3.10
+        #     W_min_expt = unp.nominal_values(W_expt_ls[0][0][0])
+        #     W_min_unc = unp.std_devs(W_expt_ls[0][0][0])
+        # except: 
+        #     W_min_expt = unp.nominal_values(W_expt_ls[0][0])
+        #     W_min_unc = unp.std_devs(W_expt_ls[0][0])
+        # Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
+        # Wp_t1_unc = unp.std_devs(W_expt_ls[1])
+        # Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
+        # Wp_t2_unc = unp.std_devs(W_expt_ls[2])
+        # Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
+        # Wp_t3_unc = unp.std_devs(W_expt_ls[3])
+        try:
+            W_min_expt = W_expt_ls[0][0]
+            W_min_unc = 0
+        except:
+            W_min_expt = W_expt_ls[0]
+            W_min_unc = 0
+
+        Wp_t1_expt = W_expt_ls[1]
+        Wp_t2_expt = W_expt_ls[2]
+        Wp_t3_expt = W_expt_ls[3]
+        Wp_t1_unc = 0
+        Wp_t2_unc = 0
+        Wp_t3_unc = 0
 
         if eta is not None and chi is not None:
             adj_fidelity, adj_purity= get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model=model, UV_HWP_offset=UV_HWP_offset)
@@ -233,7 +277,7 @@ def analyze_rhos(filenames, UV_HWP_offset, settings=None, id='id', model=4):
 
     # save df
     print('saving!')
-    df.to_csv(join(DATA_PATH, f'rho_analysis_{id}.csv'))
+    df.to_csv(join(DATA_PATH, f'rho_analysis_{id}_{model}_{UV_HWP_offset}.csv'))
 
 def make_plots_E0(dfname):
     '''Reads in df generated by analyze_rhos and plots witness value comparisons as well as fidelity and purity
@@ -734,35 +778,37 @@ def det_noise(filenames, model, UV_HWP_offset, N=250, zeta=.7, f=.1, fidelity_li
         if len(x0)>1:
             x0 = x0/np.sum(x0)
         # get fidelity loss
-        # if model==4:
         try:
             fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi)
 
             loss =  1 / np.sqrt(fidelity_c)  + abs(purity_c - purity)  # want to maximize fidelity and minimize purity difference and need normalized
         except:
             loss = 1e10
-        # else:
-        #     fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi)
-        #     loss = 1 - np.sqrt(fidelity_c)
-
+        # fidelity_c, purity_c = get_corrected_fidelity(x0, rho_actual, rho, purity, eta, chi)
+        # loss = 1-np.sqrt(fidelity_c)
         return loss
+
     def minimize_loss(x0, rho_actual, rho, purity, eta, chi, model):
         # normalize guess
         # x0 = x0/np.sum(x0)
-        S = minimize(loss_func, x0, bounds = [(0, 1) for _ in range(model)], args=(rho_actual, rho, purity, eta, chi))
+        S = minimize(loss_func, x0, bounds = [(-1, 1) for _ in range(model)], args=(rho_actual, rho, purity, eta, chi))
         fidelity_c, purity_c = get_corrected_fidelity(S.x, rho_actual, rho, purity, eta, chi)
         return  S.x, S.fun, fidelity_c, purity_c # return best prob, best loss, fidelity, purity
     def random_guess(model):
         '''Stick random simplex'''
         # get random simplex
         if model >1:
-            rand = np.random.rand(model-1)
+            rand = 2*np.random.rand(model-1)
             rand = np.sort(rand)
             guess = np.zeros(model)
             guess[0] = rand[0]
             for i in range(1,len(rand)):
                 guess[i] = rand[i] - rand[i-1]
             guess[-1] = 1 - np.sum(guess[:-1])
+            # add negatives
+            for i in range(len(guess)):
+                if np.random.rand()>=0.5:
+                    guess[i]*=-1
             return guess
         else:
             return np.random.rand(1)
@@ -920,8 +966,6 @@ def plot_adj():
     plt.subplots_adjust(top=0.9)
     plt.savefig(join(DATA_PATH, 'noise_plots.pdf'))
             
-  
-
 if __name__ == '__main__':
     # set filenames for computing W values
     ## new names ##
@@ -944,7 +988,7 @@ if __name__ == '__main__':
 
     ## do calculations ##
 
-    UV_HWP_offset = 0
+    UV_HWP_offset = 1
     model = 16
 
     # det_noise(filenames, UV_HWP_offset = UV_HWP_offset, model = model)
@@ -952,7 +996,7 @@ if __name__ == '__main__':
     id = f'neg3_{model}_{UV_HWP_offset}'
     analyze_rhos(filenames,id=id, model=model, UV_HWP_offset = UV_HWP_offset) # calculate csv with witness vals
 
-    make_plots_E0(f'rho_analysis_{id}.csv') # make plots based on witness calcs
+    make_plots_E0(f'rho_analysis_{id}_{model}_{UV_HWP_offset}.csv') # make plots based on witness calcs
 
    
     # plot_adj()

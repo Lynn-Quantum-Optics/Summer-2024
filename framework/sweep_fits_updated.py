@@ -2,7 +2,11 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import trange
 from lab_framework import Manager, analysis
+from uncertainties import ufloat
+from uncertainties import unumpy as unp
+from full_tomo_updated_richard import *
 
 # +++ PARAMETER CALCULATION FUNCTIONS +++
 
@@ -73,7 +77,7 @@ def calc_beta(HD_HA_VD_VA:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray],
 
     return np.rad2deg(beta), np.rad2deg(unc)
 
-def calc_phi(DL_DR_RR_RL:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], DL_DR_RR_RL_unc:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+def calc_phi(DL_DR_RR_RL):
     ''' Measure phi parameter of the state.
 
     Parameters
@@ -92,26 +96,14 @@ def calc_phi(DL_DR_RR_RL:Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], 
     '''
     # unpack the data
     DL, DR, RR, RL = DL_DR_RR_RL
-    DLu, DRu, RRu, RLu = DL_DR_RR_RL_unc
 
     # get total count rates and convert everything to expectation values
-    try:
-        T = DL + DR + RR + RL
-        DL, DR, RR, RL = DL/T, DR/T, RR/T, RL/T
-        DLu, DRu, RRu, RLu = DLu/T, DRu/T, RRu/T, RLu/T
-         # calculate phi
-        phi = np.arctan2(DL-DR, RR-RL)
-        # calculate uncertainty in phi
-        u = (DL-DR)/(RR-RL)
-        unc = 1/(1+u**2) * 1/np.abs(RR-RL) * np.sqrt(DLu**2 + DRu**2 + u**2 * (RRu**2 + RLu**2))
+    T = DL + DR + RR + RL
+    DL, DR, RR, RL = DL/T, DR/T, RR/T, RL/T
+        # calculate phi
+    phi = unp.arctan2(DL-DR, RR-RL)
 
-        return np.rad2deg(phi), np.rad2deg(unc)
-    except:
-        print('no counts!')
-        return 0, 0
-
-
-   
+    return np.rad2deg([x.nominal_value for x in phi]), np.rad2deg([x.std_dev for x in phi])
 
 # +++ DATA COLLECTION FUNCTIONS +++
 
@@ -232,24 +224,31 @@ def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tup
         The name of the file to save the data to.
     '''
 
+    m.configure_motors(
+        C_UV_HWP = 22.5,
+        B_C_HWP=0
+    )
     # array of angles (mostly for plotting)
     angles = np.linspace(pos_min, pos_max, num_step)
 
     # sweeps in different bases
+    # sweep returns angles swept over and then ufloats for counts and unc
     m.meas_basis('DR')
-    DR, DRu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    _, DR = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('DL')
-    DL, DLu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    _, DL = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('RR')
-    RR, RRu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    _, RR = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('RL')
-    RL, RLu = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+    _, RL = m.sweep('C_QP', pos_min, pos_max, num_step, *samp)
+
+    print(DR, DL, RR, RL)
 
     # compute phi
-    phis, phi_uncs = calc_phi((DL, DR, RR, RL), (DRu, DRu, RRu, RLu))
+    phis, phi_uncs = calc_phi((DL, DR, RR, RL))
 
     # repackage data into a dataframe
-    df = pd.DataFrame({'QP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':DL, 'DR':DR, 'RR':RR, 'RL':RL, 'DLu':DLu, 'DRu':DRu, 'RRu':RRu, 'RLu':RLu})
+    df = pd.DataFrame({'QP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':[dl.nominal_value for dl in DL], 'DR':[dr.nominal_value for dr in DR], 'RR':[rr.nominal_value for rr in RR], 'RL':[rl.nominal_value for rl in RL], 'DLu':[dl.std_dev for dl in DL], 'DRu':[dr.std_dev for dr in DR], 'RRu':[rr.std_dev for rr in RR], 'RLu':[rl.std_dev for rl in RL]})
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
@@ -258,6 +257,14 @@ def sweep_qp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tup
 
     # save the data
     df.to_csv(out_file, index=False)
+
+    # make quick plot
+    plt.errorbar(df['QP'].values, df['phi'].values, df['unc'].values, fmt='o')
+    plt.xlabel('QP')
+    plt.ylabel('$\phi$')
+    plt.title('$\phi$ dependence on QP')
+    plt.savefig(out_file.split('.')[0]+'.pdf')
+    plt.show()
 
 def sweep_uvhwp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:Tuple[int,float], out_file:str) -> None:
     ''' Sweep the UV_HWP to record the phi parameter as a function of angle.
@@ -290,22 +297,23 @@ def sweep_uvhwp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:
     angles = np.linspace(pos_min, pos_max, num_step)
 
     # sweeps in different bases
+    # sweep returns angles swept over and then ufloats for counts and unc
     m.meas_basis('DR')
-    DR, DRu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, DR = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('DL')
-    DL, DLu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, DL = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('RR')
-    RR, RRu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, RR = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
     m.meas_basis('RL')
-    RL, RLu = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
+    _, RL = m.sweep('C_UV_HWP', pos_min, pos_max, num_step, *samp)
 
     print(DR, DL, RR, RL)
 
     # compute phi
-    phis, phi_uncs = calc_phi((DL, DR, RR, RL), (DRu, DRu, RRu, RLu))
+    phis, phi_uncs = calc_phi((DL, DR, RR, RL))
 
     # repackage data into a dataframe
-    df = pd.DataFrame({'UV_HWP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':DL, 'DR':DR, 'RR':RR, 'RL':RL, 'DLu':DLu, 'DRu':DRu, 'RRu':RRu, 'RLu':RLu})
+    df = pd.DataFrame({'UV_HWP':angles, 'phi':phis, 'unc':phi_uncs, 'DL':[dl.nominal_value for dl in DL], 'DR':[dr.nominal_value for dr in DR], 'RR':[rr.nominal_value for rr in RR], 'RL':[rl.nominal_value for rl in RL], 'DLu':[dl.std_dev for dl in DL], 'DRu':[dr.std_dev for dr in DR], 'RRu':[rr.std_dev for rr in RR], 'RLu':[rl.std_dev for rl in RL]})
 
     # this is a silly bit of code removes any discontinuities
     for i in range(1, len(df)):
@@ -314,6 +322,60 @@ def sweep_uvhwp_phi(m:Manager, pos_min:float, pos_max:float, num_step:int, samp:
 
     # save the data
     df.to_csv(out_file, index=False)
+
+    # make quick plot
+    plt.errorbar(df['UV_HWP'].values, df['phi'].values, df['unc'].values, fmt='o')
+    plt.xlabel('UVHWP')
+    plt.ylabel('$\phi$')
+    plt.title('$\phi$ dependence on UVHWP')
+    plt.savefig(out_file.split('.')[0]+'.pdf')
+    plt.show()
+
+def sweep_uvhwp_qp_phi(m, UV_min, UV_max, QP_min, QP_max, num_steps, Samp, out_file):
+    '''Sweep QP and UVHWP simultaneously and measure phi'''
+    UV_pos = np.linspace(UV_min, UV_max, num_steps)
+    QP_pos = np.linspace(QP_min, QP_max, num_steps)
+    def multi_sweep():
+        # open output
+        out = []
+        # loop to perform the sweep
+        for i in trange(num_steps):
+            uv = UV_pos[i]
+            qp = QP_pos[i]
+            m.configure_motors(
+                C_UV_HWP = uv,
+                C_QP = qp
+            )
+            x = m.take_data(Samp[0], Samp[1], Manager.MAIN_CHANNEL)
+            out.append(x)
+        return np.array(out)
+    # sweeps in different bases
+    # sweep returns angles swept over and then ufloats for counts and unc
+    m.meas_basis('DR')
+    _, DR = multi_sweep()
+    m.meas_basis('DL')
+    _, DL = multi_sweep()
+    m.meas_basis('RR')
+    _, RR = multi_sweep()
+    m.meas_basis('RL')
+    _, RL = multi_sweep()
+
+    print(DR, DL, RR, RL)
+
+    # compute phi
+    phis, phi_uncs = calc_phi((DL, DR, RR, RL))
+
+    # repackage data into a dataframe
+    df = pd.DataFrame({'UV_HWP':UV_pos, 'QP':QP_pos, 'phi':phis, 'unc':phi_uncs, 'DL':[dl.nominal_value for dl in DL], 'DR':[dr.nominal_value for dr in DR], 'RR':[rr.nominal_value for rr in RR], 'RL':[rl.nominal_value for rl in RL], 'DLu':[dl.std_dev for dl in DL], 'DRu':[dr.std_dev for dr in DR], 'RRu':[rr.std_dev for rr in RR], 'RLu':[rl.std_dev for rl in RL]})
+
+    # this is a silly bit of code removes any discontinuities
+    for i in range(1, len(df)):
+        if abs(df['phi'][i-1] - df['phi'][i]) > 180:
+            df['phi'][i:] += 360
+
+    # save the data
+    df.to_csv(out_file, index=False)
+    
 
 # +++ DATA DISPLAY +++
 
@@ -434,11 +496,60 @@ def fit_ab(fp:str, linear_region:Tuple[float, float], plot_outfile:str=None):
         plt.savefig(plot_outfile, dpi=600)
     plt.show()
 
+def sweep_full_tomo(UV_HWP_ls=None, QP_ls=None):
+    '''Get full tomo for all states in sweeps of diff angles. For each, list of min, max, step'''
+    angles_init = [22.5, 0, 0]
+    m.configure_motors(
+        C_UV_HWP=angles_init[0],
+        C_QP = angles_init[1],
+        B_C_HWP=angles_init[2]
+    )
+    
+    if QP_ls is None and UV_HWP_ls is not None:
+        UV_angles = np.linspace(UV_HWP_ls[0], UV_HWP_ls[1], UV_HWP_ls[2])
+        for uv in UV_angles:
+            m.C_UV_HWP.goto(uv)
+            rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
+            angles_init[0] = uv
+
+            # save results
+            with open(f'decomp_test/rho_uv_{uv}.npy', 'wb') as f:
+                np.save(f, (rho, unc, Su, un_proj, un_proj_unc, angles_init))
+    elif QP_ls is not None and UV_HWP_ls is None:
+        QP_angles = np.linspace(QP_ls[0], QP_ls[1], QP_ls[2])
+        for qp in QP_angles:
+            m.C_QP.goto(qp)
+            rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
+            angles_init[1] = qp
+
+            # save results
+            with open(f'decomp_test/rho_qp_{qp}.npy', 'wb') as f:
+                np.save(f, (rho, unc, Su, un_proj, un_proj_unc, angles_init))
+    else:
+        UV_angles = np.linspace(UV_HWP_ls[0], UV_HWP_ls[1], UV_HWP_ls[2])
+        QP_angles = np.linspace(QP_ls[0], QP_ls[1], QP_ls[2])
+        assert len(UV_angles) == len(QP_angles), f'lists must have same length! uvhwp: {len(UV_angles)}, qp: {len(QP_angles)}'
+        for i in range(len(UV_angles)):
+            uv = UV_angles[i]
+            qp = QP_angles[i]
+
+            m.configure_motors(
+                C_UV_HWP = uv,
+                C_QP = qp
+            )
+
+            angles_init[0] = uv
+            angles_init[1] = qp
+
+            # save results
+            with open(f'decomp_test/rho_uv_{uv}_qp_{qp}.npy', 'wb') as f:
+                np.save(f, (rho, unc, Su, un_proj, un_proj_unc, angles_init))
+
 # +++ MAIN SCRIPT +++
 if __name__ == '__main__':
     # +++ hyper parameters
     SAMP = (5, 1)
-    NUM_STEP = 10
+    NUM_STEP = 30
 
     # +++ UVHWP alpha sweep experiment
     ''' 
@@ -467,8 +578,10 @@ if __name__ == '__main__':
 
     # +++ QP phi sweep experiment
     m = Manager()
-    m.make_state("phi_plus")
-    sweep_uvhwp_phi(m, 0, 45, NUM_STEP, SAMP, f'uv_hwp_phi_sweep_{NUM_STEP}.csv')
+    sweep_qp_phi(m, -38, 0, NUM_STEP, SAMP, f'decomp_test/qp_phi_sweep_{NUM_STEP}.csv')
+    df = m.output_data(f'decomp_test/qp_phi_raw_{NUM_STEP}.csv')
+    # sweep_full_tomo([2, 43, 6])
+    # df = m.output_data('decomp_test/uv_rho_sweep.csv')
     m.shutdown()
     # show_data('qp_phi_sweep.csv', 'qp_phi_sweep_nofit.png')
     
