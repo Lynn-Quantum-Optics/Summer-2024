@@ -17,6 +17,7 @@ def basic_simplex(n):
     for _ in range(n-1):
         x.append(np.random.rand()*(1-sum(x)))
     x.append(1-sum(x))
+    np.random.shuffle(x)
     return np.array(x)
 
 def roik_simplex(n):
@@ -24,6 +25,7 @@ def roik_simplex(n):
     x = []
     for _ in range(n):
         x.append(np.random.rand()*(1-sum(x)))
+    np.random.shuffle(x)
     return np.array(x)/np.sum(x)
 
 def gaussian_simplex(n):
