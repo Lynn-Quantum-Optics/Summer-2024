@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import linalg as la
 
 # basic helper functions
 
@@ -94,6 +95,35 @@ def expectation_value(ket_or_rho, operator):
         return np.real(adj(ket_or_rho) @ operator @ ket_or_rho).item()
     else:
         return np.real(np.trace(operator @ ket_or_rho)).item()
+
+# state statistics
+
+def concurrence(rho):
+    ''' Calculates concurrence of a density matrix using the hermitian R=sqrt(sqrt(rho)*rho_tilde*sqrt(rho)) matrix. '''
+    sqrt_rho = la.sqrtm(rho)
+    rho_tilde = np.kron(SY,SY) @ rho.conj() @ np.kron(SY,SY)
+    R = la.sqrtm(sqrt_rho @ rho_tilde @ sqrt_rho)
+    evs = la.eigvals(R)
+    evs = list(evs.real)
+    evs.sort(reverse=True)
+    return np.max([0,evs[0] - evs[1] - evs[2] - evs[3]])
+
+def concurrence_alt(rho):
+    ''' Calculates concurrence from the non-hermitian rho*rho_tilde matrix. '''
+    rho_tilde = np.kron(SY,SY) @ rho.conj() @ np.kron(SY,SY)
+    M = rho @ rho_tilde
+    evs = la.eigvals(M)
+    evs = list(evs.real)
+    evs.sort(reverse=True)
+    return np.max([0, np.sqrt(evs[0]) - np.sqrt(evs[1]) - np.sqrt(evs[2]) - np.sqrt(evs[3])])
+
+def purity(rho):
+    ''' get the purity of a state as the trace of it's density matrix squared. '''
+    return np.real(np.trace(rho @ rho))
+
+def fidelity(x, y):
+    ''' get the fidelity between two states. '''
+    return np.real(np.trace(la.sqrtm(la.sqrtm(x) @ y @ la.sqrtm(x))))**2
 
 # one qubit states
 
