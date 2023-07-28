@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import linalg as la
 
-from qo_tools import adj, qubit_trace, HS_norm, generate_pauli_basis
+from qo_tools import adj, qubit_trace, HS_norm, generate_pauli_basis, is_valid_density
 from simplex import stick_breaking_simplex, SIMPLEX_METHODS
 from unitary import maziero_random_unitary, roik_random_unitary
 
@@ -108,16 +108,3 @@ def random_mixed_op(n, dist='exp'):
     a = a / HS_norm(a)
     # create the operator
     return adj(a) @ a    
-
-def random_mixed_pauli(dim):
-    ''' random mixed state via pauli decomposition method '''
-    # get number of qubits
-    n = np.log2(dim)
-    assert n % 1 == 0, 'dim must be a power of 2'
-    n = int(n)
-    # get the pauli basis
-    basis = generate_pauli_basis(n)
-    # generate the simplex vector
-    pauli_vector = np.sqrt(np.append(1, stick_breaking_simplex(dim**2-1)))/dim
-    # project the vector into the basis
-    return np.dot(basis, pauli_vector), pauli_vector
