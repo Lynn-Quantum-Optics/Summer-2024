@@ -55,7 +55,7 @@ def get_labels_pop(file=None, pop_df=None):
     Y_pred_labels = Y_pred_labels.astype(int)
     return Y_pred_labels
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none'):
+def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=0):
     ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.
     Params:
         model: ml model object to evaluate
@@ -70,7 +70,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names
         if data is None:
             assert file is not None, 'file or data must be provided'
             assert task == 'w' or task =='e', 'task must be w or e'
-            X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, pop_method = pop_method, task=task, split=False)
+            X, Y = prepare_data(join('random_gen', 'data'), file, input_method=input_method, pop_method = pop_method, task=task, split=False, normalize=normalize, conc_threshold=conc_threshold)
         else:
             X, Y = data
         if not(name == 'population'):
@@ -82,19 +82,19 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
         # print(N_correct / len(Y_pred))
-        return N_correct / len(Y_pred), N_correct, len(Y_pred)
+        return N_correct / len(Y_pred_labels), N_correct, len(Y_pred_labels)
 
     # file_ls = ['../../S22_data/all_qual_102_tot.csv']
     p_df = pd.DataFrame()
     if data_ls is None:
         for i, file in enumerate(file_ls):
             acc, N_correct, N_total = per_file(file, task)
-            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file_names[i], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
+            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':file_names[i], 'acc':acc, 'N_correct':N_correct, 'N_total':N_total, 'conc_threshold':conc_threshold}])])
         return p_df
     else:
         for data in data_ls:
             acc, N_correct, N_total = per_file(None, data = data, task=task)
-            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total}])])
+            p_df = pd.concat([p_df,pd.DataFrame.from_records([{'model':name, 'file':'data', 'acc':acc, 'N_correct':N_correct, 'N_total':N_total, 'conc_threshold':conc_threshold}])])
         return p_df
 
 def eval_perf_multiple(model_ls, model_names, input_methods, pop_methods, tasks, savename, file_ls = ['roik_True_400000_r_os_t.csv'], file_names=['Test']):
@@ -376,6 +376,82 @@ def det_threshold_gd(file = 'roik_True_4000000_r_os_v.csv', task = 'w', input_me
     Y_pred_nn5 = nn5.predict(X)
     Y_pred_pop = get_pop_raw(file=file)
     
+def plot_comp_acc(steps=50, include_all=False):
+    '''Plot accuracy as we vary conc_threshold for both nn5 and pop as well as just W and W' full'''
+    # get data
+    conc_threshold_ls = np.linspace(0, .12, steps)
+    nn5_acc = []
+    pop_acc = []
+    bl_acc = []
+    xgb_old_acc = []
+    xgb_new_acc = []
+    nn1_acc = []
+    nn3_acc = []
+    nn5 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+    xgb_new = XGBRegressor()
+    xgb_new.load_model(join('random_gen', 'models', 'r4_s0_0_w_prob_9_xgb_all.json'))
+    nn1 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_0_w_prob_9_300_0.0001_100.h5'))
+    nn3 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_0_w_prob_9_300_300_300_0.0001_100.h5'))
+    xgb_old = XGBRegressor()
+    xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
+    json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model_bl = keras.models.model_from_json(loaded_model_json)
+    # load weights into new model
+    model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
+    for conc_threshold in conc_threshold_ls:
+        nn5_acc.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+        pop_acc.append(eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+        bl_acc.append(eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+        if include_all:
+
+            xgb_old_acc.append(eval_perf(xgb_old, 'xgb_old', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+            xgb_new_acc.append(eval_perf(xgb_new, 'xgb_new', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+            nn1_acc.append(eval_perf(nn1, 'nn1', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+            nn3_acc.append(eval_perf(nn3, 'nn3', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+
+    # plot
+    plt.figure(figsize=(10,7))
+    plt.plot(conc_threshold_ls, nn5_acc, label='NN5')
+    plt.plot(conc_threshold_ls, pop_acc, label='Population')
+    plt.plot(conc_threshold_ls, bl_acc, label='NN3, prev')
+    if include_all:
+        plt.plot(conc_threshold_ls, xgb_old_acc, label='XGB, 0')
+        plt.plot(conc_threshold_ls, xgb_new_acc, label='XGB, 1')
+        plt.plot(conc_threshold_ls, nn1_acc, label='NN1')
+        plt.plot(conc_threshold_ls, nn3_acc, label='NN3')
+    plt.xlabel('Concurrence Threshold')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.title("Comparison of $W'$ Model Performance")
+    plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_{include_all}.pdf'))
+
+def display_model(model):
+    '''Display keras model architecture
+    '''
+    from keras.utils.vis_utils import plot_model
+
+    plot_model(model, to_file=join('random_gen', 'models', 'model_plot.pdf'), show_shapes=True, show_layer_names=True)
+
+    # plot sigmoid and relu
+    x = np.linspace(-10, 10, 100)
+    plt.plot(x, 1/(1+np.exp(-x)))
+    plt.title('Sigmoid Activation Function, $S(x) = (1+e^{-x})^{-1}$')
+    plt.savefig(join('random_gen', 'models', 'sigmoid.pdf'))
+    plt.clf()
+    plt.plot(x, np.maximum(x, 0))
+    plt.title('ReLU Activation Function, $R(x) = max(0, x)$')
+    plt.savefig(join('random_gen', 'models', 'relu.pdf'))
+
+
+    
 
 if __name__ == '__main__':
 
@@ -439,6 +515,9 @@ if __name__ == '__main__':
 
     # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, pop_methods = pop_methods, tasks = tasks, savename=savename, file_ls = ['roik_True_400000_w_roik.csv'], file_names=['roik_400k'])
 
-    det_threshold(nn5)
+    # det_threshold(nn5)
+    # print('nn5')
+    # plot_comp_acc(include_all=True)
+    display_model(nn5)
 
     
