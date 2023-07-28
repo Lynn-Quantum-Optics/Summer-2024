@@ -351,6 +351,45 @@ def prep_meta(data_file, separate=False, use_nn5_raw=False, return_orig_input=Fa
         else:
             return Y_pred_nn5_max, Y_pred_nn5_labels, Y_pred_pop_max, Y_pred_pop_labels, Y, X
 
+def prep_meta_all(data_file, only_9_and_raw = False):
+    '''Prepares data to input to meta model trained on outputs from nn5 prob 9, prob 9 raw, prob 9 diff, prob 9 rd, raw, diff, rd'''
+    
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='none', task='w', split=False)
+    new_model_path= join('random_gen', 'models', 'saved_models')
+    nn_9 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+    Y_pred_nn_9 = nn_9.predict(X)
+
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='none', pop_method='raw', task='w', split=False)
+    nn5_raw = keras.models.load_model(join(new_model_path, 'r4_s0_50_w_none_raw_200_200_200_200_200_0.0001_100.h5'))
+    Y_pred_raw = nn5_raw.predict(X)
+
+    if only_9_and_raw:
+        return Y_pred_nn_9, Y_pred_raw, Y
+
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='raw', task='w', split=False)
+    nn_9raw = keras.models.load_model(join(new_model_path, 'r4_s0_47_w_prob_9_raw_200_200_200_200_200_0.0001_100.h5'))
+    Y_pred_nn_9raw = nn_9raw.predict(X)
+
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='diff', task='w', split=False)
+    nn_9diff = keras.models.load_model(join(new_model_path, 'r4_s0_48_w_prob_9_diff_200_200_200_200_200_0.0001_100.h5'))
+    Y_pred_nn_9diff = nn_9diff.predict(X)
+
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='prob_9', pop_method='rd', task='w', split=False)
+    nn_9rd = keras.models.load_model(join(new_model_path, 'r4_s0_49_w_prob_9_rd_200_200_200_200_200_0.0001_100.h5'))
+    Y_pred_nn_9rd = nn_9rd.predict(X)
+
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='none', pop_method='diff', task='w', split=False)
+    nn5_diff = keras.models.load_model(join(new_model_path, 'r4_s0_51_w_none_diff_200_200_200_200_200_0.0001_100.h5'))
+    Y_pred_diff = nn5_diff.predict(X)
+
+    X, Y = prepare_data(join('random_gen', 'data'), data_file, input_method='none', pop_method='rd', task='w', split=False)
+    nn5_rd = keras.models.load_model(join(new_model_path, 'r4_s0_52_w_none_rd_200_200_200_200_200_0.0001_100.h5'))
+    Y_pred_rd = nn5_rd.predict(X)
+
+    # return predictions and targets
+    return Y_pred_nn_9, Y_pred_nn_9raw, Y_pred_nn_9diff, Y_pred_nn_9rd, Y_pred_raw, Y_pred_diff, Y_pred_rd, Y
+    
+
 def train_meta(train_file, size, num_layers, learning_rate=0.0001, n_estimators=5000, max_depth = 15, early_stopping=20, epochs=100, batch_size=256):
     '''Train meta model on outputs from nn5 and pop method'''
     # prepare inputs
@@ -791,7 +830,8 @@ if __name__=='__main__':
         savename= identifier+'_'+task+'_'+input_method+'_'+pop_method
         # load data here
         DATA_PATH = 'random_gen/data'
-        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, pop_method = pop_method, task=task)
+        normalize = bool(int(input('Enter 0 for no normalize, 1 for normalize:')))
+        X_train, Y_train, X_test, Y_test = prepare_data(datapath=DATA_PATH, file=file, input_method=input_method, pop_method = pop_method, task=task, normalize=normalize)
        
         if do_sweep:   
             wtr = int(input('Which model to run? 0 for XGB, 1 for NN1H, 3 for NN3H, 5 for NN5H:'))
@@ -1162,6 +1202,44 @@ if __name__=='__main__':
             grad_params = guess_params()
             n += 1
             print('n', n, 'loss', loss, 'best_loss', best_loss, 'num_since_best', num_since_best)
+
+    elif op==5:
+        '''Ensemble voting'''
+        from ml_comp import *
+
+        # define filename ls
+        file_ls = ['roik_400k_wpop_rd.csv', 'roik_400k_extra_wpop_rd.csv']
+        c = bool(int(input('Which configuration to run? 1 for nine and raw only, 0 for all: ')))
+        for file in file_ls:
+            print('-----------------------')
+            print('file', file)
+            if c:
+                print('running nine and raw only')
+                Y_pred_nn_9, Y_pred_raw, Y = prep_meta_all(file, only_9_and_raw = c)
+                # sum probabilities and renormalize per row
+                Y_pred = Y_pred_nn_9 + Y_pred_raw
+                Y_pred /= np.sum(Y_pred, axis=1, keepdims=True)
+            else:
+                print('running all')
+                Y_pred_nn_9, Y_pred_nn_9raw, Y_pred_nn_9diff, Y_pred_nn_9rd, Y_pred_raw, Y_pred_diff, Y_pred_rd, Y = prep_meta_all(file, only_9_and_raw = c)
+                # sum probabilities and renormalize per row
+                Y_pred = Y_pred_nn_9 + Y_pred_nn_9raw + Y_pred_nn_9diff + Y_pred_nn_9rd + Y_pred_raw + Y_pred_diff + Y_pred_rd
+                Y_pred /= np.sum(Y_pred, axis=1, keepdims=True)
+            # get labels
+            Y_pred = get_labels(Y_pred, task='w')
+            # get accuracy
+            dot = np.einsum('ij,ij->i', Y, Y_pred)
+            acc = np.sum(dot)/len(dot)
+            print('acc', acc)
+            
+
+
+
+        
+
+
+        
+
 
 
         
