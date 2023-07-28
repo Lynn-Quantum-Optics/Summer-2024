@@ -4,63 +4,61 @@ This file contains helpful functions for handling and generating unitary matrici
 '''
 
 import numpy as np
+from qo_tools import cos, sin, arcsin, expi
 
-def generate_Aij(dim:int, i:int, j:int, phi:float, psi:float, chi:float) -> np.ndarray:
-    ''' These are the fundemental building blocks for the maziero random unitary matrix generation process.
+def generate_Uij(dim, i, j, phi, psi, chi):
+    ''' Fundemental building blocks for maziero's random unitary generation. 
     
     Parameters
     ----------
     dim : int
-        The dimension of the unitary matrix being generated.
+        The dimension of the output matrix.
     i, j : int, int
-        The superscript indicies for this matrix.
+        The indicies of this sub unitary. Unlike the paper, these indices start at zero.
     phi, psi, chi : float, float, float
         The parameters for this sub-sub unitary.
-
+    
     Returns
     -------
-    np.ndarray of shape (dim, dim)
-        The sub unitary matrix A^(i,j)(phi, psi, chi).
+    np.ndarray of shape (dim,dim)
+        The sub unitary matrix U^(i,j)(phi_ij, psi_ij, chi_ij).
     '''
-    # start with identity
-    A = np.eye(dim, dtype=complex)
-    # insert the values for this sub unitary
-    A[i,i] = np.cos(phi)*np.exp(1j*psi)
-    A[i,j] = np.sin(phi)*np.exp(1j*chi)
-    A[j,i] = -np.sin(phi)*np.exp(-1j*chi)
-    A[j,j] = np.cos(phi)*np.exp(-1j*psi)
-    # return the sub unitary
-    return A
+    # start with ones on the diagonal
+    u = np.eye(dim, dtype=complex)
+    # insert the values as described in the paper
+    u[i,i] = cos(phi)*expi(psi)
+    u[i,j] = sin(phi)*expi(chi)
+    u[j,i] = -np.conj(u[i,j])
+    u[j,j] = cos(phi)*expi(-psi)
+    # return the sub-sub unitary
+    return u
 
-def generate_An(dim:int, n:int, phis:'list[float]', psis:'list[float]', chi:float) -> np.ndarray:
-    ''' These are the unitary building blocks for maziero random unitary matrix generation.
-    
+def generate_Un(dim, n, phis, psis, chi):
+    ''' Sub-unitary blocks for the Maziero random unitary generation method.
+
     Parameters
     ----------
     dim : int
-        The dimension of the unitary matrix being generated.
+        The dimension of the output matrix.
     n : int
-        The index of this sub-unitary, starting at 0.
+        The index of this sub unitary. Unlike Maziero's paper, these are indexed from zero up to dim-2 (inclusive).
     phis, psis : np.ndarray of shape (n+1,)
-        The parameters for each sub-sub unitary.
+        The phi and psi parameters for this sub unitary.
     chi : float
-        The parameter for the first sub-sub unitary.
+        The chi parameter for the first sub-sub unitary.
     
     Returns
     -------
-    np.ndarray of shape (dim, dim)
-        The sub-unitary matrix A_n(phis, psis, chi).
+    np.ndarray of shape (dim,dim)
+        The sub unitary matrix U_n(phis, psis, chi).
     '''
-    # start with the identity matrix
-    U = np.eye(dim, dtype=complex)
-    # apply sub unitaries A(0) -> A(n-2)
-
-    for i in range(n+1):
-        if i:
-            U = U @ generate_Aij(dim, i, n+1, phis[i], psis[i], 0)
-        else:
-            U = U @ generate_Aij(dim, i, n+1, phis[i], psis[i], chi)
-    return U
+    # start with the first one (with chi parameter)
+    u = generate_Uij(dim, 0, n+1, phis[0], psis[0], chi)
+    # loop to add the rest
+    for i in range(1, n+1):
+        u = generate_Uij(dim, i, n+1, phis[i], psis[i], 0) @ u
+    # return the sub unitary
+    return u
 
 def maziero_random_unitary(dim:int) -> np.ndarray:
     ''' Generates a random unitary matrix.
@@ -76,23 +74,23 @@ def maziero_random_unitary(dim:int) -> np.ndarray:
         The random unitary matrix.
     '''
     # start with an identity matrix
-    U = np.eye(dim, dtype=complex)
+    u = np.eye(dim, dtype=complex)
+    # add complex phase alpha
+    alpha = np.random.rand()*2*np.pi
+    u = u * expi(alpha)
     # loop through sub unitaries to apply
     for n in range(dim-1):
-        # generate random psis
+        # generate random psis and chi
         psis = np.random.rand(n+1)*2*np.pi
-        # generate random chi
         chi = np.random.rand()*2*np.pi
         # generate random phis
-        exs = np.random.rand(n+1)
-        phis = np.arccos(np.power(exs, 1/(2*np.arange(1,n+2))))
+        exis = np.random.rand(n+1)
+        phis = arcsin(np.power(exis, 1/(2*np.arange(1,n+2))))
         # generate and apply the sub unitary
-        U = U @ generate_An(dim, n, phis, psis, chi)
-    # apply overall phase
-    U = np.exp(1j*np.random.rand()*2*np.pi)*U
-    # return the unitary
-    return U
-
+        u = generate_Un(dim, n, phis, psis, chi) @ u
+    # return the random unitary
+    return u
+    
 def roik_random_unitary():
     def get_rand_elems():
         alpha = np.random.rand()*2*np.pi
@@ -105,7 +103,7 @@ def roik_random_unitary():
         ])*np.e**(alpha*1j)
 
     # loop and create unitaries from blocks
-    unitary_final = np.eye(4, dtype=np.complex)
+    unitary_final = np.eye(4, dtype=complex)
     for k in range(5, -1, -1): # count down to do multiplicatiom from right to left
         sub_unitary_k = get_rand_elems()
         if k==0 or k==3 or k==5:
