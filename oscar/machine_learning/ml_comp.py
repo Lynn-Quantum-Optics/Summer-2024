@@ -261,7 +261,7 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     pop_diff_max2_incorrect = pop_diff_max2[Y_pred_pop_ncorrect == 0]
 
     # plot the confidence levels, with correct states in green and incorrect in red
-    fig, ax = plt.subplots(6, 2, figsize=(30,15))
+    fig, ax = plt.subplots(3, 2, figsize=(30,15))
     confidence_nn5_correct = confidence_nn5[Y_pred_nn5_ncorrect > 0]
     confidence_nn5_incorrect = confidence_nn5[Y_pred_nn5_ncorrect == 0]
     ax[0,0].hist(confidence_nn5_correct, bins=20, alpha=0.5, label='correct', color='green')
@@ -271,16 +271,16 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     ax[0,0].legend()
     ax[0,0].set_title(f'NN5')
     # replot, but with values <= .6
-    nc, binc, _ = ax[1,0].hist(confidence_nn5_correct[confidence_nn5_correct <= .6], bins=5, alpha=0.5, label='correct', color='green')
-    ni, bini, _ = ax[1,0].hist(confidence_nn5_incorrect[confidence_nn5_incorrect <= 0.6], bins=5, alpha=0.5, label='incorrect', color='red')
-    # annotate with counts
-    for i in range(len(nc)):
-        ax[1,0].annotate(str(int(nc[i])), xy=(binc[i], nc[i]), xytext=(binc[i]+2e-2, nc[i]+10), ha='center', va='center')
-        ax[1,0].annotate(str(int(ni[i])), xy=(bini[i], ni[i]), xytext=(bini[i]+2e-2, ni[i]+10), ha='center', va='center')
-    ax[1,0].set_xlabel('Confidence')
-    ax[1,0].set_ylabel('Count')
-    ax[1,0].legend()
-    ax[1,0].set_title(f'NN5')
+    # nc, binc, _ = ax[1,0].hist(confidence_nn5_correct[confidence_nn5_correct <= .6], bins=5, alpha=0.5, label='correct', color='green')
+    # ni, bini, _ = ax[1,0].hist(confidence_nn5_incorrect[confidence_nn5_incorrect <= 0.6], bins=5, alpha=0.5, label='incorrect', color='red')
+    # # annotate with counts
+    # for i in range(len(nc)):
+    #     ax[1,0].annotate(str(int(nc[i])), xy=(binc[i], nc[i]), xytext=(binc[i]+2e-2, nc[i]+10), ha='center', va='center')
+    #     ax[1,0].annotate(str(int(ni[i])), xy=(bini[i], ni[i]), xytext=(bini[i]+2e-2, ni[i]+10), ha='center', va='center')
+    # ax[1,0].set_xlabel('Confidence')
+    # ax[1,0].set_ylabel('Count')
+    # ax[1,0].legend()
+    # ax[1,0].set_title(f'NN5')
 
     confidence_pop_correct = confidence_pop[Y_pred_pop_ncorrect > 0]
     confidence_pop_incorrect = confidence_pop[Y_pred_pop_ncorrect == 0]
@@ -290,81 +290,82 @@ def det_threshold(nn5, file = 'roik_True_800000_r_os_v.csv', task = 'w', input_m
     ax[0,1].set_ylabel('Count')
     ax[0,1].legend()
     ax[0,1].set_title(f'Population')
-    nc, binc, _ = ax[1,1].hist(confidence_pop_correct[confidence_pop_correct >= .4], bins=5, alpha=0.5, label='correct', color='green')
-    ni, bini, _ = ax[1,1].hist(confidence_pop_incorrect[confidence_pop_incorrect >= .4], bins=5, alpha=0.5, label='incorrect', color='red')
-    # annotate with counts
-    for i in range(len(nc)):
-        ax[1,1].annotate(f'{nc[i]}', ((binc[i]+binc[i+1])/2, nc[i]), ha='center', va='bottom')
-        ax[1,1].annotate(f'{ni[i]}', ((bini[i]+bini[i+1])/2, ni[i]), ha='center', va='bottom')
+    # nc, binc, _ = ax[1,1].hist(confidence_pop_correct[confidence_pop_correct >= .4], bins=5, alpha=0.5, label='correct', color='green')
+    # ni, bini, _ = ax[1,1].hist(confidence_pop_incorrect[confidence_pop_incorrect >= .4], bins=5, alpha=0.5, label='incorrect', color='red')
+    # # annotate with counts
+    # for i in range(len(nc)):
+    #     ax[1,1].annotate(f'{nc[i]}', ((binc[i]+binc[i+1])/2, nc[i]), ha='center', va='bottom')
+    #     ax[1,1].annotate(f'{ni[i]}', ((bini[i]+bini[i+1])/2, ni[i]), ha='center', va='bottom')
+    # ax[1,1].set_xlabel('Confidence')
+    # ax[1,1].set_ylabel('Count')
+    # ax[1,1].legend()
+    # ax[1,1].set_title(f'Population')
+
+    # ax[2,0].hist(pop_diff_max_correct, bins=20, alpha=0.5, label='max - next max', color='blue')
+    # ax[2,0].hist(pop_diff_max2_correct, bins=20, alpha=0.5, label='max - second next max', color='red')
+    # ax[2,0].set_xlabel('Confidence')
+    # ax[2,0].set_ylabel('Count')
+    # ax[2,0].legend()
+    # ax[2,0].set_title(f'Population Differences, Correct')
+    # nmax, binmax, _ = ax[2,1].hist(pop_diff_max_correct[pop_diff_max_correct >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
+    # nmax2, binmax2, _ = ax[2,1].hist(pop_diff_max2_correct[pop_diff_max2_correct >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
+    # # annotate with counts
+    # for i in range(len(nmax)):
+    #     ax[2,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
+    #     ax[2,1].annotate(f'{nmax2[i]}', ((binmax2[i]+binmax2[i+1])/2, nmax2[i]), ha='center', va='bottom')
+    # ax[2,1].set_xlabel('Confidence')
+    # ax[2,1].set_ylabel('Count')
+    # ax[2,1].legend()
+    # ax[2,1].set_title(f'Population Differences Correct, zoomed')
+
+    # ax[3,0].hist(pop_diff_max_incorrect, bins=20, alpha=0.5, label='max - next max', color='blue')
+    # ax[3,0].hist(pop_diff_max2_incorrect, bins=20, alpha=0.5, label='max - second next max', color='red')
+    # ax[3,0].set_xlabel('Confidence')
+    # ax[3,0].set_ylabel('Count')
+    # ax[3,0].legend()
+    # ax[3,0].set_title(f'Population Differences, Incorrect')
+    # nmax, binmax, _ = ax[3,1].hist(pop_diff_max_incorrect[pop_diff_max_incorrect >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
+    # nmax2, binmax2, _ = ax[3,1].hist(pop_diff_max2_incorrect[pop_diff_max2_incorrect >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
+    # # annotate with counts
+    # for i in range(len(nmax)):
+    #     ax[3,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
+    #     ax[3,1].annotate(f'{nmax2[i]}', ((binmax2[i]+binmax2[i+1])/2, nmax2[i]), ha='center', va='bottom')
+    # ax[3,1].set_xlabel('Confidence')
+    # ax[3,1].set_ylabel('Count')
+    # ax[3,1].legend()
+    # ax[3,1].set_title(f'Population Differences Incorrect, zoomed')
+
+    # plot pop diff max and max2 where nn5 is correct and pop is wrong; and vice versa
+    ax[1,0].hist(pop_diff_max[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[1,0].hist(pop_diff_max2[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='max - second next max', color='red')
+    ax[1,0].set_xlabel('Confidence')
+    ax[1,0].set_ylabel('Count')
+    ax[1,0].legend()
+    ax[1,0].set_title(f'Population Differences, NN5 Correct, Population Incorrect')
+    
+    ax[1,1].hist(pop_diff_max[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='max - next max', color='blue')
+    ax[1,1].hist(pop_diff_max2[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='max - second next max', color='red')
     ax[1,1].set_xlabel('Confidence')
     ax[1,1].set_ylabel('Count')
     ax[1,1].legend()
-    ax[1,1].set_title(f'Population')
+    ax[1,1].set_title(f'Population Differences, NN5 Incorrect, Population Correct')
 
-    ax[2,0].hist(pop_diff_max_correct, bins=20, alpha=0.5, label='max - next max', color='blue')
-    ax[2,0].hist(pop_diff_max2_correct, bins=20, alpha=0.5, label='max - second next max', color='red')
+    # plot nn5 confidence where pop is correct and nn5 is wrong; and vice versa
+    ax[2,0].hist(confidence_nn5[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='NN5', color='blue')
     ax[2,0].set_xlabel('Confidence')
     ax[2,0].set_ylabel('Count')
     ax[2,0].legend()
-    ax[2,0].set_title(f'Population Differences, Correct')
-    nmax, binmax, _ = ax[2,1].hist(pop_diff_max_correct[pop_diff_max_correct >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
-    nmax2, binmax2, _ = ax[2,1].hist(pop_diff_max2_correct[pop_diff_max2_correct >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
-    # annotate with counts
-    for i in range(len(nmax)):
-        ax[2,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
-        ax[2,1].annotate(f'{nmax2[i]}', ((binmax2[i]+binmax2[i+1])/2, nmax2[i]), ha='center', va='bottom')
+    ax[2,0].set_title(f'NN5 Confidence, NN5 Incorrect, Population Correct')
+    ax[2,1].hist(confidence_nn5[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='NN5', color='blue')
     ax[2,1].set_xlabel('Confidence')
     ax[2,1].set_ylabel('Count')
     ax[2,1].legend()
-    ax[2,1].set_title(f'Population Differences Correct, zoomed')
-
-    ax[3,0].hist(pop_diff_max_incorrect, bins=20, alpha=0.5, label='max - next max', color='blue')
-    ax[3,0].hist(pop_diff_max2_incorrect, bins=20, alpha=0.5, label='max - second next max', color='red')
-    ax[3,0].set_xlabel('Confidence')
-    ax[3,0].set_ylabel('Count')
-    ax[3,0].legend()
-    ax[3,0].set_title(f'Population Differences, Incorrect')
-    nmax, binmax, _ = ax[3,1].hist(pop_diff_max_incorrect[pop_diff_max_incorrect >= .4], bins=5, alpha=0.5, label='max - next max', color='blue')
-    nmax2, binmax2, _ = ax[3,1].hist(pop_diff_max2_incorrect[pop_diff_max2_incorrect >= .4], bins=5, alpha=0.5, label='max - second next max', color='red')
-    # annotate with counts
-    for i in range(len(nmax)):
-        ax[3,1].annotate(f'{nmax[i]}', ((binmax[i]+binmax[i+1])/2, nmax[i]), ha='center', va='bottom')
-        ax[3,1].annotate(f'{nmax2[i]}', ((binmax2[i]+binmax2[i+1])/2, nmax2[i]), ha='center', va='bottom')
-    ax[3,1].set_xlabel('Confidence')
-    ax[3,1].set_ylabel('Count')
-    ax[3,1].legend()
-    ax[3,1].set_title(f'Population Differences Incorrect, zoomed')
-
-    # plot pop diff max and max2 where nn5 is correct and pop is wrong; and vice versa
-    ax[4,0].hist(pop_diff_max[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='max - next max', color='blue')
-    ax[4,0].hist(pop_diff_max2[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='max - second next max', color='red')
-    ax[4,0].set_xlabel('Confidence')
-    ax[4,0].set_ylabel('Count')
-    ax[4,0].legend()
-    ax[4,0].set_title(f'Population Differences, NN5 Correct, Population Incorrect')
-    ax[4,1].hist(pop_diff_max[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='max - next max', color='blue')
-    ax[4,1].hist(pop_diff_max2[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='max - second next max', color='red')
-    ax[4,1].set_xlabel('Confidence')
-    ax[4,1].set_ylabel('Count')
-    ax[4,1].legend()
-    ax[4,1].set_title(f'Population Differences, NN5 Incorrect, Population Correct')
-
-    # plot nn5 confidence where pop is correct and nn5 is wrong; and vice versa
-    ax[5,0].hist(confidence_nn5[(Y_pred_nn5_ncorrect == 0) & (Y_pred_pop_ncorrect > 0)], bins=20, alpha=0.5, label='NN5', color='blue')
-    ax[5,0].set_xlabel('Confidence')
-    ax[5,0].set_ylabel('Count')
-    ax[5,0].legend()
-    ax[5,0].set_title(f'NN5 Confidence, NN5 Incorrect, Population Correct')
-    ax[5,1].hist(confidence_nn5[(Y_pred_nn5_ncorrect > 0) & (Y_pred_pop_ncorrect == 0)], bins=20, alpha=0.5, label='NN5', color='blue')
-    ax[5,1].set_xlabel('Confidence')
-    ax[5,1].set_ylabel('Count')
-    ax[5,1].legend()
-    ax[5,1].set_title(f'NN5 Confidence, NN5 Correct, Population Incorrect')
+    ax[2,1].set_title(f'NN5 Confidence, NN5 Correct, Population Incorrect')
 
 
     plt.tight_layout()
-    plt.suptitle('Confidence levels for states on validation data')
-    plt.subplots_adjust(top=0.9)
+    plt.suptitle('Confidence levels on Validation Data')
+    plt.subplots_adjust(top=0.95)
     plt.savefig(join('random_gen', 'models', 'det_threshold.pdf'))
     # plt.show()
     plt.close()
@@ -515,9 +516,9 @@ if __name__ == '__main__':
 
     # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, pop_methods = pop_methods, tasks = tasks, savename=savename, file_ls = ['roik_True_400000_w_roik.csv'], file_names=['roik_400k'])
 
-    # det_threshold(nn5)
+    det_threshold(nn5)
     # print('nn5')
     # plot_comp_acc(include_all=True)
-    display_model(nn5)
+    # display_model(nn5)
 
     

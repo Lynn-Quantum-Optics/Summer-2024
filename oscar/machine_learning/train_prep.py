@@ -4,7 +4,7 @@ from os.path import join
 import pandas as pd
 import numpy as np
 
-def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0.8):
+def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0.8, normalize=False, conc_threshold=0):
     ''' Function to prepare data for training.
     params:
         datapath: path to csv
@@ -14,6 +14,8 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
         task: what task to train on: e.g., witness, entangled
         split: boolean for whether to split data into train and test
         p: fraction of data to use for training
+        normalize: boolean for whether to normalize data column wise. DON'T USE.
+        conc_threshold: threshold for concurrence to be considered entangled
     '''
     # print(join(datapath, file))
     # print('split', split)
@@ -76,7 +78,7 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
             print('number satisfy', len(df))
             print('percent satisfy', len(df)/len(df_full))
             ''' If W' val is negative, set to 1'''
-            output_df= df.applymap(lambda x: 1 if x < 0 else 0)
+            output_df= df.applymap(lambda x: 1 if x < conc_threshold else 0)
             return output_df
 
     elif task=='e':
@@ -113,15 +115,26 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
         X_test = df_test[inputs]
         Y_test = simplify_targ(df_test[outputs])
 
+        X_train, Y_train, X_test, Y_test = X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
+
+        if normalize:
+            X_train /= np.linalg.norm(X_train, axis=0)
+            X_test /= X_test/np.linalg.norm(X_test, axis=0)
+
         # if savename != 'None':
         #     np.save(join(datapath, savename+'_X_train.npy'), X_train.to_numpy())
         #     np.save(join(datapath, savename+'_Y_train.npy'), Y_train.to_numpy())
         #     np.save(join(datapath, savename+'_X_test.npy'), X_test.to_numpy())
         #     np.save(join(datapath, savename+'_Y_test.npy'), Y_test.to_numpy())
-        return X_train.to_numpy(), Y_train.to_numpy(), X_test.to_numpy(), Y_test.to_numpy()
+        return X_train, Y_train, X_test, Y_test
 
     if split: return split_data()
     else: 
         print(df[inputs].to_numpy())
         print(simplify_targ(df[outputs]).to_numpy())
-        return df[inputs].to_numpy(), simplify_targ(df[outputs]).to_numpy()
+        inputs =  df[inputs].to_numpy()
+        outputs = simplify_targ(df[outputs]).to_numpy()
+        if normalize:
+            inputs = inputs/np.linalg.norm(inputs, axis=0)
+            outputs = outputs/np.linalg.norm(outputs, axis=0)
+        return inputs, outputs
