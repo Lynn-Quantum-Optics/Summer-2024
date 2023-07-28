@@ -1,6 +1,17 @@
 import numpy as np
 from scipy import linalg as la
 
+# basic math functions
+
+expi = lambda x : np.exp(1j*x)
+cos = np.cos
+sin = np.sin
+tan = np.tan
+arccos = np.arccos
+arcsin = np.arcsin
+arctan = np.arctan
+sqrt = np.sqrt
+
 # basic helper functions
 
 def Ket(x):
