@@ -62,10 +62,11 @@ def pauli_histograms_2qubit(kets, bins=30, figsize=(12,12), title='my plot'):
     fig.suptitle(title)
     # make histograms
     for i, (l, M) in enumerate(zip(labels, basis)):
-        ax = fig.add_subplot(8,2,i+1)
+        ax = fig.add_subplot(4,4,i+1)
         values = [expectation_value(ket, M) for ket in kets]
-        ax.hist(values, bins=bins)
+        ax.hist(values, bins=np.linspace(-1,1,bins+1))
         ax.set_ylabel('Frequency')
         ax.set_xlabel(l)
+        ax.set_xlim(-1,1)
     # fix overlap
     fig.tight_layout()
