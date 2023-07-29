@@ -1,3 +1,8 @@
+## 7/29/23
+MP: O
+
+Came in to check on the setup, and turns out the lab computer was shutdown, presumably due to the same power outage that happened on Friday. I tried running an experiment (both just loading the manager in an ipython terminal and then running framework/decomp_expt.py), and there's an error in initializing the manager: "Elliptec motor has no attribute _type".... Not sure status of callibration.
+
 ## 7/26/23
 MP: O
 
