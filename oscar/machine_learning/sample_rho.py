@@ -6,6 +6,16 @@ import matplotlib.ticker as ticker
 import fractions
 from scipy.optimize import curve_fit
 
+## column vectors, standard basis ##
+HH = np.array([1,0,0,0]).reshape((4,1))
+HV = np.array([0,1,0,0]).reshape((4,1))
+VH = np.array([0,0,1,0]).reshape((4,1))
+VV = np.array([0,0,0,1]).reshape((4,1))
+HH_rho = get_rho(HH)
+HV_rho = get_rho(HV)
+VH_rho = get_rho(VH)
+VV_rho = get_rho(VV)
+
 ## sample bell states##
 PhiP_s = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
 PhiP= get_rho(PhiP_s)
@@ -39,8 +49,8 @@ def sample_E(exp_data=None):
     eta_ls = np.linspace(0, np.pi/4, 6) # set of eta values to sample
     chi_ls = np.linspace(0, np.pi/2, 6) # set of chi values to sample
     # fixed angles to investigate for slice of plot 
-    eta_fixed= np.pi/4
-    chi_fixed= np.pi/3
+    eta_fixed= np.pi/8
+    chi_fixed= np.pi/2
 
     E0_W_ls = []
     E0_Wp_ls = []
@@ -49,14 +59,14 @@ def sample_E(exp_data=None):
 
     for chi in chi_ls:
         rho = get_E0(eta_fixed, chi)
-        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho, do_stokes=True)
+        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
         Wp= min(Wp_t1, Wp_t2, Wp_t3)
         E0_W_ls.append(W_min)
         E0_Wp_ls.append(Wp)
 
     for eta in eta_ls:
         rho = get_E1(eta, chi_fixed)
-        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho, do_stokes=True)
+        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
         Wp= min(Wp_t1, Wp_t2, Wp_t3)
         E1_W_ls.append(W_min)
         E1_Wp_ls.append(Wp)
