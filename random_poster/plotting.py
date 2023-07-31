@@ -64,8 +64,8 @@ def pauli_histograms_2qubit(kets, bins=30, figsize=(12,12), title='my plot'):
     for i, (l, M) in enumerate(zip(labels, basis)):
         ax = fig.add_subplot(4,4,i+1)
         values = [expectation_value(ket, M) for ket in kets]
-        ax.hist(values, bins=np.linspace(-1,1,bins+1))
-        ax.set_ylabel('Frequency')
+        ax.hist(values, bins=np.linspace(-1,1,bins+1), density=True)
+        ax.set_ylabel('Density')
         ax.set_xlabel(l)
         ax.set_xlim(-1,1)
     # fix overlap
