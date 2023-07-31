@@ -4,7 +4,7 @@ from os.path import join
 import pandas as pd
 import numpy as np
 
-def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0.8, normalize=False, conc_threshold=0):
+def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0.8, normalize=False, conc_threshold=0, w_cond=True):
     ''' Function to prepare data for training.
     params:
         datapath: path to csv
@@ -16,6 +16,7 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
         p: fraction of data to use for training
         normalize: boolean for whether to normalize data column wise. DON'T USE.
         conc_threshold: threshold for concurrence to be considered entangled
+        w_cond: boolean for whether to only include states that satisfy W condition; false to get complete dataset
     '''
     # print(join(datapath, file))
     # print('split', split)
@@ -70,7 +71,10 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
     if task=='w':
         df_full = df.copy()
         try: 
-            df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0))]
+            if w_cond:
+                df = df.loc[(df['W_min']>=0) & ((df['Wp_t1']<0) | (df['Wp_t2']<0) | (df['Wp_t3']<0)) & (df['concurrence']> conc_threshold)]
+            else:
+                df = df.loc[(df['concurrence']> conc_threshold)] # get only entangled states
         except KeyError: # no W value; keep whole df (for testing 102 states from last sem)
             pass
         outputs=['Wp_t1', 'Wp_t2', 'Wp_t3']
@@ -78,7 +82,7 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
             print('number satisfy', len(df))
             print('percent satisfy', len(df)/len(df_full))
             ''' If W' val is negative, set to 1'''
-            output_df= df.applymap(lambda x: 1 if x < conc_threshold else 0)
+            output_df= df.applymap(lambda x: 1 if x < 0 else 0)
             return output_df
 
     elif task=='e':
