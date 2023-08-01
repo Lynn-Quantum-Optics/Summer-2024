@@ -28,13 +28,13 @@ def get_labels(Y_pred, task, eps=None):
 
     return Y_pred_labels
 
-def get_pop_raw(file, w_cond=False):
+def get_pop_raw(file, conc_threshold = 0, w_cond=False):
     ''' Function to assign labels based on Eritas's population method.'''
     df =pd.read_csv(join('random_gen', 'data', file))
     if w_cond:
-        df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0))]
+        df = df.loc[(df['W_min']>= 0) & ((df['Wp_t1'] < 0) | (df['Wp_t2'] < 0) | (df['Wp_t3'] < 0)) & (df['concurrence']> conc_threshold)]
     else:
-        df = df.loc[(df['concurrence']> 0)] # get all entangled
+        df = df.loc[(df['concurrence']> conc_threshold)] # get all entangled
     prob_HandV = abs(0.5*np.ones_like(df['HH']) - (df['HH'] + df['VV']))
     prob_DandA = abs(0.5*np.ones_like(df['HH']) - (df['DD'] + df['AA']))
     prob_RandL = abs(0.5*np.ones_like(df['HH']) - (df['RR'] + df['LL']))
@@ -44,10 +44,10 @@ def get_pop_raw(file, w_cond=False):
     pop_df['d_RandL'] = prob_RandL 
     return pop_df
 
-def get_labels_pop(file=None, pop_df=None, w_cond=False):
+def get_labels_pop(file=None, pop_df=None, conc_threshold = 0, w_cond=False):
     ''' Function to assign labels based on Eritas's population method.'''
     if pop_df is None and file is not None:
-        pop_df = get_pop_raw(file, w_cond=w_cond)
+        pop_df = get_pop_raw(file, conc_threshold = conc_threshold, w_cond=w_cond)
     elif pop_df is not None:
         pass
 
@@ -86,7 +86,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names
             Y_pred = model.predict(X)
             Y_pred_labels = get_labels(Y_pred, task)
         else: # population method
-            Y_pred_labels = get_labels_pop(file, w_cond=w_cond)
+            Y_pred_labels = get_labels_pop(file, conc_threshold=conc_threshold, w_cond=w_cond)
 
         # take dot product of Y and Y_pred_labels to get number of correct predictions
         N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
@@ -394,7 +394,7 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
         include_all: whether to include all data in the plot or just the data that is used for the final model    
     '''
     # get data
-    conc_threshold_ls = np.linspace(0, .12, steps)
+    conc_threshold_ls = np.linspace(0, .25, steps)
     nn5_acc = []
     pop_acc = []
     bl_acc = []
@@ -430,21 +430,21 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
 
     for conc_threshold in conc_threshold_ls:
 
-        nn5_acc.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+        nn5_acc.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
-        pop_acc.append(eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+        pop_acc.append(eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
-        bl_acc.append(eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+        bl_acc.append(eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
         if include_all:
 
-            xgb_old_acc.append(eval_perf(xgb_old, 'xgb_old', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+            xgb_old_acc.append(eval_perf(xgb_old, 'xgb_old', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
-            xgb_new_acc.append(eval_perf(xgb_new, 'xgb_new', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+            xgb_new_acc.append(eval_perf(xgb_new, 'xgb_new', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
-            nn1_acc.append(eval_perf(nn1, 'nn1', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+            nn1_acc.append(eval_perf(nn1, 'nn1', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
-            nn3_acc.append(eval_perf(nn3, 'nn3', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold)['acc'].values[0])
+            nn3_acc.append(eval_perf(nn3, 'nn3', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
 
 
         nn5_frac.append(1-eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
@@ -619,6 +619,6 @@ if __name__ == '__main__':
     # plot_comp_acc(include_all=True)
     # display_model(nn5)
 
-    plot_comp_acc(include_all=True, big_font=False)
+    plot_comp_acc(include_all=False, big_font=True)
 
     
