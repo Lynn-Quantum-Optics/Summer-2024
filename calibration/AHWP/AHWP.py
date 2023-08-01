@@ -7,6 +7,7 @@ if __name__ == '__main__':
     # SWEEP_PARAMS = [-15, 15, 20, 5, 1]
     TRIAL = 1
     SWEEP_PARAMS = [-14, -4, 30, 5, 5]
+    '''
     
     # initialize the manager
     m = Manager(config='../config.json')
@@ -30,8 +31,8 @@ if __name__ == '__main__':
     df = m.output_data(f'AHWP_sweep{TRIAL}.csv')
     m.shutdown()
     '''
-    df = Manager.load_data('AHWP_sweep0.csv')
-    '''
+    df = Manager.load_data(f'AHWP_sweep{TRIAL}.csv')
+    # '''
 
     # fit the function
     params = analysis.fit('quadratic', df['A_HWP'], df['C4'])
@@ -39,12 +40,20 @@ if __name__ == '__main__':
     # print fitted parameters
     print(f'Fit parameters = {params}')
 
+    # setup plot
+    fig = plt.figure(figsize=(6,4))
+    ax = fig.add_subplot(1,1,1)
+    
     # plotting
-    analysis.plot_func('quadratic', params, df['A_HWP'], color='b', linestyle='dashed', label=f'Fit Function')
-    analysis.plot_errorbar(df['A_HWP'], df['C4'], ms=0.1, fmt='r-')
-    plt.xlabel('Alice\'s Measurement HWP Angle (deg)')
+    analysis.plot_func('quadratic', params, df['A_HWP'], color='b', linestyle='dashed', label=f'${params[1].n:.3f}(x-({params[0].n:.3f}))^2 + {params[2].n:.3f}$', alpha=0.3)
+    analysis.plot_errorbar(df['A_HWP'], df['C4'], ms=0.1, fmt='ro', capsize=2, label='Data')
+    
+    # labels and such
+    plt.title('Alice HWP Sweep')
+    plt.xlabel('Alice\'s HWP Angle (deg)')
     plt.ylabel('Count Rate (#/s)')
-    # plt.title('Initial A_HWP Sweep')
-    plt.title(f'Fit=${params[1].n:.3f}(x-{params[0].n:.3f})^2 + {params[2].n:.3f}$')
+    plt.legend()
+
+    # save and show
     plt.savefig(f'AHWP_sweep{TRIAL}.png', dpi=600)
     plt.show()

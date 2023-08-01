@@ -6,6 +6,7 @@ if __name__ == '__main__':
     TRIAL = 1
     SWEEP_PARAMS = [-8, 4, 30, 5, 5]
     
+    '''
     # initialize the manager
     m = Manager(config='../config.json')
 
@@ -24,20 +25,28 @@ if __name__ == '__main__':
     df = m.output_data(f'UVHWP_sweep{TRIAL}.csv')
     m.shutdown()
     '''
-    df = Manager.load_data('UVHWP_sweep1.csv')
-    '''
+    df = Manager.load_data(f'UVHWP_sweep{TRIAL}.csv')
+    # '''
     # fit the function
     params = analysis.fit('quadratic', df['C_UV_HWP'], df['C4'])
 
     # print fitted parameters
     print(f'Fit parameters = {params}')
 
+    # setup plot
+    fig = plt.figure(figsize=(6,4))
+    ax = fig.add_subplot(1,1,1)
+    
     # plotting
-    analysis.plot_func('quadratic', params, df['C_UV_HWP'], color='b', linestyle='dashed', label=f'Fit Function')
-    analysis.plot_errorbar(df['C_UV_HWP'], df['C4'], ms=0.1, fmt='r-')
+    analysis.plot_func('quadratic', params, df['C_UV_HWP'], color='b', linestyle='dashed', label=f'${params[1].n:.3f}(x-({params[0].n:.3f}))^2 + {params[2].n:.3f}$', alpha=0.3)
+    analysis.plot_errorbar(df['C_UV_HWP'], df['C4'], ms=0.1, fmt='ro', capsize=2, label='Data')
+
+    # labels and such
     plt.xlabel('UVHWP Angle (deg)')
     plt.ylabel('Count Rate (#/s)')
-    # plt.title('Initial UVHWP Sweep')
-    plt.title(f'Fit=${params[1].n:.3f}(x-{params[0].n:.3f})^2 + {params[2].n:.3f}$')
+    plt.title('UV HWP Sweep')
+    plt.legend()
+
+    # save and show
     plt.savefig(f'UVHWP_sweep{TRIAL}.png', dpi=600)
     plt.show()
