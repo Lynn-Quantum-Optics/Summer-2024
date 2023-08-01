@@ -394,7 +394,7 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
         include_all: whether to include all data in the plot or just the data that is used for the final model    
     '''
     # get data
-    conc_threshold_ls = np.linspace(0, .12, steps)
+    conc_threshold_ls = np.linspace(0, .25, steps)
     nn5_acc = []
     pop_acc = []
     bl_acc = []
@@ -619,6 +619,6 @@ if __name__ == '__main__':
     # plot_comp_acc(include_all=True)
     # display_model(nn5)
 
-    plot_comp_acc(include_all=True, big_font=False)
+    plot_comp_acc(include_all=False, big_font=True)
 
     
