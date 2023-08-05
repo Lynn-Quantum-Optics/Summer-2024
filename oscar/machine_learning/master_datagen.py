@@ -163,31 +163,30 @@ def comp_me_roik():
 ## ask user for info ##
 if __name__=='__main__':
     # random_method, return_prob, num_to_gen, savename
-    do_roik = bool(int(input('Custom (0) or Compare with actual Roik (1): ')))
-    if do_roik:
-        comp_me_roik()
+    # do_roik = bool(int(input('Custom (0) or Compare with actual Roik (1): ')))
+    # if do_roik:
+    #     comp_me_roik()
+    random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', 'hurwitz', or 'roik': ")
+    return_prob = bool(int(input("Return probabilities (1) or stokes's parameters (0): ")))
+    num_to_gen = int(input("Enter number of states to generate: "))
+    special = input("Enter special name for file: ")
+    datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
+    log_params = bool(int(input('Log parameters (1) or not (0): ')))
+    log_roik_prob = bool(int(input('log roik prob? 0, 1: ')))
+
+    if not(isdir('random_gen')):
+        os.makedirs('random_gen')
+    if not(isdir(join('random_gen', 'data'))):
+        os.makedirs(join('random_gen', 'data'))
+    if not(isdir(join('random_gen', 'test'))):
+        os.makedirs(join('random_gen', 'test'))
+    
+    if datadir:
+        savename = join('random_gen', 'data', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
     else:
-        random_method = input("Enter random method: 'simplex', 'jones_I','jones_C', 'random', 'hurwitz', or 'roik': ")
-        return_prob = bool(int(input("Return probabilities (1) or stokes's parameters (0): ")))
-        num_to_gen = int(input("Enter number of states to generate: "))
-        special = input("Enter special name for file: ")
-        datadir = bool(int(input('Put in data dir (1) or test dir (0): ')))
-        log_params = bool(int(input('Log parameters (1) or not (0): ')))
-        log_roik_prob = bool(int(input('log roik prob? 0, 1: ')))
+        savename = join('random_gen', 'test', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
 
-        if not(isdir('random_gen')):
-            os.makedirs('random_gen')
-        if not(isdir(join('random_gen', 'data'))):
-            os.makedirs(join('random_gen', 'data'))
-        if not(isdir(join('random_gen', 'test'))):
-            os.makedirs(join('random_gen', 'test'))
-        
-        if datadir:
-            savename = join('random_gen', 'data', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
-        else:
-            savename = join('random_gen', 'test', f'{random_method}_{return_prob}_{num_to_gen}_{special}')
+    print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {log_params}, {log_roik_prob}')
 
-        print(f'{random_method}, {return_prob}, {num_to_gen}, {special}, {log_params}, {log_roik_prob}')
-
-        build_dataset(random_method, return_prob, num_to_gen, savename, include_w=True, log_params=log_params, log_roik_prob=log_roik_prob)
-        # random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False
+    build_dataset(random_method, return_prob, num_to_gen, savename, include_w=True, log_params=log_params, log_roik_prob=log_roik_prob)
+    # random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False

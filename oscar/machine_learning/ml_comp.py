@@ -478,14 +478,20 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
     # plot
     fig, ax = plt.subplots(1, 2, figsize=(10,5))
     print(nn5_acc)
-    ax[0].plot(conc_threshold_ls, nn5_acc, label='NN5')
-    ax[0].plot(conc_threshold_ls, pop_acc, label='Population')
-    ax[0].plot(conc_threshold_ls, bl_acc, label='NN2')
+  
     if include_all:
+        ax[0].plot(conc_threshold_ls, nn5_acc, label='NN5')
+        ax[0].plot(conc_threshold_ls, pop_acc, label='Population')
+        ax[0].plot(conc_threshold_ls, bl_acc, label='NN2')
+
         ax[0].plot(conc_threshold_ls, xgb_old_acc, label='XGB, 0')
         ax[0].plot(conc_threshold_ls, xgb_new_acc, label='XGB, 1')
         ax[0].plot(conc_threshold_ls, nn1_acc, label='NN1')
         ax[0].plot(conc_threshold_ls, nn3_acc, label='NN3')
+    else:
+        ax[0].plot(conc_threshold_ls, nn5_acc, label='NN5', linestyle=(0, (1,1)))
+        ax[0].plot(conc_threshold_ls, pop_acc, label='Population', linestyle=(5, (10,3)))
+        ax[0].plot(conc_threshold_ls, bl_acc, label='NN2', linestyle=(0, (5,10)))
     if big_font:
         ax[0].set_xlabel('Concurrence Threshold', fontsize=16)
         ax[0].set_ylabel('Accuracy', fontsize=16)
@@ -497,18 +503,27 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
         ax[0].legend()
         ax[0].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$")
 
-    ax[1].plot(conc_threshold_ls, nn5_frac, label='NN5')
-    ax[1].plot(conc_threshold_ls, pop_frac, label='Population')
-    ax[1].plot(conc_threshold_ls, bl_frac, label='NN2')
-
+    
     if include_all:
+        ax[1].plot(conc_threshold_ls, nn5_frac, label='NN5')
+        ax[1].plot(conc_threshold_ls, pop_frac, label='Population')
+        ax[1].plot(conc_threshold_ls, bl_frac, label='NN2')
+
+
         ax[1].plot(conc_threshold_ls, xgb_old_frac, label='XGB, 0')
         ax[1].plot(conc_threshold_ls, xgb_new_frac, label='XGB, 1')
         ax[1].plot(conc_threshold_ls, nn1_frac, label='NN1')
         ax[1].plot(conc_threshold_ls, nn3_frac, label='NN3')
-    
-    ax[1].plot(conc_threshold_ls, w_frac, label='W')
-    ax[1].plot(conc_threshold_ls, wp_frac, label='W\'')
+
+        ax[1].plot(conc_threshold_ls, w_frac, label='W')
+        ax[1].plot(conc_threshold_ls, wp_frac, label='W\'')
+    else:
+        ax[1].plot(conc_threshold_ls, nn5_frac, label='NN5', linestyle=(0, (1,1)))
+        ax[1].plot(conc_threshold_ls, pop_frac, label='Population', linestyle=(5, (10,3)))
+        ax[1].plot(conc_threshold_ls, bl_frac, label='NN2', linestyle=(0, (5,10)))
+
+        ax[1].plot(conc_threshold_ls, w_frac, label='W', linestyle=(0, (3,1,1,1)))
+        ax[1].plot(conc_threshold_ls, wp_frac, label='W\'', linestyle=(0, (3,5,1,5, 1, 5)))
     
     if big_font:
         ax[1].set_xlabel('Concurrence Threshold', fontsize=16)
@@ -567,18 +582,18 @@ if __name__ == '__main__':
     # xgb.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_xgb_all.json'))
     # nn1 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_nn1_all.h5'))
     # nn3 = keras.models.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_300_300_300_0.0001_100.h5'))
-    nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
-    nn5_wraw = keras.models.load_model(join(new_model_path, 'r4_s0_47_w_prob_9_raw_200_200_200_200_200_0.0001_100.h5'))
-    nn5_wdiff = keras.models.load_model(join(new_model_path, 'r4_s0_48_w_prob_9_diff_200_200_200_200_200_0.0001_100.h5'))
-    nn5_wrd = keras.models.load_model(join(new_model_path, 'r4_s0_49_w_prob_9_rd_200_200_200_200_200_0.0001_100.h5'))
-    nn5_rawonly = keras.models.load_model(join(new_model_path, 'r4_s0_50_w_none_raw_200_200_200_200_200_0.0001_100.h5'))
-    nn5_diffonly = keras.models.load_model(join(new_model_path, 'r4_s0_51_w_none_diff_200_200_200_200_200_0.0001_100.h5'))
-    nn5_rdonly = keras.models.load_model(join(new_model_path, 'r4_s0_52_w_none_rd_200_200_200_200_200_0.0001_100.h5'))
+    # nn5 = keras.models.load_model(join(new_model_path, 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+    # nn5_wraw = keras.models.load_model(join(new_model_path, 'r4_s0_47_w_prob_9_raw_200_200_200_200_200_0.0001_100.h5'))
+    # nn5_wdiff = keras.models.load_model(join(new_model_path, 'r4_s0_48_w_prob_9_diff_200_200_200_200_200_0.0001_100.h5'))
+    # nn5_wrd = keras.models.load_model(join(new_model_path, 'r4_s0_49_w_prob_9_rd_200_200_200_200_200_0.0001_100.h5'))
+    # nn5_rawonly = keras.models.load_model(join(new_model_path, 'r4_s0_50_w_none_raw_200_200_200_200_200_0.0001_100.h5'))
+    # nn5_diffonly = keras.models.load_model(join(new_model_path, 'r4_s0_51_w_none_diff_200_200_200_200_200_0.0001_100.h5'))
+    # nn5_rdonly = keras.models.load_model(join(new_model_path, 'r4_s0_52_w_none_rd_200_200_200_200_200_0.0001_100.h5'))
 
-    model_ls = [1, nn5, nn5_wraw, nn5_wdiff, nn5_wrd, nn5_rawonly, nn5_diffonly, nn5_rdonly]
-    model_names = ['population', 'nn5', 'nn5_wraw', 'nn5_wdiff', 'nn5_wrd', 'nn5_rawonly', 'nn5_diffonly', 'nn5_rdonly']
-    input_methods = ['prob_9', 'prob_9', 'prob_9', 'prob_9', 'prob_9', 'none', 'none', 'none']
-    pop_methods = ['none', 'none', 'raw', 'diff', 'rd', 'raw', 'diff', 'rd']
+    # model_ls = [1, nn5, nn5_wraw, nn5_wdiff, nn5_wrd, nn5_rawonly, nn5_diffonly, nn5_rdonly]
+    # model_names = ['population', 'nn5', 'nn5_wraw', 'nn5_wdiff', 'nn5_wrd', 'nn5_rawonly', 'nn5_diffonly', 'nn5_rdonly']
+    # input_methods = ['prob_9', 'prob_9', 'prob_9', 'prob_9', 'prob_9', 'none', 'none', 'none']
+    # pop_methods = ['none', 'none', 'raw', 'diff', 'rd', 'raw', 'diff', 'rd']
     # comp_overlap(model_ls=model_ls, names=model_names, input_methods=input_methods, pop_methods=pop_methods)
 
     # # old models ---
@@ -612,13 +627,17 @@ if __name__ == '__main__':
     # tasks = ['e' for _ in range(len(model_ls))]
     # savename='roik_etal_noeps'
 
-    # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, pop_methods = pop_methods, tasks = tasks, savename=savename, file_ls = ['roik_True_400000_w_roik.csv'], file_names=['roik_400k'])
+    # eval_perf_multiple(model_ls, model_names, input_methods = input_methods, pop_methods = pop_methods, tasks = tasks, savename=savename, file_ls = ['roik_True_400000_w_roik_prob_c_t.csv'], file_names=['roik_400k'])
 
     # det_threshold(nn5)
     # print('nn5')
     # plot_comp_acc(include_all=True)
     # display_model(nn5)
 
-    plot_comp_acc(include_all=False, big_font=True)
+    # plot_comp_acc(include_all=False, big_font=True)
 
+    # r3 = keras.models.load_model(join('random_gen', 'models','r4_s0_0_e_prob_3_none_300_300_300_300_300_0.0001_100.h5'))
+    # print(eval_perf(r3, 'r3', input_method='prob_3_r', pop_method='none', task='e', file_ls=['roik_True_400000_w_roik_prob_c_t.csv']))
+
+    plot_comp_acc(include_all=False, big_font=True)
     

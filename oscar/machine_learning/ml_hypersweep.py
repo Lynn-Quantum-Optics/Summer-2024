@@ -815,9 +815,9 @@ if __name__=='__main__':
             file = 'roik_4m_wpop_rd.csv'
             test_ls = ['roik_True_400000_s0_extra0.csv', 'roik_True_400000_r_os_t.csv']
         else:
-            file = 'roik_True_4000000_w_roik.csv'
+            file = 'roik_True_4000000_w_roik_all.csv'
             pop_method='none'
-            test_ls = ['roik_True_400000_w_roik.csv']
+            test_ls = ['roik_True_400000_w_roik_prob_c_t.csv']
         task = input('w or e for task: ')
         if task=='e':
             input_method = input('Enter input method: ')
@@ -1037,7 +1037,7 @@ if __name__=='__main__':
                 file_ls  = ['roik_400k_wpop_rd.csv', 'roik_400k_extra_wpop_rd.csv'] # this is for testing
                 file_names = ['400k', '400k_extra']
             else:
-                file_ls = ["roik_True_400000_w_roik.csv"]
+                file_ls = ["roik_True_400000_w_roik_prob_c_t.csv"]
                 file_names = ['roik_400k']
             if wtr==0:
                 n_estimators = int(input('Enter n_estimators:'))
