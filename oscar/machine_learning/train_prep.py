@@ -37,14 +37,16 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
         inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV']
     elif input_method=='prob_15':
         inputs = ['DD', 'AA', 'DL', 'AR', 'DH', 'AV', 'LL', 'RR', 'LH', 'RV', 'HH', 'VV', 'DR', 'DV', 'LV']
+    
+    # roik specific probs #
     elif input_method=='prob_3_r':
         inputs = ['r_HH', 'r_VV', 'r_HV']
     elif input_method=='prob_5_r':
-        inputs = ['r_HH', 'r_HV', 'r_VV', 'r_DD', 'r_AA']
+        inputs = ['r_HH', 'r_VV', 'r_HV', 'r_DD', 'r_AA']
     elif input_method=='prob_6_r':
-        inputs = ['r_HH', 'r_HV', 'r_VV', 'r_DD', 'r_RR', 'r_LL']
-    elif input_method=='prob_9_r':
-        inputs = ['r_HH', 'r_HV', 'r_VV', 'r_DD', 'r_DA', 'r_AA', 'r_RR', 'r_RL', 'r_LL']
+        inputs = ['r_HH', 'r_VV', 'r_HV', 'r_DD', 'r_RR', 'r_LL']
+    # elif input_method=='prob_9_r':
+    #     inputs = ['r_HH', 'r_HV', 'r_VV', 'r_DD', 'r_DA', 'r_AA', 'r_RR', 'r_RL', 'r_LL']
     elif input_method=='prob_12_r':
         inputs = ['r_DD', 'r_AA', 'r_DL', 'r_AR', 'r_DH', 'r_AV', 'r_LL', 'r_RR', 'r_LH', 'r_RV', 'r_HH', 'r_VV']
     elif input_method=='prob_15_r':
