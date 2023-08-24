@@ -6,6 +6,7 @@ This file contains contact information for the research group members, as well a
 ## Contact Information
 
 Alec Roberson – email: aroberson@hmc.edu / alectroberson@gmail.com. More likely to reply over text: 617-543-4448.
+Oscar Scholin – email: orsa2020@mymail.pomona.edu / scholinoscar@gmail.com.
 
 ## Lab Framework Revamping
 
@@ -30,3 +31,9 @@ My method of general state creation relies on the experimental measurements that
 Contact: Alec
 
 The laser data sheet indicates that some of the (currently not used) pins on the laser output some data (such as laser diode temperature) that would be nice to monitor while running the experiments. I wrote some C++ and loaded it onto a microcontroller that is ready to interface with the lab framework (via the `Manager` class). Information about this project is in the `laser-monitor-firmware` folder.
+
+## Neural Networks for Entanglement Witness Optimization
+
+Contact: Oscar
+
+Most of my code can be found under './oscar/machine_learning'; within './oscar' there is a readme file with more information regarding the details of the code, location of datasets, and trained models.
