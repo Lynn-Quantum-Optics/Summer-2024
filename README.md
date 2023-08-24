@@ -5,8 +5,8 @@ This file contains contact information for the research group members, as well a
 
 ## Contact Information
 
-Alec Roberson – email: aroberson@hmc.edu / alectroberson@gmail.com. More likely to reply over text: 617-543-4448.
-Oscar Scholin – email: orsa2020@mymail.pomona.edu / scholinoscar@gmail.com.
+- Alec Roberson – email: aroberson@hmc.edu / alectroberson@gmail.com. More likely to reply over text: 617-543-4448.
+- Oscar Scholin – email: orsa2020@mymail.pomona.edu / scholinoscar@gmail.com.
 
 ## Lab Framework Revamping
 
