@@ -64,7 +64,14 @@ def get_purity(rho):
 
 def get_fidelity(rho1, rho2):
     '''Compute fidelity of 2 density matrices'''
-    return np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
+    try:
+        fidelity = np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
+        return fidelity
+    except:
+        print('error computing fidelity!')
+        print('rho1', rho1)
+        print('rho2', rho2)
+        return 1e-5
 
 def Bures_distance(rho1, rho2):
     '''Compute the distance between 2 density matrices'''
@@ -323,7 +330,12 @@ def adjust_rho(rho, angles, expt_purity, state='E0'):
         HV= np.array([0, 1, 0, 0]).reshape(4,1)
         VH = np.array([0, 0, 1, 0]).reshape(4,1)
         rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
+        # swap elements [1, 1] and [2,2]
+        # rho_adj[1,1], rho_adj[2,2] = rho_adj[2,2], rho_adj[1,1]
         return rho_adj
+
+        # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
+
 
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
@@ -355,13 +367,33 @@ def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
         x /= np.sum(x)    
     if model==4:
         r_hh, r_hv, r_vh, r_vv = x
-        rho_c = purity * rho_actual + (1-purity)*(r_hh*HH + r_hv*HV + r_vh*VH + r_vv*VV)
+        rho_c = purity * rho_actual + (1-purity)*(r_hh*HH_rho + r_hv*HV_rho + r_vh*VH_rho + r_vv*VV_rho)
+
+    if model==1:
+        e  = x[0]
+        # rho_c = (1-e1-e2)*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e1*(HH@adjoint(VV)) + e2*(VV@adjoint(HH))
+        a =((1+np.cos(chi)*np.sin(2*eta)) / 2)
+        b = 1-a
+        # rho_c = (1-e1[0])*purity * rho_actual + (1-e1[0])*(1-purity)*(a*HV_rho + b*VH_rho) + e1[0]*(HH@adjoint(VV) + VV@adjoint(HH))
+
+        # move HV val to HH and VH val to VV
+        rho_actual_2 = rho_actual.copy()
+        rho_actual_2[0,0] = rho_actual[1,1]
+        rho_actual_2[1,1] = rho_actual[0,0]
+        rho_actual_2[2,2] = rho_actual[3,3]
+        rho_actual_2[3,3] = rho_actual[2,2]
+
+        rho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
+
+    
+
     elif model==3:
         e1, e2, e3 = x
         rho_c = e3*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e1*HH_rho + e2*VV_rho
-    elif model==1:
-        e=x[0]
-        rho_c = (1-e)*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e*(purity * (get_rho((np.cos(eta)+np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*HH + (np.cos(eta)-np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*VV)) + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta))/2)*HH_rho + ((1-np.cos(chi)*np.sin(2*eta))/2)*VV_rho))
+        # rho_c = e3*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e1*HH@adjoint(VV) + e2*VV @ adjoint(HH)
+    # elif model==1:
+    #     e=x[0]
+    #     rho_c = (1-e)*(purity * rho_actual + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta)) / 2)*HV_rho + ((1-np.cos(chi)*np.sin(2*eta)) / 2)*VH_rho)) + e*(purity * (get_rho((np.cos(eta)+np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*HH + (np.cos(eta)-np.exp(1j*chi)*np.sin(eta) / np.sqrt(2))*VV)) + (1-purity)*(((1+np.cos(chi)*np.sin(2*eta))/2)*HH_rho + ((1-np.cos(chi)*np.sin(2*eta))/2)*VV_rho))
     elif model==16:
         # do full correction in all bases, expanding model 4
         rho_c_1 = purity*rho_actual 
@@ -371,44 +403,68 @@ def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
 
     else:
         raise ValueError(f'model {model} value invalid')
-
+    rho_c /= np.trace(rho_c)
+    # make hermitian
+    # rho_c = 0.5*(rho_c + np.conj(rho_c.T))
+    # print(is_valid_rho(rho_c))
     return rho_c
 
-def load_saved_get_E0_rho_c(rho_actual, angles, purity, model, UV_HWP_offset, model_path = '../../framework/decomp_test/'):
-    '''Reads in data from files with optimal noise adjusements depending on extra UV_HWP offset (believed to be around 1 degree off during testing)'''
-    try:
-        adjust_df = pd.read_csv(model_path+f'noise_{UV_HWP_offset}/noise_model_{model}.csv')
-    except:
-        raise ValueError(f'You are missing the file noise_model_{model}.csv; your current path is {model_path}.')
+def load_saved_get_E0_rho_c(rho_actual, angles_save, angles_cor, purity, model, do_W = False, do_richard = False, UV_HWP_offset = 1.029, model_path = '../../framework/decomp_test/'):
+    '''Reads in data from files with optimal noise adjusements depending on extra UV_HWP offset (believed to be 1.029 degrees off during testing)
+    --
+    Inputs:
+    rho_actual: actual rho to be corrected
+    angles_save: angles used to generate the noise model
+    angles_cor: angles after correcting the UVHWP
+    purity: experimental purity of the state
+    model: model used to generate the noise model
+    do_W: 
+    '''
+    if model != 0 and model is not None:
+        try:
+            if not do_W and not do_richard:
+                adjust_df = pd.read_csv(model_path+f'noise_{UV_HWP_offset}/noise_model_{model}.csv')
+            elif do_W:
+                adjust_df = pd.read_csv(model_path+f'noise_{UV_HWP_offset}/noise_model_{model}_W.csv')
+            elif do_richard:
+                adjust_df = pd.read_csv(model_path+f'noise_{UV_HWP_offset}/noise_model_{model}_richard.csv')
+        except:
+            print('do W', do_W)
+            raise ValueError(f'You are missing the file noise_model_{model}.csv; your current path is {model_path}.')
 
-    adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles[1], 4))]
-    
-    if model==4:
-        adjust_df = adjust_df[['r_hh', 'r_hv', 'r_vh', 'r_vv']]
-    elif model==3:
-        adjust_df['e3'] = 1-adjust_df['e1'] - adjust_df['e2']
-        adjust_df = adjust_df[['e1', 'e2', 'e3']]
-    elif model==1:
-        adjust_df = adjust_df[['e']]
-    elif model==16:
-        columns = []
-        for l in list('ixyz'):
-            for r in list('ixyz'):
-                columns.append(f'r_{l}{r}')
-        adjust_df = adjust_df[columns]
-    
-    adjust_df = adjust_df.to_numpy()
-    adjust_df = adjust_df.reshape((model,))
-    
-    adj_rho = adjust_E0_rho_general(adjust_df, rho_actual, purity, angles[0], angles[1])
-    return adj_rho
+        adjust_df = adjust_df[(np.round(adjust_df['eta'],4) == np.round(angles_save[0], 4)) & (np.round(adjust_df['chi'], 4) == np.round(angles_save[1], 4))]
+        
+        if model==4:
+            adjust_df = adjust_df[['r_hh', 'r_hv', 'r_vh', 'r_vv']]
+        elif model==3:
+            adjust_df['e3'] = 1-adjust_df['e1'] - adjust_df['e2']
+            adjust_df = adjust_df[['e1', 'e2', 'e3']]
+        elif model==1:
+            adjust_df = adjust_df[['e']]
+        elif model==16:
+            columns = []
+            for l in list('ixyz'):
+                for r in list('ixyz'):
+                    columns.append(f'r_{l}{r}')
+            adjust_df = adjust_df[columns]
+        
+        adjust_df = adjust_df.to_numpy()
+        adjust_df = adjust_df.reshape((model,))
+        
+        adj_rho = adjust_E0_rho_general(adjust_df, rho_actual, purity, angles_cor[0], angles_cor[1])
+        return adj_rho
+    elif model==0 and model is not None:
+        return adjust_rho(rho_actual, angles_cor, purity)
+    elif model is None:
+        return rho_actual
+
 
 def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_offset):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -418,6 +474,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             do_counts: use the raw definition in terms of counts
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
             model: which model to correct for noise; see det_noise in process_expt.py for more info
+            do_W: bool, whether to use W calc in loss for noise
             UV_HWP_offset: see description in det_noise in process_expt.py
             model_path: path to noise model csvs.
             angles: angles of eta, chi for E0 states to adjust theory
@@ -433,11 +490,15 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
         do_counts = True
 
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
-    if expt_purity is not None and angles is not None:
-        if model is None:
-            rho = adjust_rho(rho, angles, expt_purity)
-        else:
-            rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model, UV_HWP_offset)
+
+    # automatic correction is depricated; send the theoretical rho after whatever correction you want to this function
+
+        # if expt_purity is not None and angles is not None: # this rho is theoretical
+        #     if model is None:
+        #         rho = adjust_rho(rho, angles, expt_purity)
+        #     else:
+        #         rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model, UV_HWP_offset, do_W = do_W, do_richard = do_richard)
+        #     # rho = adjust_rho(rho, angles, expt_purity)
 
     if do_counts:
         counts = np.reshape(counts, (36,1))
@@ -877,6 +938,8 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 isi+=1
 
                 W_expec_vals.append(w_min)
+            # print('W', np.round(W_expec_vals[:6], 3))
+            # print('W\'', np.round(W_expec_vals[6:], 3))
             # find min witness expectation values
             W_min = min(W_expec_vals[:6])
             Wp_t1 = min(W_expec_vals[6:9])

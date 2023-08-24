@@ -10,7 +10,8 @@ from xgboost import XGBRegressor, XGBClassifier # the ml algorithm we're using
 # import keras # for neural nets
 
 # read in and prepare data
-DATA_PATH = 'S22_data'
+# DATA_PATH = 'S22_data'
+DATA_PATH = 'random_gen/data'
 
 def prepare_data(df_path_ls, random_seed, p): # do target prep is binary. p is what fraction is used for training
     print('preparing data.....')

@@ -62,8 +62,8 @@ def witness_loss_fn(y_true, y_pred):
     # y_pred is a 1 by batch size tensor with all the predicted values for each state
     # y_true is a 3 by batch size tensor, with the three ground truth outputs per state
 
-    print(y_true, y_true.shape)
-    print(y_pred, y_pred.shape)
+    # print(y_true, y_true.shape)
+    # print(y_pred, y_pred.shape)
     
     
     # making y_pred 1 output when evaluating loss
@@ -90,10 +90,10 @@ def witness_loss_fn(y_true, y_pred):
 
 def get_dataset(dataset):
     # split into input (X) and output (y) variables
-    # X = dataset.loc[:,'HH probability':'LL probability']
-    # y = dataset.loc[:,'XY min': 'XZ min']
-    X = dataset[['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL']].to_numpy()
-    y = dataset[['Wp_t1', 'Wp_t2', 'Wp_t3']]
+    X = dataset.loc[:,'HH probability':'LL probability']
+    y = dataset.loc[:,'XY min': 'XZ min']
+    # X = dataset[['HH', 'HV', 'VV', 'DD', 'DA', 'AA', 'RR', 'RL', 'LL']].to_numpy()
+    # y = dataset[['Wp_t1', 'Wp_t2', 'Wp_t3']]
     # y = y.applymap(lambda x: 1 if x < 0 else 0)
     y = y.to_numpy()
     print(X.shape, y.shape)
@@ -111,36 +111,43 @@ def get_dataset(dataset):
 #     model.compile(loss='witness_loss_fn', optimizer=opt)
 #     return model
 
-def get_model(hp):
+# def get_model(hp):
+#     model = Sequential()
+    # model.add(
+    #     keras.layers.Dense(
+    #         units = hp.Int("units", min_value = 30, max_value = 400, step= 50),
+    #         activation = 'relu',
+    #         )
+    #     )
+    # model.add(
+    #     keras.layers.Dense(
+    #         units = hp.Int("units", min_value = 30, max_value = 400, step= 50),
+    #         activation = 'relu',
+    #         )
+    #     )
+    # model.add(
+    #     keras.layers.Dense(
+    #         units = hp.Int("units", min_value = 50, max_value = 400, step= 50),
+    #         activation = 'relu',
+    #         )
+    #     )
+    # model.add(
+    #     keras.layers.Dense(
+    #         units = hp.Int("units", min_value = 50, max_value = 400, step= 50),
+    #         activation = 'relu',
+    #         )
+    #     )
+    # model.add(Dense(3, activation = 'softmax'))
+    # opt = keras.optimizers.Adam(clipnorm=1.0)
+    # model.compile(
+    #     loss=witness_loss_fn, optimizer=opt, metrics = [CustomMetric()])
+    # return model
+def get_model(n_inputs, n_outputs):
     model = Sequential()
-    model.add(
-        keras.layers.Dense(
-            units = hp.Int("units", min_value = 30, max_value = 400, step= 50),
-            activation = 'relu',
-            )
-        )
-    model.add(
-        keras.layers.Dense(
-            units = hp.Int("units", min_value = 30, max_value = 400, step= 50),
-            activation = 'relu',
-            )
-        )
-    model.add(
-        keras.layers.Dense(
-            units = hp.Int("units", min_value = 50, max_value = 400, step= 50),
-            activation = 'relu',
-            )
-        )
-    model.add(
-        keras.layers.Dense(
-            units = hp.Int("units", min_value = 50, max_value = 400, step= 50),
-            activation = 'relu',
-            )
-        )
-    model.add(Dense(3, activation = 'softmax'))
-    opt = keras.optimizers.Adam(clipnorm=1.0)
-    model.compile(
-        loss=witness_loss_fn, optimizer=opt, metrics = [CustomMetric()])
+    model.add(Dense(7, input_dim=n_inputs, kernel_initializer='he_uniform', activation='relu'))
+    model.add(Dense(9, activation = 'relu'))
+    model.add(Dense(n_outputs))
+    model.compile(loss='mae', optimizer='adam')
     return model
 
 """
