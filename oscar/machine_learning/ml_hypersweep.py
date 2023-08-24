@@ -530,9 +530,9 @@ if __name__=='__main__':
 
     if op==1:
         file = input('Enter file name: ')
-        input_method = input('Enter input method: ')
-        pop_method = input('Enter pop method: ')
-        task = input('Enter task: ')
+        input_method = input('Enter input method (see train_prep.py; e.g., prob_9 for the 9 probabilities as specified): ')
+        pop_method = input('Enter pop method (most likely None; whether to append the probabilites or the differences used in the population model to the original inputs specified above.): ')
+        task = input('Enter task (w for witness or e for entangled): ')
         identifier = input('Enter identifier ([randomtype][method]_[attempt]): ')
         savename= identifier+'_'+task+'_'+input_method
 

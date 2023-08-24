@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
 def det_a():
-    '''Function to determine te fraction max VV / max HH counts using Richard's QP sweep.'''
+    '''Function to determine the fraction max VV / max HH counts using Richard's QP sweep.'''
 
     # read in data #
     df_vv = pd.read_csv(join('jones_fit_data', 'UVHWP_balance_sweep1.csv'))

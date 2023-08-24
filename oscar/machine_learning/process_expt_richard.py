@@ -293,15 +293,15 @@ def make_plots_E0(dfname):
         ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
         ax[0,i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
 
-        ax[0,i].set_title(f'$\eta = {np.round(eta,3)}$', fontsize=18)
-        ax[0,i].set_ylabel('Witness value', fontsize=16)
+        ax[0,i].set_title(f'$\eta = {np.round(eta,3)}$', fontsize=33)
+        ax[0,i].set_ylabel('Witness value', fontsize=31)
         ax[0,i].legend(ncol=2)
-        ax[1,i].set_xlabel('$\chi$', fontsize=16)
-        ax[1,i].set_ylabel('Value', fontsize=16)
+        ax[1,i].set_xlabel('$\chi$', fontsize=31)
+        ax[1,i].set_ylabel('Value', fontsize=31)
         ax[1,i].legend()
 
         
-    plt.suptitle('Witnesses for $E_0$ states, $\cos(\eta)|\Psi^+\\rangle + \sin(\eta)e^{i \chi}|\Psi^-\\rangle $', fontsize=20)
+    plt.suptitle('Witnesses for $E_0$ states, $\cos(\eta)|\Psi^+\\rangle + \sin(\eta)e^{i \chi}|\Psi^-\\rangle $', fontsize=35)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'exp_witnesses_E0_{id}.pdf'))
     plt.show()
