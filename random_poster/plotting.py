@@ -42,8 +42,8 @@ def pauli_histograms_1qubit(kets, bins=30, figsize=(8,12), title='my plot'):
     for i, (x, M) in enumerate(zip('xyz', [SX, SY, SZ])):
         ax = fig.add_subplot(3,1,i+1)
         values = [expectation_value(ket, M) for ket in kets]
-        ax.hist(values, bins=bins)
-        ax.set_ylabel('Frequency')
+        ax.hist(values, bins=np.linspace(-1,1,bins+1), density=True)
+        ax.set_ylabel('Density')
         ax.set_xlabel(f'$\\langle \\sigma_{x} \\rangle$')
     # fix overlap
     fig.tight_layout()
@@ -68,5 +68,33 @@ def pauli_histograms_2qubit(kets, bins=30, figsize=(12,12), title='my plot'):
         ax.set_ylabel('Density')
         ax.set_xlabel(l)
         ax.set_xlim(-1,1)
+    # fix overlap
+    fig.tight_layout()
+
+def pauli_histograms_2qubit_overlay(kets, bins=30, figsize=(12,12), title='my plot'):
+    basis = []
+    labels = []
+    for al, a in zip('ixyz', [ID, SX, SY, SZ]):
+        for bl, b in zip('ixyz', [ID, SX, SY, SZ]):
+            if al+bl == 'ii': continue
+            basis.append(np.kron(a,b))
+            labels.append(r'$\langle \sigma_{%s%s} \rangle$' % (al, bl))
+
+    # setup the figure
+    fig = plt.figure(figsize=figsize)
+    fig.suptitle(title)
+    ax = fig.add_subplot(1,1,1)
+    ax.set_xlabel('Expectation Value')
+    ax.set_ylabel('Density')
+    ax.set_xlim(-1,1)
+
+    # make histograms
+    for i, (l, M) in enumerate(zip(labels, basis)):
+        values = [expectation_value(ket, M) for ket in kets]
+        ax.hist(values, bins=np.linspace(-1,1,bins+1), density=True, alpha=0.3, label=l)
+    
+    # enable legend
+    ax.legend()
+
     # fix overlap
     fig.tight_layout()
