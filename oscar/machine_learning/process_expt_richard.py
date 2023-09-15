@@ -401,18 +401,8 @@ def nn_exp(filenames):
 
     # load data
     for i, file in tqdm(enumerate(filenames)):
-        if settings is None:
-            try:
-                trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
-            except:
-                trial, rho, unc, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
-                eta, chi = None, None
-        else:
-            try:
-                trial, rho, _, Su, fidelity, purity, eta, chi, angles = get_rho_from_file(file, angles = settings[i], verbose=False)
-            except:
-                trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
-                eta, chi = None, None
+        trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+            
 
         # get all expectation values
         all_projs = get_all_projs(rho)
@@ -424,8 +414,8 @@ def nn_exp(filenames):
         LH, LV, LD, LA, LR, LL = all_projs[5]
 
         # input to models
-        nn5_pred = nn5.predict(np.array([HH, HV, VV, DD, DA, AA, RR, RL, LL]))
-        bl_pred = model_bl.predict(np.array([HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL]))
+        nn5_pred = nn5.predict(np.reshape(np.array([HH, HV, VV, DD, DA, AA, RR, RL, LL]), (1,9)))
+        bl_pred = model_bl.predict(np.reshape(np.array([HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL]), (1,12)))
         pop_pred_val = np.argmax([0.5 - (HH + VV), 0.5 - (DD + AA), 0.5 - (RR + LL)])
         pop_pred = [0, 0, 0]
         pop_pred[pop_pred_val] = 1
@@ -492,6 +482,8 @@ if __name__ == '__main__':
     id = 'richard_poster'
     # analyze_rhos(filenames, rho_actuals, id=id)
 
-    make_plots_E0(f'rho_analysis_{id}.csv')
+    # make_plots_E0(f'rho_analysis_{id}.csv')
 
     # get_rho_from_file_depricated("rho_('PhiP',)_19.npy", PhiP)
+
+    nn_exp(filenames)
