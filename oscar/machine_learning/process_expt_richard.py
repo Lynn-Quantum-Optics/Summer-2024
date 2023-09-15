@@ -241,7 +241,7 @@ def make_plots_E0(dfname):
 
     # preset plot sizes
     if len(eta_vals) == 2:
-        fig, ax = plt.subplots(2, 2, figsize=(20, 10), sharex=True)
+        fig, ax = plt.subplots(1, 2, figsize=(20, 10))
     elif len(eta_vals) == 3:
         fig, ax = plt.subplots(2, 3, figsize=(25, 10), sharex=True)
 
@@ -253,12 +253,12 @@ def make_plots_E0(dfname):
         chi_eta = df_eta['chi'].to_numpy()
         adj_fidelity = df_eta['AT_fidelity'].to_numpy()
 
-        # do purity and fidelity plots
-        ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
-        ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
+        # # do purity and fidelity plots
+        # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
+        # ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
 
-        # plot adjusted theory purity
-        ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
+        # # plot adjusted theory purity
+        # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
         # extract witness values
         W_min_T = df_eta['W_min_T'].to_numpy()
@@ -284,21 +284,22 @@ def make_plots_E0(dfname):
 
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
-        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
-        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
-        ax[0,i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
+        ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
+        ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+        ax[i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
 
 
-        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
-        ax[0,i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
-        ax[0,i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
+        ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
+        ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
+        ax[i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
 
-        ax[0,i].set_title(f'$\eta = {np.round(eta,3)}$', fontsize=33)
-        ax[0,i].set_ylabel('Witness value', fontsize=31)
-        ax[0,i].legend(ncol=2)
-        ax[1,i].set_xlabel('$\chi$', fontsize=31)
-        ax[1,i].set_ylabel('Value', fontsize=31)
-        ax[1,i].legend()
+        ax[i].set_title(f'$\eta = {np.round(eta,3)}\degree$', fontsize=33)
+        ax[i].set_ylabel('Witness value', fontsize=31)
+        ax[i].tick_params(axis='both', which='major', labelsize=25)
+        ax[i].legend(ncol=2, fontsize=25)
+        ax[i].set_xlabel('$\chi$', fontsize=31)
+        # ax[1,i].set_ylabel('Value', fontsize=31)
+        # ax[1,i].legend()
 
         
     plt.suptitle('Witnesses for $E_0$ states, $\cos(\eta)|\Psi^+\\rangle + \sin(\eta)e^{i \chi}|\Psi^-\\rangle $', fontsize=35)
@@ -375,6 +376,81 @@ def get_theo_rho(alpha, beta):
 
     return rho
 
+
+# feed experimental data into trained NN
+import keras
+from keras.models import load_model
+def nn_exp(filenames):
+    '''Takes in list of filenames corresponding to actual experimental data and returns a df of the whether it chose correctly'''
+
+    # load models
+    old_model_path = 'old_models'
+    nn5 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+    json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model_bl = keras.models.model_from_json(loaded_model_json)
+    # load weights into new model
+    model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
+
+    # define lists for performance
+    nn5_predictions = []
+    bl_predictions = []
+    pop_predictions = []
+    eta_chi = []
+
+    # load data
+    for i, file in tqdm(enumerate(filenames)):
+        if settings is None:
+            try:
+                trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+            except:
+                trial, rho, unc, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
+                eta, chi = None, None
+        else:
+            try:
+                trial, rho, _, Su, fidelity, purity, eta, chi, angles = get_rho_from_file(file, angles = settings[i], verbose=False)
+            except:
+                trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
+                eta, chi = None, None
+
+        # get all expectation values
+        all_projs = get_all_projs(rho)
+        HH, HV, HD, HA, HR, HL = all_projs[0]
+        VH, VV, VD, VA, VR, VL = all_projs[1]
+        DH, DV, DD, DA, DR, DL = all_projs[2]
+        AH, AV, AD, AA, AR, AL = all_projs[3]
+        RH, RV, RD, RA, RR, RL = all_projs[4]
+        LH, LV, LD, LA, LR, LL = all_projs[5]
+
+        # input to models
+        nn5_pred = nn5.predict(np.array([HH, HV, VV, DD, DA, AA, RR, RL, LL]))
+        bl_pred = model_bl.predict(np.array([HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL]))
+        pop_pred_val = np.argmax([0.5 - (HH + VV), 0.5 - (DD + AA), 0.5 - (RR + LL)])
+        pop_pred = [0, 0, 0]
+        pop_pred[pop_pred_val] = 1
+        pop_pred = np.array(pop_pred)
+
+        # take dot product with target
+        W_ls = compute_witnesses(rho = rho)
+        Wp_min = np.argmin(W_ls[1:])
+        Wp_targ = [0,0,0]
+        Wp_targ[Wp_min] = 1
+        Wp_targ = np.array(Wp_targ)
+
+        nn5_result = np.dot(nn5_pred, Wp_targ)
+        bl_result = np.dot(bl_pred, Wp_targ)
+        pop_result = np.dot(pop_pred, Wp_targ)
+
+        nn5_predictions.append(nn5_result)
+        bl_predictions.append(bl_result)
+        pop_predictions.append(pop_result)
+        eta_chi.append([eta, chi])
+
+    print('eta, chi', eta_chi)
+    print('nn5', nn5_predictions)
+    print('bl', bl_predictions)
+    print('pop', pop_predictions)
 
 if __name__ == '__main__':
     # set filenames for computing W values

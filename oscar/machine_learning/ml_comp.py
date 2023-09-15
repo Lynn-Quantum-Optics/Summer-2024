@@ -476,66 +476,71 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
         wp_frac.append(1-sum(wp_min_cond)/len(raw_df))
 
     # plot
-    fig, ax = plt.subplots(1, 2, figsize=(10,5))
+    if not(big_font):
+        fig, ax = plt.subplots(1, 2, figsize=(10,5))
+    else:
+        fig, ax = plt.subplots(1, 2, figsize=(20,10))
     print(nn5_acc)
   
     if include_all:
-        ax[0].plot(conc_threshold_ls, nn5_acc, label='NN5')
-        ax[0].plot(conc_threshold_ls, pop_acc, label='Population')
-        ax[0].plot(conc_threshold_ls, bl_acc, label='NN2')
+        ax[1].plot(conc_threshold_ls, nn5_acc, label='NN5')
+        ax[1].plot(conc_threshold_ls, pop_acc, label='Population')
+        ax[1].plot(conc_threshold_ls, bl_acc, label='NN2')
 
-        ax[0].plot(conc_threshold_ls, xgb_old_acc, label='XGB, 0')
-        ax[0].plot(conc_threshold_ls, xgb_new_acc, label='XGB, 1')
-        ax[0].plot(conc_threshold_ls, nn1_acc, label='NN1')
-        ax[0].plot(conc_threshold_ls, nn3_acc, label='NN3')
+        ax[1].plot(conc_threshold_ls, xgb_old_acc, label='XGB, 0')
+        ax[1].plot(conc_threshold_ls, xgb_new_acc, label='XGB, 1')
+        ax[1].plot(conc_threshold_ls, nn1_acc, label='NN1')
+        ax[1].plot(conc_threshold_ls, nn3_acc, label='NN3')
     else:
-        ax[0].plot(conc_threshold_ls, nn5_acc, label='NN5', linestyle=(0, (1,1)))
-        ax[0].plot(conc_threshold_ls, pop_acc, label='Population', linestyle=(5, (10,3)))
-        ax[0].plot(conc_threshold_ls, bl_acc, label='NN2', linestyle=(0, (5,10)))
+        ax[1].plot(conc_threshold_ls, nn5_acc, label='NN5', linestyle=(0, (1,1)))
+        ax[1].plot(conc_threshold_ls, pop_acc, label='Population', linestyle=(5, (10,3)))
+        ax[1].plot(conc_threshold_ls, bl_acc, label='NN2', linestyle=(0, (5,10)))
     if big_font:
-        ax[0].set_xlabel('Concurrence Threshold', fontsize=16)
-        ax[0].set_ylabel('Accuracy', fontsize=16)
-        ax[0].legend()
-        ax[0].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$", fontsize=18)
+        ax[1].set_xlabel('Concurrence Threshold', fontsize=31)
+        ax[1].set_ylabel('Accuracy', fontsize=31)
+        ax[1].tick_params(axis='both', which='major', labelsize=25)
+        ax[1].legend(fontsize=25)
+        ax[1].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$", fontsize=33)
     else:
-        ax[0].set_xlabel('Concurrence Threshold')
-        ax[0].set_ylabel('Accuracy')
-        ax[0].legend()
-        ax[0].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$")
+        ax[1].set_xlabel('Concurrence Threshold')
+        ax[1].set_ylabel('Accuracy')
+        ax[1].legend()
+        ax[1].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$")
 
     
     if include_all:
-        ax[1].plot(conc_threshold_ls, nn5_frac, label='NN5')
-        ax[1].plot(conc_threshold_ls, pop_frac, label='Population')
-        ax[1].plot(conc_threshold_ls, bl_frac, label='NN2')
+        ax[0].plot(conc_threshold_ls, nn5_frac, label='NN5')
+        ax[0].plot(conc_threshold_ls, pop_frac, label='Population')
+        ax[0].plot(conc_threshold_ls, bl_frac, label='NN2')
 
 
-        ax[1].plot(conc_threshold_ls, xgb_old_frac, label='XGB, 0')
-        ax[1].plot(conc_threshold_ls, xgb_new_frac, label='XGB, 1')
-        ax[1].plot(conc_threshold_ls, nn1_frac, label='NN1')
-        ax[1].plot(conc_threshold_ls, nn3_frac, label='NN3')
+        ax[0].plot(conc_threshold_ls, xgb_old_frac, label='XGB, 0')
+        ax[0].plot(conc_threshold_ls, xgb_new_frac, label='XGB, 1')
+        ax[0].plot(conc_threshold_ls, nn1_frac, label='NN1')
+        ax[0].plot(conc_threshold_ls, nn3_frac, label='NN3')
 
-        ax[1].plot(conc_threshold_ls, w_frac, label='W')
-        ax[1].plot(conc_threshold_ls, wp_frac, label='W\'')
+        ax[0].plot(conc_threshold_ls, w_frac, label='W')
+        ax[0].plot(conc_threshold_ls, wp_frac, label='W\'')
     else:
-        ax[1].plot(conc_threshold_ls, nn5_frac, label='NN5', linestyle=(0, (1,1)))
-        ax[1].plot(conc_threshold_ls, pop_frac, label='Population', linestyle=(5, (10,3)))
-        ax[1].plot(conc_threshold_ls, bl_frac, label='NN2', linestyle=(0, (5,10)))
+        ax[0].plot(conc_threshold_ls, nn5_frac, label='NN5', linestyle=(0, (1,1)))
+        ax[0].plot(conc_threshold_ls, pop_frac, label='Population', linestyle=(5, (10,3)))
+        ax[0].plot(conc_threshold_ls, bl_frac, label='NN2', linestyle=(0, (5,10)))
 
-        ax[1].plot(conc_threshold_ls, w_frac, label='W', linestyle=(0, (3,1,1,1)))
-        ax[1].plot(conc_threshold_ls, wp_frac, label='W\'', linestyle=(0, (3,5,1,5, 1, 5)))
+        ax[0].plot(conc_threshold_ls, w_frac, label='W', linestyle=(0, (3,1,1,1)))
+        ax[0].plot(conc_threshold_ls, wp_frac, label='W\'', linestyle=(0, (3,5,1,5, 1, 5)))
     
     if big_font:
-        ax[1].set_xlabel('Concurrence Threshold', fontsize=16)
-        ax[1].set_ylabel('Fraction of Undetected States', fontsize=16)
-        ax[1].legend()
-        ax[1].set_title('All Entangled States', fontsize=18)
-        plt.suptitle(f"Comparison of $W'$ Model Performance", fontsize=20)
+        ax[0].set_xlabel('Concurrence Threshold', fontsize=31)
+        ax[0].set_ylabel('Fraction of Undetected States', fontsize=31)
+        ax[0].tick_params(axis='both', which='major', labelsize=25)
+        ax[0].legend(fontsize=25)
+        ax[0].set_title('All Entangled States', fontsize=33)
+        plt.suptitle(f"Comparison of $W'$ Model Performance", fontsize=35)
     else:
-        ax[1].set_xlabel('Concurrence Threshold')
-        ax[1].set_ylabel('Fraction of Undetected States')
-        ax[1].legend()
-        ax[1].set_title('All Entangled States')
+        ax[0].set_xlabel('Concurrence Threshold')
+        ax[0].set_ylabel('Fraction of Undetected States')
+        ax[0].legend()
+        ax[0].set_title('All Entangled States')
 
         plt.suptitle(f"Comparison of $W'$ Model Performance")
 
