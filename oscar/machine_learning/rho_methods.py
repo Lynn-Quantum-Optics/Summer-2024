@@ -464,7 +464,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -483,6 +483,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             gd: bool, whether to use gradient descent or brute random search
             zeta: learning rate for gradient descent
             ads_test: bool, whether to return w2 expec and sin (theta) for the amplitude damped states
+            return_all: bool, whether to return all the Ws or just the min of the 6 and the min of the 3 triples
     '''
 
     # check if experimental data
@@ -741,8 +742,9 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             Wp_t1 = np.real(min(W_expec_vals[6:9]))
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
-
+        
         return W_min, Wp_t1, Wp_t2, Wp_t3
+        # return W_expec_vals
 
         
     else: # use operators instead like in eritas's matlab code
@@ -837,7 +839,9 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 if i <= 5: # just theta optimization
                     # get initial guess at boundary
                     def min_W(x0):
-                        return minimize(W, x0=x0, bounds=[(0, np.pi)])['fun']
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi)])
+                        # print(do_min['x'])
+                        return do_min['fun']
                     x0 = [0]
                     w0 = min_W(x0)
                     x0 = [np.pi]
@@ -868,9 +872,11 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 isi=0
                             else:
                                 isi+=1
+                    # print('------------------')
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     def min_W(x0):
-                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                        return do_min['fun']
 
                     x0 = [0, 0, 0]
                     w0 = min_W(x0)
@@ -895,7 +901,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             else:
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                            w = min_W(x0)
+                            w= min_W(x0)
                             
                             if w < w_min:
                                 w_min = w
@@ -946,7 +952,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             Wp_t2 = min(W_expec_vals[9:12])
             Wp_t3 = min(W_expec_vals[12:15])
 
-            return W_min, Wp_t1, Wp_t2, Wp_t3
+            if not(return_all):
+                return W_min, Wp_t1, Wp_t2, Wp_t3
+            else:
+                return W_expec_vals
         else: 
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
