@@ -38,6 +38,32 @@ def get_E0(eta, chi):
     E_state0_s= np.cos(eta)*PsiP_s + np.sin(eta)*np.exp(1j*chi)*PsiM_s 
     return get_rho(E_state0_s)
 
+def get_E0_p(eta, chi):
+    '''Eritas's state of the form cos(eta)PhiP + e^(i*chi)*sin(eta)PhiM'''
+    E_state0_s= np.cos(eta)*PhiP_s + np.sin(eta)*np.exp(1j*chi)*PhiM_s 
+    return get_rho(E_state0_s)
+
+def sample_E0_p():
+    eta = np.deg2rad(30)
+    chi_ls = np.linspace(0, np.pi/2, 6)
+    W_ls = []
+    Wp_ls = []
+    for chi in chi_ls:
+        rho = get_E0_p(eta, chi)
+        W_min, Wp_t1, Wp_t2, Wp_t3 = compute_witnesses(rho)
+        Wp= min(Wp_t1, Wp_t2, Wp_t3)
+        W_ls.append(W_min)
+        Wp_ls.append(Wp)
+    plt.figure(figsize=(10,10))
+    chi_ls = np.rad2deg(chi_ls)
+    plt.scatter(chi_ls, W_ls, label='W')
+    plt.scatter(chi_ls, Wp_ls, label='Wp')
+    plt.legend()
+    plt.xlabel('$\chi$')
+    plt.ylabel('Witness value')
+    plt.title(f'$\eta = {np.round(np.rad2deg(eta), 3)}$')
+    plt.savefig(f'E0_{eta}.pdf')
+
 def get_E1(eta, chi):
     '''Eritas's state of the form 1/sqrt2 * cos(eta)*(PsiP + iPsiM) + e^(i*chi)*sin(eta)*(PhiP + iPhiM))'''
     E_state1_s= 1/np.sqrt(2) * (np.cos(eta)*(PsiP_s + 1j*PsiM_s) + np.sin(eta)*np.exp(1j*chi)*(PhiP_s + 1j*PhiM_s))
