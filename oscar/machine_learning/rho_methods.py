@@ -136,7 +136,6 @@ def get_expec_vals_counts(raw_data):
 
     return S
     
-
 def compute_proj(basis1, basis2, rho):
     ''' Computes projection into desired bases using projection operations on both qubits'''
     # get projection operators
@@ -336,7 +335,6 @@ def adjust_rho(rho, angles, expt_purity, state='E0'):
 
         # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
 
-
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
     --
@@ -458,13 +456,12 @@ def load_saved_get_E0_rho_c(rho_actual, angles_save, angles_cor, purity, model, 
     elif model is None:
         return rho_actual
 
-
 def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_offset):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -484,6 +481,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             zeta: learning rate for gradient descent
             ads_test: bool, whether to return w2 expec and sin (theta) for the amplitude damped states
             return_all: bool, whether to return all the Ws or just the min of the 6 and the min of the 3 triples
+            return_params: bool, whether to return the params that give the min of the 6 and the min of the 3 triples
     '''
 
     # check if experimental data
@@ -677,7 +675,6 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                         else:
                             isi+=1
                 
-
             else:# theta and alpha
                 if not(expt):
                     def min_W(x0):
@@ -835,6 +832,8 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
         if not(ads_test): 
             all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
             W_expec_vals = []
+            if return_params: # to log the params
+                min_params = []
             for i, W in enumerate(all_W):
                 if i <= 5: # just theta optimization
                     # get initial guess at boundary
@@ -848,8 +847,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                     w1 = min_W(x0)
                     if w0 < w1:
                         w_min = w0
+                        x0_best = [0]
                     else:
                         w_min = w1
+                        x0_best = [np.pi]
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -869,6 +870,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             
                             if w < w_min:
                                 w_min = w
+                                x0_best = x0
                                 isi=0
                             else:
                                 isi+=1
@@ -884,8 +886,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                     w1 = min_W(x0)
                     if w0 < w1:
                         w_min = w0
+                        x0_best = [0, 0, 0]
                     else:
                         w_min = w1
+                        x0_best = [np.pi/2 , 2*np.pi, 2*np.pi]
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -901,10 +905,11 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             else:
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                            w= min_W(x0)
+                            w = min_W(x0)
                             
                             if w < w_min:
                                 w_min = w
+                                x0_best = x0
                                 isi=0
                             else:
                                 isi+=1
@@ -918,8 +923,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                     w1 = min_W(x0)
                     if w0 < w1:
                         w_min = w0
+                        x0_best = [0, 0]
                     else:
                         w_min = w1
+                        x0_best = [np.pi/2 , 2*np.pi]
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -939,10 +946,12 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             
                             if w < w_min:
                                 w_min = w
+                                x0_best = x0
                                 isi=0
                             else:
                                 isi+=1
-
+                if return_params:
+                    min_params.append(x0_best)
                 W_expec_vals.append(w_min)
             # print('W', np.round(W_expec_vals[:6], 3))
             # print('W\'', np.round(W_expec_vals[6:], 3))
@@ -951,11 +960,25 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             Wp_t1 = min(W_expec_vals[6:9])
             Wp_t2 = min(W_expec_vals[9:12])
             Wp_t3 = min(W_expec_vals[12:15])
+            # get the corresponding parameters
+            if return_params:
+                # sort by witness value; want the most negative, so take first element in sorted
+                W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]))][0]
+                Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]))][0]
+                Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
+                Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
+
 
             if not(return_all):
-                return W_min, Wp_t1, Wp_t2, Wp_t3
+                if return_params:
+                    return W_min, Wp_t1, Wp_t2, Wp_t3, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
+                else:
+                    return W_min, Wp_t1, Wp_t2, Wp_t3
             else:
-                return W_expec_vals
+                if return_params:
+                    return W_expec_vals, min_params
+                else:
+                    return W_expec_vals
         else: 
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
@@ -1039,29 +1062,25 @@ def check_conc_min_eig(rho, printf=False):
         print('Min eigenvalue: ', min_eig)
     return concurrence, min_eig
 
-# def get_rel_entropy_concurrence(basis_key, rho):
-#     ''' Based on the paper Asif et al 2023. 
-#     Params:
-#         basis: two character string identifer
-#         rho: density matrix
-#     Returns: the relative entropy of coherence'''
+def get_rel_entropy_concurrence(basis_key, rho):
+    ''' Based on the paper Asif et al 2023. 
+    Params:
+        basis: two character string identifer
+        rho: density matrix
+    Returns: the relative entropy of coherence'''
 
-#     # store basis elements in dictionary
-#     bases = {}
-#     basis = bases[basis_key]
-#     def get_rho_diag(rho):
-#         rho_d = np.zeros_like(rho)
-#         for s in basis:
-#             rho_d += adjoint(s) @ rho @ s @ s @ adjoint(s)
-#     def get_entropy(rho):
-#         return -np.trace(rho @ np.log(rho))
-#     rho_diag = get_rho_diag(rho)
+    # store basis elements in dictionary
+    bases = {}
+    basis = bases[basis_key]
+    def get_rho_diag(rho):
+        rho_d = np.zeros_like(rho)
+        for s in basis:
+            rho_d += adjoint(s) @ rho @ s @ s @ adjoint(s)
+    def get_entropy(rho):
+        return -np.trace(rho @ np.log(rho))
+    rho_diag = get_rho_diag(rho)
     
-#     return get_entropy(rho_diag) - get_entropy(rho)
-
-
-
-
+    return get_entropy(rho_diag) - get_entropy(rho)
 
 
 ##############################################
