@@ -2,7 +2,7 @@
 % w_val: list of witness values
 % set: 1=W 2=W'
 
-function [minW, minWp_t1, minWp_t2, minWp_t3] = findW(rho)
+function [minW, minWp_t1, minWp_t2, minWp_t3, w_val] = findW(rho)
 vars;
 len = 15;
 T = cat(1,W1,W2,W3,W4,W5,W6, W1p,W2p,W3p,W4p,W5p,W6p,W7p,W8p,W9p);
