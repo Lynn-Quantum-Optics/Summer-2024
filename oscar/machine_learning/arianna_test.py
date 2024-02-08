@@ -38,8 +38,10 @@ sp.print_latex(sp.simplify(state))
 state_mat = state @ adjoint(state)
 sp.print_latex(sp.simplify(state_mat))
 
-print('W4 state')
-phi4_p = sp.cos(theta)*PHI_P + sp.exp(1j*alpha)*sp.sin(theta)*PSI_P
+print('New W proposal')
+# phi4_p = sp.cos(theta)*PHI_P + sp.exp(1j*alpha)*sp.sin(theta)*PSI_P
+# arianna's proposal: HH + RR
+phi4_p = sp.cos(theta) * (HH_sp) + sp.exp(1j*alpha) * sp.sin(theta) * (HH_sp + sp.I*HV_sp + sp.I*VH_sp - VV_sp)
 sp.print_latex(sp.simplify(phi4_p))
 
 print('----------')
