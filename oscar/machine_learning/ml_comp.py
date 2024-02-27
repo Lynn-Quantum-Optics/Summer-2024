@@ -11,7 +11,7 @@ from sklearn.manifold import TSNE
 
 from train_prep import prepare_data
 
-def get_labels(Y_pred, task, eps=None):
+def get_labels(Y_pred, task, eps=None, include_2=False):
     ''' Function to assign labels based on argmax per row.
     Params:
         Y_pred: array of predictions after calling model.predict(X)
@@ -19,9 +19,12 @@ def get_labels(Y_pred, task, eps=None):
         eps: threshold for assigning label if task is 'e'; can either be float or None if we want to use argmax
     '''
     if task=='w' or (task=='e' and eps is None):
-        Y_pred_argmax = np.argmax(Y_pred, axis=1)
+        Y_pred_argmax = np.argmax(Y_pred, axis=1)         
         Y_pred_labels = np.zeros(Y_pred.shape)
         Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
+        if include_2:
+            Y_pred_argmax2 = np.argpartition(Y_pred, -2, axis=1)[:,-2]
+            Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax2] = 1
         Y_pred_labels = Y_pred_labels.astype(int)
     else:
         Y_pred_labels = np.where(Y_pred >= eps, 1, 0)
@@ -58,11 +61,12 @@ def get_labels_pop(file=None, pop_df=None, conc_threshold = 0, w_cond=False):
     Y_pred_labels = Y_pred_labels.astype(int)
     return Y_pred_labels
 
-def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=0, w_cond = True):
+def eval_perf(model, name, include_2 = False, file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=0, w_cond = True):
     ''' Function to measure accuracy on new data from Roik and Matlab. Returns df.
     Params:
         model: ml model object to evaluate
         name: name of model
+        include_2: whether to include the second best option in the evaluation
         file_ls: list of files to evaluate on
         data: list of tuples of X, Y; if not None, use this data instead of loading from file
         task: 'w' or 'e'
@@ -84,7 +88,7 @@ def eval_perf(model, name, file_ls = ['roik_True_400000_r_os_t.csv'], file_names
             X, Y = data
         if not(name == 'population'):
             Y_pred = model.predict(X)
-            Y_pred_labels = get_labels(Y_pred, task)
+            Y_pred_labels = get_labels(Y_pred, task, include_2)
         else: # population method
             Y_pred_labels = get_labels_pop(file, conc_threshold=conc_threshold, w_cond=w_cond)
 
@@ -412,12 +416,12 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
     w_frac= []
     wp_frac = []
     nn5 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
-    xgb_new = XGBRegressor()
-    xgb_new.load_model(join('random_gen', 'models', 'r4_s0_0_w_prob_9_xgb_all.json'))
+    # xgb_new = XGBRegressor()
+    # xgb_new.load_model(join('random_gen', 'models', 'r4_s0_0_w_prob_9_xgb_all.json'))
     nn1 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_0_w_prob_9_300_0.0001_100.h5'))
     nn3 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_0_w_prob_9_300_300_300_0.0001_100.h5'))
-    xgb_old = XGBRegressor()
-    xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
+    # xgb_old = XGBRegressor()
+    # xgb_old.load_model(join(old_model_path, 'xgbr_best_3.json'))
     json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
     loaded_model_json = json_file.read()
     json_file.close()
@@ -455,12 +459,12 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
 
         if include_all:
 
-            xgb_old_frac.append(1-eval_perf(xgb_old, 'xgb_old', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
+            # xgb_old_frac.append(1-eval_perf(xgb_old, 'xgb_old', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
 
-            xgb_new_frac.append(1-eval_perf(xgb_new, 'xgb_new', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
+            # xgb_new_frac.append(1-eval_perf(xgb_new, 'xgb_new', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
 
             nn1_frac.append(1-eval_perf(nn1, 'nn1', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
-
+            
             nn3_frac.append(1-eval_perf(nn3, 'nn3', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
 
         # for w and wp, read in csv, get min values, and if min value is less than threshold, then count as correct
@@ -547,7 +551,162 @@ def plot_comp_acc(steps=50, include_all=False, big_font=False):
     plt.tight_layout()
     plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_{include_all}_{big_font}.pdf'))
 
-            
+def plot_comp_acc_simple(steps=50, gen=True):
+    '''Plot accuracy as we vary conc_threshold for both nn5 and pop as well as just W and W' full
+    --
+    Params:
+        steps: number of steps to take between 0 and .12
+        gen: whether to compute the data or use the precomputed data
+    '''
+
+    if gen:
+        # get data
+        conc_threshold_ls = np.linspace(0, .25, steps)
+        nn5_acc_1 = []
+        nn5_acc_2 = []
+        pop_acc = []
+        bl_acc_1 = []
+        bl_acc_2 = []
+        nn5_frac_1 = []
+        nn5_frac_2 = []
+        pop_frac = []
+        bl_frac_1 = []
+        bl_frac_2 = []
+        w_frac= []
+        wp_frac = []
+
+        nn5 = keras.models.load_model(join('random_gen', 'models', 'saved_models', 'r4_s0_6_w_prob_9_300_300_300_300_300_0.0001_100.h5'))
+        json_file = open(join(old_model_path, 'model_qual_v2.json'), 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        model_bl = keras.models.model_from_json(loaded_model_json)
+        model_bl.load_weights(join(old_model_path, "model_qual_v2.h5"))
+
+        raw_df = pd.read_csv(join('random_gen', 'data', 'roik_True_400000_r_os_t.csv'))
+        
+
+        for conc_threshold in conc_threshold_ls:
+
+            nn5_acc_1.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0], include_2=False)
+            nn5_acc_2.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0], include_2=True)
+
+            pop_acc.append(eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
+
+            bl_acc_1.append(eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0])
+            bl_acc_2.append(eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True)['acc'].values[0], include_2=True)
+
+            nn5_frac_1.append(1-eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0], include_2=False)
+            nn5_frac_2.append(1-eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0], include_2=True)
+
+            pop_frac.append(1-eval_perf(1, 'population', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0])
+
+            bl_frac_1.append(1-eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0], include_2=False)
+            bl_frac_2.append(1-eval_perf(model_bl, 'bl', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_12_red', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=False)['acc'].values[0], include_2=True)
+
+        
+            # for w and wp, read in csv, get min values, and if min value is less than threshold, then count as correct
+            raw_df = raw_df[raw_df['concurrence'] > conc_threshold]
+
+            w_min = raw_df['W_min'].values
+            w_min_cond = w_min < 0
+            w_min_cond = w_min_cond.astype(int)
+            wp_min = raw_df[['Wp_t1', 'Wp_t2', 'Wp_t3']].values
+            wp_min_cond = np.min(wp_min, axis=1)
+            wp_min_cond = wp_min_cond < 0
+            w_frac.append(1-sum(w_min_cond)/len(raw_df))
+            wp_frac.append(1-sum(wp_min_cond)/len(raw_df))
+
+        # save all these lists to npy files
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_nn5_acc_1.npy'), nn5_acc_1)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_nn5_acc_2.npy'), nn5_acc_2)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_pop_acc.npy'), pop_acc)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_bl_acc.npy'), bl_acc_1)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_bl_acc_2.npy'), bl_acc_2)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_nn5_frac_1.npy'), nn5_frac_1)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_nn5_frac_2.npy'), nn5_frac_2)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_pop_frac.npy'), pop_frac)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_bl_frac_1.npy'), bl_frac_1)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_bl_frac_2.npy'), bl_frac_2)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_w_frac.npy'), w_frac)
+        np.save(join('random_gen', 'models', f'comp_acc_{steps}_wp_frac.npy'), wp_frac)
+
+    else:
+        nn5_acc_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_acc_1.npy'))
+        nn5_acc_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_acc_2.npy'))
+        pop_acc = np.load(join('random_gen', 'models', f'comp_acc_{steps}_pop_acc.npy'))
+        bl_acc_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_acc_1.npy'))
+        bl_acc_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_acc_2.npy'))
+        nn5_frac_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_frac_1.npy'))
+        nn5_frac_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_frac_2.npy'))
+        pop_frac = np.load(join('random_gen', 'models', f'comp_acc_{steps}_pop_frac.npy'))
+        bl_frac_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_frac_1.npy'))
+        bl_frac_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_frac_2.npy'))
+        w_frac = np.load(join('random_gen', 'models', f'comp_acc_{steps}_w_frac.npy'))
+        wp_frac = np.load(join('random_gen', 'models', f'comp_acc_{steps}_wp_frac.npy'))
+
+    # plot
+    fig, ax = plt.subplots(1, 2, figsize=(10,5))
+    ax[1].plot(conc_threshold_ls, nn5_acc_1, label='NN5, choice 1', color='blue')
+    ax[1].plot(conc_threshold_ls, nn5_acc_2, label='NN5, choice 1+2', color='blue', linestyle='--')
+    ax[1].plot(conc_threshold_ls, pop_acc, label='Population', color='red')
+    ax[1].plot(conc_threshold_ls, bl_acc_1, label='NN2', color='gold')
+    ax[1].plot(conc_threshold_ls, bl_acc_2, label='NN2, choice 1+2', color='gold', linestyle='--')
+
+    ax[1].set_xlabel('Concurrence Threshold')
+    ax[1].set_ylabel('Accuracy')
+    ax[1].legend()
+    ax[1].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$")
+
+    ax[0].plot(conc_threshold_ls, nn5_frac_1, label='NN5, choice 1', color='blue')
+    ax[0].plot(conc_threshold_ls, nn5_frac_2, label='NN5, choice 1+2', color='blue', linestyle='--')
+    ax[0].plot(conc_threshold_ls, pop_frac, label='Population', color='red')
+    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)))
+    ax[0].plot(conc_threshold_ls, bl_frac_2, label='NN2, choice 1+2', color='gold', linestyle='--')
+
+    ax[0].plot(conc_threshold_ls, w_frac, label='W', color='purple', linestyle='dotted')
+    ax[0].plot(conc_threshold_ls, wp_frac, label='W\'', color='orange', linestyle='dotted')
+
+    ax[0].set_xlabel('Concurrence Threshold')
+    ax[0].set_ylabel('Fraction of Undetected States')
+    ax[0].legend()
+    ax[0].set_title('All Entangled States')
+
+    plt.suptitle(f"Comparison of $W'$ Model Performance")
+
+    plt.tight_layout()
+    plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_labels.pdf'))
+
+    # plot again, no labels
+    fig, ax = plt.subplots(1, 2, figsize=(10,5))
+    ax[1].plot(conc_threshold_ls, nn5_acc_1, label='NN5, choice 1', color='blue')
+    ax[1].plot(conc_threshold_ls, nn5_acc_2, label='NN5, choice 1+2', color='blue', linestyle='--')
+    ax[1].plot(conc_threshold_ls, pop_acc, label='Population', color='red')
+    ax[1].plot(conc_threshold_ls, bl_acc_1, label='NN2', color='gold')
+    ax[1].plot(conc_threshold_ls, bl_acc_2, label='NN2, choice 1+2', color='gold', linestyle='--')
+
+    ax[1].set_xlabel('Concurrence Threshold')
+    ax[1].set_ylabel('Accuracy')
+    ax[1].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$")
+
+    ax[0].plot(conc_threshold_ls, nn5_frac_1, label='NN5, choice 1', color='blue')
+    ax[0].plot(conc_threshold_ls, nn5_frac_2, label='NN5, choice 1+2', color='blue', linestyle='--')
+    ax[0].plot(conc_threshold_ls, pop_frac, label='Population', color='red')
+    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)))
+    ax[0].plot(conc_threshold_ls, bl_frac_2, label='NN2, choice 1+2', color='gold', linestyle='--')
+
+    ax[0].plot(conc_threshold_ls, w_frac, label='W', color='purple', linestyle='dotted')
+    ax[0].plot(conc_threshold_ls, wp_frac, label='W\'', color='orange', linestyle='dotted')
+
+    ax[0].set_xlabel('Concurrence Threshold')
+    ax[0].set_ylabel('Fraction of Undetected States')
+    ax[0].set_title('All Entangled States')
+
+    plt.suptitle(f"Comparison of $W'$ Model Performance")
+
+    plt.tight_layout()
+    plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_nolabels.pdf'))
+
+         
 
         
 
@@ -644,5 +803,5 @@ if __name__ == '__main__':
     # r3 = keras.models.load_model(join('random_gen', 'models','r4_s0_0_e_prob_3_none_300_300_300_300_300_0.0001_100.h5'))
     # print(eval_perf(r3, 'r3', input_method='prob_3_r', pop_method='none', task='e', file_ls=['roik_True_400000_w_roik_prob_c_t.csv']))
 
-    plot_comp_acc(include_all=False, big_font=True)
+    plot_comp_acc_simple()
     
