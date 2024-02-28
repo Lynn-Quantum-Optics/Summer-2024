@@ -22,9 +22,11 @@ def get_labels(Y_pred, task, eps=None, include_2=False):
         Y_pred_argmax = np.argmax(Y_pred, axis=1)         
         Y_pred_labels = np.zeros(Y_pred.shape)
         Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax] = 1
+        print(include_2)
         if include_2:
             Y_pred_argmax2 = np.argpartition(Y_pred, -2, axis=1)[:,-2]
             Y_pred_labels[np.arange(Y_pred.shape[0]), Y_pred_argmax2] = 1
+
         Y_pred_labels = Y_pred_labels.astype(int)
     else:
         Y_pred_labels = np.where(Y_pred >= eps, 1, 0)
@@ -88,13 +90,18 @@ def eval_perf(model, name, include_2 = False, file_ls = ['roik_True_400000_r_os_
             X, Y = data
         if not(name == 'population'):
             Y_pred = model.predict(X)
-            Y_pred_labels = get_labels(Y_pred, task, include_2)
+            Y_pred_labels = get_labels(Y_pred, task, include_2=include_2)
         else: # population method
             Y_pred_labels = get_labels_pop(file, conc_threshold=conc_threshold, w_cond=w_cond)
 
+
         # take dot product of Y and Y_pred_labels to get number of correct predictions
-        N_correct = np.sum(np.einsum('ij,ij->i', Y, Y_pred_labels))
-        # print(N_correct / len(Y_pred))
+        N_vec = np.einsum('ij,ij->i', Y, Y_pred_labels)
+        # remove entries >=2
+        N_vec = np.where(N_vec > 1, 1, N_vec)
+        N_correct = np.sum(N_vec)
+        # print('num correct:', N_correct)
+        print(N_correct / len(Y_pred_labels))
         return N_correct / len(Y_pred_labels), N_correct, len(Y_pred_labels)
 
     # file_ls = ['../../S22_data/all_qual_102_tot.csv']
@@ -586,7 +593,6 @@ def plot_comp_acc_simple(steps=50, gen=True):
         
 
         for conc_threshold in conc_threshold_ls:
-
             nn5_acc_1.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True, include_2=False)['acc'].values[0])
             nn5_acc_2.append(eval_perf(nn5, 'nn5', file_ls = ['roik_True_400000_r_os_t.csv'], file_names = ['Test'], data_ls=None, task='w', input_method='prob_9', pop_method='none', normalize=False, conc_threshold=conc_threshold, w_cond=True, include_2=True)['acc'].values[0])
 
@@ -631,18 +637,38 @@ def plot_comp_acc_simple(steps=50, gen=True):
         np.save(join('random_gen', 'models', f'comp_acc_{steps}_wp_frac.npy'), wp_frac)
 
     else:
-        nn5_acc_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_acc_1.npy'))
-        nn5_acc_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_acc_2.npy'))
-        pop_acc = np.load(join('random_gen', 'models', f'comp_acc_{steps}_pop_acc.npy'))
-        bl_acc_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_acc_1.npy'))
-        bl_acc_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_acc_2.npy'))
-        nn5_frac_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_frac_1.npy'))
-        nn5_frac_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_nn5_frac_2.npy'))
-        pop_frac = np.load(join('random_gen', 'models', f'comp_acc_{steps}_pop_frac.npy'))
-        bl_frac_1 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_frac_1.npy'))
-        bl_frac_2 = np.load(join('random_gen', 'models', f'comp_acc_{steps}_bl_frac_2.npy'))
-        w_frac = np.load(join('random_gen', 'models', f'comp_acc_{steps}_w_frac.npy'))
-        wp_frac = np.load(join('random_gen', 'models', f'comp_acc_{steps}_wp_frac.npy'))
+        nn5_acc_1 = np.load(f'random_gen/models/comp_acc_{steps}_nn5_acc_1.npy')
+        nn5_acc_2 = np.load(f'random_gen/models/comp_acc_{steps}_nn5_acc_2.npy')
+        pop_acc = np.load(f'random_gen/models/comp_acc_{steps}_pop_acc.npy')
+        bl_acc_1 = np.load(f'random_gen/models/comp_acc_{steps}_bl_acc.npy')
+        bl_acc_2 = np.load(f'random_gen/models/comp_acc_{steps}_bl_acc_2.npy')
+        nn5_frac_1 = np.load(f'random_gen/models/comp_acc_{steps}_nn5_frac_1.npy')
+        nn5_frac_2 = np.load(f'random_gen/models/comp_acc_{steps}_nn5_frac_2.npy')
+        pop_frac = np.load(f'random_gen/models/comp_acc_{steps}_pop_frac.npy')
+        bl_frac_1 = np.load(f'random_gen/models/comp_acc_{steps}_bl_frac_1.npy')
+        bl_frac_2 = np.load(f'random_gen/models/comp_acc_{steps}_bl_frac_2.npy')
+        w_frac = np.load(f'random_gen/models/comp_acc_{steps}_w_frac.npy')
+        wp_frac = np.load(f'random_gen/models/comp_acc_{steps}_wp_frac.npy')
+
+        conc_threshold_ls = np.linspace(0, .25, steps)
+
+
+     # print what the values are at 0 conncurence
+    print('Accuracy at 0 concurrence:')
+    print(f"NN5, choice 1: {nn5_acc_1[0]}")
+    print(f"NN5, choice 1+2: {nn5_acc_2[0]}")
+    print(f"Population: {pop_acc[0]}")
+    print(f"NN2, choice 1: {bl_acc_1[0]}")
+    print(f"NN2, choice 1+2: {bl_acc_2[0]}")
+
+    print('Fraction of undetected states at 0 concurrence:')
+    print(f"NN5, choice 1: {nn5_frac_1[0]}")
+    print(f"NN5, choice 1+2: {nn5_frac_2[0]}")
+    print(f"Population: {pop_frac[0]}")
+    print(f"NN2, choice 1: {bl_frac_1[0]}")
+    print(f"NN2, choice 1+2: {bl_frac_2[0]}")
+    print(f"W: {w_frac[0]}")
+    print(f"W': {wp_frac[0]}")
 
     # plot
     fig, ax = plt.subplots(1, 2, figsize=(10,5))
@@ -660,7 +686,7 @@ def plot_comp_acc_simple(steps=50, gen=True):
     ax[0].plot(conc_threshold_ls, nn5_frac_1, label='NN5, choice 1', color='blue')
     ax[0].plot(conc_threshold_ls, nn5_frac_2, label='NN5, choice 1+2', color='blue', linestyle='--')
     ax[0].plot(conc_threshold_ls, pop_frac, label='Population', color='red')
-    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)))
+    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)), color='gold')
     ax[0].plot(conc_threshold_ls, bl_frac_2, label='NN2, choice 1+2', color='gold', linestyle='--')
 
     ax[0].plot(conc_threshold_ls, w_frac, label='W', color='purple', linestyle='dotted')
@@ -691,7 +717,7 @@ def plot_comp_acc_simple(steps=50, gen=True):
     ax[0].plot(conc_threshold_ls, nn5_frac_1, label='NN5, choice 1', color='blue')
     ax[0].plot(conc_threshold_ls, nn5_frac_2, label='NN5, choice 1+2', color='blue', linestyle='--')
     ax[0].plot(conc_threshold_ls, pop_frac, label='Population', color='red')
-    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)))
+    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)), color='gold')
     ax[0].plot(conc_threshold_ls, bl_frac_2, label='NN2, choice 1+2', color='gold', linestyle='--')
 
     ax[0].plot(conc_threshold_ls, w_frac, label='W', color='purple', linestyle='dotted')
@@ -705,6 +731,33 @@ def plot_comp_acc_simple(steps=50, gen=True):
 
     plt.tight_layout()
     plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_nolabels.pdf'))
+
+
+    # plot again, no labels
+    fig, ax = plt.subplots(1, 2, figsize=(10,5))
+    ax[1].plot(conc_threshold_ls, nn5_acc_1, label='NN5, choice 1', color='blue')
+    ax[1].plot(conc_threshold_ls, pop_acc, label='Population', color='red')
+    ax[1].plot(conc_threshold_ls, bl_acc_1, label='NN2', color='gold')
+
+    ax[1].set_xlabel('Concurrence Threshold')
+    ax[1].set_ylabel('Accuracy')
+    ax[1].set_title("States with $W \geq 0$ and $\operatorname{min}\{W'\} < 0$")
+
+    ax[0].plot(conc_threshold_ls, nn5_frac_1, label='NN5, choice 1', color='blue')
+    ax[0].plot(conc_threshold_ls, pop_frac, label='Population', color='red')
+    ax[0].plot(conc_threshold_ls, bl_frac_1, label='NN2, choice 1', linestyle=(0, (5,10)), color='gold')
+
+    ax[0].plot(conc_threshold_ls, w_frac, label='W', color='purple', linestyle='dotted')
+    ax[0].plot(conc_threshold_ls, wp_frac, label='W\'', color='orange', linestyle='dotted')
+
+    ax[0].set_xlabel('Concurrence Threshold')
+    ax[0].set_ylabel('Fraction of Undetected States')
+    ax[0].set_title('All Entangled States')
+
+    plt.suptitle(f"Comparison of $W'$ Model Performance")
+
+    plt.tight_layout()
+    plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_nolabels_only1.pdf'))
 
          
 
@@ -803,5 +856,7 @@ if __name__ == '__main__':
     # r3 = keras.models.load_model(join('random_gen', 'models','r4_s0_0_e_prob_3_none_300_300_300_300_300_0.0001_100.h5'))
     # print(eval_perf(r3, 'r3', input_method='prob_3_r', pop_method='none', task='e', file_ls=['roik_True_400000_w_roik_prob_c_t.csv']))
 
-    plot_comp_acc_simple()
+    plot_comp_acc_simple(steps=50, gen=False)
+   
+
     
