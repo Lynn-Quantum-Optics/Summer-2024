@@ -9,6 +9,7 @@ For entanglement witnessing theory, in the `./machine_learning/` directory you'l
 - In 'oscar/machine_learning/', I also have some Matlab files adapted directly from Eritas Yang: 'Concurrence.m', 'Purity.m', 'MinEig.m', 'findW.m', 'vars.m', 'Random.m', and 'random_load.m' which synthesizes all of these files to generate dataframes matching those in Python.
 
 For reference, some stats on model performance. 1 indicates argmax only for choosing which W', 2 allows for 2nd best.
+
     Accuracy at 0 concurrence:
     NN5, choice 1: 0.8485454215056251
     NN5, choice 1+2: 0.968075264731634
