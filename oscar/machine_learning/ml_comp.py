@@ -760,8 +760,28 @@ def plot_comp_acc_simple(steps=50, gen=True):
     plt.savefig(join('random_gen', 'models', f'comp_acc_{steps}_nolabels_only1.pdf'))
 
          
+def comp_random(num_repeat=10000, conc_threshold=0):
+    '''what if we just randomly guess the W' triplets?'''
+    # get 
+    test_df = pd.read_csv(join('random_gen', 'data', 'roik_True_400000_r_os_t.csv'))
+    test_df = test_df[test_df['concurrence'] > conc_threshold]
+    actual = test_df[['Wp_t1', 'Wp_t2', 'Wp_t3']].values
+    # if min value < 0, then count as correct
+    actual = np.where(actual < 0, 1, 0)
+    print(actual)
 
-        
+    # guess 1 or 0 for 3 entries for all test_df, num_repeat times
+
+    guess = np.random.randint(2, size=(num_repeat, len(test_df), 3))
+    print(guess)
+    # compute accuracy via np.sum(guess == actual, axis=1)
+    acc = np.sum(guess == actual, axis=1) / len(test_df)
+    # get mean accuracy
+    mean_acc = np.mean(acc, axis=1)
+    # get std accuracy
+    sem_acc = np.std(mean_acc) / np.sqrt(num_repeat)
+    print(f'For concurrence threshold {conc_threshold}, {num_repeat} entries, mean accuracy: {np.mean(mean_acc)}+- {np.mean(sem_acc)}')
+
 
 
 def display_model(model):
@@ -794,6 +814,7 @@ if __name__ == '__main__':
 
     ## load models ##
 
+    comp_random()
     # new models ---
     # xgb = XGBRegressor()
     # xgb.load_model(join(new_model_path, 'r4_s0_0_w_prob_9_xgb_all.json'))
@@ -856,7 +877,7 @@ if __name__ == '__main__':
     # r3 = keras.models.load_model(join('random_gen', 'models','r4_s0_0_e_prob_3_none_300_300_300_300_300_0.0001_100.h5'))
     # print(eval_perf(r3, 'r3', input_method='prob_3_r', pop_method='none', task='e', file_ls=['roik_True_400000_w_roik_prob_c_t.csv']))
 
-    plot_comp_acc_simple(steps=50, gen=False)
+    # plot_comp_acc_simple(steps=50, gen=False)
    
 
     
