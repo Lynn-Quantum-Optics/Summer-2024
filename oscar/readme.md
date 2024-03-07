@@ -9,6 +9,7 @@ For entanglement witnessing theory, in the `./machine_learning/` directory you'l
 - In 'oscar/machine_learning/', I also have some Matlab files adapted directly from Eritas Yang: 'Concurrence.m', 'Purity.m', 'MinEig.m', 'findW.m', 'vars.m', 'Random.m', and 'random_load.m' which synthesizes all of these files to generate dataframes matching those in Python.
 
 For reference, some stats on model performance. 1 indicates argmax only for choosing which W', 2 allows for 2nd best.
+
     Accuracy at 0 concurrence:
     NN5, choice 1: 0.8485454215056251
     NN5, choice 1+2: 0.968075264731634
@@ -33,4 +34,4 @@ On the experimental side,
 
 The writeup for the summer as well as a report on the InstaQ algorithm can be found in the folder 'writing'. The SQInT poster is in the main directory.
 
-As a a brief aside, for maximal LELM distinguishability, see the `./nogo/` directory. The most up-to-date file is 'nogo4.py', which attempts to generate the systems of equations following the criteria in the Lock and Lutkenhaus paper to aid in the effort to solve the systems, ultimately for d=6. Currently this file (and thus my math) is still broken :( but I'm working on it! Note: my thesis code has migrated to the Fall 2023 -- Spring 2024 directory.
+OLD: for maximal LELM distinguishability, see the `./nogo/` directory. The most up-to-date file is 'nogo4.py', which attempts to generate the systems of equations following the criteria in the Lock and Lutkenhaus paper to aid in the effort to solve the systems, ultimately for d=6. Currently this file (and thus my math) is still broken :( but I'm working on it! Note: my thesis code has migrated to the Fall 2023 -- Spring 2024 directory.
