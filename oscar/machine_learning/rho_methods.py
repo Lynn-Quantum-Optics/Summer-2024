@@ -461,7 +461,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -828,6 +828,10 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             phi9_p = np.cos(theta)*np.cos(alpha)*HH + np.cos(theta)*np.sin(alpha)*HV + np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
             return get_witness(phi9_p)
         
+        def get_lynn():
+            return 1/5*(2*HH +2*np.exp(1j*np.pi/4)*  HV +  np.exp(1j*np.pi/4)*VH +4*VV) 
+        if return_lynn_only:
+            return get_witness(get_lynn())
         # get the witness values by minimizing the witness function
         if not(ads_test): 
             all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
@@ -968,12 +972,17 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
                 Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
 
+            # calculate lynn
+            W_lynn = get_witness(get_lynn())
 
             if not(return_all):
                 if return_params:
                     return W_min, Wp_t1, Wp_t2, Wp_t3, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
                 else:
-                    return W_min, Wp_t1, Wp_t2, Wp_t3
+                    if return_lynn:
+                        return W_min, Wp_t1, Wp_t2, Wp_t3, W_lynn
+                    else:
+                        return W_min, Wp_t1, Wp_t2, Wp_t3
             else:
                 if return_params:
                     return W_expec_vals, min_params
