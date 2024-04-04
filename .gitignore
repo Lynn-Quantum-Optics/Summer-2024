@@ -1,4 +1,5 @@
 __pycache__/
 */mlog.txt
 .DS_Store
+*/.DS_Store
 .vscode/
