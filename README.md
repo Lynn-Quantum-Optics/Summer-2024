@@ -1,12 +1,13 @@
-# Summer-2023
-This repository is for the work done over Summer of 2023 in Prof. Lynn's quantum optics lab.
+# Summer-2024
+This repository is for the work done over Summer of 2024 in Prof. Lynn's quantum optics lab.
 
 This file contains contact information for the research group members, as well as executive summaries of each project, and only contains brief summaries, contact information for  and instructions for finding more information.
 
 ## Contact Information
 
-- Alec Roberson – email: aroberson@hmc.edu / alectroberson@gmail.com. More likely to reply over text: 617-543-4448.
-- Oscar Scholin – email: orsa2020@mymail.pomona.edu / scholinoscar@gmail.com.
+- Lev Gruber - email: lgruber@g.hmc.edu, phone: 510-227-4602
+- Paco Navarro - email:
+- Stuart Kerr - email:
 
 ## Lab Framework Revamping
 
