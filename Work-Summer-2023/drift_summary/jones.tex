@@ -1,0 +1,54 @@
+\section{Jones Matrices}
+	To describe the linear manipulation of photons by optical components, we use Jones matrices. If an optical component has a Jones matrix $\hat{J}$ then the quantum state vector $\ket{\psi}$ will become $\ket{\psi'}=\hat{J}\ket{\psi}$ after passing through it.
+	
+	\subsection{Half Wave Plate}
+	A half wave plate with it's fast axis horizontal has the Jones matrix
+	\begin{equation}
+		\HWP_0=\begin{pmatrix}
+			1 & 0 \\ 0 & -1
+		\end{pmatrix}
+	\end{equation}
+	To emulate rotating the plate you can apply the inverse rotation matrix to the light, then rotate the result by the ordinary rotation matrix. Note these rotation matrices are given by
+	\begin{align}
+		R(\theta) = \begin{pmatrix}
+			\cos\theta & -\sin\theta \\ \sin\theta & \cos\theta
+		\end{pmatrix} \\
+		R^\dagger(\theta) = \begin{pmatrix}
+			\cos\theta & \sin\theta \\ -\sin\theta & \cos\theta
+		\end{pmatrix}
+	\end{align}
+	And so the Jones matrix for a half wave plate with it's fast axis an angle $\theta$ from the horizontal is given by
+	\begin{equation}
+		\HWP(\theta) = R\;\HWP_0\;R^\dagger = \begin{pmatrix}
+			\cos 2\theta & \sin 2\theta \\ \sin 2\theta & -\cos 2\theta
+		\end{pmatrix}
+	\end{equation}
+	
+	\subsection{Quarter Wave Plate}
+	A quarter wave plate applies a phase shift of $-i$ to the component along it's slow axis, and so if the fast axis is aligned with the horizontal then the Jones matrix is
+	\begin{equation}
+		\QWP_0 = \begin{pmatrix}
+			1 & 0 \\ 0 & i
+		\end{pmatrix}
+	\end{equation}
+	And applying the same rotation trick, if its fast axis lies an angle $\theta$ from the horizontal then
+	\begin{equation}
+		\QWP(\theta) = R\;\QWP_0\;R^\dagger = \begin{pmatrix}
+			\cos^2\theta + i\sin^2\theta & (1-i)\sin\theta\cos\theta \\
+			(1-i)\sin\theta\cos\theta & \sin^2\theta + i\cos^2\theta
+		\end{pmatrix}
+	\end{equation}
+	
+	\subsection{Quartz Plate}
+	
+	The quartz plate in our setup works by changing the distance that the light travels through it. By rotating the plate to make an angle $\theta$ with the horizontal (perpendicular to the optical axis), then light will travel a distance $d=1+d_0\sec\theta$ and the vertical component will incur a relative phase difference of $(k_2-k_1)(1+d_0\sec\theta)$. In other words, we can model the quartz plate with the jones matrix
+	\begin{equation}
+		\QP = \begin{pmatrix}
+			1 & 0 \\ 0 & e^{i\phi}
+		\end{pmatrix}
+	\end{equation}
+	Where
+	\begin{equation}
+		\phi = A + B\sec\theta
+	\end{equation}
+	for some $A,B\in\mathbb{R}$.

@@ -4,16 +4,13 @@ import pandas as pd
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    SWEEP_PARAMS = [-8, 8, 20, 5, 1]
+    SWEEP_PARAMS = [-5, 5, 20, 5, 3]
 
     # initialize the manager
     m = Manager('../config.json')
 
-    # setup the superposition state
-    m.C_UV_HWP.goto(22.5)
-    m.C_QP.goto(0)
-    m.C_PCC.goto(4.005) # ballpark based on an old calibration
-    m.B_C_HWP.goto(0)
+    # setup the superposition state, assuming phi_plus has been updated in config
+    m.make_state('phi_plus')
     
     # check count rates
     m.log('Checking HH and VV count rates...')
@@ -34,30 +31,30 @@ if __name__ == '__main__':
     
     # setup the phase sweep
     m.reset_output()
-    datas = {'QP': np.linspace(*SWEEP_PARAMS[:3])}
+    datas = {'PCC': np.linspace(*SWEEP_PARAMS[:3])}
 
     m.log('Performing sweeps. This will take a while.')
     # go through the bases and sweep each one across the angles
-    for basis in ['DR', 'DL', 'AR', 'AL', 'RR', 'RL', 'LR', 'LL']:
+    for basis in ['DD', 'AA', 'DA', 'AD']:
         m.log(f'Beginning {basis} sweep...')
         # setup the measurement basis
         m.meas_basis(basis)
         # sweep the quartz plate
-        _, datas[basis] = m.sweep('C_QP', *SWEEP_PARAMS)
+        _, datas[basis] = m.sweep('C_PCC', *SWEEP_PARAMS)
         # output the data for this sweep
-        m.output_data(f'QP_{basis}_sweep')
+        m.output_data(f'PCC_{basis}_sweep')
     
     m.shutdown()
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('all_sweep_data.csv')
+    pd.DataFrame(datas).to_csv('pcc_sweep_test_5152024.csv')
 
-    # calculate the phase difference
-    datas['phi'] = unp.arctan2((datas['DR'] - datas['DL'] - datas['AR'] + datas['AL']),(-datas['RR'] + datas['RL'] + datas['LR'] - datas['LL']))
+    # calculate the purity of the state
+    datas['purity'] = (datas['DD'] + datas['AA'] - (datas['DA'] + datas['AD']))/(datas['DD'] + datas['AA'] + datas['DA'] + datas['AD'])
 
     # save the data
-    pd.DataFrame(datas).to_csv('phi_data.csv')
+    pd.DataFrame(datas).to_csv('purity_test_5152024.csv')
 
     
 

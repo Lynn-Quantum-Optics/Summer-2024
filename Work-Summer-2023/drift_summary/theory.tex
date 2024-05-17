@@ -1,0 +1,15 @@
+\section{Theory of Birefringent Optical Components}
+	
+	This section is a little theoretical background. Most of our optical components are (or could be) made of quartz. Quartz has this great property that light with a linear polarization along it's fast axis experiences an index of refraction $n_f$ whereas light along the slow axis (orthogonal to the fast axis) experiences an index of refraction $n_s$ where $n_f\neq n_s$. Let's call the fast axis $\xhat$, the slow axis $\yhat$, and the optical axis $\zhat$. The electric field propagating along the optical axis is given by
+	\begin{equation}
+		\bv{E} = \bv{E}_0^{(+)}e^{i(kz-\omega t)}+\bv{E}_0^{(-)}e^{-i(kz-\omega t)}
+	\end{equation}
+	For some complex $\bv{E}_0^{(+)} = \left(\bv{E}_0^{(-)}\right)^\ast \in \mathbb{C}^3$. By convention, we focus only on the $\bv{E}^{(+)}$ component of this equation. Furthermore we can drop and $\zhat$ components since $\bv{E}\cdot\zhat=0$. Then we can express
+	\begin{equation}
+		\bv{E}^{(+)} = \xhat E_{0,x}^{(+)} e^{i(kz-\omega t)} + \yhat E_{0,y}^{(+)}e^{i(kz-\omega t)}
+	\end{equation}
+	Note that we will be dropping the common factor of $e^{-i\omega}$ from here on out, since the frequency $\omega$ (and by proxy, energy) of the photon will not change in any linear process, and the overall phase does not change the observable quantities. If the index of refraction is different in the two axes we will have a different $k_f$ for the $\xhat$ component and $k_s$ for the $\yhat$ component. After traveling a distance $d_0$ in the quartz, the electric field will become
+	\begin{equation}
+		\bv{E}^{(+)} = e^{ik_fd_0}\left(\xhat E_{0,x}^{(+)}+\yhat E_{0,y}^{(+)}e^{i(k_s-k_f)d_0}\right)
+	\end{equation}
+	This is how all of our optical components function. Quarter and half wave plates have their thickness tuned so that $(k_2-k_1) d_0 = -\pi$ or $-\pi/2$, respectively.

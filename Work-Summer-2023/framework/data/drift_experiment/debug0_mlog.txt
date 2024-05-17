@@ -1,0 +1,31 @@
+0:00:00	Log file opened. Manager started at 2023-06-12_10-34-50.
+0:00:35	manager initialization complete
+0:00:35	Loading state preset for phi_plus -> {'C_UV_HWP': 65.3998, 'C_QP': -24.1215, 'C_PCC': 4.005, 'B_C_HWP': 0.0}
+0:00:53	configured phi_plus: {'C_UV_HWP': 65.3998, 'C_QP': -24.1215, 'C_PCC': 4.005, 'B_C_HWP': 0.0}
+0:00:53	experiment initialized, starting main loop at time 1686591343.6568782 (2023.06.12 10:35:43)
+0:00:53	Starting minute 0 at 2023.06.12 10:35:43)
+0:00:53	Taking data in HH
+0:01:05	Taking data...
+0:01:35	Appending to dataframe...
+0:01:35	Finished minute 0 at 2023.06.12 10:36:26
+0:01:35	PROBLEM ENCOUNTERED: Last round took more than a minute. Data for an intermediate minute will have been skipped.
+0:01:35	Starting minute 1 at 2023.06.12 10:36:26)
+0:01:35	Taking data in VV
+0:01:47	Taking data...
+0:02:17	Appending to dataframe...
+0:02:17	Finished minute 1 at 2023.06.12 10:37:08
+0:02:17	PROBLEM ENCOUNTERED: Last round took more than a minute. Data for an intermediate minute will have been skipped.
+0:02:17	Starting minute 2 at 2023.06.12 10:37:08)
+0:02:17	Taking data in HH
+0:02:30	Taking data...
+0:03:00	Appending to dataframe...
+0:03:00	Finished minute 2 at 2023.06.12 10:37:51
+0:03:00	PROBLEM ENCOUNTERED: Last round took more than a minute. Data for an intermediate minute will have been skipped.
+0:03:00	Starting minute 3 at 2023.06.12 10:37:51)
+0:03:00	Taking data in VV
+0:03:12	Taking data...
+0:03:42	Appending to dataframe...
+0:03:42	Finished minute 3 at 2023.06.12 10:38:33
+0:03:42	PROBLEM ENCOUNTERED: Last round took more than a minute. Data for an intermediate minute will have been skipped.
+0:03:42	Starting minute 4 at 2023.06.12 10:38:33)
+0:03:42	Taking data in HH

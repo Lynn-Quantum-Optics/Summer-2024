@@ -1,0 +1,100 @@
+0:00:00	Manager started at 2023-07-20_13-40-10.
+0:00:00	Configuration file: "../config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:07	CHECKPOINT B: Checking calibrations on B_HWP, B_QWP, and B_C_HWP.
+0:00:07	Resetting...
+0:00:07	Loading VV state.
+0:00:07	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:00:09	Configuring Alice's measurement waveplates to measure V
+0:00:09	AQWP -> 0
+0:00:11	AHWP -> 45
+0:00:16	Sweeping B_HWP from -4 to 4 degrees in 15 steps.
+0:00:20	Taking data; sampling 5 x 3 s.
+0:00:36	Taking data; sampling 5 x 3 s.
+0:00:52	Taking data; sampling 5 x 3 s.
+0:01:07	Taking data; sampling 5 x 3 s.
+0:01:24	Taking data; sampling 5 x 3 s.
+0:01:39	Taking data; sampling 5 x 3 s.
+0:01:55	Taking data; sampling 5 x 3 s.
+0:02:11	Taking data; sampling 5 x 3 s.
+0:02:27	Taking data; sampling 5 x 3 s.
+0:02:43	Taking data; sampling 5 x 3 s.
+0:02:58	Taking data; sampling 5 x 3 s.
+0:03:15	Taking data; sampling 5 x 3 s.
+0:03:31	Taking data; sampling 5 x 3 s.
+0:03:47	Taking data; sampling 5 x 3 s.
+0:04:03	Taking data; sampling 5 x 3 s.
+0:04:18	Saving data to "./sweeps0/BHWP.csv".
+0:04:18	Clearing output data.
+0:04:18	Resetting...
+0:04:18	Loading VV state.
+0:04:18	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:04:19	Configuring Alice's measurement waveplates to measure V
+0:04:19	AQWP -> 0
+0:04:20	AHWP -> 45
+0:04:20	Sweeping B_QWP from -4 to 4 degrees in 15 steps.
+0:04:29	Taking data; sampling 5 x 3 s.
+0:04:45	Taking data; sampling 5 x 3 s.
+0:05:01	Taking data; sampling 5 x 3 s.
+0:05:17	Taking data; sampling 5 x 3 s.
+0:05:33	Taking data; sampling 5 x 3 s.
+0:05:49	Taking data; sampling 5 x 3 s.
+0:06:05	Taking data; sampling 5 x 3 s.
+0:06:20	Taking data; sampling 5 x 3 s.
+0:06:36	Taking data; sampling 5 x 3 s.
+0:06:52	Taking data; sampling 5 x 3 s.
+0:07:08	Taking data; sampling 5 x 3 s.
+0:07:24	Taking data; sampling 5 x 3 s.
+0:07:40	Taking data; sampling 5 x 3 s.
+0:07:56	Taking data; sampling 5 x 3 s.
+0:08:12	Taking data; sampling 5 x 3 s.
+0:08:27	Saving data to "./sweeps0/BQWP.csv".
+0:08:27	Clearing output data.
+0:08:27	Resetting...
+0:08:27	Loading VV state.
+0:08:27	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:08:28	Configuring Alice's measurement waveplates to measure V
+0:08:28	AQWP -> 0
+0:08:28	AHWP -> 45
+0:08:28	Sweeping B_C_HWP from -4 to 4 degrees in 15 steps.
+0:08:29	Taking data; sampling 5 x 3 s.
+0:08:44	Taking data; sampling 5 x 3 s.
+0:09:00	Taking data; sampling 5 x 3 s.
+0:09:16	Taking data; sampling 5 x 3 s.
+0:09:31	Taking data; sampling 5 x 3 s.
+0:09:47	Taking data; sampling 5 x 3 s.
+0:10:03	Taking data; sampling 5 x 3 s.
+0:10:19	Taking data; sampling 5 x 3 s.
+0:10:34	Taking data; sampling 5 x 3 s.
+0:10:50	Taking data; sampling 5 x 3 s.
+0:11:06	Taking data; sampling 5 x 3 s.
+0:11:21	Taking data; sampling 5 x 3 s.
+0:11:37	Taking data; sampling 5 x 3 s.
+0:11:52	Taking data; sampling 5 x 3 s.
+0:12:08	Taking data; sampling 5 x 3 s.
+0:12:23	Saving data to "./sweeps0/BCHWP.csv".
+0:12:23	Clearing output data.
+0:12:24	Beginning shutdown procedure.
+0:12:24	Shutting down motor objects.
+0:12:24	C_UV_HWP returned to true position 359.97237723214283 degrees.
+0:12:24	Deleting C_UV_HWP object.
+0:12:24	C_QP returned to true position 0.0 degrees.
+0:12:24	Deleting C_QP object.
+0:12:25	C_PCC returned to true position 359.99497767857144 degrees.
+0:12:25	Deleting C_PCC object.
+0:12:25	B_C_HWP returned to true position 359.9974888392857 degrees.
+0:12:25	Deleting B_C_HWP object.
+0:12:26	B_C_QWP returned to true position 0.002511160714285714 degrees.
+0:12:26	Deleting B_C_QWP object.
+0:12:28	B_HWP returned to true position 0.002604652661830187 degrees.
+0:12:28	Deleting B_HWP object.
+0:12:39	B_QWP returned to true position 0.0 degrees.
+0:12:39	Deleting B_QWP object.
+0:12:44	A_HWP returned to true position 0.0 degrees.
+0:12:44	Deleting A_HWP object.
+0:12:46	A_QWP returned to true position 359.9994812011719 degrees.
+0:12:46	Deleting A_QWP object.
+0:12:46	Closing COM ports.
+0:12:46	Closing CCU.
+0:12:47	Closing log file.

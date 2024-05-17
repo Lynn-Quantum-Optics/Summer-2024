@@ -1,0 +1,55 @@
+0:00:00	Manager started at 2023-06-29_12-15-17.
+0:00:00	Configuration file: "config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:08	Opening new output file "UVHWP_balance_sweep1.csv".
+0:00:08	Loading measurement basis "HH" from config file.
+0:00:45	Sweeping C_UV_HWP from 45.0 to 90.0 degrees in 20 steps.
+0:00:46	Taking data; sampling 5 x 3 s.
+0:01:01	Taking data; sampling 5 x 3 s.
+0:01:17	Taking data; sampling 5 x 3 s.
+0:01:32	Taking data; sampling 5 x 3 s.
+0:01:48	Taking data; sampling 5 x 3 s.
+0:02:04	Taking data; sampling 5 x 3 s.
+0:02:19	Taking data; sampling 5 x 3 s.
+0:02:35	Taking data; sampling 5 x 3 s.
+0:02:50	Taking data; sampling 5 x 3 s.
+0:03:06	Taking data; sampling 5 x 3 s.
+0:03:21	Taking data; sampling 5 x 3 s.
+0:03:37	Taking data; sampling 5 x 3 s.
+0:03:53	Taking data; sampling 5 x 3 s.
+0:04:08	Taking data; sampling 5 x 3 s.
+0:04:24	Taking data; sampling 5 x 3 s.
+0:04:40	Taking data; sampling 5 x 3 s.
+0:04:55	Taking data; sampling 5 x 3 s.
+0:05:11	Taking data; sampling 5 x 3 s.
+0:05:27	Taking data; sampling 5 x 3 s.
+0:05:43	Taking data; sampling 5 x 3 s.
+0:05:58	Closing output file "UVHWP_balance_sweep1.csv".
+0:05:58	Retreiving data from "UVHWP_balance_sweep1.csv".
+0:05:58	Opening new output file "UVHWP_balance_sweep_2.csv".
+0:05:58	Loading measurement basis "VV" from config file.
+0:06:09	Sweeping C_UV_HWP from 45.0 to 90.0 degrees in 20 steps.
+0:06:10	Taking data; sampling 5 x 3 s.
+0:06:25	Taking data; sampling 5 x 3 s.
+0:06:41	Taking data; sampling 5 x 3 s.
+0:06:57	Taking data; sampling 5 x 3 s.
+0:07:12	Taking data; sampling 5 x 3 s.
+0:07:28	Taking data; sampling 5 x 3 s.
+0:07:44	Taking data; sampling 5 x 3 s.
+0:07:59	Taking data; sampling 5 x 3 s.
+0:08:15	Taking data; sampling 5 x 3 s.
+0:08:30	Taking data; sampling 5 x 3 s.
+0:08:46	Taking data; sampling 5 x 3 s.
+0:09:01	Taking data; sampling 5 x 3 s.
+0:09:17	Taking data; sampling 5 x 3 s.
+0:09:33	Taking data; sampling 5 x 3 s.
+0:09:48	Taking data; sampling 5 x 3 s.
+0:10:04	Taking data; sampling 5 x 3 s.
+0:10:19	Taking data; sampling 5 x 3 s.
+0:10:35	Taking data; sampling 5 x 3 s.
+0:10:50	Taking data; sampling 5 x 3 s.
+0:11:06	Taking data; sampling 5 x 3 s.
+0:11:21	Closing output file "UVHWP_balance_sweep_2.csv".
+0:11:21	Retreiving data from "UVHWP_balance_sweep_2.csv".
+C_UV_HWP angle to find 71.65% coincidences (28.35% coincidences): 60.62731
