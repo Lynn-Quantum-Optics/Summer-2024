@@ -1,0 +1,51 @@
+0:00:00	Manager started at 2023-07-17_09-00-35.
+0:00:00	Configuration file: "config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:07	AQWP.py TRIAL # 1; SWEEP PARAMS = [-45, 45, 20, 5, 1]; UVHWP ANGLE = 0
+0:00:08	Sweeping A_QWP from -45 to 45 degrees in 20 steps.
+0:00:14	Taking data; sampling 5 x 1 s.
+0:00:21	Taking data; sampling 5 x 1 s.
+0:00:27	Taking data; sampling 5 x 1 s.
+0:00:34	Taking data; sampling 5 x 1 s.
+0:00:40	Taking data; sampling 5 x 1 s.
+0:00:47	Taking data; sampling 5 x 1 s.
+0:00:54	Taking data; sampling 5 x 1 s.
+0:01:00	Taking data; sampling 5 x 1 s.
+0:01:07	Taking data; sampling 5 x 1 s.
+0:01:14	Taking data; sampling 5 x 1 s.
+0:01:20	Taking data; sampling 5 x 1 s.
+0:01:27	Taking data; sampling 5 x 1 s.
+0:01:34	Taking data; sampling 5 x 1 s.
+0:01:41	Taking data; sampling 5 x 1 s.
+0:01:48	Taking data; sampling 5 x 1 s.
+0:01:54	Taking data; sampling 5 x 1 s.
+0:02:01	Taking data; sampling 5 x 1 s.
+0:02:08	Taking data; sampling 5 x 1 s.
+0:02:15	Taking data; sampling 5 x 1 s.
+0:02:22	Taking data; sampling 5 x 1 s.
+0:02:27	Saving data to "AQWP_sweep1.csv".
+0:02:27	Clearing output data.
+0:02:27	Beginning shutdown procedure.
+0:02:27	Shutting down motor objects.
+0:02:28	C_UV_HWP returned to true position 359.982421875 degrees.
+0:02:28	Deleting C_UV_HWP object.
+0:02:28	C_QP returned to true position 359.99246651785717 degrees.
+0:02:28	Deleting C_QP object.
+0:02:29	C_PCC returned to true position 0.002511160714285714 degrees.
+0:02:29	Deleting C_PCC object.
+0:02:29	B_C_HWP returned to true position 359.99497767857144 degrees.
+0:02:29	Deleting B_C_HWP object.
+0:02:29	B_C_QWP returned to true position 359.9974888392857 degrees.
+0:02:29	Deleting B_C_QWP object.
+0:02:30	B_HWP returned to true position 0.0 degrees.
+0:02:30	Deleting B_HWP object.
+0:02:30	B_QWP returned to true position 0.0 degrees.
+0:02:30	Deleting B_QWP object.
+0:02:30	A_HWP returned to true position 0.0 degrees.
+0:02:30	Deleting A_HWP object.
+0:02:37	A_QWP returned to true position 359.9979248046875 degrees.
+0:02:37	Deleting A_QWP object.
+0:02:37	Closing COM ports.
+0:02:37	Closing CCU.
+0:02:38	Closing log file.

@@ -20,7 +20,8 @@
             "type": "Elliptec",
             "port": "COM5",
             "address": "A",
-            "offset": -1.413
+            "offset": -12.9241
+    
         },
         "C_QP": {
             "type": "Elliptec",
@@ -38,27 +39,28 @@
             "type": "Elliptec",
             "port": "COM7",
             "address": "A",
-            "offset": -0.043
+            "offset": -30.949568
         },
         "B_HWP": {
             "type": "ThorLabs",
             "sn": 83811901,
-            "offset": -15.625
+            "offset": -6.264
         },
         "B_QWP": {
             "type": "ThorLabs",
             "sn": 83811646,
-            "offset": 88.806
+            "offset":   96.762
+            
         },
         "A_HWP": {
             "type": "ThorLabs",
             "sn": 83811904,
-            "offset": -9.167
+            "offset": -0.465
         },
         "A_QWP": {
             "type": "ThorLabs",
             "sn": 83811667,
-            "offset": -8.151
+            "offset": 0.538
         }
     },
     "basis_presets": {
@@ -117,9 +119,9 @@
     },
     "state_presets": {
         "phi_plus": {
-            "C_UV_HWP": 65.39980,
-            "C_QP": -24.1215,
-            "C_PCC": 4.005,
+            "C_UV_HWP": -111.39816886500309, 
+            "C_QP": -20.5717,
+            "C_PCC": 2.3684210526315788,
             "B_C_HWP": 0.00
         },
         "phi_minus": {
@@ -134,6 +136,11 @@
             "B_C_HWP": 0.00
         },
         "VV": {
+            "C_UV_HWP": 0,
+            "C_QP": 0,
+            "C_PCC": 4.005
+        },
+        "VX": {
             "C_UV_HWP": 0,
             "C_QP": 0,
             "C_PCC": 4.005

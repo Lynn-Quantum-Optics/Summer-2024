@@ -1,0 +1,97 @@
+0:00:00	Manager started at 2023-07-17_14-47-13.
+0:00:00	Configuration file: "../config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:07	CHECKPOINT A: Calibrated Alice'S measurement waveplates and the UVHWP
+0:00:07	Resetting...
+0:00:07	Loading VX state.
+0:00:07	Loading state preset "VX" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:00:10	Zeroing Alice's measurement waveplates
+0:00:16	Sweeping C_UV_HWP from -2 to 2 degrees in 16 steps.
+0:00:16	Taking data; sampling 5 x 3 s.
+0:00:32	Taking data; sampling 5 x 3 s.
+0:00:48	Taking data; sampling 5 x 3 s.
+0:01:03	Taking data; sampling 5 x 3 s.
+0:01:19	Taking data; sampling 5 x 3 s.
+0:01:35	Taking data; sampling 5 x 3 s.
+0:01:50	Taking data; sampling 5 x 3 s.
+0:02:06	Taking data; sampling 5 x 3 s.
+0:02:22	Taking data; sampling 5 x 3 s.
+0:02:38	Taking data; sampling 5 x 3 s.
+0:02:53	Taking data; sampling 5 x 3 s.
+0:03:09	Taking data; sampling 5 x 3 s.
+0:03:25	Taking data; sampling 5 x 3 s.
+0:03:41	Taking data; sampling 5 x 3 s.
+0:03:57	Taking data; sampling 5 x 3 s.
+0:04:13	Taking data; sampling 5 x 3 s.
+0:04:28	Saving data to "UVHWP.csv".
+0:04:28	Clearing output data.
+0:04:29	Resetting...
+0:04:29	Loading VX state.
+0:04:29	Loading state preset "VX" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:04:32	Zeroing Alice's measurement waveplates
+0:04:32	Sweeping A_HWP from -2 to 2 degrees in 16 steps.
+0:04:34	Taking data; sampling 5 x 3 s.
+0:04:50	Taking data; sampling 5 x 3 s.
+0:05:05	Taking data; sampling 5 x 3 s.
+0:05:21	Taking data; sampling 5 x 3 s.
+0:05:37	Taking data; sampling 5 x 3 s.
+0:05:53	Taking data; sampling 5 x 3 s.
+0:06:09	Taking data; sampling 5 x 3 s.
+0:06:25	Taking data; sampling 5 x 3 s.
+0:06:40	Taking data; sampling 5 x 3 s.
+0:06:56	Taking data; sampling 5 x 3 s.
+0:07:12	Taking data; sampling 5 x 3 s.
+0:07:28	Taking data; sampling 5 x 3 s.
+0:07:43	Taking data; sampling 5 x 3 s.
+0:07:59	Taking data; sampling 5 x 3 s.
+0:08:15	Taking data; sampling 5 x 3 s.
+0:08:31	Taking data; sampling 5 x 3 s.
+0:08:46	Saving data to "AHWP.csv".
+0:08:46	Clearing output data.
+0:08:47	Resetting...
+0:08:47	Loading VX state.
+0:08:47	Loading state preset "VX" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
+0:08:48	Zeroing Alice's measurement waveplates
+0:08:50	Sweeping A_QWP from -2 to 2 degrees in 16 steps.
+0:08:52	Taking data; sampling 5 x 3 s.
+0:09:08	Taking data; sampling 5 x 3 s.
+0:09:24	Taking data; sampling 5 x 3 s.
+0:09:40	Taking data; sampling 5 x 3 s.
+0:09:55	Taking data; sampling 5 x 3 s.
+0:10:11	Taking data; sampling 5 x 3 s.
+0:10:27	Taking data; sampling 5 x 3 s.
+0:10:43	Taking data; sampling 5 x 3 s.
+0:10:59	Taking data; sampling 5 x 3 s.
+0:11:15	Taking data; sampling 5 x 3 s.
+0:11:31	Taking data; sampling 5 x 3 s.
+0:11:46	Taking data; sampling 5 x 3 s.
+0:12:02	Taking data; sampling 5 x 3 s.
+0:12:17	Taking data; sampling 5 x 3 s.
+0:12:33	Taking data; sampling 5 x 3 s.
+0:12:49	Taking data; sampling 5 x 3 s.
+0:13:04	Saving data to "AQWP.csv".
+0:13:04	Clearing output data.
+0:13:05	Beginning shutdown procedure.
+0:13:05	Shutting down motor objects.
+0:13:06	C_UV_HWP returned to true position 359.982421875 degrees.
+0:13:06	Deleting C_UV_HWP object.
+0:13:06	C_QP returned to true position 359.99246651785717 degrees.
+0:13:06	Deleting C_QP object.
+0:13:07	C_PCC returned to true position 0.007533482142857143 degrees.
+0:13:07	Deleting C_PCC object.
+0:13:07	B_C_HWP returned to true position 359.9974888392857 degrees.
+0:13:07	Deleting B_C_HWP object.
+0:13:07	B_C_QWP returned to true position 0.002511160714285714 degrees.
+0:13:07	Deleting B_C_QWP object.
+0:13:08	B_HWP returned to true position 0.0 degrees.
+0:13:08	Deleting B_HWP object.
+0:13:08	B_QWP returned to true position 0.0 degrees.
+0:13:08	Deleting B_QWP object.
+0:13:10	A_HWP returned to true position 0.002604652661830187 degrees.
+0:13:10	Deleting A_HWP object.
+0:13:11	A_QWP returned to true position 359.9979248046875 degrees.
+0:13:11	Deleting A_QWP object.
+0:13:11	Closing COM ports.
+0:13:12	Closing CCU.
+0:13:12	Closing log file.

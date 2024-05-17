@@ -4,18 +4,22 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 1
-    SWEEP_PARAMETERS = [65.38+3,65.38-3,20,5,3]
-    # QP_ANGLE = -25.8119041041324
-    QP_ANGLE = -25.203528153268923
+    TRIAL = 7
+    #SWEEP_PARAMETERS = [65.38+3,65.38-3,20,5,3]
+    SWEEP_PARAMETERS = [-105,-120,20,5,1]
+
 
     # initialize manager
     m = Manager('../config.json')
 
     # setup other state creation elements for state creation
-    m.C_QP.goto(QP_ANGLE)
-    m.C_PCC.goto(4.005) # from previous calibration
-    m.B_C_HWP.goto(0)
+    #QP_ANGLE = -20.6134
+    #m.C_QP.goto(QP_ANGLE)
+    #m.C_PCC.goto(4.005) # from previous calibration
+    #m.B_C_HWP.goto(0)
+
+    # If confident in current phi_plus calib, set up using config
+    m.make_state('phi_plus')
 
     # sweep UVHWP
     m.meas_basis('HH')

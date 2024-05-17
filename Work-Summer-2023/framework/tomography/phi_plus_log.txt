@@ -1,0 +1,152 @@
+0:00:00	Manager started at 2023-06-28_14-24-05.
+0:00:00	Configuration file: "config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:07	Opening new output file "tomography_data.csv".
+0:00:07	Loading state preset "phi_plus" from config file.
+0:00:09	Loading measurement basis "HH" from config file.
+0:00:22	Taking data; sampling 5 x 1 s.
+0:00:22		Note: "HH"
+0:00:22		Data will be written to "tomography_data.csv".
+0:00:27	Loading measurement basis "HV" from config file.
+0:00:33	Taking data; sampling 5 x 1 s.
+0:00:33		Note: "HV"
+0:00:33		Data will be written to "tomography_data.csv".
+0:00:38	Loading measurement basis "HD" from config file.
+0:00:41	Taking data; sampling 5 x 1 s.
+0:00:41		Note: "HD"
+0:00:41		Data will be written to "tomography_data.csv".
+0:00:47	Loading measurement basis "HA" from config file.
+0:00:54	Taking data; sampling 5 x 1 s.
+0:00:54		Note: "HA"
+0:00:54		Data will be written to "tomography_data.csv".
+0:00:59	Loading measurement basis "HR" from config file.
+0:01:18	Taking data; sampling 5 x 1 s.
+0:01:18		Note: "HR"
+0:01:18		Data will be written to "tomography_data.csv".
+0:01:23	Loading measurement basis "HL" from config file.
+0:01:35	Taking data; sampling 5 x 1 s.
+0:01:35		Note: "HL"
+0:01:35		Data will be written to "tomography_data.csv".
+0:01:40	Loading measurement basis "VH" from config file.
+0:01:52	Taking data; sampling 5 x 1 s.
+0:01:52		Note: "VH"
+0:01:52		Data will be written to "tomography_data.csv".
+0:01:57	Loading measurement basis "VV" from config file.
+0:02:03	Taking data; sampling 5 x 1 s.
+0:02:03		Note: "VV"
+0:02:03		Data will be written to "tomography_data.csv".
+0:02:09	Loading measurement basis "VD" from config file.
+0:02:13	Taking data; sampling 5 x 1 s.
+0:02:13		Note: "VD"
+0:02:13		Data will be written to "tomography_data.csv".
+0:02:18	Loading measurement basis "VA" from config file.
+0:02:24	Taking data; sampling 5 x 1 s.
+0:02:24		Note: "VA"
+0:02:24		Data will be written to "tomography_data.csv".
+0:02:30	Loading measurement basis "VR" from config file.
+0:02:49	Taking data; sampling 5 x 1 s.
+0:02:49		Note: "VR"
+0:02:49		Data will be written to "tomography_data.csv".
+0:02:54	Loading measurement basis "VL" from config file.
+0:03:05	Taking data; sampling 5 x 1 s.
+0:03:05		Note: "VL"
+0:03:05		Data will be written to "tomography_data.csv".
+0:03:10	Loading measurement basis "DH" from config file.
+0:03:20	Taking data; sampling 5 x 1 s.
+0:03:20		Note: "DH"
+0:03:20		Data will be written to "tomography_data.csv".
+0:03:25	Loading measurement basis "DV" from config file.
+0:03:31	Taking data; sampling 5 x 1 s.
+0:03:31		Note: "DV"
+0:03:31		Data will be written to "tomography_data.csv".
+0:03:37	Loading measurement basis "DD" from config file.
+0:03:41	Taking data; sampling 5 x 1 s.
+0:03:41		Note: "DD"
+0:03:41		Data will be written to "tomography_data.csv".
+0:03:46	Loading measurement basis "DA" from config file.
+0:03:53	Taking data; sampling 5 x 1 s.
+0:03:53		Note: "DA"
+0:03:53		Data will be written to "tomography_data.csv".
+0:03:58	Loading measurement basis "DR" from config file.
+0:04:17	Taking data; sampling 5 x 1 s.
+0:04:17		Note: "DR"
+0:04:17		Data will be written to "tomography_data.csv".
+0:04:22	Loading measurement basis "DL" from config file.
+0:04:34	Taking data; sampling 5 x 1 s.
+0:04:34		Note: "DL"
+0:04:34		Data will be written to "tomography_data.csv".
+0:04:39	Loading measurement basis "AH" from config file.
+0:04:52	Taking data; sampling 5 x 1 s.
+0:04:52		Note: "AH"
+0:04:52		Data will be written to "tomography_data.csv".
+0:04:57	Loading measurement basis "AV" from config file.
+0:05:03	Taking data; sampling 5 x 1 s.
+0:05:03		Note: "AV"
+0:05:03		Data will be written to "tomography_data.csv".
+0:05:08	Loading measurement basis "AD" from config file.
+0:05:12	Taking data; sampling 5 x 1 s.
+0:05:12		Note: "AD"
+0:05:12		Data will be written to "tomography_data.csv".
+0:05:17	Loading measurement basis "AA" from config file.
+0:05:24	Taking data; sampling 5 x 1 s.
+0:05:24		Note: "AA"
+0:05:24		Data will be written to "tomography_data.csv".
+0:05:29	Loading measurement basis "AR" from config file.
+0:05:49	Taking data; sampling 5 x 1 s.
+0:05:49		Note: "AR"
+0:05:49		Data will be written to "tomography_data.csv".
+0:05:54	Loading measurement basis "AL" from config file.
+0:06:05	Taking data; sampling 5 x 1 s.
+0:06:05		Note: "AL"
+0:06:05		Data will be written to "tomography_data.csv".
+0:06:10	Loading measurement basis "RH" from config file.
+0:06:36	Taking data; sampling 5 x 1 s.
+0:06:36		Note: "RH"
+0:06:36		Data will be written to "tomography_data.csv".
+0:06:41	Loading measurement basis "RV" from config file.
+0:06:47	Taking data; sampling 5 x 1 s.
+0:06:47		Note: "RV"
+0:06:47		Data will be written to "tomography_data.csv".
+0:06:52	Loading measurement basis "RD" from config file.
+0:06:56	Taking data; sampling 5 x 1 s.
+0:06:56		Note: "RD"
+0:06:56		Data will be written to "tomography_data.csv".
+0:07:01	Loading measurement basis "RA" from config file.
+0:07:08	Taking data; sampling 5 x 1 s.
+0:07:08		Note: "RA"
+0:07:08		Data will be written to "tomography_data.csv".
+0:07:13	Loading measurement basis "RR" from config file.
+0:07:32	Taking data; sampling 5 x 1 s.
+0:07:32		Note: "RR"
+0:07:32		Data will be written to "tomography_data.csv".
+0:07:37	Loading measurement basis "RL" from config file.
+0:07:49	Taking data; sampling 5 x 1 s.
+0:07:49		Note: "RL"
+0:07:49		Data will be written to "tomography_data.csv".
+0:07:54	Loading measurement basis "LH" from config file.
+0:08:12	Taking data; sampling 5 x 1 s.
+0:08:12		Note: "LH"
+0:08:12		Data will be written to "tomography_data.csv".
+0:08:17	Loading measurement basis "LV" from config file.
+0:08:23	Taking data; sampling 5 x 1 s.
+0:08:23		Note: "LV"
+0:08:23		Data will be written to "tomography_data.csv".
+0:08:28	Loading measurement basis "LD" from config file.
+0:08:32	Taking data; sampling 5 x 1 s.
+0:08:32		Note: "LD"
+0:08:32		Data will be written to "tomography_data.csv".
+0:08:37	Loading measurement basis "LA" from config file.
+0:08:44	Taking data; sampling 5 x 1 s.
+0:08:44		Note: "LA"
+0:08:44		Data will be written to "tomography_data.csv".
+0:08:49	Loading measurement basis "LR" from config file.
+0:09:08	Taking data; sampling 5 x 1 s.
+0:09:08		Note: "LR"
+0:09:08		Data will be written to "tomography_data.csv".
+0:09:13	Loading measurement basis "LL" from config file.
+0:09:25	Taking data; sampling 5 x 1 s.
+0:09:25		Note: "LL"
+0:09:25		Data will be written to "tomography_data.csv".
+0:09:30	Closing output file "tomography_data.csv".
+0:09:30	Retreiving data from "tomography_data.csv".

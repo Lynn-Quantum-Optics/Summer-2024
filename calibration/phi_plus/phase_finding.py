@@ -3,19 +3,23 @@ import numpy as np
 import pandas as pd
 import uncertainties.unumpy as unp
 
+# Approx 25 mins.
+
 if __name__ == '__main__':
-    # SWEEP_PARAMS = [-35, 0, 20, 5, 3]
-    SWEEP_PARAMS = [-25.8+3, -25.8-3, 10, 5, 3]
+    # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
+    SWEEP_PARAMS = [-26, -18, 8, 5, 1]
 
     # initialize the manager
     m = Manager('../config.json')
 
-    # setup the superposition state
-    m.C_UV_HWP.goto(65.38956684313322) # based on the ratio finding
-    m.C_QP.goto(-25.8119041041324)
-    m.C_PCC.goto(4.005) # ballpark based on an old calibration
-    m.B_C_HWP.goto(0)
-    
+    # setup the superposition state - this is to make a state from scratch
+    #m.C_UV_HWP.goto(22.5) # based on the ratio finding  #65.38956684313322
+    #m.C_QP.goto(25.8119041041324) #-25.8119041041324
+    #m.C_PCC.goto(2.894736842105263) # ballpark based on an old calibration
+    #m.B_C_HWP.goto(0)
+
+    m.make_state('phi_plus')
+     
     # check count rates
     m.log('Checking HH and VV count rates...')
     m.meas_basis('HH')
@@ -52,13 +56,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('all_sweep_data.csv')
+    pd.DataFrame(datas).to_csv('all_phase_finding_data2_test5152024.csv')
 
     # calculate the phase difference
     datas['phi'] = unp.arctan2((datas['DR'] - datas['DL'] - datas['AR'] + datas['AL']),(-datas['RR'] + datas['RL'] + datas['LR'] - datas['LL']))
 
     # save the data
-    pd.DataFrame(datas).to_csv('phi_data.csv')
+    pd.DataFrame(datas).to_csv('phi_data_5152024.csv')
 
     
 

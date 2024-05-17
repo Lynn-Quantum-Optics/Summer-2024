@@ -1,0 +1,164 @@
+\documentclass{paper}[11pt]
+\input{common.tex}
+\title{``Arbitrary" State Creation}
+\author{Alec Roberson}
+
+\begin{document}
+	\maketitle
+	This method of state creation should be able to cover all possible states that our setup is capable of generating (hence "arbitrary"). The general strategy:
+	\begin{enumerate}
+		\item parameterize the space of states we can create
+		\item develop experimental methods to ascertain the parameters of a given state
+		\item perform benchmark sweeps for certain components/parameters that allow us to get a good guess for optical component settings that will produce particular states
+	\end{enumerate} 	
+	With this in mind, the first question we ask is what does the space of states we can create even look like?
+	
+	\section{The State Space of our Apparatus}
+	
+	The half-wave plate (HWP) and quartz-plate (QP) can put the UV photons into any arbitrary state prior to the beam's incidence on the BBO. From there, immediately after the BBO the photons' state will take the form
+	\begin{equation}
+		\ket{\Psi} = \cos\alpha\HH + e^{i\phi}\sin\alpha\VV \notag
+	\end{equation}
+	For some $\alpha\in[0,\pi/2]$ and $\phi\in[0,2\pi)$. From there, Bob's photon will then be incident on a HWP and QWP. The Jones matrices for these components when rotated to angles $\theta_1$ and $\theta_2$ from the horizontal are
+	\begin{align}
+		\HWP &= \begin{pmatrix}
+			\cos 2\theta_1 & \sin2\theta_1 \\
+			\sin2\theta_1 & -\cos2\theta_1
+		\end{pmatrix} \notag \\
+		\QWP &= \begin{pmatrix}
+			\cos^2\theta_2 + i\sin^2\theta_2 & (1-i)\sin\theta_2\cos\theta_2 \\
+			(1-i)\sin\theta_2\cos\theta_2 & \sin^2\theta_2 + i\cos^2\theta_2
+		\end{pmatrix} \notag
+	\end{align}
+	And when they rotate the state of the photon one after the other (first the HWP then the QWP) we can parameterize $\gamma=\theta_2$ and $\delta=2\theta_1-\theta_2$ so that the overall Jones matrix may be expressed as
+	\begin{equation}
+		\QWP\;\HWP = \begin{pmatrix}
+			\cos\gamma\cos\delta-i\sin\gamma\sin\delta & \cos\gamma\sin\delta + i\sin\gamma\cos\delta \\
+			\sin\gamma\cos\delta + i \cos\gamma\sin\delta & \sin\gamma\sin\delta - i \cos\gamma\cos\delta \label{eq:bobs CWPs jones matrix}
+		\end{pmatrix}
+	\end{equation}
+	Which means that once the photons reach the detectors, they will be in a state with the general form
+	\begin{align}
+		\ket{\Psi} &= \cos\alpha(\cos\gamma\cos\delta-i\sin\gamma\sin\delta)\HH \notag\\
+		& + \cos\alpha(\sin\gamma\cos\delta + i\cos\gamma\sin\delta)\HV \notag\\
+		& + \sin\alpha(\cos\gamma\sin\delta + i\sin\gamma\cos\delta)e^{i\phi}\VH \notag\\
+		& + \sin\alpha(\sin\gamma\sin\delta - i \cos\gamma\cos\delta)e^{i\phi} \VV \label{eq:general product state}
+	\end{align}
+	
+	\section{Measuring Parameters}
+	
+	Now we will develop expressions for $\alpha$, $\phi$, $\gamma$, and $\delta$ in terms of measurable expectation values. These expressions will pave the way for our data-fitting approach to arbitrary state creation.
+	
+	The methodology here was not super strategic. I started by brute-force calculating expectation values of $\ket{\Psi}$ in some bases that I thought would be useful for this purpose (the full set of expectation value expressions derived is preserved in \cref{apdx:expectation values}) and then I stared at those for a while until I could figure out a way to combine different expectation values in order to obtain an expression that was \textit{only} dependent on one parameter. This bit is crucial, because we want to be able to measure a single parameter without having the uncertainties in other parameters affect it.
+	
+	Another important note is that we won't be considering uncertainties here, as the uncertainties package in python will make this process automatic.
+
+	\subsection{Alpha}
+	Alpha describes only the proportion of $\HH$ to $\VV$ being produced by the BBO, and encodes nothing about the phase difference. So 
+	Alpha is relatively easy to compute in terms of the computational basis expectation values as
+	\begin{equation}
+		\alpha = \arctan\sqrt{\frac{\eVH + \eVV}{\eHH + \eHV}} \label{eq:experimental alpha}
+	\end{equation}
+	
+	\subsection{Phi}
+	The next parameter we'll tackle is $\phi$. Note the following combinations of expectation values:
+	\begin{align}
+		-\eRR+\eRL+\eLR-\eLL &= \sin2\alpha\cos2\delta\sin\phi \\
+		-\eDR+\eDL+\eAR-\eAL &= \sin2\alpha\cos2\delta\cos\phi
+	\end{align}
+	Then
+	\begin{equation}
+		\phi = \arctantwo\left(\frac{-\eRR+\eRL+\eLR-\eLL}{-\eDR+\eDL+\eAR-\eAL}\right)\in\left(-\pi,\pi\right] \label{eq:experimental phi}
+	\end{equation}
+	
+	
+	\subsection{Gamma}
+	To obtain $\gamma$, note that
+	\begin{align}
+		\eDD-\eDA+\eAD-\eAA &= \cos2\alpha\cos2\delta\sin2\gamma \\
+		\eHH-\eHV+\eVH-\eVV &= \cos2\alpha\cos2\delta\cos2\gamma
+	\end{align}
+	Then we can find
+	\begin{equation}
+		\gamma=\frac{1}{2}\arctantwo\left(\frac{\eDD-\eDA+\eAD-\eAA}{\eHH-\eHV+\eVH-\eVV}\right)\in\left(-\frac{\pi}{2}, \frac{\pi}{2}\right]\label{eq:experimental gamma}
+	\end{equation}
+	
+	\subsection{Delta}
+	Lastly, $\delta$ can be computed using
+	\begin{equation}
+		\eHR-\eHL-\eVR+\eVL = \sin2\delta
+	\end{equation}
+	and so
+	\begin{equation}
+		\delta = \frac{1}{2}\arcsin(\eHR-\eHL-\eVR+\eVL)\in\left[-\frac{\pi}{4}, \frac{\pi}{4}\right]\label{eq:experimental delta}
+	\end{equation}
+	
+	\section{Experimental Method}
+	We haven't actually realized this method experimentally because we haven't installed Bob's creation QWP, but here's the general strategy I would use.
+	
+	\subsection{Finding the Parameters}
+	Given a state written like
+	\begin{equation}
+		\ket{\Psi} = a_1\HH + a_2\HV + a_3\VH + a_4\VV
+	\end{equation}
+	it is not necessarily obvious what parameters $\alpha$, $\phi$, $\gamma$, and $\delta$ will create the state (in terms of $a_i$). For this reason, we lean on computational methods for this task. First, you can write a function that outputs the state created by those parameters (exactly like \cref{eq:general product state}). Then, you should take your target state $\ket{\tau}$ and use a computational package to minimize the function $f(\alpha,\phi,\gamma,\delta)=1-|\bra{\tau}\ket{\Psi(\alpha,\phi,\gamma,\delta)}|^2$ which will determine the values of $\alpha$, $\phi$, $\gamma$, and $\delta$ that you should use.
+	
+	Notably, checking that the minimum of the function $f$ is zero will also ensure that the state $\ket{\tau}$ that you desire to create is indeed in the state space.
+	
+	\subsection{Sweep Data for $\alpha$ and $\phi$}
+	The backbone of this will be taking sweep data for $\alpha$ and $\phi$ by modulating the UV-HWP and QP. In theory, the UV-HWP and QP angle will affect only $\alpha$ and $\phi$, respectively (though, there has some been evidence to suggest that the UV-HWP angle may modulate $\phi$ as well - this is an area that could use further investigation). With this in mind, the first step of arbitrary state creation is to take sweep data for the UV-HWP and QP with respect to $\alpha$ and $\phi$, respectively. By fitting $\cos^2(2\theta)$ to the UV-HWP data and an appropriate function\footnote{The analytical function is something $\sec\theta$ adjacent, but like everything in this setup, the QP is imperfect. In our experience it's probably best to just use a high-order polynomial for the QP fit.} to the QP data, you use these fits to get within spitting distance of the $\alpha$ and $\phi$ parameters for any state that you wish to create.
+	
+	To really dial in on a state though, you'll want to do (much smaller) sweeps of the UV-HWP with respect to $\alpha$ and the QP with respect to $\phi$ as you are creating the state.
+	
+	\subsection{Creation Wave Plates}
+	Once $\alpha$ and $\phi$ have been realized, the other components (C-HWP and C-QWP) should act mostly ideally, so you can work backwards from the $\gamma=\theta_2$ and $\delta=2\theta_1-\theta_2$ to get the angles you should set the C-HWP and C-QWP to. Keep in mind that the angles that we refer to in the experiment\footnote{Experimentally the angle is defined as the CW displacement between the fast axis and the vertical.} are $\theta_1^0=\pi/2-\theta_1$ and $\theta_2^0=\pi/2-\theta_2$, and so the relationships we care about are
+	\begin{align}
+		\theta_1^0 &= (\pi - \delta - \gamma)/2\\
+		\theta_2^0 &= \pi/2 - \gamma
+	\end{align}
+	Using these to set the component angles should get us fairly close to our target state. From there, finer sweeps (just as with the UV-HWP and QP) will really dial us in on the state that we care about.
+	
+	\appendix
+	\section{Expectation Values}\label{apdx:expectation values}
+	
+	Here are the full set of analytical expressions for the expectation values of $\ket{\Psi}$ in different bases. I (Alec Roberson) calculated these in the summer of 2023 and checked the expressions computationally. This is by no means a complete set, rather just expressions I thought would be useful in terms of determining the parameters of a given state.
+	
+	\subsection{$\tk{H/V}\tk{H/V}$}
+	\begin{align}
+		\avgt{HH} &= \cos^2\alpha(\cos^2\gamma\cos^2\delta+\sin^2\gamma\sin^2\delta) \\
+		\avgt{HV} &= \cos^2\alpha(\sin^2\gamma\cos^2\delta + \cos^2\gamma\sin^2\delta) \\
+		\avgt{VH} &= \sin^2\alpha(\sin^2\gamma\cos^2\delta + \cos^2\gamma\sin^2\delta) \\
+		\avgt{VV} &= \sin^2\alpha(\cos^2\gamma\cos^2\delta + \sin^2\gamma\sin^2\delta) 
+	\end{align}
+	
+	\subsection{$\tk{H/V}\tk{R/L}$}
+	\begin{align}
+		\avgt{HR} &= \cos^2\alpha (1+\sin2\delta)/2 \\
+		\avgt{HL} &= \cos^2\alpha (1-\sin2\delta)/2 \\
+		\avgt{VR} &= \sin^2\alpha (1-\sin2\delta)/2 \\
+		\avgt{VL} &= \sin^2\alpha (1+\sin2\delta)/2
+	\end{align}
+	
+	\subsection{$\tk{D/A}\tk{D/A}$}
+	\begin{align}
+		\xi &= \cos2\gamma\sin\phi+\sin2\delta\sin2\gamma\cos\phi \notag \\
+		\avgt{DD} &= (1+\cos2\alpha\cos2\delta\sin2\gamma+\xi\sin2\alpha)/4\\
+		\avgt{DA} &= (1-\cos2\alpha\cos2\delta\sin2\gamma-\xi\sin2\alpha)/4\\
+		\avgt{AD} &= (1+\cos2\alpha\cos2\delta\sin2\gamma-\xi\sin2\alpha)/4\\
+		\avgt{AA} &= (1-\cos2\alpha\cos2\delta\sin2\gamma+\xi\sin2\alpha)/4
+	\end{align}
+	\subsection{$\tk{D/A}\tk{R/L}$}
+	\begin{align}
+		\avgt{DR} &= (1+\cos2\alpha\sin2\delta - \sin2\alpha\cos2\delta\cos\phi)/4 \\
+		\avgt{DL} &= (1-\cos2\alpha\sin2\delta + \sin2\alpha\cos2\delta\cos\phi)/4 \\
+		\avgt{AR} &= (1+\cos2\alpha\sin2\delta + \sin2\alpha\cos2\delta\cos\phi)/4 \\
+		\avgt{AL} &= (1-\cos2\alpha\sin2\delta - \sin2\alpha\cos2\delta\cos\phi)/4
+	\end{align}
+	\subsection{$\tk{R/L}\tk{R/L}$}
+	\begin{align}
+		\avgt{RR} &= (1+\cos2\alpha\sin2\delta - \sin2\alpha\cos2\delta\sin\phi)/4 \\
+		\avgt{RL} &= (1-\cos2\alpha\sin2\delta + \sin2\alpha\cos2\delta\sin\phi)/4 \\
+		\avgt{LR} &= (1+\cos2\alpha\sin2\delta + \sin2\alpha\cos2\delta\sin\phi)/4 \\
+		\avgt{LL} &= (1-\cos2\alpha\sin2\delta - \sin2\alpha\cos2\delta\sin\phi)/4
+	\end{align}
+\end{document}

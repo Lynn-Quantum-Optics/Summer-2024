@@ -1,0 +1,121 @@
+0:00:00	Manager started at 2023-07-21_13-08-09.
+0:00:00	Configuration file: "../config.json".
+0:00:00	Initializing CCU.
+0:00:00	Initializing motors.
+0:00:09	Loading measurement basis "HH" from config file.
+0:00:27	Sweeping C_UV_HWP from 68.38 to 62.379999999999995 degrees in 20 steps.
+0:00:29	Taking data; sampling 5 x 3 s.
+0:00:44	Taking data; sampling 5 x 3 s.
+0:01:00	Taking data; sampling 5 x 3 s.
+0:01:16	Taking data; sampling 5 x 3 s.
+0:01:31	Taking data; sampling 5 x 3 s.
+0:01:47	Taking data; sampling 5 x 3 s.
+0:02:03	Taking data; sampling 5 x 3 s.
+0:02:19	Taking data; sampling 5 x 3 s.
+0:02:34	Taking data; sampling 5 x 3 s.
+0:02:50	Taking data; sampling 5 x 3 s.
+0:03:06	Taking data; sampling 5 x 3 s.
+0:03:22	Taking data; sampling 5 x 3 s.
+0:03:37	Taking data; sampling 5 x 3 s.
+0:03:53	Taking data; sampling 5 x 3 s.
+0:04:09	Taking data; sampling 5 x 3 s.
+0:04:25	Taking data; sampling 5 x 3 s.
+0:04:40	Taking data; sampling 5 x 3 s.
+0:04:56	Taking data; sampling 5 x 3 s.
+0:05:12	Taking data; sampling 5 x 3 s.
+0:05:28	Taking data; sampling 5 x 3 s.
+0:05:43	Saving data to "hh_sweep_1.csv".
+0:05:43	Clearing output data.
+0:05:43	Loading measurement basis "HV" from config file.
+0:05:49	Sweeping C_UV_HWP from 68.38 to 62.379999999999995 degrees in 20 steps.
+0:05:50	Taking data; sampling 5 x 3 s.
+0:06:05	Taking data; sampling 5 x 3 s.
+0:06:21	Taking data; sampling 5 x 3 s.
+0:06:37	Taking data; sampling 5 x 3 s.
+0:06:52	Taking data; sampling 5 x 3 s.
+0:07:08	Taking data; sampling 5 x 3 s.
+0:07:24	Taking data; sampling 5 x 3 s.
+0:07:39	Taking data; sampling 5 x 3 s.
+0:07:55	Taking data; sampling 5 x 3 s.
+0:08:11	Taking data; sampling 5 x 3 s.
+0:08:27	Taking data; sampling 5 x 3 s.
+0:08:42	Taking data; sampling 5 x 3 s.
+0:08:58	Taking data; sampling 5 x 3 s.
+0:09:14	Taking data; sampling 5 x 3 s.
+0:09:29	Taking data; sampling 5 x 3 s.
+0:09:45	Taking data; sampling 5 x 3 s.
+0:10:01	Taking data; sampling 5 x 3 s.
+0:10:17	Taking data; sampling 5 x 3 s.
+0:10:32	Taking data; sampling 5 x 3 s.
+0:10:48	Taking data; sampling 5 x 3 s.
+0:11:03	Saving data to "hv_sweep_1.csv".
+0:11:04	Clearing output data.
+0:11:04	Loading measurement basis "VH" from config file.
+0:11:16	Sweeping C_UV_HWP from 68.38 to 62.379999999999995 degrees in 20 steps.
+0:11:16	Taking data; sampling 5 x 3 s.
+0:11:32	Taking data; sampling 5 x 3 s.
+0:11:48	Taking data; sampling 5 x 3 s.
+0:12:03	Taking data; sampling 5 x 3 s.
+0:12:19	Taking data; sampling 5 x 3 s.
+0:12:35	Taking data; sampling 5 x 3 s.
+0:12:51	Taking data; sampling 5 x 3 s.
+0:13:06	Taking data; sampling 5 x 3 s.
+0:13:22	Taking data; sampling 5 x 3 s.
+0:13:38	Taking data; sampling 5 x 3 s.
+0:13:53	Taking data; sampling 5 x 3 s.
+0:14:09	Taking data; sampling 5 x 3 s.
+0:14:25	Taking data; sampling 5 x 3 s.
+0:14:41	Taking data; sampling 5 x 3 s.
+0:14:56	Taking data; sampling 5 x 3 s.
+0:15:12	Taking data; sampling 5 x 3 s.
+0:15:27	Taking data; sampling 5 x 3 s.
+0:15:43	Taking data; sampling 5 x 3 s.
+0:15:59	Taking data; sampling 5 x 3 s.
+0:16:15	Taking data; sampling 5 x 3 s.
+0:16:30	Saving data to "vh_sweep_1.csv".
+0:16:30	Clearing output data.
+0:16:30	Loading measurement basis "VV" from config file.
+0:16:36	Sweeping C_UV_HWP from 68.38 to 62.379999999999995 degrees in 20 steps.
+0:16:37	Taking data; sampling 5 x 3 s.
+0:16:52	Taking data; sampling 5 x 3 s.
+0:17:08	Taking data; sampling 5 x 3 s.
+0:17:24	Taking data; sampling 5 x 3 s.
+0:17:40	Taking data; sampling 5 x 3 s.
+0:17:56	Taking data; sampling 5 x 3 s.
+0:18:12	Taking data; sampling 5 x 3 s.
+0:18:27	Taking data; sampling 5 x 3 s.
+0:18:43	Taking data; sampling 5 x 3 s.
+0:18:59	Taking data; sampling 5 x 3 s.
+0:19:15	Taking data; sampling 5 x 3 s.
+0:19:31	Taking data; sampling 5 x 3 s.
+0:19:47	Taking data; sampling 5 x 3 s.
+0:20:02	Taking data; sampling 5 x 3 s.
+0:20:18	Taking data; sampling 5 x 3 s.
+0:20:34	Taking data; sampling 5 x 3 s.
+0:20:50	Taking data; sampling 5 x 3 s.
+0:21:06	Taking data; sampling 5 x 3 s.
+0:21:22	Taking data; sampling 5 x 3 s.
+0:21:38	Taking data; sampling 5 x 3 s.
+0:21:54	Saving data to "vv_sweep_1.csv".
+0:21:54	Clearing output data.
+0:21:54	Beginning shutdown procedure.
+0:21:54	Shutting down motor objects.
+0:21:54	C_UV_HWP returned to true position 359.9799107142857 degrees.
+0:21:54	Deleting C_UV_HWP object.
+0:21:56	C_QP returned to true position 0.005022321428571428 degrees.
+0:21:56	Deleting C_QP object.
+0:21:56	C_PCC returned to true position 359.99246651785717 degrees.
+0:21:56	Deleting C_PCC object.
+0:21:57	B_C_HWP returned to true position 359.99497767857144 degrees.
+0:21:57	Deleting B_C_HWP object.
+0:22:01	B_HWP returned to true position 0.0 degrees.
+0:22:01	Deleting B_HWP object.
+0:22:12	B_QWP returned to true position 359.99993896484375 degrees.
+0:22:12	Deleting B_QWP object.
+0:22:18	A_HWP returned to true position 0.0 degrees.
+0:22:18	Deleting A_HWP object.
+0:22:20	A_QWP returned to true position 359.9994812011719 degrees.
+0:22:20	Deleting A_QWP object.
+0:22:20	Closing COM ports.
+0:22:20	Closing CCU.
+0:22:21	Closing log file.
