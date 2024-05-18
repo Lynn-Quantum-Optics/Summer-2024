@@ -395,7 +395,8 @@ if __name__ == '__main__':
     fix file duplicate naming issue
     '''
     # to get last 3 rhos, due to bug out after first 3
-    #states_names = states_names[]
+    #states_names = states_names[3:]
+    #states = states[3:]
     # main loop for iterating over states
     for i, state_n in enumerate(states_names):
         state = states[i]
