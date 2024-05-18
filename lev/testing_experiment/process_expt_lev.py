@@ -14,7 +14,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'rho_5162024'
+DATA_PATH = 'rho_5172024'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -424,8 +424,8 @@ def get_theo_rho(alpha, beta):
     H = ket([1,0])
     V = ket([0,1])
     
-    PHI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
-    PHI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
+    PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
+    PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
 
     phi = np.cos(alpha)*PHI_PLUS + np.exp(1j*beta)*np.sin(alpha)*PHI_MINUS
 
@@ -436,27 +436,28 @@ def get_theo_rho(alpha, beta):
 if __name__ == '__main__':
     # set filenames for computing W values
 
-    alphas = [np.pi/3]
+    alphas = [np.pi/6]
     betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
 
     for alpha in alphas:
         for beta in betas:
-            states_names.append((np.rad2deg(alpha), np.rad2deg(beta)))
-            states.append((alpha, beta))
+            if beta != betas[2]:
+                states_names.append((np.rad2deg(alpha), np.rad2deg(beta)))
+                states.append((alpha, beta))
 
     filenames = []
     settings = []
     rho_actuals = []
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_(E0, {state_n})_1.npy")
+        filenames.append(f"rho_('E0', {state_n})_2.npy")
         settings.append([state_n[0],state_n[1]])
         rad_angles = states[i]
         rho_actuals.append(get_theo_rho(rad_angles[0],rad_angles[1]))
 
     # analyze rho files
-    id = 'rho_5162024'
+    id = 'rho_5172024'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'rho_analysis_{id}.csv')
 
