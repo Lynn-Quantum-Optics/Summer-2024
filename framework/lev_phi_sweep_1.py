@@ -445,9 +445,9 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 0] # the 0 is B_C_HWP angle
 
         # save results
-        with open(f"int_state_sweep/rho_('E0', {state_n})_2.npy", 'wb') as f:
+        with open(f"int_state_sweep/rho_('E0', {state_n})_3.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
-        date="5172024"
+        date="5202024"
         tomo_df = m.output_data(f'int_state_sweep/tomo_data_{state}_{date}.csv')
         # m.close_output()
         
