@@ -378,7 +378,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
 
 if __name__ == '__main__':
 
-    alphas = [np.pi/6]
+    alphas = [np.pi/12]
     betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
@@ -445,7 +445,7 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 0] # the 0 is B_C_HWP angle
 
         # save results
-        with open(f"int_state_sweep/rho_('E0', {state_n})_3.npy", 'wb') as f:
+        with open(f"int_state_sweep/rho_('E0', {state_n})_4.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
         date="5202024"
         tomo_df = m.output_data(f'int_state_sweep/tomo_data_{state}_{date}.csv')
