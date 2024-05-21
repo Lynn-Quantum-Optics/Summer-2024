@@ -906,16 +906,16 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             return do_min['fun'], do_min['x']
 
                     # make two intial guesses to scipy optimize, take the best 
-                    x0 = [0]
+                    x0 = [np.random.rand()*np.pi]
                     w0 = min_W(x0, True)
-                    x0 = [np.pi]
-                    w1 = min_W(x0, True)
+                    x1 = [np.random.rand()*np.pi]
+                    w1 = min_W(x1, True)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0]
+                        x0_best = [x0]
                     else:
                         w_min = w1
-                        x0_best = [np.pi]
+                        x0_best = [x1]
                     
                     # to escape local minima, run scipy optimize with a small displacement each time stuck
                     if optimize:
@@ -956,16 +956,16 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                         else:
                             return do_min['fun'], do_min['x']
 
-                    x0 = [0, 0, 0]
+                    x0 = [np.random.rand() * np.pi/2, np.random.rand() * 2*np.pi, np.random.rand() * np.pi * 2]
                     w0 = min_W(x0, True)
-                    x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
-                    w1 = min_W(x0, True)
+                    x1 = [np.pi/2 , 2*np.pi, 2*np.pi]
+                    w1 = min_W(x1, True)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0, 0, 0]
+                        x0_best = x0
                     else:
                         w_min = w1
-                        x0_best = [np.pi/2 , 2*np.pi, 2*np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -1083,16 +1083,16 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             return do_min['fun']
                         else:
                             return do_min['fun'], do_min['x']
-                    x0 = [0, 0]
+                    x0 = [np.random.rand() * np.pi/2, np.random.rand() * np.pi * 2]
                     w0 = min_W(x0,True)
-                    x0 = [np.pi/2 , 2*np.pi]
-                    w1 = min_W(x0,True)
+                    x1 = [np.pi/2 , 2*np.pi]
+                    w1 = min_W(x1,True)
                     if w0 < w1:
                         w_min = w0
                         x0_best = [0, 0]
                     else:
                         w_min = w1
-                        x0_best = [np.pi/2 , 2*np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum

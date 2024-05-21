@@ -13,7 +13,7 @@ import numpy as np
 wm_arr_15 = []
 wpl_15 = []
 chi_arr = []
-with open('psi_chisweep_15eta.csv', 'r') as f:
+with open('stu_states/psi_chisweep_15eta.csv', 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
         wm_arr_15.append(ast.literal_eval(row['W'])[0])

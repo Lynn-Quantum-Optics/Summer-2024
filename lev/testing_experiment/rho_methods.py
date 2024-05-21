@@ -897,16 +897,16 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = False, do_coun
                         do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
                         return do_min['fun']
 
-                    x0 = [0, 0, 0]
+                    x0 = [np.random.rand() * np.pi/2, np.random.rand() * 2*np.pi, np.random.rand() * np.pi * 2]
                     w0 = min_W(x0)
-                    x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.pi/2 , 2*np.pi, 2*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0, 0, 0]
+                        x0_best = x0
                     else:
                         w_min = w1
-                        x0_best = [np.pi/2 , 2*np.pi, 2*np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -934,16 +934,16 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = False, do_coun
                     def min_W(x0):
                         return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
                         
-                    x0 = [0, 0]
+                    x0 = [np.random.rand() * np.pi/2, np.random.rand() * np.pi * 2]
                     w0 = min_W(x0)
-                    x0 = [np.pi/2 , 2*np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.pi/2 , 2*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0, 0]
+                        x0_best = x0
                     else:
                         w_min = w1
-                        x0_best = [np.pi/2 , 2*np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum

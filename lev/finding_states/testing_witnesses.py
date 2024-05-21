@@ -26,11 +26,11 @@ import random
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
-# Original code from Oscar Scholin in Summer 2023
+# Original code adapted from Oscar Scholin in Summer 2023
 from sample_rho import *
 from rho_methods import *
 
-# Helper methods 
+####### Helper methods for rho creation
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
@@ -68,18 +68,92 @@ def get_theo_rho_phi(eta, chi):
     Returns:
     numpy.ndarray: The density matrix (rho) calculated based on the given parameters.
     """
+    # HV Kets
     H = ket([1,0])
     V = ket([0,1])
     
+    # Bell States
     PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
-
+    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
+    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
+    
     phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
 
     rho = phi @ phi.conj().T
 
     return rho
 
+def get_theo_rho_stu(state, eta, chi):
+    '''
+    Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
+    
+    Parameters:
+    state (string): Which state we want
+    eta (float): The parameter eta.
+    chi (float): The parameter chi.
+    
+    Returns:
+    numpy.ndarray: The density matrix (rho)
+    '''
+    # Define kets and bell states in vector form 
+    H = ket([1,0])
+    V = ket([0,1])
+    
+    PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
+    PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
+    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
+    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
+    
+    # create the state PHI+ + PSI-
+    if state == 'phi plus, psi minus':
+        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+        rho = phi @ phi.conj().T
+        return rho
+    
+    # create the state PHI- + PSI+
+    if state == 'phi minus, psi plus ':
+        phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
+        rho = phi @ phi.conj().T
+        return rho
+    
+    # create the state PSI+ + iPSI-
+    if state == 'psi plus, i psi minus':
+        phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+        rho = phi @ phi.conj().T
+    
+    if state == 'phi minus, i psi minus':
+        phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+        rho = phi @ phi.conj().T
+        
+    else:
+        return 'gimme a state'
+    
+def create_noise(rho, power):
+    '''
+    Adds noise of order power to a density matrix rho
+    
+    Parameters:
+    rho: NxN density matrix
+    power: integer multiple of 10
+    
+    Returns:
+    noisy_rho: rho with noise
+    '''
+    
+    # get size of matrix
+    n, _ = rho.shape
+    
+    # iterature over matrix and add some random noise to each elemnent
+    for i in range(n):
+        for j in range(n):
+            rando = random.random() / (10 ** power)
+            rho[i,j] += rando
+    noisy_rho = rho
+    
+    return noisy_rho
+
+######## Helper methods for analyzing density matrices
 def analyze_rho(rho_actual, verbose = False, id='id'):
     '''; 
     __
@@ -125,38 +199,25 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     else:
          return W_min, Wp_t1, Wp_t2, Wp_t3
 
-def create_noise(rho, power):
+def plot_all(W, min_Wp, eta, chi)
     '''
-    Adds noise of order power to a density matrix rho
+    Plots data from main
     
     Parameters:
-    rho: NxN density matrix
-    power: integer multiple of 10
-    
-    Returns:
-    noisy_rho: rho with noise
+    W (array): 
+    min_Wp (array):
+    eta (array):
+    chi ()
     '''
-    
-    # get size of matrix
-    n, _ = rho.shape
-    
-    # iterature over matrix and add some random noise to each elemnent
-    for i in range(n):
-        for j in range(n):
-            rando = random.random() / (10 ** power)
-            rho[i,j] += rando
-    noisy_rho = rho
-    
-    return noisy_rho
+
+####### Main Functions
 
 if __name__ == '__main__':
-    # Sweeping parameters, desied plot x-axis being eta
-    #etas = np.linspace(0.001, np.pi/2, 90)
-    #chis = [np.pi/4]
-    
-    # Sweeping parameters, desired plot x-axis being chi
+    # Determine all sweeping settings and choose name for file
     etas = [np.pi/6]
     chis = np.linspace(0.001, np.pi/2, 6)
+    name = f'phi_plus_psi_minus_{etas[0]}'
+    plot = True
     
     # Instantiate states to sweep over
     states_names = []
@@ -170,7 +231,7 @@ if __name__ == '__main__':
     rho_actuals = []
     for i, state_n in enumerate(states_names):
         rad_angles = states[i]
-        rho_actuals.append(get_theo_rho_phi(rad_angles[0],rad_angles[1]))
+        rho_actuals.append(get_theo_rho_stu('phi plus, psi minus',rad_angles[0],rad_angles[1]))
 
     # Instantiate lists to save as csv
     wpl = [] 
@@ -213,9 +274,12 @@ if __name__ == '__main__':
     # Save data into a csv
     data = {'W': wm_arr, 'min_W_prime': wpl, 'eta': eta_arr, 'chi': chi_arr}
     df = pd.DataFrame(data)
-
+    df.to_csv(f'stu_states/{name}.csv', index=False)
+    
+    if plot == True:
+        plot_all()
     # Save to CSV
-    df.to_csv('testing_random_stuff.csv', index=False)
+    
     
 
 
