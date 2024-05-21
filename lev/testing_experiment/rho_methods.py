@@ -461,7 +461,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
+def compute_witnesses(rho, counts = None, expt = False, verbose = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -740,7 +740,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
         
         if verbose:
-            print('i got to verbosity')
+            #print('i got to verbosity')
             # Define dictionary to get name of
             all_W = ['W1','gW2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
             index_names = {i: name for i, name in enumerate(all_W)}
@@ -891,8 +891,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                                 isi=0
                             else:
                                 isi+=1
-                    if i == 3:
-                        print('W4 was:', w_min)
                     # print('------------------')
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     def min_W(x0):
@@ -1004,7 +1002,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 else:
                     return W_expec_vals
         else: 
-            print(' i went to the 2nd else')
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
             W2_param = W2_main['x']

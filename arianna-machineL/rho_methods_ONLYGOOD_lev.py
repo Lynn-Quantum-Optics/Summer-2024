@@ -8,10 +8,12 @@ import pandas as pd
 import scipy.linalg as la
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize, approx_fprime
-from tqdm import trange
+from functools import partial
+# from tqdm import trange
 
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
+import numdifftools as ndq
 
 ##############################################
 ## for more basic stats about a state ##
@@ -136,6 +138,7 @@ def get_expec_vals_counts(raw_data):
 
     return S
     
+
 def compute_proj(basis1, basis2, rho):
     ''' Computes projection into desired bases using projection operations on both qubits'''
     # get projection operators
@@ -214,7 +217,7 @@ def reconstruct_rho(all_projs):
         for i2 in range(4):
             rho+= S[i1,i2]*np.kron(P[i1],P[i2])
 
-    return rho/4 # scale by 4 to get the correct density matrix
+    return rho/4 # scale by 4 to get the correct density matrix  
 
 def test_reconstruct_rho(rho):
     ''' Test the reconstruction of the density matrix using the stokes parameters calculated directly from the density matrix.'''
@@ -334,6 +337,7 @@ def adjust_rho(rho, angles, expt_purity, state='E0'):
         return rho_adj
 
         # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
+
 
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
@@ -456,18 +460,19 @@ def load_saved_get_E0_rho_c(rho_actual, angles_save, angles_cor, purity, model, 
     elif model is None:
         return rho_actual
 
+
 def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_offset):
     ''' Computes the fidelity of the adjusted density matrix with the theoretical density matrix.'''
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
-    ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
+
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=True, return_params=True, return_lynn=False, return_lynn_only=False):
+    ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. This one can return the correct minimized parameters
         Params:
-            rho: the density matrix
+            rho: the density matrix (usually pass in)
             counts: raw unp array of counts and unc
             expt: bool, whether to compute the Ws assuming input is experimental data
-            verbose: Whether to return which W/W' are minimal.
             do_stokes: bool, whether to compute 
             do_counts: use the raw definition in terms of counts
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
@@ -484,9 +489,11 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             return_all: bool, whether to return all the Ws or just the min of the 6 and the min of the 3 triples
             return_params: bool, whether to return the params that give the min of the 6 and the min of the 3 triples
     '''
+
     # check if experimental data
     if expt and counts is not None:
         do_counts = True
+
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
 
     # automatic correction is depricated; send the theoretical rho after whatever correction you want to this function
@@ -739,24 +746,10 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
         
-        if verbose:
-            print('i got to verbosity')
-            # Define dictionary to get name of
-            all_W = ['W1','gW2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
-            index_names = {i: name for i, name in enumerate(all_W)}
-
-            # Get which W/W' were minimized
-            W_min_name = index_names.get(W_expec_vals.index(W_min), 'Unknown')
-            Wp1_min_name = index_names.get(W_expec_vals.index(Wp_t1), 'Unknown')
-            Wp2_min_name = index_names.get(W_expec_vals.index(Wp_t2), 'Unknown')
-            Wp3_min_name = index_names.get(W_expec_vals.index(Wp_t3), 'Unknown')
-            
-            # Find names from dictionary and return them and their values
-            return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
-        else:
-            return W_min, Wp_t1, Wp_t2, Wp_t3
+        return W_min, Wp_t1, Wp_t2, Wp_t3
         # return W_expec_vals
 
+        
     else: # use operators instead like in eritas's matlab code
         # bell states #
         PHI_P = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
@@ -771,12 +764,31 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
 
         # get the operators
         # take rank 1 projector and return witness
+        #
+        # Get the witnesses for each class of witnesses
+        #
         def get_witness(phi):
             ''' Helper function to compute the witness operator for a given state and return trace(W*rho) for a given state rho.'''
             W = phi * adjoint(phi)
             W = partial_transpose(W) # take partial transpose
             return np.real(np.trace(W @ rho))
+        
+        def get_param_wit(a,b,c,d,beta,gamma,delta):
+            """ Helper function to get the most general parameterized witness with input params, and take the trace
+                inputs: a,b,c,d,beta,gamma,delta - all params to go into the witness
+                output: the expectation value of the parameterized witness for the given input state
+            """
+            W = np.array([[a**2, a*b*np.exp(-1j*beta), a*c*np.exp(-1j*gamma), a*d*np.exp(-1j*delta)],\
+                          [a*b*np.exp(1j*beta), b**2, b*c*np.exp(1j*(beta - gamma)), b*d*np.exp(1j*(beta-delta))],\
+                          [a*c*np.exp(1j*gamma), b*c*np.exp(-1j*(beta - gamma)), c**2, c*d*np.exp(1j*(gamma-delta))],\
+                          [a*d*np.exp(1j*delta), b*d*np.exp(-1j*(beta - delta)), c*d*np.exp(-1j*(gamma-delta)), d**2]
+                        ])
+            W = partial_transpose(W) # take partial transpose
+            return np.real(np.trace(W @ rho))
 
+        #
+        # Specific Witnesses
+        #
         ## ------ for W ------ ##
         def get_W1(param):
             a,b = np.cos(param), np.sin(param)
@@ -841,68 +853,113 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             phi9_p = np.cos(theta)*np.cos(alpha)*HH + np.cos(theta)*np.sin(alpha)*HV + np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
             return get_witness(phi9_p)
         
+        # additions fro prof lynn witness
         def get_lynn():
             return 1/5*(2*HH +2*np.exp(1j*np.pi/4)*  HV +  np.exp(1j*np.pi/4)*VH +4*VV) 
+        
         if return_lynn_only:
             return get_witness(get_lynn())
+        
+        
+        def get_v_1(params):
+            """
+            Witness includes szsy, sxz, and sxy or syx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+
+            # [TODO]: figure out which params send a,b,c,d to infinity]
+            beta, gamma, delta = params[0], params[1], params[2]
+
+            # for debugging
+            print(params)
+
+            # Witness constraints  
+            a = np.real((np.sin(beta - delta)*np.sin(beta - gamma)*np.cos(gamma - delta))/(np.sin(beta - delta)*np.sin(beta - gamma)*np.cos(gamma - delta) +\
+                          np.sin(gamma)*np.sin(delta)*np.cos(gamma - delta) -\
+                          np.cos(beta)*np.sin(delta)*np.sin(beta-delta) -\
+                          np.sin(gamma)*np.cos(beta)*np.sin(beta - gamma)))
+            #print('a:', a)
+            b = np.real(a*np.sqrt((np.sin(gamma)*np.sin(delta))/(np.sin(gamma - beta)*np.sin(beta-delta))))
+            #print('b:', b, 'inside sqrt b:', (np.sin(gamma - beta)*np.sin(beta-delta)))
+            c = np.real(a*np.sqrt((-np.cos(beta)*np.sin(delta))/(np.sin(beta-gamma)*np.cos(gamma-delta))))
+            d = np.real(a*np.sqrt((-np.sin(gamma)*np.cos(beta))/(np.cos(gamma-delta)*np.sin(beta-delta))))
+        
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*gamma)*VH + d*np.exp(1j*delta)*VV
+            return get_witness(phi)
+        
         # get the witness values by minimizing the witness function
         if not(ads_test): 
-            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
+            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9, get_v_1]
             W_expec_vals = []
             if return_params: # to log the params
                 min_params = []
             for i, W in enumerate(all_W):
-                if i <= 5: # just theta optimization
+                if i <= 5: # just theta optimization, witnesses 1-6
+
                     # get initial guess at boundary
-                    def min_W(x0):
+                    def min_W(x0, grad_des):
                         do_min = minimize(W, x0=x0, bounds=[(0, np.pi)])
-                        # print(do_min['x'])
-                        return do_min['fun']
-                    x0 = [np.random.rand()*np.pi]
-                    w0 = min_W(x0)
-                    x1 = [np.random.rand()*np.pi]
-                    w1 = min_W(x1)
+                        if grad_des:
+                            return do_min['fun']
+                        else:
+                            return do_min['fun'], do_min['x']
+
+                    # make two intial guesses to scipy optimize, take the best 
+                    x0 = [0]
+                    w0 = min_W(x0, True)
+                    x0 = [np.pi]
+                    w1 = min_W(x0, True)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = x0
+                        x0_best = [0]
                     else:
                         w_min = w1
-                        x0_best = x1
+                        x0_best = [np.pi]
+                    
+                    # to escape local minima, run scipy optimize with a small displacement each time stuck
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
-                            if gd:
+                            if gd: #if we specify to do gradient descent
                                 if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                     x0 = [np.random.rand()*np.pi]
                                 else:
-                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    # get the gradient of W at x0 
+                                    min_W_gd = partial(min_W, grad_des=True) # to get a function passable to approx_fprime
+                                    grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                    grad = clip_gradients_by_norm(grad, threshold=10.0)  
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
                                         break
                                     else:
+                                        # increment x0 to escape any local optima
                                         x0 = x0 - zeta*grad
                             else:
                                 x0 = [np.random.rand()*np.pi]
 
-                            w = min_W(x0)
+                            w, w_min_params = min_W(x0, False)
                             
                             if w < w_min:
                                 w_min = w
-                                x0_best = x0
+                                x0_best = w_min_params
                                 isi=0
                             else:
                                 isi+=1
-                    if i == 3:
-                        print('W4 was:', w_min)
                     # print('------------------')
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
-                    def min_W(x0):
-                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
-                        return do_min['fun']
+                    
+                    def min_W(x0, grad_des):
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)]) 
+                        # print(do_min['x'])
+                        if grad_des:
+                            return do_min['fun']
+                        else:
+                            return do_min['fun'], do_min['x']
 
                     x0 = [0, 0, 0]
-                    w0 = min_W(x0)
+                    w0 = min_W(x0, True)
                     x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
-                    w1 = min_W(x0)
+                    w1 = min_W(x0, True)
                     if w0 < w1:
                         w_min = w0
                         x0_best = [0, 0, 0]
@@ -916,7 +973,9 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                                 if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                 else:
-                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    min_W_gd = partial(min_W, grad_des=True)
+                                    grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                    grad = clip_gradients_by_norm(grad, threshold=10.0)  
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
                                         x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                     else:
@@ -924,22 +983,110 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                             else:
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                            w = min_W(x0)
+                            w, w_min_params = min_W(x0,False)
                             
                             if w < w_min:
                                 w_min = w
-                                x0_best = x0
+                                x0_best = w_min_params
                                 isi=0
                             else:
                                 isi+=1
+                elif i == 15: # the V witness
+                    def min_W(x0, grad_des):
+                        # print(x0)
+                        do_min = minimize(W, x0=x0, bounds=[(1e-2,np.pi/4 - 1e-2), (-np.pi/4 + 1e-2, 1e-2), (np.pi/2 + 1e-2, 3*np.pi/4 - 1e-2)])
+                        # print(do_min['x'])
+                        if grad_des:
+                            return do_min['fun']
+                        else:
+                            return do_min['fun'], do_min['x']
+
+                    #x0 = [0, 0, 0, 0]
+                    # x0 = [np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]
+                    x0 = [np.pi/8, -np.pi/8, 5*np.pi/8]
+                    print("FIRST x0")
+                    w0 = min_W(x0, True)
+                    print("SECOND x0")
+                    # x0 = [1, np.pi/2, np.pi/2 , np.pi/2] # change this based on what the output is
+                    # x0 = [np.random.rand(), np.random.rand(), np.random.rand(), np.random.rand()]
+                    x1 = [np.pi/3, -np.pi/3, np.pi/3]
+                    # = [np.random.rand(), np.random.rand(), np.random.rand()]
+                    w1 = min_W(x1, True)
+                    if w0 < w1:
+                        w_min = w0
+                        x0_best = x0
+                    else:
+                        w_min = w1
+                        # x0_best = [1, 0, np.pi/2 , np.pi/2]
+                        x0_best = x1
+                    if optimize:
+                        isi = 0 # index since last improvement
+                        count = 0
+                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                            count += 1
+                            if gd:
+                                if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                    print("RESTART")
+                                    # x0 = [np.random.rand(), np.random.rand(), np.random.rand()*np.pi/2, np.random.rand()*np.pi/2]
+                                    x0 = [np.random.rand(), np.random.rand(), np.random.rand()]
+                                else:
+                                    print(f"{count} for GRAD DESCENT")
+                                   # if isi == 1: # delete once done debugging
+                                       # break
+
+                                    # x0 = beta, gamma, delta
+                                    if (x0[0] - x0[2] != np.pi) and (x0[0] - x0[2] != 0) \
+                                        and (x0[0] - x0[1] != np.pi) and (x0[0] - x0[1] != 0) \
+                                        and (x0[1] - x0[2] != np.pi/2) and (x0[1] - x0[2] != 3*np.pi/2):
+                                        print("test")
+                                        min_W_gd = partial(min_W, grad_des=True)
+                                    # get the partial derivative at x0
+                                        grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                        #grad = clip_gradients_by_norm(grad, threshold=100000.0)  
+                                        # min_W_gd = lambda x: min_W(x, grad_des=True)
+                                        # grad = nd.Gradient(min_W_gd)(x0)
+                                    else:
+                                        x0 = [np.random.rand(), np.random.rand(), np.random.rand()]
+
+                                     # compute a partial at function to find steepest gradient
+                                    # min_W_gd = partial(min_W, grad_des=True)
+                                    # get the partial derivative at x0
+                                    # grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                    # grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                    print("GRAD:", grad)
+                                    if np.all(grad < 1e-5*np.ones(len(grad))):
+                                        # x0 = [np.random.rand(), np.random.rand()*np.pi/2, np.random.rand()*np.pi/2, np.random.rand()*np.pi/2]
+                                        x0 = [np.random.rand(), np.random.rand(), np.random.rand()]
+                                    else:
+                                        print(f"doing grad des rep {count}")
+                                        x0 = x0 - zeta*grad
+                                    if count == 1:
+                                        break
+                            else:
+                                # x0 = [np.random.rand(), np.random.rand()*np.pi/2, np.random.rand()*np.pi/2, np.random.rand()*np.pi/2]
+                                x0 = [np.random.rand(), np.random.rand(), np.random.rand()]
+
+                            w, w_min_params = min_W(x0,False)
+                            
+                            if w < w_min:
+                                w_min = w
+                                x0_best = w_min_params
+                                isi=0
+                            else:
+                                isi+=1
+                    
                 else:# theta and alpha
-                    def min_W(x0):
-                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                        
+                    def min_W(x0, grad_des):
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])
+                        # print(do_min['x'])
+                        if grad_des:
+                            return do_min['fun']
+                        else:
+                            return do_min['fun'], do_min['x']
                     x0 = [0, 0]
-                    w0 = min_W(x0)
+                    w0 = min_W(x0,True)
                     x0 = [np.pi/2 , 2*np.pi]
-                    w1 = min_W(x0)
+                    w1 = min_W(x0,True)
                     if w0 < w1:
                         w_min = w0
                         x0_best = [0, 0]
@@ -953,7 +1100,9 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                                 if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                                 else:
-                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    min_W_gd = partial(min_W, grad_des=True)
+                                    grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                    #grad = clip_gradients_by_norm(grad, threshold=1.0)  
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
                                         x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                                     else:
@@ -961,55 +1110,66 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                             else:
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
-                            w = min_W(x0)
+                            w, w_min_params = min_W(x0, False)
                             
                             if w < w_min:
                                 w_min = w
-                                x0_best = x0
+                                x0_best = w_min_params
                                 isi=0
                             else:
                                 isi+=1
                 if return_params:
                     min_params.append(x0_best)
+                    # print("witness", i + 1)
+                    # print("min_params", min_params[i])
+                    # print("w_expec_val", w_min)
+                
                 W_expec_vals.append(w_min)
             # print('W', np.round(W_expec_vals[:6], 3))
             # print('W\'', np.round(W_expec_vals[6:], 3))
             # find min witness expectation values
             W_min = min(W_expec_vals[:6])
+            # print(min_params)
             Wp_t1 = min(W_expec_vals[6:9])
             Wp_t2 = min(W_expec_vals[9:12])
             Wp_t3 = min(W_expec_vals[12:15])
+            v_1 = W_expec_vals[15]
+            # print("Wp_t3",W_expec_vals[12:15])
+            # print("min_params",min_params[12:15])
+
             # get the corresponding parameters
             if return_params:
                 # sort by witness value; want the most negative, so take first element in sorted
-                W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]))][0]
-                Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]))][0]
-                Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
-                Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
+                W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]),key=lambda x: x[0])][0]
+                Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]),key=lambda x: x[0])][0]
+                Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]),key=lambda x: x[0])][0]
+                Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]),key=lambda x: x[0])][0]
+                v_1_param = [x for _,x in sorted(zip(W_expec_vals[15:], min_params[15]),key=lambda x: x[0])][0]
+
 
             # calculate lynn
             W_lynn = get_witness(get_lynn())
 
             if not(return_all):
                 if return_params:
-                    return W_min, Wp_t1, Wp_t2, Wp_t3, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
+                    return v_1_param #W_min, Wp_t1, Wp_t2, Wp_t3, v_1, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param, v_1_param
                 else:
                     if return_lynn:
-                        return W_min, Wp_t1, Wp_t2, Wp_t3, W_lynn
+                        return W_min, Wp_t1, Wp_t2, Wp_t3, W_lynn #add new witnesses here 
                     else:
                         return W_min, Wp_t1, Wp_t2, Wp_t3
             else:
                 if return_params:
-                    return W_expec_vals, min_params
+                    return W_expec_vals[15], min_params[15]#W_expec_vals, min_params
                 else:
-                    return W_expec_vals
+                    return W_expec_vals[15]#W_expec_vals
         else: 
-            print(' i went to the 2nd else')
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
             W2_param = W2_main['x']
 
             return W2_val, W2_param[0]
+
 
 def test_witnesses():
     '''Calculate witness vals for select experimental states'''
@@ -1087,33 +1247,43 @@ def check_conc_min_eig(rho, printf=False):
         print('Min eigenvalue: ', min_eig)
     return concurrence, min_eig
 
-def get_rel_entropy_concurrence(basis_key, rho):
-    ''' Based on the paper Asif et al 2023. 
-    Params:
-        basis: two character string identifer
-        rho: density matrix
-    Returns: the relative entropy of coherence'''
+def clip_gradients_by_norm(gradients, threshold):
+    ''' Try to clip gradient during gradient descent '''
+    norm = np.linalg.norm(gradients)
+    if norm > threshold:
+        gradients = gradients * (threshold / norm)
+    return gradients
+# def get_rel_entropy_concurrence(basis_key, rho):
+#     ''' Based on the paper Asif et al 2023. 
+#     Params:
+#         basis: two character string identifer
+#         rho: density matrix
+#     Returns: the relative entropy of coherence'''
 
-    # store basis elements in dictionary
-    bases = {}
-    basis = bases[basis_key]
-    def get_rho_diag(rho):
-        rho_d = np.zeros_like(rho)
-        for s in basis:
-            rho_d += adjoint(s) @ rho @ s @ s @ adjoint(s)
-    def get_entropy(rho):
-        return -np.trace(rho @ np.log(rho))
-    rho_diag = get_rho_diag(rho)
+#     # store basis elements in dictionary
+#     bases = {}
+#     basis = bases[basis_key]
+#     def get_rho_diag(rho):
+#         rho_d = np.zeros_like(rho)
+#         for s in basis:
+#             rho_d += adjoint(s) @ rho @ s @ s @ adjoint(s)
+#     def get_entropy(rho):
+#         return -np.trace(rho @ np.log(rho))
+#     rho_diag = get_rho_diag(rho)
     
-    return get_entropy(rho_diag) - get_entropy(rho)
+#     return get_entropy(rho_diag) - get_entropy(rho)
+
+
+
+
 
 
 ##############################################
 ## for testing ##
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 
     ## testing witness functions ##
-    #test_witnesses()
+    # test_witnesses()
 
     # from random_gen import *
     # import matplotlib.pyplot as plt
@@ -1217,5 +1387,4 @@ def get_rel_entropy_concurrence(basis_key, rho):
 #     # conditions:
 #         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
 #     # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
-#     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
-    # pass
+#     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')# pass
