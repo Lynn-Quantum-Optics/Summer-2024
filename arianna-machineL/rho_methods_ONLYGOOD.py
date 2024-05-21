@@ -1150,6 +1150,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
 
             if not(return_all):
                 if return_params:
+                    print("returning v_1")
                     return v_1_param #W_min, Wp_t1, Wp_t2, Wp_t3, v_1, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param, v_1_param
                 else:
                     if return_lynn:
