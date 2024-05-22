@@ -1,3 +1,10 @@
+## 8/11/23
+MP: 0
+
+There will be a scheduled power outage on 8/12 and 8/13, so I (TWL) came in to check on motors and shut down computer.  PCC looks visually vertical.  BC HWP fast axis is visually vertical, with the side labeled "fast axis" on top.  Not sure about UV HWP.  Of the T-Cube motors, S/N ...904 is not currently being recognized by APT User or found by APT Config.  This is Alice's HWP.  APT User reports that the other 3 motors are all at 0.  The current dial settings (by eye and in degrees) of the four motors are:  AHWP=9, AQWP=8.5, BHWP=8.5, BQWP=8.5.  These could all be the same 8.5-9 for all I know, as my visual resolution on these dials is not terrific.
+
+Clearly some things will need to be fixed and recalibrated before we can run again.  I'm not changing anything right now but will just shut down the computer and see where we are after all the planned power outages are over.
+
 ## 7/29/23
 MP: O
 
@@ -1135,3 +1142,393 @@ We tried to run basic_experiment.py, which should call a Bell's inequality exper
 We confimed the big Thor motors turn on command after wiggling one of the USB cables. We discovered that on the USB hub that the Elliptec motors connect to, you must depress the buttons to the side in order to provide power. While we could not get the Elliptec motors to move on their own, we found that unpluggling and replugging the USB for the hub caused the the Bob creation HWP and the PCC motors to return to some position -- that is sometime today after we got the setup tour (and also, based on the lettering on the Bob C HWP, prof Lynn observed that it had in fact changed); however, we were unable to have these move on command.
 
 The issue was that the Elliptec motors' ids had been all reset to 0, so we had to unplug each motor from the PCB, disconnect COMM5 using the program ELLO, then reconnect and set the addresses from A, B, C gradually, each time disconnecting and reconnecting. For more info, read documentation for Elliptec motors.
+
+## 2/06/2024
+MP: Lev
+Booted Kinesis and AQWP (904) was not connecting--fixed by power cycling a few times. Attempted to run aqwp.py to start calibration procedures but only got serial number error back. Had to run to class so goal for next time is to fix serial number error. 
+
+## 2/08/2024
+MP: Lev, Lynn, Alec
+
+Encountered errors in Kinesis right away, i.e. all of them throwing serial number and home position errors. Managed to fix 667, 901, 667 by a random assortment of manual homing, jogging, disconnecting, and reconnecting. Learned 646 had a faulty power cable which has since been replaced and for the first time in my three weeks in the lab, everything works! Today is the day we start calibrating. Upon first running aqwp.py we received a __typ error, which was fixed by ensuring that the assignment of COMM in ello matched that of config.json (COMM7 had been set to 0 instead of A).
+
+1640 Ran AQWP.py, which did read data into the aqwp_sweep2.csv file. However, errored out with m.shutdown due to an error with the C-PCC elipptec motor not returning to home. I have a suspicion that it is due to COMM5 being weirdly out of assignment but must run! So my goal next time is to try to reassign COMM5 correctly and then re-run.
+
+# 2/10/2024
+MP: Lev
+1410 Ran AQWP.py and successfully read data into csv -- ran into the same problem as 2/08 where it errors out when trying to shut down EllipetecMotor-C_PCC (expected response length 11 but got response b'CG502'). Will try to debug now. Started by loading up ello and manually jogging COMM5 to make sure assignements were correct, which they were! When first trying I had lots of 'mechanical time out' errors which were solved by changing jog angle to a different angle (20 deg) then back to what it had been before (82.286 deg).
+
+1450 Rerunning aqwp.py to see if manually jogging the pcc had any affect on error output.
+1502 Saved to trial 2.It did! Absolutely no errors when running the curve fit this time, although it did return a graph that looks almost like half of the plot from thecalibration manual, and only went degree-wise from -15 to -3... and as I write this I realize it is because sweep params was set to that! Will now rerun from -40 + 40 deg, as the slope of this trial did not zero out across the tested angles.\
+1508 Saved to trial 3. At the start had a little Attribute Error "module '__main__' has no attribute '__spec__", which was fixed by CTRL-C and restarting ipythoin. This trial shows a minimum at approx. deg = -2, so I will run a fine sweep around that area to determine the exact new home angle of aqwp.
+1522 Saved to trial 4. This produced the image in AQWP_sweep4.png, the minimum of the sweep being (by finding the minimum of the quadratic fit): -423/500, or -0.846 deg. This means that AQWP home (for now) is -0.846 off of its current home. 
+
+Was planning on calibrating the UVHWP too but got a tad confused with what components I have to remove to run the trial, so instead calibrated the QP by setting up a screen in front of the laser and changing the angle until the retroreflection was good. This returned an angle of -13.806, but I'm not entirely sure about the method (adjusting from software until it looks straight and retroreflects semi-nicely) so may come back to this.
+
+1643 It is still Bob's PBS that has to be removed for the UVHWP trials, so doing that now. Data in Trial 2 for first sweep.  It looks great, but because the minimum is not centered, I want to run one more sweep across a larger range of degrees to ensure it is still good. That said, the UVHWP angle is therefore +1.327 deg from its current home. 
+
+1700 Turned off everything and went to get dinner. Goal for next time is to run a larger sweep for the uvhwp to ensure the minimum is correct, then continue calibration.
+
+# 2/15/2023
+MP: Lev, Lynn
+1150 Turned on laser.
+
+1215 Running UVHWP calibration with a wider range to confirm 2/10/2024's calibration. Finished running and the new minimum seems to be +2.331 deg, which
+is very different from the calibration given in 2/10/2024.
+
+1235 Running UVHWP calibration again zoomed in on 0 to 3 to get a finer search. Ran into a "main has no _spec_" error--fixed by restarting terminal. This time got 1.85 deg... I'm not sure why its changing so much! I'm going to retake the exact same trial to see if it matches this trial.
+
+1255 Running it again got +2.01 deg. I don't know the resolution on this equipment so I'll ask later. For now I'm going to take it as necessitating a finer search around the 1.5 -> 2.5 range.
+
+1335 Running UVHWP 1.5 -> 2.5 range. Got "Optical parameters not found: Number of calls to function has reached maxfev = 800" error--hypothesis is this comes from data getting more and more scattered the smaller the range and I went way too small on range. I'm going to run this oneeee more time with a 0>4 deg range to see if its in the range of trials 4 and 5.
+
+1355 Running UVHWP once again (trial 7) from 0 -> 4 deg. Got +1.706 deg. As these values will get updated anyways in checkpoint A, I'll use the mean of +2.016 deg to calibrate AHWP. Will run later today.
+
+1525 Tried to run AHWP after reinstalling AHWP. Ran into error code "VX", fixed by homing motors in Kinesis. 
+
+Calibrated QP to get home to be -16.97 deg from current home, and also swapped nitrogen tanks. QP was calibrated by adjusting the angle in Ello until retroreflection occured directly beneath the laser. Some short term goals are now to reset all Thorlabs motors to be zeroed at their physical zero (the one we see on the motor itself) by power cycling once each looks to be at their zero--for the current calibration this means that I will add however many degrees it took to get to the new zero to the calibrated zero, and to also continue calibration overall. 
+
+# 2/17/2024 
+MP: Lev
+
+Goal for today is to, before continuing with the calibration, to set all the Thorlabs motors homes to the zero we physically see on the motors. This wil help us going forward to confirm when the device is actually zero. This means that we will be updating the config file with likely all new data! Yay! #edit three hours later, no yay :(.
+
+Step one involved an hour of getting the motors to connect to kinesis and with enough restting, manual homing, and replugging in USB cables they did. Step 2, 3 hours later, was to realize you can't do this in Kinesis.
+
+For these motors, the home is set in the factory so we can't change that. The only thing we can do is change the 'home offset' in APT User. However, I tried this and could not get any change to actually occur (if anything, APT User just makes the motor try to 'home' infinitely). 
+
+Goal for next time is to try to troubleshoot this, and if no solution can be found then continue with calibration.
+
+# 2/22/2024
+MP: Lev, Lynn
+
+1300 Have not been able to change the homes yet, so far I've tried power cycling at 0 to change home, making a custom actuator profile for the device in kinesis, changing the home offset in apt user (which does not seem to have an efffect in kinesis), and homing in kinesis at various point. After approx. 2.5 hours of trying the above, the motors are infinitely homing when manually homed. One last time trying to home them through APT user with the home offset set such that they *should* be homed at the physical zero we see on the motors. Let run for ~15 minutes and still no homing. 
+
+1700 Everything is in order! We have learned that APT User is way better for communicating with the motors but to **not use** the home button, instead to set to zero by typing in 0. We manually set each motor's 'home' to zero by moving the motor to the visual zero in APT User, closing the program, power cycling the motor, then reopening the program. No home-offset work was needed. Kinesis was spitting out reverse limit, ssn, and zero errors, which we fixed by not using Kinesis anymore. Goals are now to fully recalibrate from scratch, starting with AQWP. We will take out the UVHWP during this calibration to increase the strength of the signal we measure which should improve the resolution of calibration. 
+
+# 2/23/2024
+MP: Lev
+
+1300 Laser on, day 1 of not using Kinesis. Ran into some issues with 904 on apt user, but solved by power cycling at visual zero. Goal for next 2 hours is to begin calibration again. 
+
+1330 AQWP (previous trials moved to new folder in aqwp folder). Tried taking out the UVHWP to see how that helps calibration. Ran two trials (1,2) and got +8.429 deg as the new calibration. While the error bars are a bit off, this will all be adjusted in checka so is ok for now. 
+
+1410  UVHWP Trial 1 looked good 
+
+1645 Had to leave but now taking a finer sweep around the zero of trial 1. Got the change to be -0.899 deg. Goal for next time is to calibrate AHWP then use the three calibrations in checka to get a better measurement of them! 
+
+# 2/26/2024
+MP: Lev
+
+1745 Laser on, goal for today is to calibrate AHWP and go through checka. Note I had to put AHWP back in for this. After a coarse then fine sweep, got +8.533 deg for a zero homing. Troubleshooted 'VX' key error before realizing it was because config.json has 'VV' not 'VX' (which are the same thing) to run make_state on. 
+
+1910 Tried running checka, continually getting error with AHWP and getting a quadratic fit from it. Going to run a sweep on AHWP to see if the calibration is wrong for some reason. For some super odd reason, the calibration is really really off for AHWP.. it is now returning -4.523. 
+
+2050 Now rerunning checka with updated AHWP value in config.json. After running, none but the UVHWP actually had extrema in the -4 to 4 region we're sweeping in checka. I honestly have no clue why. Goal for next time is to redo the AHWP and AQWP calibrations so that we can hopefully succesfully run checka. Did not end up using the table below, but keeping for posterity.
+
+Here are the initial values put into config.json pre-checka:
+| Motor | Initial deg | Final deg | Change in deg |
+|-------|-------------|-----------|---------------| 
+| UVHWP | -0.899      |           |               |
+| AHWP  | 8.533       |           |               |
+| AQWP  | -4.523       |           |               |
+
+# 2/28/2024
+MP: Lev
+
+1600 Laser on, going to start by recalibrating AQWP (trial 3) to see if it is centered around zero (which it should be as config.json was updated). Got near -8.861 off the current calibration, so I will go through and recalibrate AQWP more carefully, (trial 1 and 2) going from -15 to -5 and then finer if necessary. Got -8.226 deg from current home. 
+
+1650 Now trying to recalibrate the UVHWP to see how off it is from the current home (trial 3). Got -1.253 which is in the range of the checka minisweeps so I'll use that for now. 
+
+1700 Will now replace AHWP and check its calibration to ensure its good before continuing to checka (trial 4). +4.17 deg in first coarse trial, will run a finer trial around that to home in (trial 5). Data from that trial was a bit all over the place so I'll use trial 4. This seems ok because they're both still in the range of <0.5 deg from each other. Upon looking at the table above, I may have swapped the QP and HP values on 2/26 on accident--now will run checka to see. 
+
+1530 Updated the values into the below table and config.json.
+| Motor | Initial deg | Final deg | Change in deg |
+|-------|-------------|-----------|---------------| 
+| UVHWP | -1.253      |           |               |
+| AHWP  | 4.17       |           |               |
+| AQWP  | -8.226      |           |               |
+
+1800 Ran into same maxfev error as last time but for the UVHWP, signaling the calibration of UVHWP is really off for some reason. Goal for next time is to recheck the UVHWP calibration, and also to confirm with Alec that I'm doing this right!
+
+# 2/29/2024 
+MP: Lev
+
+1200 Laser on, goal for today is to get through checka. Will start by rerunning checka with larger bounds on the mini sweeps (-8 to 8 as opposed to -4 to 4) to mitigate the maxfev error (sweeps4). Deg update 1 was:
+UVHWP Update: -1.253 + -0.019 -> -1.272
+AHWP Update: 4.170 + -10.564 -> -6.394
+AQWP Update: -8.226 + 17.834 -> 9.608.
+
+1250 Will now run checka again (sweeps 5) w/ new offset variables. Will keep larger sweep for this trial. This time got 
+UVHWP Update: -1.272 + 0.139 -> -1.133
+AHWP Update: -6.394 + 12.109 -> 5.715
+AQWP Update: 9.608 + -31.386 -> -21.778.
+
+1330 Latest change led to maxfev error on AQWP so I will split the difference of movement in AQWP and retry. Have to go to office hours though so will be back in one hour. 
+
+1430 Back, retrying with (sweeps7) UVHWP Update: -1.272 + 0.139 -> -1.133
+AHWP Update: -6.394 + 12.109 -> 5.715
+AQWP Update: 9.608 + -31.386 -> -10.
+This time AHWP maxfev error -- broadening the mini sweeps to -20 -> 20 deg in hopes of finally calibrating this! (sweeps 8). No maxfev error, got UVHWP extrema: -0.26+/-0.05
+UVHWP Update: -1.133 + -0.257 -> -1.390
+AHWP Update: 5.715 + -11.602 -> -5.887
+AQWP Update: -10.000 + 22.799 -> 12.799. Will update all and run again at 20. (sweeps 9).
+UVHWP Update: -1.390 + -0.032 -> -1.422
+AHWP Update: -5.887 + 13.667 -> 7.780
+AQWP Update: 12.799 + -24.997 -> -12.198
+
+1700 This did not work at all, the numbers just keep hopping around semi-randomly. My goal for next time is to begin calibration carefully from the beginning! Which is not great but hopefully I can get it to work.
+
+#3/5/2024
+MP: Lev
+
+1900 Laser on, will be moving all current calibration data for aqwp, uvhwp, and ahwp to respective folders "failed_calib_feb". Began calibration by remove AHWP.
+Got -12.789 deg.
+
+2020 Going for UVHWP. Got +0.613 deg.
+
+2100 Went for AHWP and first go (coarse sweep -20 - 20) looked like a delta function--honestly unsure why, but I'll come back in next time, try a larger area sweep, and if that is still being weird begin trouble shooting. So far promising I suppose. Also checked voltage readings on power supply just to ensure that was functioning and the multimeter read correctly so all is ok there. [3/7/2024 update, realized i had the wsweep set -20 to -20 so that was why it was so weird.]
+
+# 3/7/2024
+MP: Lev
+
+1430 Laser on, realized I didn't update the AHWP to use the newly measured zero for aqwp, so will do so now and run a -30 to 30 sweep. Notice apt user was not recognizing 3/4 of the wave plates but I will ignore it for now and see what happens if I just ignore it. Also updated the new calibration for the UVHWP into config.json instead of waiting until end--previous was -1.390. I'm unsure if the +0.613 deg from two days ago is what it should be or what the change should be, so I'm going to try change such that new value in congif will be -0.777.
+
+1325 AHWP ran successfully, got +5.220 deg. Prev. calib for ahwp was -5.887, so
+will update to -0.667 and rerun ahwp once more--this should tell us if it is best to update from prev. calibration value or if what the program returns is the new absolute value. 
+
+1335 IMPORTANT RESULT -- the value the plots return for all calibration files (except checks I believe) are meant to be updated from the config!!! So, the step at 1325 today was the right thing to do! Will now run checka with updated variables!
+Note aqwp was at +12.799 deg in config so now will be 0.01 deg.
+
+# 3/14/2024
+MP: Lev
+
+1200 Laser on, everything looks fine post-power outage; 904 was not showing in apt user but showed after power cycle. First will run checka but am bumping the number of measurements to 30 from 20 to hopefully get a more accurate read. Ran into typ error when initialing motors; fixed by going into ello and fixing the comm addresses. Note I had to disconnect all pieces manually from board, the plug one in and connect to COMM in Ello and set its address, then disconnect in Ello and plug in a second element and connect to ello and sets its address, and so on. For more info ctrl-F type (fixed above).
+
+1250 Trial 4 of checka run. Got maxfev error on UVHWP and assuming it is due to everything getting messed up during the power outage; will try redoing uvhwp calibration (and pray that does not mess up everything else!). Will start from trial 4. Ran into could not access COMM7 error, fixed by ending VSCode process in task manager. Got -22.3 on uvhwp, will update in config and run a ahwp to make sure thats reasonable pre-checka.
+
+1445 ahwp trial 5. Still shwoed 0 so now going for checka!
+
+1500 Checka sweeps5 (input for sweeps5 in config in table below.) 
+
+1530 Success!! Furthermore, everything is $\leq 0.1$ deg change! Goal for next time is to ensure we can create a VV state and finish the whole calibration! See total change from checka below.
+
+# 3/15/2024
+MP: Lev
+
+1200 Goal for today is to finish calibration! Going to start by rerunnning checka once more (trial 6) to ensure it all is working fine. 
+
+1500 After a bunch of checkas it is getting closer to a <0.1 deg difference but not quite there; will come back in tomorrow and do more trials. 
+
+# 3/17/2024
+MP: Lev
+
+1230 Laser on, rerunning checka. Success, will now ensure we can create VV state successfully. Data below on final changes post checka. Measv returned 45 deg within uncertainty, so Alice's side is fully calibrated! Now for Bob.
+| Motor | Initial deg | Final deg | Change in deg |
+|-------|-------------|-----------|---------------| 
+| UVHWP | -22.3     |    -22.142      |  0.158             |
+| AHWP  | -0.529        | -0.401          |    0.128           |
+| AQWP  | 0.210       |   0.371        |            -0.161   |
+
+1400 Removed BHWP and BCHWP as per calibration instructions and fine swept BQWP (trial 1/2) to get +98.800 deg. Now reinstaling BCHWP and sweeping (trial 1 first) to get +60.051 deg.
+1440 Recalibrated QP by retroreflection to be new home offset of 316.494 deg (got the negative of -43.506 deg but ello doesn't like negative home offsets).
+1615 Now for BHWP, got +10.432 deg. Checkb failed on bhwp so repeating around 0 after updating config.json and got -5.225.
+1700 Dinner time, goal for next time is to run checkb and calibrate the pcc, therefore finishing calibration!
+
+# 3/19/2024
+MP: Lev
+
+1200 Laser on, goal for today is to finish calibration. Repeating all my work from 3/17 except the hwp bc I realized I haven't been updating config from original value. For qwp got 98.80-91.354=7.446 deg. Checked around zero, good.
+
+1250 Reinstalled bhwp, checked and calibration was fine about zero. Reinstalled bchwp, got similar results but updated by + 6 deg.
+Note (1630) that I installed them in the wrong order here!
+
+110 Running checkb but must go to class; will return post class. 
+
+1430 Came back between classes; checkb returned large differences which is unfortunate; rerunning.
+
+1600 Back, even worse. Will begin calibration of Bob's side from the beginning :(. Starting by removing BCHWP and BHWP. Got new BQWP to be 7.478 and then finding BCHWP (post-reinstall) to be -30.519.
+
+1900 Left for 2 hrs to get dinner / go to work; reinstalled bhwp and now calibrating. Got -6.197, now for checkb trial 1. Bob's side has decided it hates me and checkb does not give me anything good. I will retry Wed or Thurs, trying to recalibrate bob's side from the start. Saw Alec did this in the past from the start so will follow exactly what he did next time (although i thought I did? unsure.)
+
+# 3/21/2024
+MP: Lev
+
+1425 Laser on, will carefully document calibration of right side, but first running checka to ensure that is still good. Checka fully failed, meaning somehow alice's plates got uncalibrated... how? I do not know. I am going to carefully recalibrate everything.
+
+### Calibrating AQWP
+Began by carefully removing bobs pbs and placing it on table. Sweep 0 UVHWP was set to 0 deg in file and -22.250 in config. Ran a course sweep then fine sweep around zero. After that, it actually showed AQWP as calibrated? Mostly at least, 0.627 move but due to low resolution leaving current calib. 
+
+### Calibrating UVHWP
+Going to start with a semi-fine sweep because this should already be correct. I realize at this point that AHWP should also have been taken out. I genuinely don't know if that messed up the aqwp calibration (I'm assuming not bc it calibrated around current 0) but alas. Was already running course uvhwp sweep when realized so will see what happens with the uvhwp. Got 1.6520068984667955+/-0.025013947644061018.
+
+I want to re-run aqwp calib (course sweep for vibes) to see if removing ahwp makes a difference. It did not! That's wonderful! Now doing the same with the uvhwp. Got nearly, the same, 1.648 off (same as before so will adjust config from -22.250 to -20.602)
+
+### Calibrating AHWP
+First carefully put it back into the setup, then ran a course then fine sweep. Less than a 0.1 change so should be fully calibrated; what in the world happened with checka then??
+
+### Running checka
+Running 16 points between -4 and 4 deg with 5x3s measurements. Possible reason for sweeps earlier today being bad was Bob's PBS being in, and also bob's wave plates having weird settings in config. 
+It worked perfectly, although wasn't able to get within 0.1 on the uvhwp; will retry next time. 
+
+# 3/23/2024
+MP: Lev
+
+Once again and hopefully for the last time, goal today is to finish calibration. Will continue following Alec's notes from 7/17/2023 and being very careful with everything.
+
+### Running checka
+First step is to re-run checka to ensure all is good and hopefuly get UVHWP calibration within 0.1 deg uncertainty. Running a slightly more comprehensive sweep of 32 points between -4 and 4 deg with 5x3s measurements (sweeps 4). Got up to sweeps7 but uvhwp is refusing to actually calibrate within 0.1, so I'm going to leave it where it is at this moment (-20.916 deg) and try out measv to see if that is functional. Measv is perfect so I will consider alice's side calibrated.
+
+## Bob's Side
+First step is to take out the CHWP and BHWP and put back in Bob's PBS. 
+
+### BQWP
+Began by running course calibration around where BQWP is currently set to. Got +7.525 +/-0.024874019051229424 deg.
+
+### BCHWP
+Perfect try one.
+
+### BHWP
+First carefully reinstalled then with a course then fine sweep got it to be -6.096 +/-0.026597619118315742
+
+### Running checkb
+Now for the moment of truth, running checkb. BHWP and BCHWP were great with <0.1 deg but BQWP was off by 0.5 deg, will rerun with new config stuff next time I'm in.
+
+# 3/27/2024
+MP: Lev
+### checkb
+1600 Laser on. Am attempting one more trial of checkb with -4 to 4, 16 sweeps at 5x3, to ensure that calibration did not somehow get messed up entirely. BHWP extrema: -0.279+/-0.018
+BHWP Update: -6.085 + -0.279 -> -6.364
+BQWP extrema: 0.004+/-0.026
+BQWP Update: 6.998 + 0.004 -> 7.002
+BCHWP extrema: 0.282+/-0.018
+BCHWP Update: -30.524 + 0.282 -> -30.242
+Updating and running once more.BHWP extrema: 0.284+/-0.016
+BHWP Update: -6.364 + 0.284 -> -6.080
+BQWP extrema: -0.523+/-0.032
+BQWP Update: 7.002 + -0.523 -> 6.479
+BCHWP extrema: -0.253+/-0.019
+BCHWP Update: -30.242 + -0.253 -> -30.495
+Updating and running once more (not changing ) Got
+BHWP extrema: -0.546+/-0.019
+BHWP Update: -6.080 + -0.546 -> -6.626
+BQWP extrema: 0.487+/-0.028
+BQWP Update: 6.479 + 0.487 -> 6.966
+BCHWP extrema: 0.516+/-0.010
+BCHWP Update: -30.495 + 0.516 -> -29.979. It just somehow keeps getting worse? 
+What I am going to try is going back to my original values right after calibration, put those in the config, then run a slightly better check.
+
+Could not get it within 0.1, this is a rabbit hunt. I will take out the wave plates next time and try recalibrating the b side. :(
+
+# 3/28/2024
+Reattempting checkb once; if it does not work I will attempt to fully recalibrate bob's side from the beginning. (sweeps6). Close so trying again, (sweeps7).
+This did not work at all and I just wasted an hour. BQWP seems well calibrated so I will just take out BHWP and try recalibrating BCHWP with a very fine sweep around zero. After tring to do so and finally running checkb, BQWP is 0.5 off 
+BHWP extrema: 0.034+/-0.017
+BHWP Update: -6.279 + 0.034 -> -6.245
+BQWP extrema: -0.559+/-0.026
+BQWP Update: 7.525 + -0.559 -> 6.966
+BCHWP extrema: -0.034+/-0.017
+BCHWP Update: -30.618 + -0.034 -> -30.652.
+
+Gonna mess with things a bit, #s pre messing
+            "type": "Elliptec",
+            "port": "COM7",
+            "address": "A",
+            "offset": -30.618
+        },
+        "B_HWP": {
+            "type": "ThorLabs",
+            "sn": 83811901,
+            "offset": -6.096
+        },
+        "B_QWP": {
+            "type": "ThorLabs",
+            "sn": 83811646,
+            "offset":  7.525.
+Met with Alec and learned three things: 1. Run manager in python terminal using from lab_framework import Manager, then m  = Manager('./config.json'), then using goto commands with m., and 2. I can try doing -15 -> 15 or -10 to 10 for calibration bc that might be better! Also that if not, 0.2 is totally fine. I wasn't able to get it closer after the last few trials so leaving it at  "B_C_HWP": -30.371 },"B_HWP": -6.264 },"B_QWP":   6.762.
+
+Goal for next time is to calibrate the phi state and also the pcc -- will do so once alec gets back to me on how!
+
+# 4/4/2024
+MP: Lev
+
+Began by running phase_finding.py in phi_plus folder--then used plotting.py after subtracting pi from all points above zero and adiing pi to al points below--the graph looked wack without and we did this bc we want the data to be the same at 0 and pi (for some reason? unsure why). Got -25.3742 as the QP angle (resuls under phi_sweep_adj.png). Input this angle into ratio_tuning and ran that; it returns what the UVHWP for phi plus should be set to. Input this value and the QP angle value into the config (QP:-24.1215 -> -25.3742, UVHWP 65.39980 -> 88.265). Created phi_check to make sure you're creating the phi state, turns out we are not and also cannot trust results bc HH dne VV. Will troubleshoot later.
+
+# 4/10/2024
+MP: Lev
+
+As something clearly went wrong last time with calibrating the phi plus state, I am trying to get a handle on what the entire phi_plus folder is doing if run correctly.
+
+We want to find phi plus which is the state 1\sqrt(2) HH + VV. The general form of a state we can make is psi = $cos(\theta)\ket{HH} + e^{i\phi}\sin(\theta)\ket{VV}$.
+
+We find that $tan^2(\theta)$ is the ratio of VV to HH and we can find phi in terms of multiple expectation values as in the calibration doc. The steps then go.
+1. Get a correct phase difference between these two terms. We thus set the UVHWP to 45 deg then perform a sweep of the quartz plate to measure the phase as a function of quartz plate angle. This is done in phase_finding.py. It gives when the phase shift between the two terms is equal to zero.
+
+2. Knowing this, we can fine tune the ratio of hh to vv to
+ get 1/2. We can use the theta equation in pg. 14 of calib doc and find the angle the uv hwp is at when theta = 45 gives an even superposition of hh and vv with no phase difference. This is done in ratio_tuning.py. We then put the returned uv hwp angle into config.
+
+3. We then want to calibrate the PCC by creating phi plus, then sweeping PCC in AD DA basis looking for when phi is minimized.
+
+# 4/11/2024
+MP: Lev, Lynn
+
+Today we identified the UVHWP, BCHWP, and PCC as having lost calibration, and then manually calibrated the UVHWP (seeing that all of Alice's and Bob's side were good) by checking for maximal counts in hh basis and minimal in vv basis, and that at 22.5 deg there are equal ish counts in hh and vv basis. Output in vv_sweep_go.csv and uvhwpcheck1.png. The goal forward is to start from beginning of pcc/phi plus calibration next time!
+
+# 4/15/2024
+MP: Lev
+
+Goal for today is to repeat pcc/phi calibration for reasons described above. Will be methodical in doing so to ensure followability if it doesn't work.
+
+### phase_finding.py 
+Run phase finding.py taking a +- sweep of the QP around where we expect it to be--our goal is to find where the phase shift between the two terms equals zero. Got -20.6134 after correcting data by adding pi to negative values and subtracting pi from positive values. 
+
+### ratio_tuning.py
+Inserted the -20.6134 into the QP angle for ratio_tuning and ran with a 80 to 50 deg sweep as I don't want to miss valuable data by going too exactly too fast. I start with TRIAL3 as to not lose last calibration's data. It ran and I got Pi/4 at 69.10217807167456 deg. We now update the config.json for phi plus with these two values!
+
+Attempted to run pcc_sweep but ran into nothing errors (sent instruction runtime error) so must leave as it is 10 pm. Will resume next time!
+
+# 4/25/2024
+MP: Lev
+It has been awhile as I was gone at nationals--goal for today is to calibrate pcc.
+
+1030 Will rerun pcc_sweep now. After a lot of trouble shooting with the 'sent instruction runtime error', solved it by unpowering the QP it was bugging out on and then recalibrating. 
+
+1545 Found QP angle = 0.45 deg at minimum phi which is good! Rebuilt the pcc_sweep file as well as a new plotting_pcc file and got good initial results, will come back soon to get closer on those! Found purity of ~3000 which is not good at all bc it should be 1. 
+
+# 4/29/2024
+MP: Lev
+
+Laser on at 12. Today I will investigate why the purity values are so high. I found that at pcc = 0, we are in the state y = 1\sqrt(2)
+(DA + AD) meaning y = 1\sqrt(2)(HH - VV). To remedy this I manually checked at 40 deg intervals of the UVHWP where we have HH>>Hv, RR<< RL, and AA >> AD. This could not be found because at everyu 40 degree integral, either the AA or RR inequality was not satisfied. I am truly unsure. This took awhile to check every 40 deg shift and results are on my iPad. 
+
+2030 I built uvhwp_calib which takes over an hour to run, which errored out during plotting and did not return good data, as an attempt to figure out where the purities of all three inequality pairs would align. I think I need to figure out the theory a bit more before continuing. Will be back Thursday likely. Also must replace nitrogen.
+
+# 5/14/2024
+MP: Lev, Paco, Stu
+
+Laser on at 9, fixed weird basis measurment, i.e. that we had HH>>>HV, DD>>>AD, but not RL>>>RR--> BQWP was 90 deg off! Woohoo!! Obtained 92.7% purity at 2.894736842105263 pcc deg. Updated in config. Repeating phi plus calib for iterative improvement of purity.
+
+### phase_finding.py
+Started with off HH/VV counts, manually changed -153.9970823589124 to -154.85 as that returned better counts. Now re-running phase_finding. Obtained a zero at , changed from -20.6134. Goal for tomorrow is to use this to recalibrate phi_plus.
+
+# 5/15/2024
+
+# ratio_tuning
+Found -154.90620864065068, changed in config for phi_plus from -154.85.
+
+# pcc_sweep
+Found purity of 95.2% at exact same 2.89 deg value of PCC!
+
+# accurate purity check / redoing phi plus calib post bchwp input
+Modified pcc_sweep.py to sweep at the pcc calibrated point much more accurately (10 measurements, 5 secs each) and found purity to be 9473+/-0.0006. Reinstated BCHWP and found it to be calibrated at -30.949568. 
+Attempted to run lev_phi_state_1 but ran into fitting error (M=5, N=4)--realized it is due to the addition of the BCHWP changing the phase difference by -1 on H. Must repeat ratio tuning at 45 degrees past our current calib. Added 45 deg to uvhwp calib for phi_plus then rerunning phae finding and ratio tuning. Phase finding gave -20.5717, changed in config from -21.5377. Ran ratio tuning and obtained -111.39816886500309 which was then changed from -112.
+
+Goal for tomorrow is to purity check this and then run lev_phi_sweep_1.
+
+# 5/16/2024
+Found purity at start to get 0.9496+/-0.0011.
+
+# 5/22/2024
+MP: Lev, Paco, Lynn
+
+We did not lose calibration! Which is incredibly exciting overall, as it means that the UPS worked. We did notice that the BBO got knocked a slight amount leading to unequal VV/HH measurements, which was fixed by maximizing VV counts in the VV basis in phi_plus with QP at 0, and vice versa (45) in HH. Goal for tomorrow is to recalibrate phi plus as current purity is 93.61. 
