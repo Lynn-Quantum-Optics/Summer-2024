@@ -461,12 +461,13 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
+def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
             counts: raw unp array of counts and unc
             expt: bool, whether to compute the Ws assuming input is experimental data
+            verbose: Whether to return which W/W' are minimal.
             do_stokes: bool, whether to compute 
             do_counts: use the raw definition in terms of counts
             expt_purity: the experimental purity of the state, which defines the noise level: 1 - purity.
@@ -483,11 +484,9 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             return_all: bool, whether to return all the Ws or just the min of the 6 and the min of the 3 triples
             return_params: bool, whether to return the params that give the min of the 6 and the min of the 3 triples
     '''
-
     # check if experimental data
     if expt and counts is not None:
         do_counts = True
-
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
 
     # automatic correction is depricated; send the theoretical rho after whatever correction you want to this function
@@ -740,10 +739,24 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
         
-        return W_min, Wp_t1, Wp_t2, Wp_t3
+        if verbose:
+            print('i got to verbosity')
+            # Define dictionary to get name of
+            all_W = ['W1','gW2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
+            index_names = {i: name for i, name in enumerate(all_W)}
+
+            # Get which W/W' were minimized
+            W_min_name = index_names.get(W_expec_vals.index(W_min), 'Unknown')
+            Wp1_min_name = index_names.get(W_expec_vals.index(Wp_t1), 'Unknown')
+            Wp2_min_name = index_names.get(W_expec_vals.index(Wp_t2), 'Unknown')
+            Wp3_min_name = index_names.get(W_expec_vals.index(Wp_t3), 'Unknown')
+            
+            # Find names from dictionary and return them and their values
+            return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
+        else:
+            return W_min, Wp_t1, Wp_t2, Wp_t3
         # return W_expec_vals
 
-        
     else: # use operators instead like in eritas's matlab code
         # bell states #
         PHI_P = np.array([1/np.sqrt(2), 0, 0, 1/np.sqrt(2)]).reshape((4,1))
@@ -845,16 +858,16 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                         do_min = minimize(W, x0=x0, bounds=[(0, np.pi)])
                         # print(do_min['x'])
                         return do_min['fun']
-                    x0 = [0]
+                    x0 = [np.random.rand()*np.pi]
                     w0 = min_W(x0)
-                    x0 = [np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.random.rand()*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0]
+                        x0_best = x0
                     else:
                         w_min = w1
-                        x0_best = [np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -878,6 +891,8 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 isi=0
                             else:
                                 isi+=1
+                    if i == 3:
+                        print('W4 was:', w_min)
                     # print('------------------')
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     def min_W(x0):
@@ -989,6 +1004,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 else:
                     return W_expec_vals
         else: 
+            print(' i went to the 2nd else')
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
             W2_param = W2_main['x']
@@ -1094,10 +1110,10 @@ def get_rel_entropy_concurrence(basis_key, rho):
 
 ##############################################
 ## for testing ##
-if __name__ == '__main__':
+#if __name__ == '__main__':
 
     ## testing witness functions ##
-    test_witnesses()
+    #test_witnesses()
 
     # from random_gen import *
     # import matplotlib.pyplot as plt
