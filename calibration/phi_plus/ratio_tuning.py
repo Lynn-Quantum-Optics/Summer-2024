@@ -4,9 +4,9 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 7
+    TRIAL = 9
     #SWEEP_PARAMETERS = [65.38+3,65.38-3,20,5,3]
-    SWEEP_PARAMETERS = [-105,-120,20,5,1]
+    SWEEP_PARAMETERS = [-100,-120,20,5,1]
 
 
     # initialize manager

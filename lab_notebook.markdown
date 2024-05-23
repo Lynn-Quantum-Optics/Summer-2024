@@ -1532,3 +1532,8 @@ Found purity at start to get 0.9496+/-0.0011.
 MP: Lev, Paco, Lynn
 
 We did not lose calibration! Which is incredibly exciting overall, as it means that the UPS worked. We did notice that the BBO got knocked a slight amount leading to unequal VV/HH measurements, which was fixed by maximizing VV counts in the VV basis in phi_plus with QP at 0, and vice versa (45) in HH. Goal for tomorrow is to recalibrate phi plus as current purity is 93.61. 
+
+# 5/22/2024
+MP: Paco, Lev, Stu
+
+Recalibrating phi plus, first run got a nice 94.51 purity, running again. Obtained 94.44 percent with results converging (meaning same PCC value).
