@@ -22,6 +22,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import random
+import sympy as sp
 
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
@@ -75,8 +76,6 @@ def get_theo_rho_phi(eta, chi):
     # Bell States
     PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
-    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
-    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
     
     phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
 
@@ -112,7 +111,7 @@ def get_theo_rho_stu(state, eta, chi):
         return rho
     
     # create the state PHI- + PSI+
-    if state == 'phi minus, psi plus ':
+    if state == 'phi minus, psi plus':
         phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
         rho = phi @ phi.conj().T
         return rho
@@ -121,11 +120,11 @@ def get_theo_rho_stu(state, eta, chi):
     if state == 'psi plus, i psi minus':
         phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
         rho = phi @ phi.conj().T
-    
+        return rho
     if state == 'phi minus, i psi minus':
         phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
         rho = phi @ phi.conj().T
-        
+        return rho
     else:
         return 'gimme a state'
     
@@ -168,8 +167,7 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     '''
     
     # calculate W and W' theory
-    W_T_ls, W_params = compute_witnesses(rho = rho_actual, return_all = True, return_params = True) # theory
-    #print(W_T_ls)
+    W_T_ls = compute_witnesses(rho = rho_actual, return_all = True) # theory #, return_all = True, return_params = True
     # parse lists
     W_min = min(W_T_ls[:6])
     Wp_t1 = min(W_T_ls[6:9])
@@ -199,88 +197,120 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     else:
          return W_min, Wp_t1, Wp_t2, Wp_t3
 
-def plot_all(W, min_Wp, eta, chi)
+def plot_all(name, etas):
     '''
     Plots data from main
     
     Parameters:
-    W (array): 
-    min_Wp (array):
-    eta (array):
-    chi ()
+    names (list): which csv names to read
+    
+    W (array): Minimum W array
+    min_Wp (array): Minimum W prime array
+    eta (float): eta value 
+    chi (array): chi array
+    name (string): name for file output (of state)
     '''
+    fig, ax = plt.subplots()
+    etas_nice = []
+    for i, eta in enumerate(etas):
+        # Read in CSV
+        data = pd.read_csv(f'stu_states/{name}_{etas[i]}.csv')
+        # Extract data
+        W = data['W']
+        min_Wp = data['min_W_prime']
+        chi = data['chi']
+
+        # Plot data
+        etas_nice.append(round(np.degrees(eta)))
+        ax.plot(chi, W, label = f'$W, \eta = {etas_nice[i]}$')
+        ax.plot(chi, min_Wp, label = f'$W\prime, \eta = {etas_nice[i]}$')
+  
+    name = f'{name}_{etas_nice[0]}_{etas_nice[1]}_{etas_nice[2]}_{etas_nice[3]}'  
+    print(name)
+    ax.axhline(0, color='black', linewidth=0.5) 
+    ax.set_title(f'State {name}', fontsize=12)
+    ax.set_ylabel('Witness value', fontsize=12)
+    ax.tick_params(axis='both', which='major', labelsize=6)
+    plt.tight_layout()
+    ax.legend(fontsize=8, loc = 'upper right')
+    ax.set_xlabel('$\chi$', fontsize=12)
+    plt.savefig(f'stu_states/{name}.pdf')
 
 ####### Main Functions
 
 if __name__ == '__main__':
+    points = 10 # number of points to take
+    num_etas = 4
     # Determine all sweeping settings and choose name for file
-    etas = [np.pi/6]
-    chis = np.linspace(0.001, np.pi/2, 6)
-    name = f'phi_plus_psi_minus_{etas[0]}'
+    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3]
+    chis = np.linspace(0.001, np.pi/2, points)
+    print(chis)
+    name = 'phi_bell'
     plot = True
     
     # Instantiate states to sweep over
-    states_names = []
-    states = []
-    for eta in etas: 
+    states_names = [[] for _ in range(num_etas)]
+    states = [[] for _ in range(num_etas)]
+    for i, eta in enumerate(etas): 
         for chi in chis:
-            states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
-            states.append((eta, chi)) 
+            states_names[i].append((np.rad2deg(eta), np.rad2deg(chi)))
+            states[i].append((eta, chi)) 
     
-    # Obtain the density matrix for each state; current making states of form psi
-    rho_actuals = []
-    for i, state_n in enumerate(states_names):
-        rad_angles = states[i]
-        rho_actuals.append(get_theo_rho_stu('phi plus, psi minus',rad_angles[0],rad_angles[1]))
-
+    # Obtain the density matrix for each state; currently making states of form psi
+    rho_actuals = [[] for _ in range(num_etas)]
+    for i, state_set in enumerate(states_names):
+        for j, state_n in enumerate(state_set):
+            rad_angles = states[i][j]
+            print(rad_angles)
+            rho_actuals[i].append(get_theo_rho_phi(rad_angles[0], rad_angles[1])) #name, 
+    
     # Instantiate lists to save as csv
-    wpl = [] 
-    eta_arr = []
-    chi_arr = []
-    wm_arr = []
-    min_W = []
-    min_Wp1 = []
-    min_Wp2 = []
-    min_Wp3 = []
+    W_arr = [[] for _ in range(num_etas)]  # lowest W value (4 is number of etas)
+    Wp_arr = [[] for _ in range(num_etas)]     # lowest W prime value
+    eta_arr = [[] for _ in range(num_etas)]
+    chi_arr = [[] for _ in range(num_etas)]
+
+    # Save witness values to above lists of lists
+    for i, rhos_per_eta in enumerate(rho_actuals):
+        for j, rho in enumerate(rhos_per_eta):
+            # find the minimum witness expectation value of the 3 w primes and of the W.
+            # Add in to get which W was minimum: W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param,  verbose = True
+            e = etas[i]
+            c = chis[j]
+            WM, WP1, WP2, WP3 = analyze_rho(rho) 
+            min_wp = min(WP1, WP2, WP3)
+
+            # Assuming that the index i corresponds to the eta trial number (0 to 3)
+            W_arr[i].append(WM)
+            Wp_arr[i].append(min_wp)
+            eta_arr[i].append(e)
+            chi_arr[i].append(c)
+
+    # Save each list to a separate CSV file
+    for i in range(num_etas):
+        data = pd.DataFrame({
+            'W': W_arr[i],
+            'min_W_prime': Wp_arr[i],
+            'eta_arr': eta_arr[i],
+            'chi': chi_arr[i]
+        })
+        print(etas[i])
+        data.to_csv(f'stu_states/{name}_{etas[i]}.csv', index=False)
+    if plot == True:
+            plot_all(name, etas)
+        # Save to CSV
     
-    # Create noisy rhos
-    #for i, rho in enumerate(rho_actuals):
-        #rho_actuals[i] = create_noise(rho, 3)
-        #if i == 0:
-            #print(rho_actuals[i])
-    
-    # Save witness values to above lists
-    for i, rho in enumerate(rho_actuals):
-        # find the minimum witness expectation value of the 3 w primes and of the W.
-        WM, WP1, WP2, WP3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho, verbose = True)
-        e, c = states[i]
-        min_wp = min(WP1, WP2, WP3)
-                     
-        # add to arrays to save
-        wpl.append([min_wp])
-        eta_arr.append([e])
-        wm_arr.append([WM])
-        chi_arr.append([c])
-        min_W.append([W_min_name])
-        min_Wp1.append([Wp1_min_name])
-        min_Wp2.append([Wp2_min_name])
-        min_Wp3.append([Wp3_min_name])
-        print('The current CHI is:', chis[i])
-        print('Minimum W was:', W_min_name, 'with value', WM, 'and theta', W_param)
+    #### Extra code for testing
+    # Commented out code to keep track of which W or W' is being minimized the most.
+        #min_W.append([W_min_name])
+        #min_Wp1.append([Wp1_min_name])
+        #min_Wp2.append([Wp2_min_name])
+        #min_Wp3.append([Wp3_min_name])
+        #print('The current CHI is:', chis[i])
+        #print('Minimum W was:', W_min_name, 'with value', WM, 'and theta', W_param)
         #print('Minimum W prime 1 was:', Wp1_min_name, 'with value', WP1, 'and theta', Wp1_param)
         #print('Minimum W prime 2 was:', Wp2_min_name, 'with value', WP2, 'and theta', Wp2_param)
         #print('Minimum W prime 3 was:', Wp3_min_name, 'with value', WP3, 'and theta', Wp3_param)
-        
-    # Save data into a csv
-    data = {'W': wm_arr, 'min_W_prime': wpl, 'eta': eta_arr, 'chi': chi_arr}
-    df = pd.DataFrame(data)
-    df.to_csv(f'stu_states/{name}.csv', index=False)
-    
-    if plot == True:
-        plot_all()
-    # Save to CSV
-    
-    
 
 
 

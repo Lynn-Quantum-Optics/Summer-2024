@@ -891,8 +891,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                                 isi=0
                             else:
                                 isi+=1
-                    if i == 3:
-                        print('W4 was:', w_min)
                     # print('------------------')
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     def min_W(x0):
