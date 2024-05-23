@@ -35,55 +35,8 @@ from rho_methods import *
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
-def get_theo_rho_psi(eta, chi):
-    """
-    Calculates the density matrix (rho) for a given set of parameters (eta, chi) in Psi.
 
-    Parameters:
-    eta (float): The parameter eta.
-    chi (float): The parameter chi.
-
-    Returns:
-    numpy.ndarray: The density matrix (rho) calculated based on the given parameters.
-    """
-    H = ket([1,0])
-    V = ket([0,1])
-    
-    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
-    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
-
-    psi = np.cos(eta)*PSI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-
-    rho = psi @ psi.conj().T
-
-    return rho
-
-def get_theo_rho_phi(eta, chi):
-    """
-    Calculates the density matrix (rho) for a given set of parameters (eta, chi) in Phi.
-
-    Parameters:
-    eta (float): The parameter eta.
-    chi (float): The parameter chi.
-
-    Returns:
-    numpy.ndarray: The density matrix (rho) calculated based on the given parameters.
-    """
-    # HV Kets
-    H = ket([1,0])
-    V = ket([0,1])
-    
-    # Bell States
-    PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
-    PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
-    
-    phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
-
-    rho = phi @ phi.conj().T
-
-    return rho
-
-def get_theo_rho_stu(state, eta, chi):
+def get_theo_rho(state, eta, chi):
     '''
     Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
     
@@ -104,42 +57,66 @@ def get_theo_rho_stu(state, eta, chi):
     PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
     PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
     
+    ##  The following 2 states inspired the Ws
+    
+    if state == 'phi plus, phi minus':
+        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
+    
+    if state == 'psi plus, psi minus':
+        phi = np.cos(eta)*PSI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    ## The following 6 states inspired the W primes
+    
     # create the state PHI+ + PSI-
     if state == 'phi plus, psi minus':
         phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-        rho = phi @ phi.conj().T
-        return rho
     
     # create the state PHI- + PSI+
     if state == 'phi minus, psi plus':
         phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
-        rho = phi @ phi.conj().T
-        return rho
     
     # create the state PHI+ +i PSI+
     if state == 'phi plus, i psi plus':
         phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
-        rho = phi @ phi.conj().T
-        return rho
     
     # create the state PHI+ + i PHI-
     if state == 'phi plus, i phi minus':
         phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
-        rho = phi @ phi.conj().T
-        return rho
     
     # create the state PSI+ + iPSI-
     if state == 'psi plus, i psi minus':
         phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-        rho = phi @ phi.conj().T
-        return rho
     
     if state == 'phi minus, i psi minus':
         phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-        rho = phi @ phi.conj().T
-        return rho
-    else:
-        return 'gimme a state'
+    
+    # create rho and return it
+    rho = phi @ phi.conj().T
+    return rho
+    
+def generate_state(state_list, state_prob, eta_chi):
+    '''
+    Uses above helper functions to generate a given mixed state
+    
+    Parameters:
+    state_list (list): list of state names that are to be mixed, must match creatable state names above
+    state_prob (list): probability of each state being mixed in state_list, must match index
+    eta_chi (list): what eta and chi to use for each state, must match index
+    
+    Returns:
+    rho: an NxN density matrix
+    '''
+    
+    # get individual rho's per state in state_list, taking probability into account
+    individual_rhos = []
+    for i, state in enumerate(state_list):
+        print(state)
+        individual_rhos.append(state_prob[i] * get_theo_rho(state, *eta_chi))
+    # sum all matrices in individual rhos
+    rho = np.sum(individual_rhos, axis = 0)
+    
+    return rho
+        
     
 def create_noise(rho, power):
     '''
@@ -238,7 +215,7 @@ def plot_all(name, etas):
         ax.plot(chi, W, label = f'$W, \eta = {etas_nice[i]}$')
         ax.plot(chi, min_Wp, label = f'$W\prime, \eta = {etas_nice[i]}$')
   
-    name = f'{name}_{etas_nice[0]}_{etas_nice[1]}_{etas_nice[2]}_{etas_nice[3]}'  
+    name = f'{name}_{etas_nice[0]}'  #_{etas_nice[1]}_{etas_nice[2]}_{etas_nice[3]}
     print(name)
     ax.axhline(0, color='black', linewidth=0.5) 
     ax.set_title(f'State {name}', fontsize=12)
@@ -252,14 +229,19 @@ def plot_all(name, etas):
 ####### Main Functions
 
 if __name__ == '__main__':
-    points = 10 # number of points to take
-    num_etas = 4
-    # Determine all sweeping settings and choose name for file
-    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3]
+    
+    #######  Choose your run parameters
+    
+    points = 25 # number of points to take
+    num_etas = 1  # the number of etas you choose below
+    etas = [np.pi/4] #np.pi/12, np.pi/6, np.pi/4 , np.pi/3
     chis = np.linspace(0.001, np.pi/2, points)
-    print(chis)
-    name = 'phi plus, i phi minus'
+    file_name = 'psi-phi equal bell' # choose descriptively based on names list
+    names = ['phi plus, phi minus', 'psi plus, psi minus']
+    probs = [0.65, 0.35] # single value list of 1 if creating a pure state
     plot = True
+    
+    ####### Create states and get rhos
     
     # Instantiate states to sweep over
     states_names = [[] for _ in range(num_etas)]
@@ -269,13 +251,12 @@ if __name__ == '__main__':
             states_names[i].append((np.rad2deg(eta), np.rad2deg(chi)))
             states[i].append((eta, chi)) 
     
-    # Obtain the density matrix for each state; currently making states of form psi
+    # Obtain the density matrix for each state
     rho_actuals = [[] for _ in range(num_etas)]
     for i, state_set in enumerate(states_names):
         for j, state_n in enumerate(state_set):
             rad_angles = states[i][j]
-            print(rad_angles)
-            rho_actuals[i].append(get_theo_rho_stu(name, rad_angles[0], rad_angles[1])) #name, 
+            rho_actuals[i].append(generate_state(names, probs, rad_angles)) #name, 
     
     # Instantiate lists to save as csv
     W_arr = [[] for _ in range(num_etas)]  # lowest W value (4 is number of etas)
@@ -283,7 +264,9 @@ if __name__ == '__main__':
     eta_arr = [[] for _ in range(num_etas)]
     chi_arr = [[] for _ in range(num_etas)]
 
-    # Save witness values to above lists of lists
+    ####### Witness each rho and save it
+    
+    ### Save witness values to above lists of lists
     for i, rhos_per_eta in enumerate(rho_actuals):
         for j, rho in enumerate(rhos_per_eta):
             # find the minimum witness expectation value of the 3 w primes and of the W.
@@ -292,7 +275,7 @@ if __name__ == '__main__':
             c = chis[j]
             WM, WP1, WP2, WP3 = analyze_rho(rho) 
             min_wp = min(WP1, WP2, WP3)
-
+            print('My Ws were:', WM, min_wp, 'at eta and chi:', e, c)
             # Assuming that the index i corresponds to the eta trial number (0 to 3)
             W_arr[i].append(WM)
             Wp_arr[i].append(min_wp)
@@ -307,10 +290,9 @@ if __name__ == '__main__':
             'eta_arr': eta_arr[i],
             'chi': chi_arr[i]
         })
-        print(etas[i])
-        data.to_csv(f'stu_states/{name}_{etas[i]}.csv', index=False)
+        data.to_csv(f'stu_states/{file_name}_{etas[i]}.csv', index=False)
     if plot == True:
-            plot_all(name, etas)
+            plot_all(file_name, etas)
         # Save to CSV
     
     #### Extra code for testing
