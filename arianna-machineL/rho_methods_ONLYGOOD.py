@@ -994,7 +994,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
 
 
                     b0 = np.random.rand()*2*np.pi  #generates a random beta
-                    x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/2] #generates a random set of parameters based on its relationship to beta
+                    x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4] #generates a random set of parameters based on its relationship to beta
                     #print("FIRST x0", x0)
                     w0 = min_W(x0, True)
                     b1 = np.random.rand()*2*np.pi 
