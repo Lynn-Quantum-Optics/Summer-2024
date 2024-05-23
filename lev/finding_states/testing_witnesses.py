@@ -116,11 +116,24 @@ def get_theo_rho_stu(state, eta, chi):
         rho = phi @ phi.conj().T
         return rho
     
+    # create the state PHI+ +i PSI+
+    if state == 'phi plus, i psi plus':
+        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
+        rho = phi @ phi.conj().T
+        return rho
+    
+    # create the state PHI+ + i PHI-
+    if state == 'phi plus, i phi minus':
+        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
+        rho = phi @ phi.conj().T
+        return rho
+    
     # create the state PSI+ + iPSI-
     if state == 'psi plus, i psi minus':
         phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
         rho = phi @ phi.conj().T
         return rho
+    
     if state == 'phi minus, i psi minus':
         phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
         rho = phi @ phi.conj().T
@@ -245,7 +258,7 @@ if __name__ == '__main__':
     etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3]
     chis = np.linspace(0.001, np.pi/2, points)
     print(chis)
-    name = 'phi_bell'
+    name = 'phi plus, i phi minus'
     plot = True
     
     # Instantiate states to sweep over
@@ -262,7 +275,7 @@ if __name__ == '__main__':
         for j, state_n in enumerate(state_set):
             rad_angles = states[i][j]
             print(rad_angles)
-            rho_actuals[i].append(get_theo_rho_phi(rad_angles[0], rad_angles[1])) #name, 
+            rho_actuals[i].append(get_theo_rho_stu(name, rad_angles[0], rad_angles[1])) #name, 
     
     # Instantiate lists to save as csv
     W_arr = [[] for _ in range(num_etas)]  # lowest W value (4 is number of etas)
