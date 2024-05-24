@@ -1533,7 +1533,16 @@ MP: Lev, Paco, Lynn
 
 We did not lose calibration! Which is incredibly exciting overall, as it means that the UPS worked. We did notice that the BBO got knocked a slight amount leading to unequal VV/HH measurements, which was fixed by maximizing VV counts in the VV basis in phi_plus with QP at 0, and vice versa (45) in HH. Goal for tomorrow is to recalibrate phi plus as current purity is 93.61. 
 
-# 5/22/2024
+# 5/23/2024
 MP: Paco, Lev, Stu
 
 Recalibrating phi plus, first run got a nice 94.51 purity, running again. Obtained 94.44 percent with results converging (meaning same PCC value).
+
+# 5/24/2024
+MP: Paco, Lev, Stu
+
+Goal for today is to get data on the psi+- bell state at eta = 45 deg. We changed QP to -24.7869 from -21.01976. Changed UVHWP from -112.04979023180509 to -114.13271291632401.
+
+Changed and unchanged the rotation of the PCC to maximize counts, measuring in HH basis with QP -> 0 and UVHWP -> 45, other settings at phi_plus calibrated. Got 3033+/-17 counts as maximum and left it there. 
+
+Upon recalibration we changed the UVHWP to -112.72137692100124. Tons of errrors with QP motor. Could be worth analyzing. Changed PCC to 2.94736842105263, and QP to -22.727.
