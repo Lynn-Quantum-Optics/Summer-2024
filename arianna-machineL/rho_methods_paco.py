@@ -870,7 +870,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             """
 
             # Parameters are being sent to infinity due to the parameter relationships causing them to blow up and go to infinity or to imaginary components
-            beta, gamma, delta = params[0], params[1], params[2]
+            beta, gamma, delta, a = params[0], params[1], params[2], params[3]
 
             # for debugging
             #print(params)
@@ -884,13 +884,13 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             #    print("4th constraint violated")
 
             # Witness constraints  
-            a = (np.sin(beta - delta)*np.sin(beta - gamma)*np.cos(gamma - delta))/(np.sin(beta - delta)*np.sin(beta - gamma)*np.cos(gamma - delta) +\
-                        np.sin(gamma)*np.sin(delta)*np.cos(gamma - delta) -\
-                        np.cos(beta)*np.sin(delta)*np.sin(beta-delta) -\
-                        np.sin(gamma)*np.cos(beta)*np.sin(beta - gamma))
-            b = (a*cm.sqrt((np.sin(gamma)*np.sin(delta))/(np.sin(gamma - beta)*np.sin(beta-delta))))
-            c = (a*cm.sqrt((-np.cos(beta)*np.sin(delta))/(np.sin(beta-gamma)*np.cos(gamma-delta))))
-            d = (a*cm.sqrt((-np.sin(gamma)*np.cos(beta))/(np.cos(gamma-delta)*np.sin(beta-delta))))
+            #a = (np.sin(beta - delta)*np.sin(beta - gamma)*np.cos(gamma - delta))/(np.sin(beta - delta)*np.sin(beta - gamma)*np.cos(gamma - delta) +\
+            #            np.sin(gamma)*np.sin(delta)*np.cos(gamma - delta) -\
+            #            np.cos(beta)*np.sin(delta)*np.sin(beta-delta) -\
+            #           np.sin(gamma)*np.cos(beta)*np.sin(beta - gamma))
+            b = (a*np.sqrt((np.sin(gamma)*np.sin(delta))/(np.sin(gamma - beta)*np.sin(beta-delta))))
+            c = (a*np.sqrt((-np.cos(beta)*np.sin(delta))/(np.sin(beta-gamma)*np.cos(gamma-delta))))
+            d = (a*np.sqrt((-np.sin(gamma)*np.cos(beta))/(np.cos(gamma-delta)*np.sin(beta-delta))))
             #print(a**2 +b**2 +c**2 +d**2)
 
 
@@ -985,7 +985,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 elif i == 15: # the V witness
                     def min_W(x0, grad_des):
                         # print(x0)
-                        do_min = minimize(W, x0=x0, bounds=[(1e-2,2*np.pi - 1e-2), (x0[0]-(np.pi/4),x0[0] ), (x0[0] + (np.pi/4), x0[0]+(np.pi/2))])
+                        do_min = minimize(W, x0=x0, bounds=[(1e-2,2*np.pi - 1e-2), (x0[0]-(np.pi/4),x0[0] ), (x0[0] + (np.pi/4), x0[0]+(np.pi/2)), (1e-2, 1)])
                         # print(do_min['x'])
                         if grad_des:
                             return do_min['fun']
@@ -994,11 +994,11 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
 
 
                     b0 = np.random.rand()*2*np.pi  #generates a random beta
-                    x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4] #generates a random set of parameters based on its relationship to beta
+                    x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4, np.random.rand()] #generates a random set of parameters based on its relationship to beta
                     #print("FIRST x0", x0)
                     w0 = min_W(x0, True)
                     b1 = np.random.rand()*2*np.pi 
-                    x1 = [b1, b1 -np.random.rand()*np.pi/4, b1+np.pi/4+np.random.rand()*np.pi/4]
+                    x1 = [b1, b1 -np.random.rand()*np.pi/4, b1+np.pi/4+np.random.rand()*np.pi/4, np.random.rand()]
                     #print("SECOND x0" ,x1)
                     w1 = min_W(x1, True)
                     #print("w0:", w0, " and w1:", w1)
@@ -1018,7 +1018,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                     #print("RESTART")
                                     b0 = np.random.rand()*2*np.pi 
-                                    x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4]
+                                    x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4, np.random.rand()]
                                 else:
                                     #print(f"{count} for GRAD DESCENT")                              
                                     # x0 = beta, gamma, delta
@@ -1033,7 +1033,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                         # grad = nd.Gradient(min_W_gd)(x0)
                                     else:
                                         b0 =np.random.rand()*2*np.pi 
-                                        x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4]
+                                        x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4, np.random.rand()]
 
                                      # compute a partial at function to find steepest gradient
                                     # min_W_gd = partial(min_W, grad_des=True)
@@ -1043,13 +1043,13 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                     #print("GRAD:", grad)
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
                                         b0 =np.random.rand()*2*np.pi 
-                                        x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4]
+                                        x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4, np.random.rand()]
                                     else:
                                         #print(f"doing grad des rep {count}")
                                         x0 = x0 - zeta*grad
                             else:
-                                # x0 = [np.random.rand(), np.random.rand()*np.pi/2, np.random.rand()*np.pi/2, np.random.rand()*np.pi/2]
-                                x0 = [np.random.rand(), np.random.rand(), np.random.rand()]
+                                b0 =np.random.rand()*2*np.pi 
+                                x0 = [b0, b0 -np.random.rand()*np.pi/4, b0+np.pi/4+np.random.rand()*np.pi/4, np.random.rand()]
 
                             w, w_min_params = min_W(x0,False)
                             
