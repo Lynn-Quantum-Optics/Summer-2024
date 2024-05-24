@@ -7,7 +7,7 @@ import uncertainties as unc
 from notify_run import Notify
 # Approx. 1 min
 
-df = pd.read_csv('phi_data_5232024_2.csv')
+df = pd.read_csv('phi_data_5242024.csv')
 df['phi'] = df['phi'].apply(unc.ufloat_fromstr)
 
 def poly5(x, x0, y0, a, b, c, d, e):
@@ -22,7 +22,7 @@ plt.xlabel('Quartz Plate Angle (deg)')
 plt.ylabel('Phi Parameter (rad) (adjusted')
 plt.title('Phi Parameter vs. Quartz Plate Angle')
 plt.legend()
-plt.savefig('phi_sweep_5232024.png', dpi=600)
+plt.savefig('phi_sweep_5242024.png', dpi=600)
 print(params)
 plt.show()
 
