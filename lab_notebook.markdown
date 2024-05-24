@@ -1545,4 +1545,4 @@ Goal for today is to get data on the psi+- bell state at eta = 45 deg. We change
 
 Changed and unchanged the rotation of the PCC to maximize counts, measuring in HH basis with QP -> 0 and UVHWP -> 45, other settings at phi_plus calibrated. Got 3033+/-17 counts as maximum and left it there. 
 
-Upon recalibration we changed the UVHWP to -111.60380473889805 
+Upon recalibration we changed the UVHWP to -112.72137692100124. Tons of errrors with QP motor. Could be worth analyzing. Changed PCC to 2.94736842105263, and QP to -22.727.
