@@ -184,8 +184,8 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    df = m.output_data(f"int_state_sweep/QP_sweep_{num}.csv")
-    data = pd.read_csv(f"int_state_sweep/QP_sweep_{num}.csv")
+    df = m.output_data(f"int_state_sweep_psi/QP_sweep_{num}.csv")
+    data = pd.read_csv(f"int_state_sweep_psi/QP_sweep_{num}.csv")
     
     # shuts down the manager
     # m.shutdown()
@@ -252,8 +252,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
     BASIS2 = 'VV'
 
     # sweep in second octant because the standard phi plus state setting for the UV_HWP is there
-    GUESS = 62.5
-    RANGE = 22.5
+    GUESS = -111.398
+    RANGE = 22.5 # Something that could mess up.
     N = 20
     SAMP = (5, 3)
 
@@ -270,8 +270,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
     m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
-    df1 = m.output_data(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
-    data1 = pd.read_csv(f"int_state_sweep/UVHWP_balance_sweep1_{num}.csv")
+    df1 = m.output_data(f"int_state_sweep_psi/UVHWP_balance_sweep1_{num}.csv")
+    data1 = pd.read_csv(f"int_state_sweep_psi/UVHWP_balance_sweep1_{num}.csv")
     # data1 = m.close_output()
     # m.new_output(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
 
@@ -284,8 +284,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     print(m.time, 'Data collected, shutting down...')
     # data2 = m.close_output()
-    df2 = m.output_data(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
-    data2 = pd.read_csv(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
+    df2 = m.output_data(f'int_state_sweep_psi/UVHWP_balance_sweep2_{num}.csv')
+    data2 = pd.read_csv(f'int_state_sweep_psi/UVHWP_balance_sweep2_{num}.csv')
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
     # m.shutdown()
@@ -335,7 +335,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
     SAMP = (5, 1)
 
     # set new output file
-    m.new_output('int_state_tomography_data.csv')
+    m.new_output('int_state_tomography_data_psi.csv')
 
     # load configured state
     m.C_UV_HWP.goto(C_UV_HWP_ang)
@@ -425,10 +425,10 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 45]
 
         # save results
-        with open(f'int_state_sweep/rho_{state_n}.npy', 'wb') as f:
+        with open(f'int_state_sweep_psi/rho_{state_n}.npy', 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
         
-        tomo_df = m.output_data(f'int_state_sweep/tomo_data_{state}.csv')
+        tomo_df = m.output_data(f'int_state_sweep_psi/tomo_data_{state}.csv')
         # m.close_output()
         
     m.shutdown()

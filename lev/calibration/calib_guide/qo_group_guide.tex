@@ -1,0 +1,55 @@
+\documentclass{paper}[11pt]
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{braket}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{titling}
+\usepackage{parskip}
+
+
+
+\title{Calibration and Troubleshooting}
+
+\author{Lev Gruber}
+
+\date{5/31/2024}
+
+\begin{document}
+\maketitle 
+
+\tableofcontents
+\newpage
+\section{Introduction}
+You're starting the do work with Professor Lynn's Quantum Optics Group at Harvey Mudd College; congrats! It's a super cool lab doing fascinating research, and I am sure you'll have an amazing time. The only thing in your way on the road to success are random bugs, apparatus errors, and worst of all, when you have to fully recalibrate eveyrthing from scratch. This guide, much of it adapted or copied from Alec Roberson's work \textit{How to Calibrate Everything} in the GitHub's Summer 2023 repo, acts as a one stop shop for all of these issues. Please reference Alec's write up for more information on \textit{why} the calibration procedure works, as this guide will keep its focus on what we do rather than why. Alec's guide also contains literature on Jones' matrices, laser drift, and other useful topics that I won't copy verbatim for this document. Therefore, I fully recommend you read through 
+\textit{How to Calibrate Everything}, especially if you're struggling through the calibration from scratch.
+
+\section{Calibration from Scratch}
+Some important notes before you begin calibration include:
+\begin{itemize}
+    \item Remember to always wear goggles when the laser is unblocked, to never turn on the lights unless the detectors are off, and to never look down the path of the laser. It is ok to remove your goggles when sitting behind the compute due to the screen and elevation.
+    \item The black motors with the tick marks are Thorlabs motors and the red motors with no tick marks are Elliptec motors.
+    \item The Thorlabs motors are controlled by the software 'APT User', and the Elliptec motors 'Ello'.
+    \item If power is lost, Thorlabs motors will assume their new 'zero' is wherever they were when they lost power. Calibration in the config.json is based off of the Thorlabs motors at their visual zero, so visual zero is a good guess at calibration (to be close to previous values for a new calibration). Oppositely, we have no clue what the Elliptec motor thinks zero is post-power loss--our best guess is np.random.rand().
+\end{itemize}
+
+\subsection{The Quartz Plate (QP)}
+First, we need to calibrate the quartz plate. Open 'Ello' on the computer, select COMM5 in the upper left, and hit connect. There should be three tabs pop up, click the one with address B. You can jog the motor to ensure you've selected the QP. 
+
+Note: \textbf{Wear goggles and do not look down the path of the laser.}
+
+Turn off the lights, unblock the laser (wear goggles!), and use a business card or small piece of paper to identify the light bouncing off of the QP back towards the mirrors and laser. Begin with the QP visually perpendicular with the incoming light, and jog it slightly CW or CCW until a portion of the incoming beam retroreflects directly below the incoming beam on the laser's front. Note this will be below and likely not directly over the laser due to table slant. Furthermore, note that each element in the apparatus' state creation section retroreflects, so use a second business card to ensure you're looking at the correct reflection.
+
+Once retroreflecting correctly, update the home offset within Ello by adding the current offset to the current position; if the result is negative, add 360. 
+
+\subsection{Alice's Wave Plates (and the UV Half Wave Plate)}
+We begin measurement-side calibration with Alice's side. Open VS Code and go to the calibration folder and within that, AQWP.py (Alice Quarter Wave Plate). Run that, the minima of the curve being where the calibrated AQWP zero should be. Add this to the current value for AQWP in 
+
+
+\section{Random Issues with the Apparatus}
+\section{Calibration not from Scratch}
+\section{Extraneous Advice}
+
+\end{document}

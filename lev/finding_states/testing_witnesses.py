@@ -204,7 +204,7 @@ def plot_all(name, etas):
     etas_nice = []
     for i, eta in enumerate(etas):
         # Read in CSV
-        data = pd.read_csv(f'stu_states/{name}_{etas[i]}.csv')
+        data = pd.read_csv(f'pure_and_mixed_states/{name}_{etas[i]}.csv')
         # Extract data
         W = data['W']
         min_Wp = data['min_W_prime']
@@ -224,7 +224,7 @@ def plot_all(name, etas):
     plt.tight_layout()
     ax.legend(fontsize=8, loc = 'upper right')
     ax.set_xlabel('$\chi$', fontsize=12)
-    plt.savefig(f'stu_states/{name}.pdf')
+    plt.savefig(f'pure_and_mixed_states/{name}.pdf')
 
 ####### Main Functions
 
@@ -290,7 +290,7 @@ if __name__ == '__main__':
             'eta_arr': eta_arr[i],
             'chi': chi_arr[i]
         })
-        data.to_csv(f'stu_states/{file_name}_{etas[i]}.csv', index=False)
+        data.to_csv(f'pure_and_mixed_states/{file_name}_{etas[i]}.csv', index=False)
     if plot == True:
             plot_all(file_name, etas)
         # Save to CSV
