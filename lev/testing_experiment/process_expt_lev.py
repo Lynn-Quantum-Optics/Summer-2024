@@ -411,16 +411,16 @@ def get_theo_rho(alpha, beta):
 if __name__ == '__main__':
     # set filenames for computing W values
 
-    alphas = [np.pi/12]
-    betas = np.linspace(0.001, np.pi/2, 6)
-    print(betas)
+    etas = [np.pi/12]
+    chis = np.linspace(0.001, np.pi/2, 6)
+    print(chis)
     states_names = []
     states = []
 
-    for alpha in alphas:
-        for beta in betas:
-            states_names.append((np.rad2deg(alpha), np.rad2deg(beta)))
-            states.append((alpha, beta))
+    for eta in etas:
+        for chi in chis:
+            states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
+            states.append((eta, chi))
 
     filenames = []
     settings = []
