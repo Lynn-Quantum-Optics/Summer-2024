@@ -182,7 +182,6 @@ if __name__ == '__main__':
     data.to_csv(f'mixed_states/{file_name}_{etas[0]}.csv', index=False)
     plot_all(file_name, etas)
     
-    
     # analyze rho files
     id = 'rho_5292024'
     for rho in mixed_rho:

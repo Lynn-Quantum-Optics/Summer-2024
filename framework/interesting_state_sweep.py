@@ -4,12 +4,22 @@ import math
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import sys
-from full_tomo import get_rho
+from full_tomo_updated_richard import get_rho
 from analysis_old import *
 import pandas as pd
+import scipy.linalg as la
 
 sys.path.insert(0, '../oscar/machine_learning')
 from rho_methods import get_fidelity, get_purity
+
+## Oscar rho_methods file in Summer 2023 ##
+def get_purity(rho):
+    ''' Calculates the purity of a density matrix. '''
+    return np.real(np.trace(rho @ rho))
+
+def get_fidelity(rho1, rho2):
+    '''Compute fidelity of 2 density matrices'''
+    return np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
 
 
 """
@@ -179,7 +189,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -38.3, 0, 25, 5, 3)
+    m.sweep("C_QP", -35, -1.7, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -230,12 +240,12 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     # plt.show()
 
     # finds the angle that corresponds to the minimum value of the fit function
-    def fit(x):
+    def fit_func(x):
 
         return args1[0] * x**4 + args1[1] * x**3 + args1[2] * x**2 + args1[3] * x + args1[4]
 
     # finds the angle at which the minimum of the fit function occurs to return as the QP angle setting
-    minimum = opt.minimize(fit, new_guess)
+    minimum = opt.minimize(fit_func, new_guess)
     min_angle = minimum.pop('x')
 
     # prints and returns the angle
@@ -324,9 +334,9 @@ def get_theo_rho(alpha, beta):
 
     psi = np.cos(alpha)*PSI_PLUS + np.exp(1j*beta)*np.sin(alpha)*PSI_MINUS
 
-    rho = psi @ psi.conj().T
+    rho_return = psi @ psi.conj().T
 
-    return rho
+    return rho_return
 
 def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
     '''
@@ -360,8 +370,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
 if __name__ == '__main__':
 
     alphas = [np.pi/4]
-    betas = [.001]
-    # np.linspace(0.001, np.pi/2, 6)
+    betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
 
@@ -372,10 +381,6 @@ if __name__ == '__main__':
 
     SAMP = (5, 1)
     m = Manager()
-
-    '''
-    fix file duplicate naming issue
-    '''
 
     # main loop for iterating over states
     for i, state_n in enumerate(states_names):
@@ -399,7 +404,7 @@ if __name__ == '__main__':
             C_UV_HWP=UVHWP_angle,
             C_QP = C_QP_angle,
             B_C_HWP = 45,
-            C_PCC = 4.005 # optimal value from phi_plus in config
+            C_PCC = 2.3684 # optimal value from phi_plus in config
         )
 
         # get the density matrix
@@ -425,10 +430,10 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 45]
 
         # save results
-        with open(f'int_state_sweep_psi/rho_{state_n}.npy', 'wb') as f:
+        with open(f"int_state_sweep_psi/rho_('E0', {state_n})_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
-        
-        tomo_df = m.output_data(f'int_state_sweep_psi/tomo_data_{state}.csv')
+        date = "5282024"
+        tomo_df = m.output_data(f'int_state_sweep_psi/tomo_data_{state}_{date}.csv')
         # m.close_output()
         
     m.shutdown()

@@ -378,7 +378,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
 
 if __name__ == '__main__':
 
-    alphas = [np.pi/12]
+    alphas = [np.pi/4]
     betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
