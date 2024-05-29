@@ -189,7 +189,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -35, -1.7, 25, 5, 3)
+    m.sweep("C_QP", -40, -0.5, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -404,7 +404,8 @@ if __name__ == '__main__':
             C_UV_HWP=UVHWP_angle,
             C_QP = C_QP_angle,
             B_C_HWP = 45,
-            C_PCC = 2.3684 # optimal value from phi_plus in config
+            C_
+             = 3.789 # optimal value from phi_plus in config
         )
 
         # get the density matrix
