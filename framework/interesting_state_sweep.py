@@ -189,13 +189,13 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -45, -0.5, 25, 5, 3)
+    m.sweep("C_QP", -38, -30, 15, 5, 3)
 
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    df = m.output_data(f"int_state_sweep_psi/QP_sweep_{num}.csv")
-    data = pd.read_csv(f"int_state_sweep_psi/QP_sweep_{num}.csv")
+    df = m.output_data(f"int_state_sweep_psi15/QP_sweep_{num}.csv")
+    data = pd.read_csv(f"int_state_sweep_psi15/QP_sweep_{num}.csv")
     
     # shuts down the manager
     # m.shutdown()
@@ -280,8 +280,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
     m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
-    df1 = m.output_data(f"int_state_sweep_psi/UVHWP_balance_sweep1_{num}.csv")
-    data1 = pd.read_csv(f"int_state_sweep_psi/UVHWP_balance_sweep1_{num}.csv")
+    df1 = m.output_data(f"int_state_sweep_psi15/UVHWP_balance_sweep1_{num}.csv")
+    data1 = pd.read_csv(f"int_state_sweep_psi15/UVHWP_balance_sweep1_{num}.csv")
     # data1 = m.close_output()
     # m.new_output(f'int_state_sweep/UVHWP_balance_sweep2_{num}.csv')
 
@@ -294,8 +294,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     print(m.time, 'Data collected, shutting down...')
     # data2 = m.close_output()
-    df2 = m.output_data(f'int_state_sweep_psi/UVHWP_balance_sweep2_{num}.csv')
-    data2 = pd.read_csv(f'int_state_sweep_psi/UVHWP_balance_sweep2_{num}.csv')
+    df2 = m.output_data(f'int_state_sweep_psi15/UVHWP_balance_sweep2_{num}.csv')
+    data2 = pd.read_csv(f'int_state_sweep_psi15/UVHWP_balance_sweep2_{num}.csv')
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
     # m.shutdown()
@@ -431,7 +431,7 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 45]
 
         # save results
-        with open(f"int_state_sweep_psi/rho_('E0', {state_n})_1.npy", 'wb') as f:
+        with open(f"int_state_sweep_psi15/rho_('E0', {state_n})_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
         date = "5292024"
         tomo_df = m.output_data(f'int_state_sweep_psi15/tomo_data_{state}_{date}.csv')

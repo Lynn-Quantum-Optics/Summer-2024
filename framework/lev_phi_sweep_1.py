@@ -390,7 +390,7 @@ if __name__ == '__main__':
 
         # select only data points3:]
    # states = states[4:]
-    #states_names[4:]
+    #states_names= states_names[4:]
 
     SAMP = (5, 1)
     m = Manager()
