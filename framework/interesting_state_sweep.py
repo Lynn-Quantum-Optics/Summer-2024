@@ -189,7 +189,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -40, -0.5, 25, 5, 3)
+    m.sweep("C_QP", -45, -0.5, 25, 5, 3)
 
     print(m.time, "Sweep complete")
 
@@ -369,7 +369,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
 
 if __name__ == '__main__':
 
-    alphas = [np.pi/4]
+    alphas = [np.pi/12]
     betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
@@ -433,8 +433,8 @@ if __name__ == '__main__':
         # save results
         with open(f"int_state_sweep_psi/rho_('E0', {state_n})_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
-        date = "5282024"
-        tomo_df = m.output_data(f'int_state_sweep_psi/tomo_data_{state}_{date}.csv')
+        date = "5292024"
+        tomo_df = m.output_data(f'int_state_sweep_psi15/tomo_data_{state}_{date}.csv')
         # m.close_output()
         
     m.shutdown()

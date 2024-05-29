@@ -388,6 +388,10 @@ if __name__ == '__main__':
             states_names.append((np.rad2deg(alpha), np.rad2deg(beta)))
             states.append((alpha, beta))
 
+        # select only data points3:]
+   # states = states[4:]
+    #states_names[4:]
+
     SAMP = (5, 1)
     m = Manager()
 
@@ -401,7 +405,7 @@ if __name__ == '__main__':
 
         meas_HWP_angle, meas_QWP_angle, HH_frac = get_params(state[0], state[1])
 
-        C_QP_angle = QP_sweep(m,meas_HWP_angle,meas_QWP_angle, i)
+        C_QP_angle = QP_sweep(m,meas_HWP_angle,meas_QWP_angle, i) # +4 added when apparatus bugged after 4 trials taken
 
         m.C_QP.goto(C_QP_angle)
 
