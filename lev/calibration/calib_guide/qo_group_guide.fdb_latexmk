@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1716507914 "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" "qo_group_guide.pdf" "qo_group_guide" 1716507915 0
+["pdflatex"] 1716927901 "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" "qo_group_guide.pdf" "qo_group_guide" 1716927903 0
   "C:/Users/levjg/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1716507276 82507 a9eef8696c92627b87e9975edea03b2a ""
   "C:/Users/levjg/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1698096121 24175185 79e1b2c342b27ae712d9306bb5d2827e ""
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1233951848 1004 54797486969f23fa377b128694d548df ""
@@ -93,11 +93,11 @@
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1657800696 9714 ba3194bd52c8499b3f1e3eb91d409670 ""
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/tex/latex/titling/titling.sty" 1252048308 7358 95ac619994bd30d405a74f3eca431c84 ""
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
-  "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" 1716507913 4134 dc4acb53245b470b9735abcdc969b92a ""
-  "qo_group_guide.aux" 1716507914 1435 f81e154bdd2b0e3c127fa097faafd2aa "pdflatex"
-  "qo_group_guide.out" 1716507914 1314 d21cf3131a965aa3fb8ece8b36adbfea "pdflatex"
-  "qo_group_guide.tex" 1716507913 4134 dc4acb53245b470b9735abcdc969b92a ""
-  "qo_group_guide.toc" 1716507914 594 ad2acdf199e5751c74c2ad64515e303f "pdflatex"
+  "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" 1716927900 4250 4b1c6a1b03f735190e98aa3bf1d4b621 ""
+  "qo_group_guide.aux" 1716927903 1435 f81e154bdd2b0e3c127fa097faafd2aa "pdflatex"
+  "qo_group_guide.out" 1716927903 1314 d21cf3131a965aa3fb8ece8b36adbfea "pdflatex"
+  "qo_group_guide.tex" 1716927900 4250 4b1c6a1b03f735190e98aa3bf1d4b621 ""
+  "qo_group_guide.toc" 1716927903 594 ad2acdf199e5751c74c2ad64515e303f "pdflatex"
   (generated)
   "qo_group_guide.aux"
   "qo_group_guide.log"

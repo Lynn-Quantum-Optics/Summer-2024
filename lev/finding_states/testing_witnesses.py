@@ -176,11 +176,11 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
         Wp2_min_name = index_names.get(W_T_ls.index(Wp_t2), 'Unknown')
         Wp3_min_name = index_names.get(W_T_ls.index(Wp_t3), 'Unknown')
         
-        # Return the params as well
-        W_param = W_params[0]
-        Wp1_param = W_params[1]
-        Wp2_param = W_params[2]
-        Wp3_param = W_params[3]
+        # Return the params as well, add in if return_params = True in compute_witness call
+        #W_param = W_params[0]
+        #Wp1_param = W_params[1]
+        #Wp2_param = W_params[2]
+        #Wp3_param = W_params[3]
         
         # Find names from dictionary and return them and their values
         return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param
