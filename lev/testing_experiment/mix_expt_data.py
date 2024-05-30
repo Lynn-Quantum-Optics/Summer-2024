@@ -48,6 +48,8 @@ def mix_states(file_names, probs, state_name):
         df.loc['unc', file] = probs[i] * df.loc['unc', file]
         df.loc['un_proj', file] = probs[i] * df.loc['un_proj', file]
         df.loc['un_proj_unc', file] = probs[i] * df.loc['un_proj_unc', file]
+        df.loc['purity', file] = probs[i] * df.loc['purity', file] 
+        df.loc['fidelity', file] = probs[i] * df.loc['fidelity', file]
 
     # Create a new data frame and propagate it with previous data frames values
     df_to_save = pd.DataFrame()
@@ -61,11 +63,11 @@ def mix_states(file_names, probs, state_name):
             
     # normalize the angle, purity, and fidelity values
     df_to_save.loc['angles', 'col'] = [x / len(file_names) for x in df_to_save.loc['angles', 'col']]
-    df_to_save.loc['purity', 'col'] /= len(file_names)
-    df_to_save.loc['fidelity', 'col'] /= len(file_names)
+
     print(df_to_save.head())
-    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_mix"), df_to_save.values)
-    
+    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_27"), df_to_save.values)
+    print(df.head(10))
+    print(df_to_save.head(10))
 if __name__ == '__main__':
     # define experimental parameters
     etas = [np.pi/4]
