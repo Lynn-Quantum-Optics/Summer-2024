@@ -42,17 +42,30 @@ if __name__ == '__main__':
     m.shutdown()
 
     '''
+    # Load data from a CSV file into a DataFrame using the Manager class or module
     df = Manager.load_data('BCQWP_VBNG_0.csv')
-    
+
+    # Initialize empty lists to store values based on the 'note' column
     data_A = []
     data_B = []
+
+    # Iterate over each row in the DataFrame
     for i in range(len(df)):
+        # Check if the value in the 'note' column at the current row is 'A'
         if df['note'][i] == 'A':
+            # Append the corresponding value from the 'C4' column to data_A
             data_A.append(df['C4'][i])
+        # Check if the value in the 'note' column at the current row is 'B'
         elif df['note'][i] == 'B':
+            # Append the corresponding value from the 'C4' column to data_B
             data_B.append(df['C4'][i])
+
+    # Convert the lists data_A and data_B to NumPy arrays for numerical operations
     data_A, data_B = np.array(data_A), np.array(data_B)
+
+    # Generate an array of indices from 0 to the length of data_A minus one
     xvals = np.arange(len(data_A))
+
 
     analysis.plot_errorbar(xvals, data_A, color='red', label=f'{angle_A} deg')
     analysis.plot_errorbar(xvals, data_B, color='blue', label=f'{angle_B} deg')
