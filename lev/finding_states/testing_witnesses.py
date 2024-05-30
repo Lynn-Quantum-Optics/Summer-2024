@@ -236,7 +236,7 @@ if __name__ == '__main__':
     num_etas = 1  # the number of etas you choose below
     etas = [np.pi/4] #np.pi/12, np.pi/6, np.pi/4 , np.pi/3
     chis = np.linspace(0.001, np.pi/2, points)
-    file_name = 'psi-phi equal bell' # choose descriptively based on names list
+    file_name = 'psi-phi 65-35 bell' # choose descriptively based on names list
     names = ['phi plus, phi minus', 'psi plus, psi minus']
     probs = [0.65, 0.35] # single value list of 1 if creating a pure state
     plot = True

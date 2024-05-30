@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'rho_5202024_15'
+DATA_PATH = 'mixed_phi_psi_45'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -46,7 +46,6 @@ def get_rho_from_file(filename, verbose=True, angles=None):
         verbose : bool, Whether to print out results
         angles: list, List of angles used in the experiment. If not None, will assume angles provided in the data file.
     '''
-
     def split_filename():
             ''' Splits up the file name and identifies the trial number, eta, and chi values'''
 
@@ -408,15 +407,97 @@ def get_theo_rho(alpha, beta):
     #rho = create_noise(rho, 2)
     return rho
 
+def gen_mixed_state(state_list, state_prob, eta_chi):
+    '''
+    Uses above helper functions to generate a given mixed state
+    
+    Parameters:
+    state_list (list): list of state names that are to be mixed, must match creatable state names above
+    state_prob (list): probability of each state being mixed in state_list, must match index
+    eta_chi (list): what eta and chi to use for each state, must match index
+    
+    Returns:
+    rho: an NxN density matrix
+    '''
+    
+    # get individual rho's per state in state_list, taking probability into account
+    individual_rhos = []
+    for i, state in enumerate(state_list):
+        print(state)
+        individual_rhos.append(state_prob[i] * get_theo_rho(state, *eta_chi))
+    # sum all matrices in individual rhos
+    rho = np.sum(individual_rhos, axis = 0)
+    
+    return rho
+
+def get_theo_rho(state, eta, chi):
+    '''
+    Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
+    
+    Parameters:
+    state (string): Which state we want
+    eta (float): The parameter eta.
+    chi (float): The parameter chi.
+    
+    Returns:
+    numpy.ndarray: The density matrix (rho)
+    '''
+    # Define kets and bell states in vector form 
+    H = ket([1,0])
+    V = ket([0,1])
+    
+    PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
+    PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
+    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
+    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
+    
+    ##  The following 2 states inspired the Ws
+    
+    if state == 'phi plus, phi minus':
+        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
+    
+    if state == 'psi plus, psi minus':
+        phi = np.cos(eta)*PSI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    ## The following 6 states inspired the W primes
+    
+    # create the state PHI+ + PSI-
+    if state == 'phi plus, psi minus':
+        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    # create the state PHI- + PSI+
+    if state == 'phi minus, psi plus':
+        phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
+    
+    # create the state PHI+ +i PSI+
+    if state == 'phi plus, i psi plus':
+        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
+    
+    # create the state PHI+ + i PHI-
+    if state == 'phi plus, i phi minus':
+        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
+    
+    # create the state PSI+ + iPSI-
+    if state == 'psi plus, i psi minus':
+        phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    if state == 'phi minus, i psi minus':
+        phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    # create rho and return it
+    rho = phi @ phi.conj().T
+    return rho
+
 if __name__ == '__main__':
     # set filenames for computing W values
 
-    etas = [np.pi/12]
+    etas = [np.pi/4]
     chis = np.linspace(0.001, np.pi/2, 6)
-    print(chis)
     states_names = []
     states = []
-
+    names = ['phi plus, phi minus', 'psi plus, psi minus']
+    probs = [0.65, 0.35]
+    
     for eta in etas:
         for chi in chis:
             states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
@@ -425,15 +506,19 @@ if __name__ == '__main__':
     filenames = []
     settings = []
     rho_actuals = []
+    # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_4.npy")
+        filenames.append(f"rho_('E0', {state_n})_mix.npy")
         settings.append([state_n[0],state_n[1]])
+    
+     # Obtain the density matrix for each state
+    rho_actuals = []
+    for i, state_set in enumerate(states_names):
         rad_angles = states[i]
-        rho_actuals.append(get_theo_rho(rad_angles[0],rad_angles[1]))
-    print(filenames)
+        rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_5202024_15'
+    id = 'rho_5292024'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'fixed_rho_analysis_{id}.csv')
 
