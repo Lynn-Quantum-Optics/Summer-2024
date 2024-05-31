@@ -41,3 +41,5 @@ if __name__ == '__main__':
     # manual sweep
     angles, rates = m.sweep('B_C_QWP', *SWEEP_PARAMS)
 
+    
+
