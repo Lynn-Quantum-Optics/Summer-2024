@@ -36,6 +36,7 @@ if __name__ == '__main__':
     m.A_QWP.goto(0)
     m.log('Sending AHWP to 45')
     m.A_HWP.goto(45)
+
     # put bob's wps to calibrated settings
     m.log('Sending BHWP to 0')
     m.B_HWP.goto(0)
@@ -59,15 +60,20 @@ if __name__ == '__main__':
     # save the output
     df = m.output_data(f'BCQWP_sweep{TRIAL}.csv')
     m.shutdown()
+    
     '''
     df = Manager.load_data('BCQWP_sweep0.csv')
     angles, rates = df['B_C_QWP'], df['C4']
     '''
+
+    # fitting function
+    '''
     # fit the function
-    # params = analysis.fit('quadratic', angles, rates)
+    params = analysis.fit('quadratic', angles, rates)
 
     # print fitted parameters
-    # print(f'Fit parameters = {params}')
+    print(f'Fit parameters = {params}')
+    '''
 
     # plotting
     analysis.plot_errorbar(angles, rates, ms=0.1, fmt='ro', label='Data')
