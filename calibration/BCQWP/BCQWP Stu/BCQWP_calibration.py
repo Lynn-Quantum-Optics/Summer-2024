@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 if __name__ == '__main__':
-    TRIAL = 1
+    ###### RUNNING THE SWEEP ######
+    TRIAL = 7
     SWEEP_PARAMS = [-2, 2, 15, 5, 3]
 
     # check for two minimums, one at 0, one at pi plus our offset
@@ -41,5 +42,29 @@ if __name__ == '__main__':
     # manual sweep
     angles, rates = m.sweep('B_C_QWP', *SWEEP_PARAMS)
 
-    
+    # save the output
+    df = m.output_data(f'BCQWP_sweep{TRIAL}.csv')
+    m.shutdown()
+
+
+    ###### FITTING OUR DATA ######
+    # fitting function
+    params = analysis.fit('quadratic', angles, rates)
+
+    # print fitted parameters
+    print(f'Fit parameters = {params}')
+
+    # plotting
+    analysis.plot_errorbar(angles, rates, ms=0.1, fmt='ro', label='Data')
+    analysis.plot_func('quadratic', params, angles, color='b', linestyle='dashed', label=f'Fit Function')
+
+    # labels n such 
+    plt.xlabel('Bob\'s Creation QWP Angle (deg)')
+    plt.ylabel('Count Rate (#/s)')
+    plt.legend()
+    plt.title(f'Fit=${params[1].n:.3f}(x-{params[0].n:.3f})^2 + {params[2].n:.3f}$')
+    plt.savefig(f'BCQWP{TRIAL}.png', dpi=600)
+    plt.show()
+
+
 
