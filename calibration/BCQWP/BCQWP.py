@@ -35,6 +35,7 @@ if __name__ == '__main__':
     m.A_QWP.goto(0)
     m.log('Sending AHWP to 45')
     m.A_HWP.goto(45)
+    
     # put bob's wps to calibrated settings
     m.log('Sending BHWP to 0')
     m.B_HWP.goto(0)
