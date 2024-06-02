@@ -48,26 +48,31 @@ def mix_states(file_names, probs, state_name):
         df.loc['unc', file] = probs[i] * df.loc['unc', file]
         df.loc['un_proj', file] = probs[i] * df.loc['un_proj', file]
         df.loc['un_proj_unc', file] = probs[i] * df.loc['un_proj_unc', file]
-        df.loc['purity', file] = probs[i] * df.loc['purity', file] 
+        df.loc['purity', file] = probs[i] * df.loc['purity', file]
         df.loc['fidelity', file] = probs[i] * df.loc['fidelity', file]
-
     # Create a new data frame and propagate it with previous data frames values
-    df_to_save = pd.DataFrame()
-    df_to_save.index = row_names
+    df_to_save = pd.DataFrame(index = row_names)
     df_to_save['col'] = df[file_names[0]]
     for i, file_name in enumerate(file_names):
         if file_name == file_names[0]:  # Skip the first bc that is already in the new df
             pass
         else:
             df_to_save['col'] += df[file_name]
-            
-    # normalize the angle, purity, and fidelity values
-    df_to_save.loc['angles', 'col'] = [x / len(file_names) for x in df_to_save.loc['angles', 'col']]
+    
+ 
+    # normalize the angle values
 
-    print(df_to_save.head())
-    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_27"), df_to_save.values)
+    rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity = df_to_save.iloc[:, 0] 
+    print(
+    rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity)
+ 
+    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_27"), df_to_save['col'].to_numpy())
+    #save results
+    #with open(f"int_state_sweep_phi45/rho_('E0', {state_n})_1.npy", 'wb') as f:
+        #np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
     print(df.head(10))
     print(df_to_save.head(10))
+    
 if __name__ == '__main__':
     # define experimental parameters
     etas = [np.pi/4]
