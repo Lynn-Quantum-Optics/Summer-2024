@@ -33,10 +33,11 @@ Some important notes before you begin calibration include:
     \item The black motors with the tick marks are Thorlabs motors and the red motors with no tick marks are Elliptec motors.
     \item The Thorlabs motors are controlled by the software 'APT User', and the Elliptec motors 'Ello'.
     \item If power is lost, Thorlabs motors will assume their new 'zero' is wherever they were when they lost power. Calibration in the config.json is based off of the Thorlabs motors at their visual zero, so visual zero is a good guess at calibration (to be close to previous values for a new calibration). Oppositely, we have no clue what the Elliptec motor thinks zero is post-power loss--our best guess is np.random.rand().
+    \item All calibration files by sweeping a wave plate, or moving it while seeing how counts changes. Ensure that the sweep parameters are set to be ~10 above and below the previously calibrated value in the config for a given wave plate. 
 \end{itemize}
 
 \subsection{The Quartz Plate (QP)}
-First, we need to calibrate the quartz plate. Open 'Ello' on the computer, select COMM5 in the upper left, and hit connect. There should be three tabs pop up, click the one with address B. You can jog the motor to ensure you've selected the QP. 
+First, we need to calibrate the quartz plate. Open 'Ello' on the computer, select COM5 in the upper left, and hit connect. There should be three tabs pop up, click the one with address B. You can jog the motor to ensure you've selected the QP. 
 
 Note: \textbf{Wear goggles and do not look down the path of the laser.}
 
@@ -45,13 +46,46 @@ Turn off the lights, unblock the laser (wear goggles!), and use a business card 
 Once retroreflecting correctly, update the home offset within Ello by adding the current offset to the current position; if the result is negative, add 360. 
 
 \subsection{Alice's Wave Plates (and the UV Half Wave Plate)}
-We begin measurement-side calibration with Alice's side. Open VS Code and go to the calibration folder and within that, AQWP.py (Alice Quarter Wave Plate). Run that, the minima of the curve being where the calibrated AQWP zero should be. Add this to the current value for AQWP in the config.json. It should look something like INSERT FIG.
+We begin measurement-side calibration with Alice's side. Open VS Code and go to the calibration folder and within that, AQWP.py (Alice Quarter Wave Plate). For this we also need to remove Bob's BBO and Alice's half wave plate. After removing, run that, the minima of the curve being where the calibrated AQWP zero should be. Add this to the current value for AQWP in the config.json. It should look something like INSERT FIG.
 
-Next is the UVHWP, so navigate to that folder and run 
+Next is the UV half wave plate (UVHWP), so navigate to that folder and run UVHWP.py--the parabola minimum is where you should update the config to (plus the original config value). 
 
+Moving to Alice's half wave plate (AHWP), put it back into the set up, then run AHWP.py. Once again, the minimum value should be added to the config.json value and config.json updated. 
+
+Finally, run check.py within checka. This sweeps all plates around their calibrated zeros (does a minisweep) to ensure all are centered around zero. We aim for a $< 0.1$ degree error on each plate. You may have to run this a few times, updating the wave plates each time, to converge with low error. 
+
+\subsection{Bob's Wave Plates}
+The first step is to reinsert Bob's BBO--be careful not to jog the crystal out of place. Then remove Bob's creation half wave plate (BCHWP) and Bob's half wave plate (BHWP). BCHWP is screwed down, with tape markings where it should be re-inserted later. It can be unscrewed and gently moved out of the photon's path. BHWP is on a magentic mount, and can be gently removed from the mount at the base and placed out of the photon's path. 
+
+Begin with Bob's Quarter Wave Plate (BQWP)--run the sweep and update the config accordingly. An example is shown in INSERT FIG. 
+
+Next is BCHWP, which should be screwed into the table following the tape guidelines. Sweep and update the config, the plot looking as in INSERT FIG.
+
+Then, reinsert BHWP onto the magnetic mount gently, and run AHWP. You should get a plot like INSERT FIG; update the config accordingly. 
+
+Run check.py within checkb, which has the same functionality as checkpoint A but for Bob's side. This functions as a final check that our measurement side is calibrated correctly. Again, it may be an iterative process to converge on a calibration with $0.1$ deg uncertainty. If you are not able to acheive this uncertainity after 10 or more iterations, then it is okay to have the uncertainity $<0.25$ deg--you should still likely talk to Professor Lynn to confirm.
+
+As the time of this writing, Bob's creation quarter wave plate is not included in the calibration nor usage of the experimental apparatus. 
+
+\subsection{Phi Plus and the PCC}
+Finally, we want to calibrate the bell state $\ket{\Phi^+} = \frac{1}{\sqrt{2}}\ket{HH} + \frac{1}{\sqrt{2}}\ket{VV}$, as it is extremely useful for various experiments we may want to run. This will also allow us to calibrate the pre-compensation crystal (PCC).
+
+Calibration of phi plus and the PCC is a three step process:
+\begin{enumerate}
+    \item Run ratio\_tuning.py, which balances the HH and VV counts to yield the even superposition wanted by phi plus. Input the value it provides into the config under the phi\_plus section.
+    \item Run phase\_finding.py, which finds where the phase is zero. Then, you can run qp\_plotting.py to generate a fitted plot of this data; you can zoom into the zero on the plot and insert that degree value into the config. 
+    \item Run pcc\_sweep.py, which calculates the purity of the state. Purity is a measure of how well we've created the state phi plus and is defined by $$p = \frac{<DD> + <AA> - <AD> - <DA>}{<DD> + <AA> + <AD> + <DA>}$$. PCC sweep will calculate the purity at various values--you can then enter the csv where these values are saved and choose the PCC degree value corresponding to the highest purity--this can be put in config.json under phi\_plus as well. We aim for a purity $>0.95$. Note that purity is dependent on lab temperature (aim for $<20^\circ C$) and how long the laser has been on for (wait at least 10 minutes from when the laser is turned on).
+\end{enumerate}
+You are now ready to run experiments! 
 
 \section{Random Issues with the Apparatus}
+\subsection{The Quartz Plate Refusing to Move}
+Sometimes, the QP will return the error INSERT ERROR. We have not yet identified a true solution to this issue. The best we have gotten so far is to first run m.shutdown() in the terminal, then restart the experiment from scratch. If the issue is persistent, you can unplug and replug the QP , then open Ello and follow the calibration tutorial above. 
+\subsection{COM5/7 Refusing to Open}
+Make sure you've run m.shutdown() if the Manager was initialized. Then, run the Task Manager program on the PC and kill VS Code. Open VS Code again and try your program. If it still does not work, you can enter Ello, connect to the COM in question, disconnect, close Ello, and try running your file again. 
+\subsection{Fitting Errors}
 \section{Calibration not from Scratch}
 \section{Extraneous Advice}
+\subsection{Github (Please Push)}
 
 \end{document}

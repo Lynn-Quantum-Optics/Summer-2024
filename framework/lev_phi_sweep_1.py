@@ -175,9 +175,9 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
-    print(m.time, "Setting creation state to phi plus")
-    m.make_state('phi_plus')
-    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_plus"]}')
+    print(m.time, "Setting creation state to phi minus")
+    m.make_state('phi_minus')
+    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_minus"]}')
 
     # turn alice's measurement plates to measure (H+V)/sqrt(2)
     print(m.time, "Turning Alice's measurement plates")

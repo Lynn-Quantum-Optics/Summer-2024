@@ -321,18 +321,28 @@ def get_all_roik_projs_sc(resoult):
             projs[i, j] = compute_roik_proj_sc(p1,p2,x,m,phi)
     return projs
 
-def adjust_rho(rho, angles, expt_purity, state='E0'):
-    ''' Adjusts theoretical density matrix to account for experimental impurity.'''
-    if state=='E0':
-        r_hv = (1 + np.cos(np.deg2rad(angles[1]))*np.sin(2*np.deg2rad(angles[0]))) / 2
-        r_vh = 1 - r_hv
-        HV= np.array([0, 1, 0, 0]).reshape(4,1)
-        VH = np.array([0, 0, 1, 0]).reshape(4,1)
-        rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
-        # swap elements [1, 1] and [2,2]
-        # rho_adj[1,1], rho_adj[2,2] = rho_adj[2,2], rho_adj[1,1]
-        return rho_adj
+# def adjust_rho(rho, angles, expt_purity, state='E0'):
+#     ''' Adjusts theoretical density matrix to account for experimental impurity.'''
+#     if state=='E0':
+#         r_hv = (1 + np.cos(np.deg2rad(angles[1]))*np.sin(2*np.deg2rad(angles[0]))) / 2
+#         r_vh = 1 - r_hv
+#         HV= np.array([0, 1, 0, 0]).reshape(4,1)
+#         VH = np.array([0, 0, 1, 0]).reshape(4,1)
+#         rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
+#         # swap elements [1, 1] and [2,2]
+#         # rho_adj[1,1], rho_adj[2,2] = rho_adj[2,2], rho_adj[1,1]
+#         return rho_adj
 
+def adjust_rho(rho, angles, expt_purity, state = 'E0'):
+    ''' Adjusts theo density matrix to account for experimental impurity'''
+    if state =='E0':    
+        for i in range(rho.shape[0]):
+            for j in range(rho.shape[1]):
+                if i == j:
+                    pass
+                else:
+                    rho[i][j] = expt_purity * rho[i][j]
+        return rho
         # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
 
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
@@ -579,7 +589,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                         return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0, np.pi/2)])
+                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0+0.01, np.pi - 0.01)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -587,12 +597,12 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 def min_W_params(x0):
                     return min_W(x0).x
 
-                x0 = [0]
+                x0 = [np.random.rand()*np.pi]
                 w0_val = min_W_val(x0)
                 w0_params = min_W_params(x0)
-                x0 = [np.pi]
-                w1_val = min_W_val(x0)
-                w1_params = min_W_params(x0)
+                x1 = [np.random.rand()*np.pi]
+                w1_val = min_W_val(x1)
+                w1_params = min_W_params(x1)
                 if w0_val < w1_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
@@ -637,12 +647,12 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 def min_W_params(x0):
                     return min_W(x0).x
                     
-                x0 = [0, 0, 0]
+                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                 w0_val = min_W_val(x0)
                 w0_params = min_W_params(x0)
-                x0 = [np.pi/2, 2*np.pi, 2*np.pi]
-                w1_val = min_W_val(x0)
-                w1_params = min_W_params(x0)
+                x1 =  [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                w1_val = min_W_val(x1)
+                w1_params = min_W_params(x1)
                 if w0_val < w1_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
@@ -688,12 +698,12 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 def min_W_params(x0):
                     return min_W(x0).x
                     
-                x0 = [0, 0]
+                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                 w0_val = min_W(x0).fun
                 w0_params = min_W(x0).x
-                x0 = [np.pi/2 , 2*np.pi]
-                w1_val = min_W(x0).fun
-                w1_params = min_W(x0).x
+                x1 =  [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                w1_val = min_W(x1).fun
+                w1_params = min_W(x1).x
                 if w0_val < w1_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
@@ -740,16 +750,27 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
         
         if verbose:
-            print('i got to verbosity')
+            #print('i got to verbosity')
             # Define dictionary to get name of
-            all_W = ['W1','gW2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
+            all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
             index_names = {i: name for i, name in enumerate(all_W)}
-
+            #print(Wp_t1)
+            #print(W_expec_vals[6:9])
             # Get which W/W' were minimized
-            W_min_name = index_names.get(W_expec_vals.index(W_min), 'Unknown')
-            Wp1_min_name = index_names.get(W_expec_vals.index(Wp_t1), 'Unknown')
-            Wp2_min_name = index_names.get(W_expec_vals.index(Wp_t2), 'Unknown')
-            Wp3_min_name = index_names.get(W_expec_vals.index(Wp_t3), 'Unknown')
+            #W_min_name = index_names.get(W_expec_vals.index(W_min), 'Unknown')
+            #Wp1_min_name = index_names.get(W_expec_vals.index(Wp_t1), 'Unknown')
+            #Wp2_min_name = index_names.get(W_expec_vals.index(Wp_t2), 'Unknown')
+            #Wp3_min_name = index_names.get(W_expec_vals.index(Wp_t3), 'Unknown')
+            #print(sorted(W_expec_vals))
+            W_exp_val_ls = []
+            for val in W_expec_vals:
+                W_exp_val_ls.append(unp.nominal_values(val))
+            W_min_name = [x for _,x in sorted(zip(W_exp_val_ls[:6], all_W[:6]))][0]
+            Wp1_min_name = [x for _,x in sorted(zip(W_exp_val_ls[6:9], all_W[6:9]))][0]
+            Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
+            Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
+
+            #print(W_min_name, W_min)
             
             # Find names from dictionary and return them and their values
             return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
@@ -897,16 +918,16 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                         do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
                         return do_min['fun']
 
-                    x0 = [0, 0, 0]
+                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                     w0 = min_W(x0)
-                    x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0, 0, 0]
+                        x0_best = x0
                     else:
                         w_min = w1
-                        x0_best = [np.pi/2 , 2*np.pi, 2*np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -934,16 +955,16 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                     def min_W(x0):
                         return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
                         
-                    x0 = [0, 0]
+                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                     w0 = min_W(x0)
-                    x0 = [np.pi/2 , 2*np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
-                        x0_best = [0, 0]
+                        x0_best = x0
                     else:
                         w_min = w1
-                        x0_best = [np.pi/2 , 2*np.pi]
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum

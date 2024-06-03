@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'rho_5202024_15'
+DATA_PATH = 'mixed_phi_psi_45'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -46,7 +46,6 @@ def get_rho_from_file(filename, verbose=True, angles=None):
         verbose : bool, Whether to print out results
         angles: list, List of angles used in the experiment. If not None, will assume angles provided in the data file.
     '''
-
     def split_filename():
             ''' Splits up the file name and identifies the trial number, eta, and chi values'''
 
@@ -166,11 +165,10 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
     df = pd.DataFrame()
 
     for i, file in tqdm(enumerate(filenames)):
-        print(file)
         if settings is None:
             try:
                 trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
-                display('expt rho:', rho)
+                #display('expt rho:', rho)
             except:
                 trial, rho, unc, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
                 eta, chi = None, None
@@ -182,10 +180,10 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
                 eta, chi = None, None
 
         rho_actual = rho_actuals[i]
-        display('theo rho:', rho_actual)
+        #display('theo rho:', rho_actual)
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual) # theory
-        W_AT_ls = compute_witnesses(rho = rho_actual, expt_purity=purity, angles=[eta, chi]) # adjusted theory
+        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], purity)) # adjusted theory
 
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc))
@@ -214,6 +212,9 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp_t2_unc = unp.std_devs(W_expt_ls[2])
         Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
+
+        #print('W min is:', W_min_T)
+        #print('W min adjusted is:', W_min_AT)
 
         if eta is not None and chi is not None:
             adj_fidelity= get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
@@ -274,28 +275,28 @@ def make_plots_E0(dfname):
         def sinsq(x, a, b, c, d):
             return a*np.sin(b*np.deg2rad(x) + c)**2 + d
 
+        #print('W_min_T is:', W_min_T)
+        #print('W_min_expt is:', W_min_expt)
         popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
         popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
-
+        #print('popt_W are:', popt_W_AT_eta) 
         popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T)
         popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
-
+        
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
         ax.errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
 
-
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
         ax.errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
-
-        ax.set_title(f'$\eta = 15\degree$', fontsize=33)
-        ax.set_ylabel('Witness value', fontsize=31)
-        ax.tick_params(axis='both', which='major', labelsize=25)
-        ax.legend(ncol=2, fontsize=25)
-        ax.set_xlabel('$\chi$', fontsize=31)
+        ax.set_title(f'$\eta = 45\degree$', fontsize=18)
+        ax.set_ylabel('Witness value', fontsize=16)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.legend(ncol=2, fontsize=16)
+        ax.set_xlabel('$\chi$', fontsize=16)
         # ax[1,i].set_ylabel('Value', fontsize=31)
         # ax[1,i].legend()
     else:
@@ -352,7 +353,7 @@ def make_plots_E0(dfname):
             ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
             ax[i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
 
-            ax[i].set_title('$\eta = 15\degree$', fontsize=33)
+            ax[i].set_title('$\eta = 45\degree$', fontsize=33)
             ax[i].set_ylabel('Witness value', fontsize=31)
             ax[i].tick_params(axis='both', which='major', labelsize=25)
             ax[i].legend(ncol=2, fontsize=25)
@@ -361,7 +362,7 @@ def make_plots_E0(dfname):
             # ax[1,i].legend()
 
             
-    plt.suptitle('Witnesses for $E_0$ states, $\cos(\eta)|\Phi^+\\rangle + \sin(\eta)e^{i \chi}|\Phi^-\\rangle $', fontsize=35)
+    plt.suptitle('Witnesses for 0.65 Phi Bell & 0.35 Psi Bell', fontsize=22)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'fixed_exp_witnesses_E0_{id}.pdf'))
     plt.show()
@@ -408,15 +409,96 @@ def get_theo_rho(alpha, beta):
     #rho = create_noise(rho, 2)
     return rho
 
+def gen_mixed_state(state_list, state_prob, eta_chi):
+    '''
+    Uses above helper functions to generate a given mixed state
+    
+    Parameters:
+    state_list (list): list of state names that are to be mixed, must match creatable state names above
+    state_prob (list): probability of each state being mixed in state_list, must match index
+    eta_chi (list): what eta and chi to use for each state, must match index
+    
+    Returns:
+    rho: an NxN density matrix
+    '''
+    
+    # get individual rho's per state in state_list, taking probability into account
+    individual_rhos = []
+    for i, state in enumerate(state_list):
+        individual_rhos.append(state_prob[i] * get_theo_rho(state, *eta_chi))
+    # sum all matrices in individual rhos
+    rho = np.sum(individual_rhos, axis = 0)
+    
+    return rho
+
+def get_theo_rho(state, eta, chi):
+    '''
+    Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
+    
+    Parameters:
+    state (string): Which state we want
+    eta (float): The parameter eta.
+    chi (float): The parameter chi.
+    
+    Returns:
+    numpy.ndarray: The density matrix (rho)
+    '''
+    # Define kets and bell states in vector form 
+    H = ket([1,0])
+    V = ket([0,1])
+    
+    PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
+    PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
+    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
+    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
+    
+    ##  The following 2 states inspired the Ws
+    
+    if state == 'phi plus, phi minus':
+        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
+    
+    if state == 'psi plus, psi minus':
+        phi = np.cos(eta)*PSI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    ## The following 6 states inspired the W primes
+    
+    # create the state PHI+ + PSI-
+    if state == 'phi plus, psi minus':
+        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    # create the state PHI- + PSI+
+    if state == 'phi minus, psi plus':
+        phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
+    
+    # create the state PHI+ +i PSI+
+    if state == 'phi plus, i psi plus':
+        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
+    
+    # create the state PHI+ + i PHI-
+    if state == 'phi plus, i phi minus':
+        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
+    
+    # create the state PSI+ + iPSI-
+    if state == 'psi plus, i psi minus':
+        phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    if state == 'phi minus, i psi minus':
+        phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    # create rho and return it
+    rho = phi @ phi.conj().T
+    return rho
+
 if __name__ == '__main__':
     # set filenames for computing W values
 
-    etas = [np.pi/12]
+    etas = [np.pi/4]
     chis = np.linspace(0.001, np.pi/2, 6)
-    print(chis)
     states_names = []
     states = []
-
+    names = ['phi plus, phi minus', 'psi plus, psi minus']
+    probs = [0.65, 0.35]
+    
     for eta in etas:
         for chi in chis:
             states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
@@ -425,15 +507,19 @@ if __name__ == '__main__':
     filenames = []
     settings = []
     rho_actuals = []
+    # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_4.npy")
+        filenames.append(f"rho_('E0', {state_n})_27.npy")
         settings.append([state_n[0],state_n[1]])
+    
+     # Obtain the density matrix for each state
+    rho_actuals = []
+    for i, state_set in enumerate(states_names):
         rad_angles = states[i]
-        rho_actuals.append(get_theo_rho(rad_angles[0],rad_angles[1]))
-    print(filenames)
+        rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_5202024_15'
+    id = 'rho_5302024_phi_psi_45mix_noisy'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'fixed_rho_analysis_{id}.csv')
 
