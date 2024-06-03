@@ -321,20 +321,10 @@ def get_all_roik_projs_sc(resoult):
             projs[i, j] = compute_roik_proj_sc(p1,p2,x,m,phi)
     return projs
 
-# def adjust_rho(rho, angles, expt_purity, state='E0'):
-#     ''' Adjusts theoretical density matrix to account for experimental impurity.'''
-#     if state=='E0':
-#         r_hv = (1 + np.cos(np.deg2rad(angles[1]))*np.sin(2*np.deg2rad(angles[0]))) / 2
-#         r_vh = 1 - r_hv
-#         HV= np.array([0, 1, 0, 0]).reshape(4,1)
-#         VH = np.array([0, 0, 1, 0]).reshape(4,1)
-#         rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
-#         # swap elements [1, 1] and [2,2]
-#         # rho_adj[1,1], rho_adj[2,2] = rho_adj[2,2], rho_adj[1,1]
-#         return rho_adj
-
 def adjust_rho(rho, angles, expt_purity, state = 'E0'):
-    ''' Adjusts theo density matrix to account for experimental impurity'''
+    ''' Adjusts theo density matrix to account for experimental impurity
+        Multiplies off-diagonal elements by expt purity to account for 
+        non=entanGled particles in our system '''
     if state =='E0':    
         for i in range(rho.shape[0]):
             for j in range(rho.shape[1]):
@@ -343,8 +333,7 @@ def adjust_rho(rho, angles, expt_purity, state = 'E0'):
                 else:
                     rho[i][j] = expt_purity * rho[i][j]
         return rho
-        # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
-
+        
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
     --
