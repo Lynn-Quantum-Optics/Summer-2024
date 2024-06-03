@@ -404,8 +404,7 @@ if __name__ == '__main__':
             C_UV_HWP=UVHWP_angle,
             C_QP = C_QP_angle,
             B_C_HWP = 45,
-            C_
-             = 3.789 # optimal value from phi_plus in config
+            C_PCC= 3.789 # optimal value from phi_plus in config
         )
 
         # get the density matrix
