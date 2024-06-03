@@ -90,7 +90,7 @@ they might be nonzero
 
 def get_params(alpha, beta):
     """
-    Take in two angles alpha and beta in radians where the created state is cos(alpha)*Psi_plus + (e^i*beta)*sin(alpha)*Psi_minus
+    Take in two angles alpha and beta in radians where the created state is cos(alpha)*Phi_plus + (e^i*beta)*sin(alpha)*Phi_minus
     and returns the measurement angles that the HWP and QWP need to be set at per the notes for state creation.
 
     Parameters
@@ -171,13 +171,13 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     '''
 
     # set the output file for manager
-    # m.new_output(f"int_state_sweep_phi45_phi45_sweep/QP_sweep_{num}.csv")
+    # m.new_output(f"int_state_sweep_WP3_phi45_sweep/QP_sweep_{num}.csv")
     # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
-    print(m.time, "Setting creation state to phi plus")
-    m.make_state('phi_plus')
-    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_plus"]}')
+    print(m.time, "Setting creation state to phi minus")
+    m.make_state('phi_minus')
+    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_minus"]}')
 
     # turn alice's measurement plates to measure (H+V)/sqrt(2)
     print(m.time, "Turning Alice's measurement plates")
@@ -194,8 +194,8 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    df = m.output_data(f"int_state_sweep_phi45/QP_sweep_{num}.csv")
-    data = pd.read_csv(f"int_state_sweep_phi45/QP_sweep_{num}.csv")
+    df = m.output_data(f"int_state_sweep_WP3/QP_sweep_{num}.csv")
+    data = pd.read_csv(f"int_state_sweep_WP3/QP_sweep_{num}.csv")
     
     # shuts down the manager
     # m.shutdown()
@@ -272,7 +272,7 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     PCT1 = ratio
 
-    # m.new_output(f"int_state_sweep_phi45/UVHWP_balance_sweep1_{num}.csv")
+    # m.new_output(f"int_state_sweep_WP3/UVHWP_balance_sweep1_{num}.csv")
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -283,10 +283,10 @@ def UVHWP_sweep(m:Manager, ratio, num):
     m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
-    df1 = m.output_data(f"int_state_sweep_phi45/UVHWP_balance_sweep1_{num}.csv")
-    data1 = pd.read_csv(f"int_state_sweep_phi45/UVHWP_balance_sweep1_{num}.csv")
+    df1 = m.output_data(f"int_state_sweep_WP3/UVHWP_balance_sweep1_{num}.csv")
+    data1 = pd.read_csv(f"int_state_sweep_WP3/UVHWP_balance_sweep1_{num}.csv")
     # data1 = m.close_output()
-    # m.new_output(f'int_state_sweep_phi45/UVHWP_balance_sweep2_{num}.csv')
+    # m.new_output(f'int_state_sweep_WP3/UVHWP_balance_sweep2_{num}.csv')
 
     # sweep in the second basis
     print(m.time, f'Configuring measurement basis {BASIS2}')
@@ -297,8 +297,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     print(m.time, 'Data collected, shutting down...')
     # data2 = m.close_output()
-    df2 = m.output_data(f'int_state_sweep_phi45/UVHWP_balance_sweep2_{num}.csv')
-    data2 = pd.read_csv(f'int_state_sweep_phi45/UVHWP_balance_sweep2_{num}.csv')
+    df2 = m.output_data(f'int_state_sweep_WP3/UVHWP_balance_sweep2_{num}.csv')
+    data2 = pd.read_csv(f'int_state_sweep_WP3/UVHWP_balance_sweep2_{num}.csv')
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
     # m.shutdown()
@@ -377,7 +377,7 @@ def state_tomo(m, C_UV_HWP_ang, C_QP_ang, B_C_HWP_ang):
     m.close_output()
 
 if __name__ == '__main__':
-
+    # makes psi+ state, sweeping over phase values
     alphas = [np.pi/4]
     betas = np.linspace(0.001, np.pi/2, 6)
     states_names = []
@@ -411,12 +411,12 @@ if __name__ == '__main__':
 
         UVHWP_angle = UVHWP_sweep(m, HH_frac, i)
 
-        # m.new_output(f'int_state_sweep_phi45/sweep_data_{state}.csv')
+        # m.new_output(f'int_state_sweep_WP3/sweep_data_{state}.csv')
 
         m.configure_motors(
             C_UV_HWP=UVHWP_angle,
             C_QP = C_QP_angle,
-            B_C_HWP = 0, #45 -> 0 to change from psi to phi 
+            B_C_HWP = 135, #0, 45 -> 0 to change from psi to phi 
             C_PCC =  3.7894 # optimal value from phi_plus in config
         )
 
@@ -443,10 +443,10 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 0] # the 0 is B_C_HWP angle
 
         # save results
-        with open(f"int_state_sweep_phi45/rho_('E0', {state_n})_1.npy", 'wb') as f:
+        with open(f"int_state_sweep_WP3/rho_('E0', {state_n})_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
-        date="5292024"
-        tomo_df = m.output_data(f'int_state_sweep_phi45/tomo_data_{state}_{date}.csv')
+        date="5282024"
+        tomo_df = m.output_data(f'int_state_sweep_WP3/tomo_data_{state}_{date}.csv')
         # m.close_output()
         
     m.shutdown()
