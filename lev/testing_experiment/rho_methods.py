@@ -655,8 +655,8 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                             if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
                                 x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                             else:
-                                grad = approx_fprime(x0, min_W_val, 1e-6)
-                                if np.all(grad < 1e-5*np.ones(len(grad))):
+                                grad = approx_fprime(x0, min_W_val, 1e-8)
+                                if np.all(grad < 1e-7*np.ones(len(grad))):
                                     x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                 else:
                                     x0 = x0 - zeta*grad
@@ -759,8 +759,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
             Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
 
-            #print(W_min_name, W_min)
-            
             # Find names from dictionary and return them and their values
             return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
         else:
@@ -865,8 +863,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 if i <= 5: # just theta optimization
                     # get initial guess at boundary
                     def min_W(x0):
-                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi)])
-                        # print(do_min['x'])
+                        do_min = minimize(W, x0=x0, bounds=[(0+0.01, np.pi-0.01)])
                         return do_min['fun']
                     x0 = [np.random.rand()*np.pi]
                     w0 = min_W(x0)
@@ -999,6 +996,22 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             W_lynn = get_witness(get_lynn())
 
             if not(return_all):
+                if verbose:
+                    #print('i got to verbosity')
+                    # Define dictionary to get name of
+                    all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
+                    index_names = {i: name for i, name in enumerate(all_W)}
+                
+                    W_exp_val_ls = []
+                    for val in W_expec_vals:
+                        W_exp_val_ls.append(unp.nominal_values(val))
+                    W_min_name = [x for _,x in sorted(zip(W_expec_vals[:6], all_W[:6]))][0]
+                    Wp1_min_name = [x for _,x in sorted(zip(W_expec_vals[6:9], all_W[6:9]))][0]
+                    Wp2_min_name = [x for _,x in sorted(zip(W_expec_vals[9:12], all_W[9:12]))][0]
+                    Wp3_min_name = [x for _,x in sorted(zip(W_expec_vals[12:15], all_W[12:15]))][0]
+                    
+                    # Find names from dictionary and return them and their values
+                    return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
                 if return_params:
                     return W_min, Wp_t1, Wp_t2, Wp_t3, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
                 else:
