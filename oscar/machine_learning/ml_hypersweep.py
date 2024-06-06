@@ -28,7 +28,7 @@ def train_xgb():
     )
 
     # fit the model
-    model.fit(X_train, Y_train, early_stopping_rounds = wandb.config.early_stopping, eval_set=[(X_test, Y_test)], callbacks=[wandb.xgboost.WandbCallback(log_model=True)])
+    model.fit(X_train, Y_train, early_stopping_rounds = wandb.config.early_stopping, eval_set=[(X_test, Y_test)], callbacks=[wanFdb.xgboost.WandbCallback(log_model=True)])
     # early_stopping_rounds = int(wandb.config.early_stopping)
 
     # log test accuracy to wandb
@@ -285,7 +285,7 @@ def custom_train_nn10h(size1, size2, size3, size4, size5, size6, size7, size8, s
         model.add(layers.Dense(size8, activation='relu'))
         model.add(layers.Dense(size9, activation='relu'))
         model.add(layers.Dense(size10, activation='relu'))
-
+ 
         # model.add(layers.Dropout(dropout))
 
         # return len of class size

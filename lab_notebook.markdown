@@ -1551,3 +1551,8 @@ Upon recalibration we changed the UVHWP to -112.72137692100124. Tons of errrors 
 MP: Paco, Lev, Stu
 
 Got four points of phi bell at 45 deg before QP died, this was after spending first half of day troubleshooting low counts. Came into a warm room (20.4 deg) so hoping that did not affect our data.
+
+# 6/4/2024
+MP: Lev, Stu, Paco
+
+Attempted to gather data on the second mixed state that we could create without BCQWP, but ran into consistent QP errors. 

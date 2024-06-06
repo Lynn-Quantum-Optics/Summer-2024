@@ -175,9 +175,9 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
-    print(m.time, "Setting creation state to phi minus")
-    m.make_state('phi_minus')
-    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_minus"]}')
+    print(m.time, "Setting creation state to phi plus")
+    m.make_state('phi_plus')
+    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_plus"]}')
 
     # turn alice's measurement plates to measure (H+V)/sqrt(2)
     print(m.time, "Turning Alice's measurement plates")
@@ -189,7 +189,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -35, -1.7, 25, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
+    m.sweep("C_QP", -40, 0, 40, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
 
     print(m.time, "Sweep complete")
 
@@ -416,7 +416,7 @@ if __name__ == '__main__':
         m.configure_motors(
             C_UV_HWP=UVHWP_angle,
             C_QP = C_QP_angle,
-            B_C_HWP = 135, #0, 45 -> 0 to change from psi to phi 
+            B_C_HWP = 67.5, #0, 45 -> 0 to change from psi to phi 
             C_PCC =  3.7894 # optimal value from phi_plus in config
         )
 
@@ -445,7 +445,7 @@ if __name__ == '__main__':
         # save results
         with open(f"int_state_sweep_WP3/rho_('E0', {state_n})_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
-        date="5282024"
+        date="6032024"
         tomo_df = m.output_data(f'int_state_sweep_WP3/tomo_data_{state}_{date}.csv')
         # m.close_output()
         
