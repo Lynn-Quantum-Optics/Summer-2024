@@ -176,8 +176,8 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # set the creation state to phi plus
     print(m.time, "Setting creation state to phi plus")
-    m.make_state('phi_plus')
-    m.log(f'configured phi_plus: {m._config["state_presets"]["phi_plus"]}')
+    m.make_state('phi_minus')
+    m.log(f'configured phi_minus: {m._config["state_presets"]["phi_minus"]}')
 
     # turn alice's measurement plates to measure (H+V)/sqrt(2)
     print(m.time, "Turning Alice's measurement plates")
@@ -189,7 +189,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -36, -2, 30, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
+    m.sweep("C_QP", -38, -25, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
 
     print(m.time, "Sweep complete")
 

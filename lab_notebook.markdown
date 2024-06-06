@@ -1556,3 +1556,5 @@ Got four points of phi bell at 45 deg before QP died, this was after spending fi
 MP: Lev, Stu, Paco
 
 Attempted to gather data on the second mixed state that we could create without BCQWP, but ran into consistent QP errors. 
+
+#6/6
