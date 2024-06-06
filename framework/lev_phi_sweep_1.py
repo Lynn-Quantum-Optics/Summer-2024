@@ -171,7 +171,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
     '''
 
     # set the output file for manager
-    # m.new_output(f"int_state_sweep_WP3_phi45_sweep/QP_sweep_{num}.csv")
+    # m.new_output(f"int_state_sweep_WP3_2_phi45_sweep/QP_sweep_{num}.csv")
     # find a way to name file with alpha and beta
 
     # set the creation state to phi plus
@@ -189,13 +189,13 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -40, 0, 40, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
+    m.sweep("C_QP", -36, -2, 30, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
 
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    df = m.output_data(f"int_state_sweep_WP3/QP_sweep_{num}.csv")
-    data = pd.read_csv(f"int_state_sweep_WP3/QP_sweep_{num}.csv")
+    df = m.output_data(f"int_state_sweep_WP3_2/QP_sweep_{num}.csv")
+    data = pd.read_csv(f"int_state_sweep_WP3_2/QP_sweep_{num}.csv")
     
     # shuts down the manager
     # m.shutdown()
@@ -272,7 +272,7 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     PCT1 = ratio
 
-    # m.new_output(f"int_state_sweep_WP3/UVHWP_balance_sweep1_{num}.csv")
+    # m.new_output(f"int_state_sweep_WP3_2/UVHWP_balance_sweep1_{num}.csv")
 
     # configure measurement basis
     print(m.time, f'Configuring measurement basis {BASIS1}')
@@ -283,10 +283,10 @@ def UVHWP_sweep(m:Manager, ratio, num):
     m.sweep(COMPONENT, GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
-    df1 = m.output_data(f"int_state_sweep_WP3/UVHWP_balance_sweep1_{num}.csv")
-    data1 = pd.read_csv(f"int_state_sweep_WP3/UVHWP_balance_sweep1_{num}.csv")
+    df1 = m.output_data(f"int_state_sweep_WP3_2/UVHWP_balance_sweep1_{num}.csv")
+    data1 = pd.read_csv(f"int_state_sweep_WP3_2/UVHWP_balance_sweep1_{num}.csv")
     # data1 = m.close_output()
-    # m.new_output(f'int_state_sweep_WP3/UVHWP_balance_sweep2_{num}.csv')
+    # m.new_output(f'int_state_sweep_WP3_2/UVHWP_balance_sweep2_{num}.csv')
 
     # sweep in the second basis
     print(m.time, f'Configuring measurement basis {BASIS2}')
@@ -297,8 +297,8 @@ def UVHWP_sweep(m:Manager, ratio, num):
 
     print(m.time, 'Data collected, shutting down...')
     # data2 = m.close_output()
-    df2 = m.output_data(f'int_state_sweep_WP3/UVHWP_balance_sweep2_{num}.csv')
-    data2 = pd.read_csv(f'int_state_sweep_WP3/UVHWP_balance_sweep2_{num}.csv')
+    df2 = m.output_data(f'int_state_sweep_WP3_2/UVHWP_balance_sweep2_{num}.csv')
+    data2 = pd.read_csv(f'int_state_sweep_WP3_2/UVHWP_balance_sweep2_{num}.csv')
     
     print(m.time, 'Data collection complete and manager shut down, beginning analysis...')
     # m.shutdown()
@@ -411,7 +411,7 @@ if __name__ == '__main__':
 
         UVHWP_angle = UVHWP_sweep(m, HH_frac, i)
 
-        # m.new_output(f'int_state_sweep_WP3/sweep_data_{state}.csv')
+        # m.new_output(f'int_state_sweep_WP3_2/sweep_data_{state}.csv')
 
         m.configure_motors(
             C_UV_HWP=UVHWP_angle,
@@ -443,10 +443,10 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 0] # the 0 is B_C_HWP angle
 
         # save results
-        with open(f"int_state_sweep_WP3/rho_('E0', {state_n})_1.npy", 'wb') as f:
+        with open(f"int_state_sweep_WP3_2/rho_('E0', {state_n})_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
         date="6032024"
-        tomo_df = m.output_data(f'int_state_sweep_WP3/tomo_data_{state}_{date}.csv')
+        tomo_df = m.output_data(f'int_state_sweep_WP3_2/tomo_data_{state}_{date}.csv')
         # m.close_output()
         
     m.shutdown()

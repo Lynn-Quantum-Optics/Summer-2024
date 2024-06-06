@@ -127,7 +127,8 @@
         "phi_minus": {
             "C_UV_HWP": 0,
             "C_QP": 0,
-            "C_PCC": 0
+            "C_PCC": 0,
+            "B_C_HWP": 0.00
         },
         "HH": {
             "C_UV_HWP": 45,
