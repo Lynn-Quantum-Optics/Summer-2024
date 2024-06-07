@@ -189,7 +189,7 @@ def QP_sweep(m:Manager, HWP_angle, QWP_angle, num):
 
     # sweep the QP to determine the minimum count angle
     # sweeps through negative angles so that laser reflection points inward, if the counts are higher when the QP sweeps the other way, sweep positive
-    m.sweep("C_QP", -38, -25, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
+    m.sweep("C_QP", -35, -20, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
 
     print(m.time, "Sweep complete")
 
@@ -389,8 +389,8 @@ if __name__ == '__main__':
             states.append((alpha, beta))
 
         # select only data points3:]
-   # states = states[4:]
-    #states_names= states_names[4:]
+    states = states[5:]
+    states_names= states_names[5:]
 
     SAMP = (5, 1)
     m = Manager()
