@@ -15,15 +15,12 @@ from rho_methods import *
 from process_expt_lev import *
 
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'mixed_phi_psi_45'
- # DEF GET THEO RHO
-
-# DEF MIX RHO
+DATA_PATH = 'mixed_phi-psi_psi-phi_45'
     
 def mix_states(file_names, probs, state_name):
     '''
     This returns mixed rhos and saves a csv with a mixed state.
-    Note that uncertainity is taken as a mean, as is purity and fidelity.
+    Note that uncertainty is taken as a mean, as is purity and fidelity.
     This file assumes one chi is being analyzed at a time.
     
     Parameters:
@@ -66,7 +63,7 @@ def mix_states(file_names, probs, state_name):
     print(
     rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity)
  
-    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_27"), df_to_save['col'].to_numpy())
+    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_3"), df_to_save['col'].to_numpy())
     #save results
     #with open(f"int_state_sweep_phi45/rho_('E0', {state_n})_1.npy", 'wb') as f:
         #np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
@@ -91,38 +88,11 @@ if __name__ == '__main__':
     for i, state_n in enumerate(states_names):
         filenames = []
         filenames.append(f"rho_('E0', {state_n})_1.npy")
-        filenames.append(f"rho_('E0', {state_n})_26.npy")
+        filenames.append(f"rho_('E0', {state_n})_2.npy")
         rad_angles = states[i]
         mix_states(filenames, probs, state_n)
     
-    """
-    NEXT STEPS:
-    - create mixed_rho_gen function within process_expt_lev
-    - create a function that uses mixed_rho to use with various chi (may just be main = init?)
-    """
-    
-    
-    
-    
-# # Get your files and the overall theoretical rhos
-# etas = [np.pi/4]               # These should match the experimental setup
-# chis = np.linspace(0.001, np.pi/2, 6)
-# states_names = []
-# states = []
 
-# for eta in etas:
-#     for chi in chis:
-#         states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
-#         states.append((eta, chi))
-# filenames = []
-# settings = []
-# rho_actuals = []
-# for i, state_n in enumerate(states_names):
-#     filenames.append(f"rho_('E0', {state_n})_4.npy")
-#     settings.append([state_n[0],state_n[1]])
-#     rad_angles = states[i]
-#     rho_actuals.append(get_theo_rho(rad_angles[0],rad_angles[1]))
-# print(filenames)
 
 
 

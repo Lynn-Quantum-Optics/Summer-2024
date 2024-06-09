@@ -178,16 +178,15 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
             except:
                 trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
                 eta, chi = None, None
-
         rho_actual = rho_actuals[i]
         #display('theo rho:', rho_actual)
         # calculate W and W' theory
-        W_T_ls = compute_witnesses(rho = rho_actual, verbose = True) # theory
-        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.95), verbose = True) # adjusted theory
+        W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
+        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.945), verbose = True) # adjusted theory
 
         # calculate W and W' expt
-        W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True)
-       
+        W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
+
         # parse lists
         W_min_T = W_T_ls[0]
         Wp_t1_T = W_T_ls[1]
@@ -197,7 +196,12 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp1_name_T = W_T_ls[5]
         Wp2_name_T = W_T_ls[6]
         Wp3_name_T = W_T_ls[7]
+        W_param_T = W_T_ls[8]
+        Wp1_param_T = W_T_ls[9]
+        Wp2_param_T = W_T_ls[10]
+        Wp3_param_T = W_T_ls[11]
         # ---- #
+        # not returning params for adjusted theory at the moment
         W_min_AT = W_AT_ls[0]
         Wp_t1_AT = W_AT_ls[1]
         Wp_t2_AT = W_AT_ls[2]
@@ -225,13 +229,17 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp1_name_expt = W_expt_ls[5]
         Wp2_name_expt = W_expt_ls[6]
         Wp3_name_expt = W_expt_ls[7]
-        
+        W_param_expt = W_expt_ls[8]
+        Wp1_param_expt = W_expt_ls[9]
+        Wp2_param_expt = W_expt_ls[10]
+        Wp3_param_expt = W_expt_ls[11]
+    
         if i == 2: # print out W values and rho for greatest differences W prime.
             print('At third data point, theo rho was:', rho_actual)
             print('And expt rho was:', rho)
-            print('With W/W primes of:', W_name_T, W_min_T, Wp1_name_T, Wp_t1_T, Wp2_name_T, Wp_t2_T, Wp3_name_T, Wp_t3_T)
-            print('With W/W primes of:', W_name_AT, W_min_AT, Wp1_name_AT, Wp_t1_AT, Wp2_name_AT, Wp_t2_AT, Wp3_name_AT, Wp_t3_AT)
-            print('Experimental Ws:', W_name_expt, W_min_expt, Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
+            print('THE CURRENT POINT IS POINT:', i)
+            print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
+            print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
 
         if eta is not None and chi is not None:
             adj_fidelity= get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
@@ -381,7 +389,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    plt.suptitle('Witnesses for Phi, Psi Bell Mix', fontsize=22)
+    plt.suptitle('Witnesses for Phi, Psi Bell Mix at 65/35 Probability', fontsize=22)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -515,6 +523,8 @@ if __name__ == '__main__':
     chis = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
+    # names = ['phi plus, psi minus', 'phi minus, psi plus']
+    # probs = [0.65, 0.35]
     names = ['phi plus, phi minus', 'psi plus, psi minus']
     probs = [0.65, 0.35]
     
