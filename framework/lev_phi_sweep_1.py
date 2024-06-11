@@ -389,9 +389,9 @@ if __name__ == '__main__':
             states.append((alpha, beta))
 
         # select only data points3:]
-    states = states[5:]
-    states_names= states_names[5:]
-
+    #states = states[5:]
+    #states_names= states_names[5:]
+    
     SAMP = (5, 1)
     m = Manager()
 

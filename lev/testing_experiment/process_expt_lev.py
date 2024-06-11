@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'mixed_phi_psi_45'
+DATA_PATH = 'int_state_sweep_WP3_2'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -179,12 +179,13 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
                 trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
                 eta, chi = None, None
         rho_actual = rho_actuals[i]
-        #display('theo rho:', rho_actual)
+        display('theo rho:', rho_actual)
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
         W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.945), verbose = True) # adjusted theory
-
+        print('counts are:',unp.uarray(un_proj, un_proj_unc))
         # calculate W and W' expt
+        display('expt rho:', rho)
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
 
         # parse lists
@@ -287,7 +288,6 @@ def make_plots_E0(dfname):
         # extract witness values
         W_min_T = df_eta['W_min_T'].to_numpy()
         W_min_AT = df_eta['W_min_AT'].to_numpy()
-        print('In plotting, W_min_AT was:', W_min_AT)
         W_min_expt = df_eta['W_min_expt'].to_numpy()
         W_min_unc = df_eta['W_min_unc'].to_numpy()
 
@@ -389,7 +389,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    plt.suptitle('Witnesses for Phi, Psi Bell Mix at 65/35 Probability', fontsize=22)
+    plt.suptitle('Witnesses for Phi-Psi Mix 1', fontsize=22)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -525,8 +525,8 @@ if __name__ == '__main__':
     states = []
     # names = ['phi plus, psi minus', 'phi minus, psi plus']
     # probs = [0.65, 0.35]
-    names = ['phi plus, phi minus', 'psi plus, psi minus']
-    probs = [0.65, 0.35]
+    names = ['phi minus, psi plus']
+    probs = [1]
     
     for eta in etas:
         for chi in chis:
@@ -538,7 +538,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_27.npy")
+        filenames.append(f"rho_('E0', {state_n})_2.npy")
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
@@ -548,7 +548,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_phi-psi-bell'
+    id = 'rho_phi-psi-mix'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 
