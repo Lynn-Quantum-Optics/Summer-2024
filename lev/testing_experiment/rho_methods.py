@@ -1048,7 +1048,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 else:
                     return W_expec_vals
         else: 
-            print(' i went to the 2nd else')
+            print('i went to the 2nd else')
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
             W2_param = W2_main['x']

@@ -80,11 +80,27 @@ You are now ready to run experiments!
 
 \section{Random Issues with the Apparatus}
 \subsection{The Quartz Plate Refusing to Move}
-Sometimes, the QP will return the error INSERT ERROR. We have not yet identified a true solution to this issue. The best we have gotten so far is to first run m.shutdown() in the terminal, then restart the experiment from scratch. If the issue is persistent, you can unplug and replug the QP , then open Ello and follow the calibration tutorial above. 
+Sometimes, the QP will return the error 'RuntimeError: Sent instruction "b'Bma0001FB24'" to ElliptecMotor-C\_QP expecting response length 11 but got response b'BGS0A' (length=5). As of writing, we have solved this issue by allowing the QP to be attached to its own bus (COM12), such that whenever it loses connection/bugs out we can reset it in this order: remove USB, remove power supply cable, remove ribbon cable, replace ribbon cable, replace power supply cable, replace USB. We then recalibrate as per section 2.
 \subsection{COM5/7 Refusing to Open}
 Make sure you've run m.shutdown() if the Manager was initialized. Then, run the Task Manager program on the PC and kill VS Code. Open VS Code again and try your program. If it still does not work, you can enter Ello, connect to the COM in question, disconnect, close Ello, and try running your file again. 
+\subsection{Serial Number Errors}
+Sometimes the Thorlabs motors connected to the measurement wave plates will lose connection with the computer--this is recognized by an error in the Python terminal similar to "Internal serial number is incorrect", and identified by closing VS Code, opening APT Users, and seeing some or all of the motors missing from the home page. Assuming that the motors had been homed before this error and are at their visual zero, this can be fixed by: Closing APT User, unplugging the motor block at their base, opening APT User with motors unplugged, closing it again, plugging back in the motor bases and waiting until all four have a green LED, opening APT User, and verifying there that all four motors now show there. 
+
+If the motor is not set to zero and not visible in APT User, you can try manually jogging it on its base to see if it is recognized. If not, I am sorry you have to unplug, replug as described above then recalibrate as in section 2.
 \subsection{Fitting Errors}
+As each fiting error is different, we describe here general troubleshooting steps:
+\begin{enumerate}
+    \item During a QP sweep $\rightarrow$ often the bounds are set too wide, such that the QP itself blocks the light at certain points. Print out the sweep right before fitting and you should see this occuring at the boundary. Fix by narrowing bounds.
+    \item Anything else? Best advice I can give is to \textit{print()} statement the bajeezus out of the code. Good luck!
+\end{enumerate}
 \section{Calibration not from Scratch}
+Here I will describe various \textit{extremely} useful terminal/Python commands for the Manager object that will be helpful for troubleshooting and calibrating the setup. They are:
+\begin{enumerate}
+    \item 'from lab\_framework import Manager' $\rightarrow$ imports the Manager framework into your file or terminal.
+    \item 'm = Manager(config = './config.json')' $\rightarrow$ sets the Manager object as m. The CCU will automatically start displaying data. You may need to adjust the number of dots pending what directory you're in.  
+    \item 'm.OBJECT\_goto(value) $\rightarrow$, where OBJECT is named as in your config.json and value is 0 to 360. An example is 'm.C\_UV\_HWP.goto(22.5)'.
+    \item 'm.take_data(num-points, time-per-point)' $\rightarrow$ takes data into the Manager object, example is 'm.take_data(5,3).
+\end{enumerate}
 \section{Extraneous Advice}
 \subsection{Github (Please Push)}
 

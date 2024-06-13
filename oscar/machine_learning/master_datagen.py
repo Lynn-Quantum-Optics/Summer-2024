@@ -72,7 +72,7 @@ def gen_rand_info(func, return_prob, include_w = True, log_params = False, verbo
         
         else: return concurrence, purity, min_eig, params[0], params[1], params[2], params[3]
 
-def build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False):
+def    build_dataset(random_method, return_prob, num_to_gen, savename, do_stokes=False, include_w=True, log_params = False, log_roik_prob = False, verbose=False):
     ''' Fuction to build a dataset of randomly generated states.
     params:
         random_method: string, either 'simplex', 'jones_I','jones_C' or 'random'

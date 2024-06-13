@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'int_state_sweep_WP3_2'
+DATA_PATH = 'richard'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -167,7 +167,9 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
     for i, file in tqdm(enumerate(filenames)):
         if settings is None:
             try:
+                
                 trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+                print(purity)
                 #display('expt rho:', rho)
             except:
                 trial, rho, unc, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
@@ -179,13 +181,10 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
                 trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
                 eta, chi = None, None
         rho_actual = rho_actuals[i]
-        display('theo rho:', rho_actual)
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
         W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.945), verbose = True) # adjusted theory
-        print('counts are:',unp.uarray(un_proj, un_proj_unc))
         # calculate W and W' expt
-        display('expt rho:', rho)
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
 
         # parse lists
@@ -363,7 +362,7 @@ def make_plots_E0(dfname):
             # plot curves for T and AT
             def sinsq(x, a, b, c, d):
                 return a*np.sin(b*np.deg2rad(x) + c)**2 + d
-
+            print('Minimum theory Ws are:', W_min_T)
             popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
             popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
 
@@ -376,12 +375,11 @@ def make_plots_E0(dfname):
             ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
             ax[i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
 
-
             ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
             ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
             ax[i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
 
-            ax[i].set_title('$\eta = 45\degree$', fontsize=33)
+            ax[i].set_title('$\eta = 30\degree$', fontsize=33)
             ax[i].set_ylabel('Witness value', fontsize=31)
             ax[i].tick_params(axis='both', which='major', labelsize=25)
             ax[i].legend(ncol=2, fontsize=25)
@@ -389,7 +387,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    plt.suptitle('Witnesses for Phi-Psi Mix 1', fontsize=22)
+    plt.suptitle('Witnesses for Psi Plus Psi Minus', fontsize=22)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -523,9 +521,7 @@ if __name__ == '__main__':
     chis = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
-    # names = ['phi plus, psi minus', 'phi minus, psi plus']
-    # probs = [0.65, 0.35]
-    names = ['phi minus, psi plus']
+    names = ['psi plus, psi minus']
     probs = [1]
     
     for eta in etas:
@@ -538,7 +534,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_2.npy")
+        filenames.append(f"rho_('E0', {state_n})_26.npy")
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
@@ -548,7 +544,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_phi-psi-mix'
+    id = 'rho_summer_2023_psi_45'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

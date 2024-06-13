@@ -131,7 +131,7 @@ def prepare_data(datapath, file, input_method, pop_method, task, split=True, p=0
         #     np.save(join(datapath, savename+'_X_train.npy'), X_train.to_numpy())
         #     np.save(join(datapath, savename+'_Y_train.npy'), Y_train.to_numpy())
         #     np.save(join(datapath, savename+'_X_test.npy'), X_test.to_numpy())
-        #     np.save(join(datapath, savename+'_Y_test.npy'), Y_test.to_numpy())
+        #     np.save(join(datapath, savename+'_Y_test.npy'), Y_test.to_numpy())    
         return X_train, Y_train, X_test, Y_test
 
     if split: return split_data()
