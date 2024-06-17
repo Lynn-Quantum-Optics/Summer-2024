@@ -15,7 +15,7 @@
 
 \author{Lev Gruber}
 
-\date{5/31/2024}
+\date{6/17/2024}
 
 \begin{document}
 \maketitle 
@@ -23,7 +23,7 @@
 \tableofcontents
 \newpage
 \section{Introduction}
-You're starting the do work with Professor Lynn's Quantum Optics Group at Harvey Mudd College; congrats! It's a super cool lab doing fascinating research, and I am sure you'll have an amazing time. The only thing in your way on the road to success are random bugs, apparatus errors, and worst of all, when you have to fully recalibrate eveyrthing from scratch. This guide, much of it adapted or copied from Alec Roberson's work \textit{How to Calibrate Everything} in the GitHub's Summer 2023 repo, acts as a one stop shop for all of these issues. Please reference Alec's write up for more information on \textit{why} the calibration procedure works, as this guide will keep its focus on what we do rather than why. Alec's guide also contains literature on Jones' matrices, laser drift, and other useful topics that I won't copy verbatim for this document. Therefore, I fully recommend you read through 
+You're starting the do work with Professor Lynn's Quantum Optics Group at Harvey Mudd College; congrats! It's a super cool lab doing fascinating research, and I am sure you'll have an amazing time. The only blocks on the road to success are random bugs, apparatus errors, and worst of all, when you have to fully recalibrate eveyrthing from scratch. This guide, much of it adapted or copied from Alec Roberson's work \textit{How to Calibrate Everything} in the GitHub's Summer 2023 repo, acts as a one stop shop for all of these issues. Please reference Alec's write up for more information on \textit{why} the calibration procedure works, as this guide will keep its focus on what we do rather than why. Alec's guide also contains literature on Jones' matrices, laser drift, and other useful topics that I won't copy verbatim for this document. Therefore, I fully recommend you read through 
 \textit{How to Calibrate Everything}, especially if you're struggling through the calibration from scratch.
 
 \section{Calibration from Scratch}
@@ -33,11 +33,11 @@ Some important notes before you begin calibration include:
     \item The black motors with the tick marks are Thorlabs motors and the red motors with no tick marks are Elliptec motors.
     \item The Thorlabs motors are controlled by the software 'APT User', and the Elliptec motors 'Ello'.
     \item If power is lost, Thorlabs motors will assume their new 'zero' is wherever they were when they lost power. Calibration in the config.json is based off of the Thorlabs motors at their visual zero, so visual zero is a good guess at calibration (to be close to previous values for a new calibration). Oppositely, we have no clue what the Elliptec motor thinks zero is post-power loss--our best guess is np.random.rand().
-    \item All calibration files by sweeping a wave plate, or moving it while seeing how counts changes. Ensure that the sweep parameters are set to be ~10 above and below the previously calibrated value in the config for a given wave plate. 
+    \item All calibration files calibrate by sweeping a wave plate, or moving it while seeing how counts changes. Ensure that the sweep parameters are set to be at minimum 10 above and below the previously calibrated value in the config for a given wave plate. 
 \end{itemize}
 
 \subsection{The Quartz Plate (QP)}
-First, we need to calibrate the quartz plate. Open 'Ello' on the computer, select COM5 in the upper left, and hit connect. There should be three tabs pop up, click the one with address B. You can jog the motor to ensure you've selected the QP. 
+First, we need to calibrate the quartz plate. Open 'Ello' on the computer, select COM12 in the upper left, and hit connect. See the tab denoted with address A. You can jog the motor to ensure you've selected the QP. 
 
 Note: \textbf{Wear goggles and do not look down the path of the laser.}
 
@@ -46,26 +46,26 @@ Turn off the lights, unblock the laser (wear goggles!), and use a business card 
 Once retroreflecting correctly, update the home offset within Ello by adding the current offset to the current position; if the result is negative, add 360. 
 
 \subsection{Alice's Wave Plates (and the UV Half Wave Plate)}
-We begin measurement-side calibration with Alice's side. Open VS Code and go to the calibration folder and within that, AQWP.py (Alice Quarter Wave Plate). For this we also need to remove Bob's BBO and Alice's half wave plate. After removing, run that, the minima of the curve being where the calibrated AQWP zero should be. Add this to the current value for AQWP in the config.json. It should look something like INSERT FIG.
+We begin measurement-side calibration with Alice's side. Open VS Code and go to the calibration folder and within that, AQWP.py (Alice quarter wave plate). For this we also need to remove Bob's BBO and Alice's half wave plate. After removing, run the file, the minima of the curve being where the calibrated AQWP zero should be. Add this to the current value for AQWP in the config.json. It should look something like INSERT FIG.
 
 Next is the UV half wave plate (UVHWP), so navigate to that folder and run UVHWP.py--the parabola minimum is where you should update the config to (plus the original config value). 
 
-Moving to Alice's half wave plate (AHWP), put it back into the set up, then run AHWP.py. Once again, the minimum value should be added to the config.json value and config.json updated. 
+Moving to Alice's half wave plate (AHWP), put it back into the set up, then run AHWP.py. Once again, the minimum value should be added to the current config.json value and config.json updated. 
 
-Finally, run check.py within checka. This sweeps all plates around their calibrated zeros (does a minisweep) to ensure all are centered around zero. We aim for a $< 0.1$ degree error on each plate. You may have to run this a few times, updating the wave plates each time, to converge with low error. 
+Finally, run check.py within the checka folder. This sweeps all plates around their calibrated zeros (does a minisweep) to ensure all are calibrated correctly. We aim for a $< 0.1$ degree error on each plate, meaning the measured zero is within 0.1 degree of the calibrated zero in the config. You may have to run this a few times, updating the wave plates each time, to converge with low error. 
 
 \subsection{Bob's Wave Plates}
-The first step is to reinsert Bob's BBO--be careful not to jog the crystal out of place. Then remove Bob's creation half wave plate (BCHWP) and Bob's half wave plate (BHWP). BCHWP is screwed down, with tape markings where it should be re-inserted later. It can be unscrewed and gently moved out of the photon's path. BHWP is on a magentic mount, and can be gently removed from the mount at the base and placed out of the photon's path. 
+The first step is to reinsert Bob's BBO--be careful not to jog the crystal out of place. Then remove Bob's creation half wave plate (BCHWP), Bob's half wave plate (BHWP), and Bob's creation quarter wave plate (BCQWP). BCHWP is screwed down, with tape markings where it should be re-inserted later, as is BCQWP. It can be unscrewed and gently moved out of the photon's path. BHWP is on a magnetic mount, and can be gently removed from the mount at the base and placed out of the photon's path. 
 
 Begin with Bob's Quarter Wave Plate (BQWP)--run the sweep and update the config accordingly. An example is shown in INSERT FIG. 
 
 Next is BCHWP, which should be screwed into the table following the tape guidelines. Sweep and update the config, the plot looking as in INSERT FIG.
 
-Then, reinsert BHWP onto the magnetic mount gently, and run AHWP. You should get a plot like INSERT FIG; update the config accordingly. 
+Then, reinsert BHWP onto the magnetic mount gently, and run BHWP. You should get a plot like INSERT FIG; update the config accordingly. 
 
 Run check.py within checkb, which has the same functionality as checkpoint A but for Bob's side. This functions as a final check that our measurement side is calibrated correctly. Again, it may be an iterative process to converge on a calibration with $0.1$ deg uncertainty. If you are not able to acheive this uncertainity after 10 or more iterations, then it is okay to have the uncertainity $<0.25$ deg--you should still likely talk to Professor Lynn to confirm.
 
-As the time of this writing, Bob's creation quarter wave plate is not included in the calibration nor usage of the experimental apparatus. 
+Finally, carefully reinsert BCQWP and run its corresponding calibration file BCQWP\_calibration.py within BCQWP/BCQWP\_Stu. You should receive back a minimized parabola.
 
 \subsection{Phi Plus and the PCC}
 Finally, we want to calibrate the bell state $\ket{\Phi^+} = \frac{1}{\sqrt{2}}\ket{HH} + \frac{1}{\sqrt{2}}\ket{VV}$, as it is extremely useful for various experiments we may want to run. This will also allow us to calibrate the pre-compensation crystal (PCC).
@@ -74,7 +74,7 @@ Calibration of phi plus and the PCC is a three step process:
 \begin{enumerate}
     \item Run ratio\_tuning.py, which balances the HH and VV counts to yield the even superposition wanted by phi plus. Input the value it provides into the config under the phi\_plus section.
     \item Run phase\_finding.py, which finds where the phase is zero. Then, you can run qp\_plotting.py to generate a fitted plot of this data; you can zoom into the zero on the plot and insert that degree value into the config. 
-    \item Run pcc\_sweep.py, which calculates the purity of the state. Purity is a measure of how well we've created the state phi plus and is defined by $$p = \frac{<DD> + <AA> - <AD> - <DA>}{<DD> + <AA> + <AD> + <DA>}$$. PCC sweep will calculate the purity at various values--you can then enter the csv where these values are saved and choose the PCC degree value corresponding to the highest purity--this can be put in config.json under phi\_plus as well. We aim for a purity $>0.95$. Note that purity is dependent on lab temperature (aim for $<20^\circ C$) and how long the laser has been on for (wait at least 10 minutes from when the laser is turned on).
+    \item Run pcc\_sweep.py, which calculates the purity of the state. Purity is a measure of how well we've created the state phi plus and is defined by $$p = \frac{<DD> + <AA> - <AD> - <DA>}{<DD> + <AA> + <AD> + <DA>}.$$ PCC sweep will calculate the purity at various values--you can then enter the csv where these values are saved and choose the PCC degree value corresponding to the highest purity--this can be put in config.json under phi\_plus as well. We aim for a purity $>0.95$. Note that purity is dependent on lab temperature (aim for $<20^\circ C$) and how long the laser has been on for (wait at least 10 minutes from when the laser is turned on).
 \end{enumerate}
 You are now ready to run experiments! 
 
@@ -84,7 +84,7 @@ Sometimes, the QP will return the error 'RuntimeError: Sent instruction "b'Bma00
 \subsection{COM5/7 Refusing to Open}
 Make sure you've run m.shutdown() if the Manager was initialized. Then, run the Task Manager program on the PC and kill VS Code. Open VS Code again and try your program. If it still does not work, you can enter Ello, connect to the COM in question, disconnect, close Ello, and try running your file again. 
 \subsection{Serial Number Errors}
-Sometimes the Thorlabs motors connected to the measurement wave plates will lose connection with the computer--this is recognized by an error in the Python terminal similar to "Internal serial number is incorrect", and identified by closing VS Code, opening APT Users, and seeing some or all of the motors missing from the home page. Assuming that the motors had been homed before this error and are at their visual zero, this can be fixed by: Closing APT User, unplugging the motor block at their base, opening APT User with motors unplugged, closing it again, plugging back in the motor bases and waiting until all four have a green LED, opening APT User, and verifying there that all four motors now show there. 
+Sometimes the Thorlabs motors connected to the measurement wave plates will lose connection with the computer--this is recognized by an error in the Python terminal similar to "Internal serial number is incorrect", and identified by closing VS Code, opening APT User, and seeing some or all of the motors missing from the home page. Assuming that the motors had been homed before this error and are at their visual zero, this can be fixed by: Closing APT User, unplugging the motor block at their base, opening APT User with motors unplugged, closing it again, plugging back in the motor bases and waiting until all four have a green LED, opening APT User, and verifying there that all four motors now show there. 
 
 If the motor is not set to zero and not visible in APT User, you can try manually jogging it on its base to see if it is recognized. If not, I am sorry you have to unplug, replug as described above then recalibrate as in section 2.
 \subsection{Fitting Errors}
@@ -99,8 +99,9 @@ Here I will describe various \textit{extremely} useful terminal/Python commands 
     \item 'from lab\_framework import Manager' $\rightarrow$ imports the Manager framework into your file or terminal.
     \item 'm = Manager(config = './config.json')' $\rightarrow$ sets the Manager object as m. The CCU will automatically start displaying data. You may need to adjust the number of dots pending what directory you're in.  
     \item 'm.OBJECT\_goto(value) $\rightarrow$, where OBJECT is named as in your config.json and value is 0 to 360. An example is 'm.C\_UV\_HWP.goto(22.5)'.
-    \item 'm.take_data(num-points, time-per-point)' $\rightarrow$ takes data into the Manager object, example is 'm.take_data(5,3).
+    \item 'm.take\_data(num-points, time-per-point)' $\rightarrow$ takes data into the Manager object, example is 'm.take\_data(5,3).
 \end{enumerate}
+These can be used to mimic much of the functionality of individual calibration files, allowing you to calibrate individual components that may have broken without repeating the entire process. 
 \section{Extraneous Advice}
 \subsection{Github (Please Push)}
 
