@@ -3,10 +3,9 @@ import numpy as np
 from os.path import join, dirname, abspath
 import pandas as pd
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import random
 import sympy as sp
+import multiprocessing
 
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
@@ -195,65 +194,46 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     else:
          return W_min, Wp_t1, Wp_t2, Wp_t3
 
-def plot_all(name, etas, chis = [], eta_sweep=False):
+def find_states(states, prob, state_name):
     '''
-    Plots data from main
-    
+    Find states based on given parameters, adapted from any_state_gen.ipynb for multiprocessing
+
     Parameters:
-    names (list): which csv names to read
-    etas (list): list of eta values
-    chis (list): list of chi values, only used if eta_sweep=True
-    eta_sweep (bool): whether we want to produce a plot of witness val versus eta
+    - states (list): List of states.
+    - prob (float): Probability value.
+    - state_name (str): Name of the state in terms of eta and chi.
+
+    Returns:
+    - list: List containing information about the found state.
+
     '''
-    fig, ax = plt.subplots()
+    # get the state's density matrix
+    rad_angles = state_name[k]
+   
+    rho_actual = generate_state(states, prob, rad_angles)
     
+    # get the important info from the state
+    W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
     
-    # differentiate between a sweep over eta or chi
-    if eta_sweep == True:
-        chis_nice = []
-        for i, chi in enumerate(chis):
-            # Read in CSV
-            data = pd.read_csv(f'paper_states/{name}_{chis[i]}.csv')
-            # Extract data
-            W = data['W']
-            min_Wp = data['min_W_prime']
-            eta = data['eta_arr']
-            chis_nice.append(round(np.degrees(chi)))
-            # Plot data
-            ax.plot(eta, W, label = f'$W, \chi = {chis_nice[i]}$')
-            ax.plot(eta, min_Wp, label = f'$W\prime, \chi = {chis_nice[i]}$')
-    else:   
-        etas_nice = []     
-        for i, eta in enumerate(etas):
+    if W_min > 0.01:
+        if Wp_t1 < -0.01 or Wp_t2 < -0.01 or Wp_t3 < -0.01:
+            values = [Wp_t1, Wp_t2, Wp_t3]
+            params_prime = [Wp1_param, Wp2_param, Wp3_param]
+            names_list = ['Wp1', 'Wp2', 'Wp3']
+            min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
             
-            # Read in CSV
-            data = pd.read_csv(f'paper_states/{name}_{etas[i]}.csv')
-            # Extract data
-            W = data['W']
-            min_Wp = data['min_W_prime']
-            chi = data['chi']
-
-            # Plot data
-            etas_nice.append(round(np.degrees(eta)))
-            ax.plot(chi, W, label = f'$W, \eta = {etas_nice[i]}$')
-            ax.plot(chi, min_Wp, label = f'$W\prime, \eta = {etas_nice[i]}$')
-    if not eta_sweep:
-        name = f'{name}_{etas_nice[0]}'  #_{etas_nice[1]}_{etas_nice[2]}_{etas_nice[3]}
-    if eta_sweep:
-        name = f'{name}_{chis_nice}'
-    print(name)
-    ax.axhline(0, color='black', linewidth=0.5) 
-    ax.set_title(f'State {name}', fontsize=12)
-    ax.set_ylabel('Witness value', fontsize=12)
-    ax.tick_params(axis='both', which='major', labelsize=6)
-    plt.tight_layout()
-    ax.legend(fontsize=8, loc = 'upper right')
-    ax.set_xlabel('$\chi$', fontsize=12)
-    if eta_sweep:
-        ax.set_xlabel('$\eta$',)
-    plt.savefig(f'paper_states/{name}.pdf')
-
+            # print out if it was an amazing or just ok state:
+                # if super good, return it and print 
+            if W_min > 0.2:
+                if Wp_t1 < -0.2 or Wp_t2 < -0.2 or Wp_t3 < -0.2:
+                    print('An amazing state was:', [[names[0], names[1]], [state_set], prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]])
+            else:
+                print('A pretty good state was:', [[names[0], names[1]], [state_set], prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]])
+            return [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
+    else:
+        return None
 if __name__ == '__main__':
+    print(multiprocessing.cpu_count)
     #  Instantiate all the things we need
     list_of_creatable_states = ['phi plus, phi minus', 'psi plus, psi minus', 'HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD']
 
@@ -269,51 +249,33 @@ if __name__ == '__main__':
     states = []
     for i, eta in enumerate(etas): 
         for chi in chis:
-            states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
-            states.append((eta, chi)) 
-
-    # add the state to this list whenever W is positive and W prime is negative
-    # each addition is of the form [[state_name_1, state_name_2], [chi, eta], [prob_1, prob_2], [W_witness_name, W_witness_value, theta], 
-    #                               [Wp_witness_name, Wp_witness_value, theta]]
-    Wh_Wpl = []
-    special_list = [] # this is if W > 0.2 and Wp < 0.2 (make it more obvious which are good states)
+            states_names.append([np.rad2deg(eta), np.rad2deg(chi)])
+            states.append([eta, chi]) 
+            
+    #  Create a full list of inputs, structured each as [[state_1,state_2], [eta,chi], [prob_1,prob_2]].
+    inputs = []
+    list_of_mixed_states = []
     for i, state_1 in enumerate(list_of_creatable_states):
         for j, state_2 in enumerate(list_of_creatable_states):
-            for l, prob in enumerate(probs):
-                for k, state_set in enumerate(states_names):
-                    arr_to_add = []
-                    # get the state's density matrix
-                    rad_angles = states[k]
-                    names = [state_1, state_2]
-                    rho_actual = generate_state(names, prob, rad_angles)
-                    # get the important info from the state
-                    W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
-                    
-                    if W_min > 0.01:
-                        if Wp_t1 < -0.01 or Wp_t2 < -0.01 or Wp_t3 < -0.01:
-                            values = [Wp_t1, Wp_t2, Wp_t3]
-                            params_prime = [Wp1_param, Wp2_param, Wp3_param]
-                            names_list = ['Wp1', 'Wp2', 'Wp3']
-                            min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
-                            append_this = [[names[0], names[1]], [state_set], prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
+            for k, prob in enumerate(probs):
+                for l, state_name in enumerate(state_names):
+                    inputs.append([[state_1, state_2],state_name, prob])
+    
+    inputs = inputs[0:24]
+    
+    pool = Pool(cpu_count())
+    results = pool.starmap_async(find_states, inputs).get()
 
-                            Wh_Wpl.append(append_this)
-                            print('A pretty good state was:', append_this)
-                    # if super good attach to special list!
-                    if W_min > 0.2:
-                        if Wp_t1 < -0.2 or Wp_t2 < -0.2 or Wp_t3 < -0.2:
-                            values = [Wp_t1, Wp_t2, Wp_t3]
-                            params_prime = [Wp1_param, Wp2_param, Wp3_param]
-                            names_list = ['Wp1_min_name', 'Wp2_min_name', 'Wp3_min_name']
-                            min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
-                            append_this = [[names[0], names[1]], [state_set], prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
-                            
-                            special_list.append(append_this)
-                            print('An amazing state was:', append_this)
-                    
-    # save it all to csvs!                       
-    df_to_save = pd.DataFrame(Wh_Wpl)
-    df_to_save_special = pd.DataFrame(special_list)
+    ## end multiprocessing ##
+    pool.close()
+    pool.join()
+    
+    # filter None results out
+    results = [result for result in results if result is not None] 
 
-    df_to_save.to_csv(f'paper_states/creatable_state_run/all_states_new.csv', index=False)
-    df_to_save_special.to_csv(f'paper_states/creatable_state_run/special_states_new.csv', index = False)
+    # build df
+    columns = ['states', 'eta-chi', 'probabilities', 'W', 'Wp']
+    df = pd.DataFrame.from_records(results, columns = columns)
+    print('saving!')
+
+    df.to_csv(f'paper_states/creatable_state_run/all_good_states.csv', index=False)
