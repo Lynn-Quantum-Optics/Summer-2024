@@ -286,7 +286,6 @@ if __name__ == '__main__':
                     rad_angles = states[k]
                     names = [state_1, state_2]
                     rho_actual = generate_state(names, prob, rad_angles)
-                    print('i am werking')
                     # get the important info from the state
                     W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
                     
