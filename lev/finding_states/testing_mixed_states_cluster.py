@@ -222,22 +222,18 @@ def find_states(states, prob, state_name):
             names_list = ['Wp1', 'Wp2', 'Wp3']
             min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
             
-            # print out if it was an amazing or just ok state:
-                # if super good, return it and print 
-            if W_min > 0.2:
-                if Wp_t1 < -0.2 or Wp_t2 < -0.2 or Wp_t3 < -0.2:
-                    print('An amazing state was:', [[names[0], names[1]], [state_set], prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]])
-            else:
-                print('A pretty good state was:', [[names[0], names[1]], [state_set], prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]])
+            # print out if it was a state we're saving
+            print('A pretty good state was:',  [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]])
+            
             return [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
     else:
         return None
 if __name__ == '__main__':
     #print(multiprocessing.cpu_count())
     #  Instantiate all the things we need
-    list_of_creatable_states = ['phi plus, phi minus', 'psi plus, psi minus', 'HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD']
-
-    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2]
+    list_of_creatable_states = ['phi plus, phi minus', 'psi plus, psi minus', 'HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD'] #
+    
+    etas = [np.pi/4] #np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2
     chis = np.linspace(0.001, np.pi/2, 6)
     num_etas = len(etas)
     num_chis = len(chis)
@@ -261,15 +257,13 @@ if __name__ == '__main__':
                 for l, state_name in enumerate(states_names):
                     inputs.append([[state_1, state_2],state_name, prob])
     
-    inputs = inputs[0:24]
-    
     pool = Pool(cpu_count())
     results = pool.starmap_async(find_states, inputs).get()
 
     ## end multiprocessing ##
     pool.close()
     pool.join()
-    
+    print(results)
     # filter None results out
     results = [result for result in results if result is not None] 
 
@@ -277,5 +271,6 @@ if __name__ == '__main__':
     columns = ['states', 'eta-chi', 'probabilities', 'W', 'Wp']
     df = pd.DataFrame.from_records(results, columns = columns)
     print('saving!')
+
 
     df.to_csv(f'paper_states/creatable_state_run/all_good_states.csv', index=False)
