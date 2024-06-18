@@ -164,7 +164,6 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     
     # calculate W and W' theory
     W_T_ls, W_params = compute_witnesses(rho = rho_actual, return_all = True, return_params = True) # theory #, return_all = True, return_params = True
-    
     # parse lists
     W_min = min(W_T_ls[:6])
     Wp_t1 = min(W_T_ls[6:9])
@@ -208,13 +207,11 @@ def find_states(states, prob, state_name):
 
     '''
     # get the state's density matrix
-    #rad_angles = state_name[k]
-   
+    #rad_angles = state_name[
     rho_actual = generate_state(states, prob, state_name)
-    
     # get the important info from the state
     W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
-    
+    print('Ws are:', W_min, Wp_t1, Wp_t2, Wp_t3, 'for:', states, prob, state_name)
     if W_min > 0.01:
         if Wp_t1 < -0.01 or Wp_t2 < -0.01 or Wp_t3 < -0.01:
             values = [Wp_t1, Wp_t2, Wp_t3]
@@ -229,16 +226,15 @@ def find_states(states, prob, state_name):
     else:
         return None
 if __name__ == '__main__':
-    #print(multiprocessing.cpu_count())
     #  Instantiate all the things we need
-    list_of_creatable_states = ['phi plus, phi minus', 'psi plus, psi minus', 'HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD'] #
+    list_of_creatable_states = ['HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD', 'phi plus, phi minus', 'psi plus, psi minus'] #, 
     
-    etas = [np.pi/4] #np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2
+    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2]
     chis = np.linspace(0.001, np.pi/2, 6)
     num_etas = len(etas)
     num_chis = len(chis)
 
-    probs = [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7], [0.4, 0.6], [0.5, 0.5]]
+    probs = [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7], [0.4, 0.6], [0.5, 0.5]] # 
 
     # Instantiate states to sweep over for every mixed state
     states_names = []
@@ -246,24 +242,33 @@ if __name__ == '__main__':
     for i, eta in enumerate(etas): 
         for chi in chis:
             states_names.append([np.rad2deg(eta), np.rad2deg(chi)])
-            states.append([eta, chi]) 
-            
+            states.append((eta, chi))
     #  Create a full list of inputs, structured each as [[state_1,state_2], [eta,chi], [prob_1,prob_2]].
     inputs = []
     list_of_mixed_states = []
     for i, state_1 in enumerate(list_of_creatable_states):
         for j, state_2 in enumerate(list_of_creatable_states):
             for k, prob in enumerate(probs):
-                for l, state_name in enumerate(states_names):
-                    inputs.append([[state_1, state_2],state_name, prob])
-    
+                for l, state_name in enumerate(states):
+                    if state_1 == state_2:
+                        pass
+                    else:
+                        inputs.append([[state_1, state_2], prob, state_name])
+
     pool = Pool(cpu_count())
     results = pool.starmap_async(find_states, inputs).get()
-
+ 
     ## end multiprocessing ##
     pool.close()
     pool.join()
-    print(results)
+    # output of the form [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
+    
+    # below was for testing functionality without multiprocessing
+    # results = []
+    # for input in inputs:
+    #     result = find_states(*input)
+    #     results.append(result)
+    
     # filter None results out
     results = [result for result in results if result is not None] 
 
@@ -273,4 +278,4 @@ if __name__ == '__main__':
     print('saving!')
 
 
-    df.to_csv(f'paper_states/creatable_state_run/all_good_states.csv', index=False)
+    df.to_csv(f'paper_states/creatable_state_run/all_good_states_test.csv', index=False)
