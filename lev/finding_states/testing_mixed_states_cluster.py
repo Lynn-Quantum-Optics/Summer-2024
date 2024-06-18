@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 import random
 import sympy as sp
-import multiprocessing
+from multiprocessing import cpu_count, Pool
 
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
@@ -208,9 +208,9 @@ def find_states(states, prob, state_name):
 
     '''
     # get the state's density matrix
-    rad_angles = state_name[k]
+    #rad_angles = state_name[k]
    
-    rho_actual = generate_state(states, prob, rad_angles)
+    rho_actual = generate_state(states, prob, state_name)
     
     # get the important info from the state
     W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
@@ -233,7 +233,7 @@ def find_states(states, prob, state_name):
     else:
         return None
 if __name__ == '__main__':
-    print(multiprocessing.cpu_count)
+    #print(multiprocessing.cpu_count())
     #  Instantiate all the things we need
     list_of_creatable_states = ['phi plus, phi minus', 'psi plus, psi minus', 'HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD']
 
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     for i, state_1 in enumerate(list_of_creatable_states):
         for j, state_2 in enumerate(list_of_creatable_states):
             for k, prob in enumerate(probs):
-                for l, state_name in enumerate(state_names):
+                for l, state_name in enumerate(states_names):
                     inputs.append([[state_1, state_2],state_name, prob])
     
     inputs = inputs[0:24]
