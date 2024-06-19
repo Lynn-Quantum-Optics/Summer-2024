@@ -1557,4 +1557,27 @@ MP: Lev, Stu, Paco
 
 Attempted to gather data on the second mixed state that we could create without BCQWP, but ran into consistent QP errors. 
 
-#6/6
+# 6/6/2024
+MP: Lev, Stu, Paco
+
+Ran the 'wp2' states with some issues along the way but we got data. 
+
+# 6/7/2024
+MP: Lev, Paco
+
+Found that the states we were makng were incorrect, will troubleshoot again on monday.
+
+# 6/10/2024
+MP: Lev, Stu, Paco
+
+Found agrement between experiment and theory this morning for the WP1 states. Found concerning disagreement with the WP2 states. We found that although we had equal HD VA, we had unequal components of DD, DA, AD, and AA. particularly AD and DA were 200 counts higher. We suspect there may be an issue with how we are making the state with BCHWP. 
+
+Later, we found a density matrix for the phi plus + psi minus state we believed we were making, and instead found that we were making something of the form 1/sqrt(2))(HH + HV) which is non-physical. Due to this, we decided to go ahead and insert the BCQWP and swap out the hub the QP is connected to, following tech support's advice of going: Ribbon cable connect -> PSU connect -> usb connect, in that order. 
+
+Used file BCQWP_calibration within BCQWP_Stu to calibrate, got -8.16361 to be within 0.01 deg!
+
+# 6/18/2024
+MP: Stu, Paco
+
+Recalibrated phi plus with the BCQWP in, we changed the angle of UVHWP from -67.7213769210012 to -112.0104611045436. Then we ran phase finding which had us change CQP from -22.727 to -14.6871. Then PCC Sweep we change it from 3.7894736842105257 to -0.2105263157894739. This resulted in a purity of 94%
+

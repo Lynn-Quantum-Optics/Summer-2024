@@ -25,8 +25,8 @@
         },
         "C_QP": {
             "type": "Elliptec",
-            "port": "COM5",
-            "address": "B",
+            "port": "COM12",
+            "address": "A",
             "offset": 0
         },
         "C_PCC": {
@@ -40,6 +40,12 @@
             "port": "COM7",
             "address": "A",
             "offset": -30.949568
+        },
+        "B_C_QWP": {
+            "type": "Elliptec",
+            "port": "COM7",
+            "address": "B",
+            "offset": -8.16361
         },
         "B_HWP": {
             "type": "ThorLabs",
@@ -119,9 +125,9 @@
     },
     "state_presets": {
         "phi_plus": {
-            "C_UV_HWP": -112.72137692100124, 
-            "C_QP": -22.727,
-            "C_PCC": 3.7894736842105257,
+            "C_UV_HWP": -112.0104611045436, 
+            "C_QP": -14.6871,
+            "C_PCC": -0.2105263157894739,
             "B_C_HWP": 0.00
         },
         "phi_minus": {

@@ -1,0 +1,25 @@
+0:00:00	Manager started at 2024-06-10_13-53-02.
+0:00:01	Configuration file: "config.json".
+0:00:01	Initializing CCU.
+0:00:01	Initializing motors.
+0:01:04	Beginning shutdown procedure.
+0:01:04	Shutting down motor objects.
+0:01:05	C_UV_HWP returned to true position 359.97739955357144 degrees.
+0:01:05	Deleting C_UV_HWP object.
+0:01:05	C_QP returned to true position 359.99246651785717 degrees.
+0:01:06	Deleting C_QP object.
+0:01:06	C_PCC returned to true position 359.99246651785717 degrees.
+0:01:06	Deleting C_PCC object.
+0:01:07	B_C_HWP returned to true position 0.005022321428572951 degrees.
+0:01:07	Deleting B_C_HWP object.
+0:01:07	B_HWP returned to true position 0.0 degrees.
+0:01:08	Deleting B_HWP object.
+0:01:08	B_QWP returned to true position 0.000244140625 degrees.
+0:01:08	Deleting B_QWP object.
+0:01:08	A_HWP returned to true position 0.0 degrees.
+0:01:09	Deleting A_HWP object.
+0:01:09	A_QWP returned to true position 0.0 degrees.
+0:01:09	Deleting A_QWP object.
+0:01:09	Closing COM ports.
+0:01:10	Closing CCU.
+0:01:11	Closing log file.

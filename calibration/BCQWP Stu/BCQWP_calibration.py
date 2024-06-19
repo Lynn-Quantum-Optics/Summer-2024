@@ -5,8 +5,8 @@ import numpy as np
 
 if __name__ == '__main__':
     ###### RUNNING THE SWEEP ######
-    TRIAL = 7
-    SWEEP_PARAMS = [-2, 2, 15, 5, 3]
+    TRIAL = 2
+    SWEEP_PARAMS = [-15, 15, 30, 5, 3]
 
     # check for two minimums, one at 0, one at pi plus our offset
     offset = -30
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     df = m.output_data(f'BCQWP_sweep{TRIAL}.csv')
     m.shutdown()
 
-
+    
     ###### FITTING OUR DATA ######
     # fitting function
     params = analysis.fit('quadratic', angles, rates)
@@ -65,6 +65,7 @@ if __name__ == '__main__':
     plt.title(f'Fit=${params[1].n:.3f}(x-{params[0].n:.3f})^2 + {params[2].n:.3f}$')
     plt.savefig(f'BCQWP{TRIAL}.png', dpi=600)
     plt.show()
+    
 
 
 
