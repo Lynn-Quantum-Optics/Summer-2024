@@ -413,10 +413,12 @@ if __name__ == '__main__':
 
         # m.new_output(f'int_state_sweep_WP3_2/sweep_data_{state}.csv')
 
+        B_C_HWP_angle = 67.5 #0, 45 -> 0 to change from psi to phi 
+
         m.configure_motors(
             C_UV_HWP=UVHWP_angle,
             C_QP = C_QP_angle,
-            B_C_HWP = 67.5, #0, 45 -> 0 to change from psi to phi 
+            B_C_HWP = B_C_HWP_angle,
             C_PCC =  3.7894 # optimal value from phi_plus in config
         )
 
@@ -440,7 +442,7 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
 
-        angles = [UVHWP_angle, C_QP_angle, 0] # the 0 is B_C_HWP angle
+        angles = [UVHWP_angle, C_QP_angle, 67.5] # the 0 is B_C_HWP angle
 
         # save results
         with open(f"int_state_sweep_WP3_2/rho_('E0', {state_n})_1.npy", 'wb') as f:
