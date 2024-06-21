@@ -149,7 +149,7 @@ def create_noise(rho, power):
     return noisy_rho
 
 ######## Helper methods for analyzing density matrices
-def analyze_rho(rho_actual, verbose = False, id='id'):
+def analyze_rho(rho_actual, verbose = False, id='id', get_wpp = False):
     '''; 
     __
     inputs:
@@ -169,11 +169,12 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     Wp_t1 = min(W_T_ls[6:9])
     Wp_t2 = min(W_T_ls[9:12])
     Wp_t3 = min(W_T_ls[12:15])
+    Wpp = min(W_T_ls[15:])
     
     if verbose:
         # If verbose, return not just the 4 values but also the names of the minimal witnesses!
         # Define dictionary to get name of
-        all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
+        all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9', 'W_pp_a1', 'W_pp_a2', 'W_pp_b1',  'W_pp_b2']
         index_names = {i: name for i, name in enumerate(all_W)}
 
         # Get which W/W' were minimized
@@ -181,15 +182,17 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
         Wp1_min_name = index_names.get(W_T_ls.index(Wp_t1), 'Unknown')
         Wp2_min_name = index_names.get(W_T_ls.index(Wp_t2), 'Unknown')
         Wp3_min_name = index_names.get(W_T_ls.index(Wp_t3), 'Unknown')
+        Wpp_min_name = index_names.get(W_T_ls.index(Wpp), 'Unknown')
         
         # Return the params as well, add in if return_params = True in compute_witness call
         W_param = W_params[0]
         Wp1_param = W_params[1]
         Wp2_param = W_params[2]
         Wp3_param = W_params[3]
+        Wpp_param = W_params[4]
         
         # Find names from dictionary and return them and their values
-        return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param
+        return W_min, Wp_t1, Wp_t2, Wp_t3, Wpp, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, Wpp_min_name, W_param, Wp1_param, Wp2_param, Wp3_param, Wpp_param
     else:
          return W_min, Wp_t1, Wp_t2, Wp_t3
 
