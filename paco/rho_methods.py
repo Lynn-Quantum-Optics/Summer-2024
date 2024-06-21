@@ -1220,7 +1220,7 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
             Wp_t1 = min(W_expec_vals[6:9])
             Wp_t2 = min(W_expec_vals[9:12])
             Wp_t3 = min(W_expec_vals[12:15])
-            Wpp = min(W_exp_val_ls[15:])
+            Wpp = min(W_expec_vals[15:])
             
 
             # get the corresponding parameters
