@@ -7,7 +7,7 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    SWEEP_PARAMS = [-20, -5, 20, 5, 1]
+    SWEEP_PARAMS = [-15, -13, 10, 5, 1]
 
     # initialize the manager
     m = Manager('../config.json')
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     datas['phi'] = unp.arctan2((datas['DR'] - datas['DL'] - datas['AR'] + datas['AL']),(-datas['RR'] + datas['RL'] + datas['LR'] - datas['LL']))
 
     # save the data
-    pd.DataFrame(datas).to_csv('phi_data_6182024.csv')
+    pd.DataFrame(datas).to_csv('phi_data_6202024.csv')
 
     
 

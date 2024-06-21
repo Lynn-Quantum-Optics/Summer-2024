@@ -1,135 +1,135 @@
-0:00:00	Manager started at 2024-06-18_17-23-19.
+0:00:00	Manager started at 2024-06-20_12-04-25.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:00:09	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -112.0104611045436, 'C_QP': -14.6871, 'C_PCC': 1.0526315789473681, 'B_C_HWP': 0.0}.
+0:00:09	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -112.41754451550933, 'C_QP': -14.1537, 'C_PCC': -0.3157894736842106, 'B_C_HWP': 0.0}.
 0:00:13	Checking HH and VV count rates...
 0:00:13	Loading measurement basis "HH" from config file.
-0:00:29	Taking data; sampling 5 x 3 s.
+0:00:28	Taking data; sampling 5 x 3 s.
 0:00:44	Loading measurement basis "VV" from config file.
 0:00:56	Taking data; sampling 5 x 3 s.
 0:01:16	Clearing output data.
-0:01:17	Performing sweeps. This will take a while.
-0:01:17	Beginning DD sweep...
-0:01:17	Loading measurement basis "DD" from config file.
-0:01:24	Sweeping C_PCC from -4 to 4 degrees in 20 steps.
-0:01:25	Taking data; sampling 5 x 3 s.
-0:01:41	Taking data; sampling 5 x 3 s.
-0:01:57	Taking data; sampling 5 x 3 s.
-0:02:13	Taking data; sampling 5 x 3 s.
-0:02:29	Taking data; sampling 5 x 3 s.
-0:02:45	Taking data; sampling 5 x 3 s.
-0:03:01	Taking data; sampling 5 x 3 s.
-0:03:17	Taking data; sampling 5 x 3 s.
-0:03:33	Taking data; sampling 5 x 3 s.
-0:03:49	Taking data; sampling 5 x 3 s.
-0:04:05	Taking data; sampling 5 x 3 s.
-0:04:21	Taking data; sampling 5 x 3 s.
-0:04:37	Taking data; sampling 5 x 3 s.
-0:04:52	Taking data; sampling 5 x 3 s.
-0:05:08	Taking data; sampling 5 x 3 s.
-0:05:24	Taking data; sampling 5 x 3 s.
-0:05:40	Taking data; sampling 5 x 3 s.
-0:05:56	Taking data; sampling 5 x 3 s.
-0:06:12	Taking data; sampling 5 x 3 s.
-0:06:28	Taking data; sampling 5 x 3 s.
-0:06:44	Saving data to "PCC_DD_sweep".
-0:06:44	Clearing output data.
-0:06:44	Beginning AA sweep...
-0:06:45	Loading measurement basis "AA" from config file.
-0:06:58	Sweeping C_PCC from -4 to 4 degrees in 20 steps.
-0:06:59	Taking data; sampling 5 x 3 s.
-0:07:15	Taking data; sampling 5 x 3 s.
-0:07:30	Taking data; sampling 5 x 3 s.
-0:07:46	Taking data; sampling 5 x 3 s.
-0:08:02	Taking data; sampling 5 x 3 s.
-0:08:18	Taking data; sampling 5 x 3 s.
+0:01:16	Performing sweeps. This will take a while.
+0:01:16	Beginning DD sweep...
+0:01:16	Loading measurement basis "DD" from config file.
+0:01:24	Sweeping C_PCC from -1.5 to 1 degrees in 20 steps.
+0:01:24	Taking data; sampling 5 x 3 s.
+0:01:40	Taking data; sampling 5 x 3 s.
+0:01:56	Taking data; sampling 5 x 3 s.
+0:02:12	Taking data; sampling 5 x 3 s.
+0:02:28	Taking data; sampling 5 x 3 s.
+0:02:44	Taking data; sampling 5 x 3 s.
+0:03:00	Taking data; sampling 5 x 3 s.
+0:03:16	Taking data; sampling 5 x 3 s.
+0:03:32	Taking data; sampling 5 x 3 s.
+0:03:47	Taking data; sampling 5 x 3 s.
+0:04:03	Taking data; sampling 5 x 3 s.
+0:04:19	Taking data; sampling 5 x 3 s.
+0:04:35	Taking data; sampling 5 x 3 s.
+0:04:51	Taking data; sampling 5 x 3 s.
+0:05:07	Taking data; sampling 5 x 3 s.
+0:05:22	Taking data; sampling 5 x 3 s.
+0:05:38	Taking data; sampling 5 x 3 s.
+0:05:54	Taking data; sampling 5 x 3 s.
+0:06:10	Taking data; sampling 5 x 3 s.
+0:06:26	Taking data; sampling 5 x 3 s.
+0:06:42	Saving data to "PCC_DD_sweep".
+0:06:42	Clearing output data.
+0:06:43	Beginning AA sweep...
+0:06:43	Loading measurement basis "AA" from config file.
+0:06:56	Sweeping C_PCC from -1.5 to 1 degrees in 20 steps.
+0:06:57	Taking data; sampling 5 x 3 s.
+0:07:13	Taking data; sampling 5 x 3 s.
+0:07:29	Taking data; sampling 5 x 3 s.
+0:07:45	Taking data; sampling 5 x 3 s.
+0:08:01	Taking data; sampling 5 x 3 s.
+0:08:17	Taking data; sampling 5 x 3 s.
 0:08:33	Taking data; sampling 5 x 3 s.
 0:08:49	Taking data; sampling 5 x 3 s.
 0:09:05	Taking data; sampling 5 x 3 s.
 0:09:21	Taking data; sampling 5 x 3 s.
 0:09:37	Taking data; sampling 5 x 3 s.
-0:09:53	Taking data; sampling 5 x 3 s.
-0:10:09	Taking data; sampling 5 x 3 s.
+0:09:52	Taking data; sampling 5 x 3 s.
+0:10:08	Taking data; sampling 5 x 3 s.
 0:10:25	Taking data; sampling 5 x 3 s.
-0:10:41	Taking data; sampling 5 x 3 s.
+0:10:42	Taking data; sampling 5 x 3 s.
 0:10:57	Taking data; sampling 5 x 3 s.
 0:11:13	Taking data; sampling 5 x 3 s.
 0:11:29	Taking data; sampling 5 x 3 s.
 0:11:45	Taking data; sampling 5 x 3 s.
 0:12:01	Taking data; sampling 5 x 3 s.
-0:12:17	Saving data to "PCC_AA_sweep".
+0:12:16	Saving data to "PCC_AA_sweep".
 0:12:17	Clearing output data.
 0:12:17	Beginning DA sweep...
 0:12:18	Loading measurement basis "DA" from config file.
-0:12:24	Sweeping C_PCC from -4 to 4 degrees in 20 steps.
+0:12:24	Sweeping C_PCC from -1.5 to 1 degrees in 20 steps.
 0:12:25	Taking data; sampling 5 x 3 s.
 0:12:41	Taking data; sampling 5 x 3 s.
 0:12:57	Taking data; sampling 5 x 3 s.
-0:13:14	Taking data; sampling 5 x 3 s.
-0:13:30	Taking data; sampling 5 x 3 s.
-0:13:46	Taking data; sampling 5 x 3 s.
-0:14:02	Taking data; sampling 5 x 3 s.
-0:14:18	Taking data; sampling 5 x 3 s.
-0:14:35	Taking data; sampling 5 x 3 s.
-0:14:52	Taking data; sampling 5 x 3 s.
-0:15:08	Taking data; sampling 5 x 3 s.
-0:15:24	Taking data; sampling 5 x 3 s.
-0:15:40	Taking data; sampling 5 x 3 s.
-0:15:56	Taking data; sampling 5 x 3 s.
-0:16:12	Taking data; sampling 5 x 3 s.
-0:16:28	Taking data; sampling 5 x 3 s.
-0:16:45	Taking data; sampling 5 x 3 s.
-0:17:00	Taking data; sampling 5 x 3 s.
-0:17:16	Taking data; sampling 5 x 3 s.
-0:17:32	Taking data; sampling 5 x 3 s.
-0:17:48	Saving data to "PCC_DA_sweep".
-0:17:48	Clearing output data.
-0:17:48	Beginning AD sweep...
-0:17:49	Loading measurement basis "AD" from config file.
-0:18:01	Sweeping C_PCC from -4 to 4 degrees in 20 steps.
-0:18:02	Taking data; sampling 5 x 3 s.
-0:18:18	Taking data; sampling 5 x 3 s.
-0:18:34	Taking data; sampling 5 x 3 s.
-0:18:50	Taking data; sampling 5 x 3 s.
-0:19:05	Taking data; sampling 5 x 3 s.
-0:19:21	Taking data; sampling 5 x 3 s.
-0:19:37	Taking data; sampling 5 x 3 s.
-0:19:53	Taking data; sampling 5 x 3 s.
-0:20:09	Taking data; sampling 5 x 3 s.
-0:20:25	Taking data; sampling 5 x 3 s.
-0:20:41	Taking data; sampling 5 x 3 s.
-0:20:58	Taking data; sampling 5 x 3 s.
-0:21:14	Taking data; sampling 5 x 3 s.
-0:21:30	Taking data; sampling 5 x 3 s.
-0:21:46	Taking data; sampling 5 x 3 s.
-0:22:02	Taking data; sampling 5 x 3 s.
-0:22:18	Taking data; sampling 5 x 3 s.
-0:22:34	Taking data; sampling 5 x 3 s.
-0:22:50	Taking data; sampling 5 x 3 s.
-0:23:07	Taking data; sampling 5 x 3 s.
-0:23:23	Saving data to "PCC_AD_sweep".
-0:23:23	Clearing output data.
-0:23:23	Beginning shutdown procedure.
-0:23:23	Shutting down motor objects.
-0:23:25	C_UV_HWP returned to true position 359.97237723214283 degrees.
-0:23:25	Deleting C_UV_HWP object.
-0:23:26	C_QP returned to true position 0.005022321428571428 degrees.
-0:23:27	Deleting C_QP object.
-0:23:28	C_PCC returned to true position 0.007533482142857143 degrees.
-0:23:28	Deleting C_PCC object.
-0:23:29	B_C_HWP returned to true position 359.99246651785717 degrees.
-0:23:29	Deleting B_C_HWP object.
-0:23:30	B_C_QWP returned to true position 0.0 degrees.
-0:23:30	Deleting B_C_QWP object.
-0:23:38	B_HWP returned to true position 359.9994812011719 degrees.
-0:23:39	Deleting B_HWP object.
-0:23:50	B_QWP returned to true position 359.99993896484375 degrees.
-0:23:50	Deleting B_QWP object.
-0:23:55	A_HWP returned to true position 0.0 degrees.
-0:23:55	Deleting A_HWP object.
-0:23:57	A_QWP returned to true position 359.9974060058594 degrees.
-0:23:57	Deleting A_QWP object.
-0:23:57	Closing COM ports.
-0:23:58	Closing CCU.
-0:23:59	Closing log file.
+0:13:13	Taking data; sampling 5 x 3 s.
+0:13:29	Taking data; sampling 5 x 3 s.
+0:13:45	Taking data; sampling 5 x 3 s.
+0:14:01	Taking data; sampling 5 x 3 s.
+0:14:17	Taking data; sampling 5 x 3 s.
+0:14:33	Taking data; sampling 5 x 3 s.
+0:14:49	Taking data; sampling 5 x 3 s.
+0:15:05	Taking data; sampling 5 x 3 s.
+0:15:21	Taking data; sampling 5 x 3 s.
+0:15:37	Taking data; sampling 5 x 3 s.
+0:15:53	Taking data; sampling 5 x 3 s.
+0:16:09	Taking data; sampling 5 x 3 s.
+0:16:25	Taking data; sampling 5 x 3 s.
+0:16:41	Taking data; sampling 5 x 3 s.
+0:16:56	Taking data; sampling 5 x 3 s.
+0:17:12	Taking data; sampling 5 x 3 s.
+0:17:28	Taking data; sampling 5 x 3 s.
+0:17:44	Saving data to "PCC_DA_sweep".
+0:17:44	Clearing output data.
+0:17:44	Beginning AD sweep...
+0:17:45	Loading measurement basis "AD" from config file.
+0:17:58	Sweeping C_PCC from -1.5 to 1 degrees in 20 steps.
+0:17:59	Taking data; sampling 5 x 3 s.
+0:18:15	Taking data; sampling 5 x 3 s.
+0:18:31	Taking data; sampling 5 x 3 s.
+0:18:47	Taking data; sampling 5 x 3 s.
+0:19:03	Taking data; sampling 5 x 3 s.
+0:19:19	Taking data; sampling 5 x 3 s.
+0:19:35	Taking data; sampling 5 x 3 s.
+0:19:52	Taking data; sampling 5 x 3 s.
+0:20:07	Taking data; sampling 5 x 3 s.
+0:20:23	Taking data; sampling 5 x 3 s.
+0:20:39	Taking data; sampling 5 x 3 s.
+0:20:56	Taking data; sampling 5 x 3 s.
+0:21:12	Taking data; sampling 5 x 3 s.
+0:21:27	Taking data; sampling 5 x 3 s.
+0:21:43	Taking data; sampling 5 x 3 s.
+0:21:59	Taking data; sampling 5 x 3 s.
+0:22:15	Taking data; sampling 5 x 3 s.
+0:22:31	Taking data; sampling 5 x 3 s.
+0:22:47	Taking data; sampling 5 x 3 s.
+0:23:03	Taking data; sampling 5 x 3 s.
+0:23:18	Saving data to "PCC_AD_sweep".
+0:23:18	Clearing output data.
+0:23:19	Beginning shutdown procedure.
+0:23:19	Shutting down motor objects.
+0:23:21	C_UV_HWP returned to true position 359.96986607142856 degrees.
+0:23:21	Deleting C_UV_HWP object.
+0:23:22	C_QP returned to true position 0.0 degrees.
+0:23:23	Deleting C_QP object.
+0:23:24	C_PCC returned to true position 0.007533482142857143 degrees.
+0:23:50	Deleting C_PCC object.
+0:23:51	B_C_HWP returned to true position 359.99246651785717 degrees.
+0:23:52	Deleting B_C_HWP object.
+0:23:52	B_C_QWP returned to true position 0.0 degrees.
+0:23:52	Deleting B_C_QWP object.
+0:24:01	B_HWP returned to true position 359.9994812011719 degrees.
+0:24:01	Deleting B_HWP object.
+0:24:13	B_QWP returned to true position 0.0 degrees.
+0:24:13	Deleting B_QWP object.
+0:24:18	A_HWP returned to true position 0.0 degrees.
+0:24:18	Deleting A_HWP object.
+0:24:20	A_QWP returned to true position 359.9974060058594 degrees.
+0:24:20	Deleting A_QWP object.
+0:24:20	Closing COM ports.
+0:24:21	Closing CCU.
+0:24:23	Closing log file.

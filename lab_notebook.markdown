@@ -1579,5 +1579,10 @@ Used file BCQWP_calibration within BCQWP_Stu to calibrate, got -8.16361 to be wi
 # 6/18/2024
 MP: Stu, Paco
 
-Recalibrated phi plus with the BCQWP in, we changed the angle of UVHWP from -67.7213769210012 to -112.0104611045436. Then we ran phase finding which had us change CQP from -22.727 to -14.6871. Then PCC Sweep we change it from 3.7894736842105257 to -0.2105263157894739. This resulted in a purity of 94%
+Recalibrated phi plus with the BCQWP in, we changed the angle of UVHWP from -67.7213769210012 to -112.0104611045436. Then we ran phase finding which had us change CQP from -22.727 to -14.6871. Then PCC Sweep we change it from 3.7894736842105257 to -0.2105263157894739. This resulted in a purity of 94%. May be worth it to re run later. 
+
+# 6/20/2024
+MP: Paco
+
+Finishing recalibratin phi plus with the BCQWP. First changed CQP from -14.6871 to -14.1537, then UVHWP changed from -112.0104611045436 to -112.41754451550933, lastly we changed the PCC from -0.2105263157894739 to -0.3157894736842106. This resulted in a purity of 94.3
 
