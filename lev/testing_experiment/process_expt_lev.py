@@ -64,7 +64,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
         # rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
         rho, unc, Su, un_proj, un_proj_unc, _, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-    
+        print(angles)
         ## update df with info about this trial ##
         if "E0" in filename: # if E0, split up into eta and chi
             trial, eta, chi = split_filename()
@@ -526,7 +526,7 @@ if __name__ == '__main__':
     
     for eta in etas:
         for chi in chis:
-            states_names.append((np.rad2deg(eta), np.rad2deg(chi)))
+            states_names.append((float(np.rad2deg(eta)), float(np.rad2deg(chi))))
             states.append((eta, chi))
 
     filenames = []

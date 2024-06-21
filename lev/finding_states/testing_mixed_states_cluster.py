@@ -210,25 +210,25 @@ def find_states(states, prob, state_name):
     #rad_angles = state_name[
     rho_actual = generate_state(states, prob, state_name)
     # get the important info from the state
-    W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
+    W_min, Wp_t1, Wp_t2, Wp_t3, Wpp, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, Wpp_min_name, W_param, Wp1_param, Wp2_param, Wp3_param, Wpp_param = analyze_rho(rho_actual, verbose = True)
+    
     #print('Ws are:', W_min, Wp_t1, Wp_t2, Wp_t3, 'for:', states, prob, state_name)
-    if W_min > 0.01 and Wp_t1>0.01 and Wp_t2>0.01 and Wp_t3>0.01:
-        values = [Wp_t1, Wp_t2, Wp_t3]
-        params_prime = [Wp1_param, Wp2_param, Wp3_param]
-        names_list = ['Wp1', 'Wp2', 'Wp3']
+    if W_min > 0.01 and Wp_t1 > 0.01 and Wp_t2 > 0.01 and Wp_t3 > 0.01 and Wpp < -0.01:
+        values = [Wp_t1, Wp_t2, Wp_t3, Wpp]
+        params_prime = [Wp1_param, Wp2_param, Wp3_param, Wpp_param]
+        names_list = [Wp1_min_name, Wp2_min_name, Wp3_min_name, Wpp_min_name]
         min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
             
             # print out if it was a state we're saving
-        print('A W" candidtate is:',  [states, state_name, prob])
-            
-        return [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
+        print('A W" state is:',  [states, state_name, prob])
+        return [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param], [Wpp, Wpp_min_name, Wpp_param]]
     else:
         return None
 if __name__ == '__main__':
     #  Instantiate all the things we need
     list_of_creatable_states = ['HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD', 'phi plus, phi minus', 'psi plus, psi minus'] #, 
     
-    etas = [ np.pi/6, np.pi/4, np.pi/3]
+    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2]
     chis = np.linspace(0.001, np.pi/2, 6)
     num_etas = len(etas)
     num_chis = len(chis)
@@ -272,9 +272,8 @@ if __name__ == '__main__':
     results = [result for result in results if result is not None] 
 
     # build df
-    columns = ['states', 'eta-chi', 'probabilities', 'W', 'Wp']
+    columns = ['states', 'eta-chi', 'probabilities', 'W', 'Wp', 'Wpp']
     df = pd.DataFrame.from_records(results, columns = columns)
     print('saving!')
 
-
-    df.to_csv(f'paper_states/creatable_state_run/New_Candidates_test.csv', index=False)
+    df.to_csv(f'paper_states/creatable_state_run/wpp-states-run.csv', index=False)
