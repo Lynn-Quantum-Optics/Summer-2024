@@ -229,12 +229,12 @@ if __name__ == '__main__':
     #  Instantiate all the things we need
     list_of_creatable_states = ['HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD', 'phi plus, phi minus', 'psi plus, psi minus'] #, 
     
-    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2]
+    etas = [ np.pi/4, np.pi/3]
     chis = np.linspace(0.001, np.pi/2, 6)
     num_etas = len(etas)
     num_chis = len(chis)
 
-    probs = [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7], [0.4, 0.6], [0.5, 0.5]] # 
+    probs = [ [0.3, 0.7], [0.4, 0.6], [0.5, 0.5]] # 
 
     # Instantiate states to sweep over for every mixed state
     states_names = []
