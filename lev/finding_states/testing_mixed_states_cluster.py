@@ -164,6 +164,7 @@ def analyze_rho(rho_actual, verbose = False, id='id', get_wpp = False):
     
     # calculate W and W' theory
     W_T_ls, W_params = compute_witnesses(rho = rho_actual, return_all = True, return_params = True) # theory #, return_all = True, return_params = True
+    print(W_T_ls)
     # parse lists
     W_min = min(W_T_ls[:6])
     Wp_t1 = min(W_T_ls[6:9])
