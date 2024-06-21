@@ -5,15 +5,16 @@
 from os.path import join
 import numpy as np
 import pandas as pd
+import cmath as cm
 import scipy.linalg as la
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize, approx_fprime
-from qutip import *
-from math import sqrt
+from functools import partial
 # from tqdm import trange
 
-# from uncertainties import ufloat
-# from uncertainties import unumpy as unp
+from uncertainties import ufloat
+from uncertainties import unumpy as unp
+import numdifftools as ndq
 
 ##############################################
 ## for more basic stats about a state ##
@@ -217,7 +218,7 @@ def reconstruct_rho(all_projs):
         for i2 in range(4):
             rho+= S[i1,i2]*np.kron(P[i1],P[i2])
 
-    return rho/4 # scale by 4 to get the correct density matrix
+    return rho/4 # scale by 4 to get the correct density matrix  
 
 def test_reconstruct_rho(rho):
     ''' Test the reconstruction of the density matrix using the stokes parameters calculated directly from the density matrix.'''
@@ -466,10 +467,11 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False):
-    ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
+
+def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=True, return_params=True, return_lynn=False, return_lynn_only=False):
+    ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. This one can return the correct minimized parameters
         Params:
-            rho: the density matrix
+            rho: the density matrix (usually pass in)
             counts: raw unp array of counts and unc
             expt: bool, whether to compute the Ws assuming input is experimental data
             do_stokes: bool, whether to compute 
@@ -485,6 +487,8 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             gd: bool, whether to use gradient descent or brute random search
             zeta: learning rate for gradient descent
             ads_test: bool, whether to return w2 expec and sin (theta) for the amplitude damped states
+            return_all: bool, whether to return all the Ws or just the min of the 6 and the min of the 3 triples
+            return_params: bool, whether to return the params that give the min of the 6 and the min of the 3 triples
     '''
 
     # check if experimental data
@@ -583,7 +587,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                         return minimize(W, x0=x0, args=(counts,), bounds=[(0, np.pi)])
                 else:
                     def min_W(x0):
-                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0, np.pi/2)])
+                        return minimize(get_nom, x0=x0, args=(counts, W), bounds=[(0, np.pi)])
 
                 def min_W_val(x0):
                     return min_W(x0).fun
@@ -591,12 +595,12 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 def min_W_params(x0):
                     return min_W(x0).x
 
-                x0 = [0]
+                x0 = [np.random.rand()*np.pi]
                 w0_val = min_W_val(x0)
                 w0_params = min_W_params(x0)
-                x0 = [np.pi]
-                w1_val = min_W_val(x0)
-                w1_params = min_W_params(x0)
+                x1 = [np.random.rand()*np.pi]
+                w1_val = min_W_val(x1)
+                w1_params = min_W_params(x1)
                 if w0_val < w1_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
@@ -637,16 +641,16 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
 
                 def min_W_val(x0):
                     return min_W(x0).fun
-
+    
                 def min_W_params(x0):
                     return min_W(x0).x
                     
-                x0 = [0, 0, 0]
+                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                 w0_val = min_W_val(x0)
                 w0_params = min_W_params(x0)
-                x0 = [np.pi/2, 2*np.pi, 2*np.pi]
-                w1_val = min_W_val(x0)
-                w1_params = min_W_params(x0)
+                x1 =  [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                w1_val = min_W_val(x1)
+                w1_params = min_W_params(x1)
                 if w0_val < w1_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
@@ -678,7 +682,6 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                         else:
                             isi+=1
                 
-
             else:# theta and alpha
                 if not(expt):
                     def min_W(x0):
@@ -693,12 +696,12 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 def min_W_params(x0):
                     return min_W(x0).x
                     
-                x0 = [0, 0]
+                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
                 w0_val = min_W(x0).fun
                 w0_params = min_W(x0).x
-                x0 = [np.pi/2 , 2*np.pi]
-                w1_val = min_W(x0).fun
-                w1_params = min_W(x0).x
+                x1 =  [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                w1_val = min_W(x1).fun
+                w1_params = min_W(x1).x
                 if w0_val < w1_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
@@ -732,6 +735,8 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
 
             if expt: # automatically calculate uncertainty
                 W_expec_vals.append(W(w_min_params, counts))
+            if return_params:
+                min_params.append(w_min_params)
             else:
                 W_expec_vals.append(w_min_val)
         W_min = np.real(min(W_expec_vals[:6]))
@@ -743,8 +748,39 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             Wp_t1 = np.real(min(W_expec_vals[6:9]))
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
+        
+        if verbose:
+            #print('i got to verbosity')
+            # Define dictionary to get name of
+            all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
+            index_names = {i: name for i, name in enumerate(all_W)}
+           
+            W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]))][0]
+            Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]))][0]
+            Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
+            Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
+           
+           
+            W_exp_val_ls = []
+            for val in W_expec_vals:
+                W_exp_val_ls.append(unp.nominal_values(val))
+            
+            W_min_name = [x for _,x in sorted(zip(W_exp_val_ls[:6], all_W[:6]))][0]
+            Wp1_min_name = [x for _,x in sorted(zip(W_exp_val_ls[6:9], all_W[6:9]))][0]
+            Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
+            Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
+            
+            print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
+            print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
 
-        return W_min, Wp_t1, Wp_t2, Wp_t3
+            if not return_params:
+                return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
+            else:
+                # return same as above but with the minimum params list at end
+                return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
+                
+        else:
+            return W_min, Wp_t1, Wp_t2, Wp_t3
 
         
     else: # use operators instead like in eritas's matlab code
@@ -759,42 +795,33 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
         VH = np.array([0, 0, 1, 0]).reshape((4,1))
         VV = np.array([0, 0, 0, 1]).reshape((4,1))
 
-
-        #
-        # Qutip attempt - scipy dimension mismatch minimizing matrices
-        #
-
-        # Basis Notes: 
-        # H = basis(2,0) # ket 1
-        # V = basis(2,1) # ket 2
-
-        # # Bell state Psi = 1/sqrt(2) (|HV> +/- |VH>)
-        # psi_p = 1/sqrt(2)*(tensor(H,V) + tensor(V,H))
-        # psi_n = 1/sqrt(2)*(tensor(H,V) - tensor(V,H))
-
-        # # Bell state Phi = 1/sqrt(2) (|HH> +/- |VV>)
-        # phi_p = 1/sqrt(2)*(tensor(H,H) + tensor(V,V))
-        # phi_n = 1/sqrt(2)*(tensor(H,H) - tensor(V,V))
-
-        # PHI_P = phi_p
-        # PHI_M = phi_n
-        # PSI_P = psi_p
-        # PSI_M = psi_n
-        # print(PHI_M)
-        # print(PHI_P)
-
         # get the operators
         # take rank 1 projector and return witness
+        #
+        # Get the witnesses for each class of witnesses
+        #
         def get_witness(phi):
             ''' Helper function to compute the witness operator for a given state and return trace(W*rho) for a given state rho.'''
-            # matrix version
             W = phi * adjoint(phi)
             W = partial_transpose(W) # take partial transpose
+            return np.real(np.trace(W @ rho))
+        
+        def get_param_wit(a,b,c,d,beta,gamma,delta):
+            """ Helper function to get the most general parameterized witness with input params, and take the trace
+                inputs: a,b,c,d,beta,gamma,delta - all params to go into the witness
+                output: the expectation value of the parameterized witness for the given input state
+            """
+            W = np.array([[a**2, a*b*np.exp(-1j*beta), a*c*np.exp(-1j*gamma), a*d*np.exp(-1j*delta)],\
+                          [a*b*np.exp(1j*beta), b**2, b*c*np.exp(1j*(beta - gamma)), b*d*np.exp(1j*(beta-delta))],\
+                          [a*c*np.exp(1j*gamma), b*c*np.exp(-1j*(beta - gamma)), c**2, c*d*np.exp(1j*(gamma-delta))],\
+                          [a*d*np.exp(1j*delta), b*d*np.exp(-1j*(beta - delta)), c*d*np.exp(-1j*(gamma-delta)), d**2]
+                        ])
+            W = partial_transpose(W) # take partial transpose
+            return np.real(np.trace(W @ rho))
 
-            # qutip version
-            # W = partial_transpose(phi*phi.dag(), [0,1]) 
-            return np.real(np.trace(W*rho))
-
+        #
+        # Specific Witnesses
+        #
         ## ------ for W ------ ##
         def get_W1(param):
             a,b = np.cos(param), np.sin(param)
@@ -859,23 +886,179 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             phi9_p = np.cos(theta)*np.cos(alpha)*HH + np.cos(theta)*np.sin(alpha)*HV + np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
             return get_witness(phi9_p)
         
+        # additions fro prof lynn witness
+        def get_lynn():
+            return 1/5*(2*HH +2*np.exp(1j*np.pi/4)*  HV +  np.exp(1j*np.pi/4)*VH +4*VV) 
+        
+        if return_lynn_only:
+            return get_witness(get_lynn())
+        
+        def get_v_1(params):
+            """
+            Witness includes sxy, sxz, and szy
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            beta, gamma  = params[0], params[1] #optimizing parameters
+            #Debugging: 
+            if (np.cos(beta)/np.cos(2*gamma-beta)) == -1:
+                print("V1, div")
+            # Witness constraints  
+            a= 1/np.sqrt(2+2*(np.cos(beta)/np.cos(2*gamma-beta)))
+            b= -a
+            c= a*np.sqrt(np.cos(beta)/np.cos(2*gamma-beta))
+            d= c
+            delta = beta-gamma 
+            #makes the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*gamma)*VH + d*np.exp(1j*delta)*VV
+            return get_witness(phi)
+        
+        def get_v_2(params):
+            """
+            Witness includes sxz, syx, and szy 
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            gamma, beta  = params[0], params[1] #optimizing parameters
+            #Debugging
+            if (np.sin(gamma)/np.sin(2*beta-gamma)) == -1:
+                print("V2, div")
+            # Witness constraints  
+            a= 1/np.sqrt(2+2*(np.sin(gamma)/np.sin(2*beta-gamma)))
+            b= a*np.sqrt(np.sin(gamma)/np.sin(2*beta-gamma))
+            c= a
+            d= b
+            delta = gamma -beta
+            #makes the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*gamma)*VH + d*np.exp(1j*delta)*VV
+            return get_witness(phi)
+        
+        def get_v_3(params):
+            """
+            Witness includes sxy, syx, szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            gamma, beta  = params[0], params[1] #optimizing parameters
+            #Debugging 
+            if (np.cos(gamma)/np.cos(2*beta-gamma)) == -1:
+                print("V3, div")
+            # Witness constraints  
+            a= 1/np.sqrt(2+2*(np.cos(gamma)/np.cos(2*beta-gamma)))
+            b= a*np.sqrt(np.cos(gamma)/np.cos(2*beta-gamma))
+            c= -a
+            d= b
+            delta = gamma -beta
+            #makes the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*gamma)*VH + d*np.exp(1j*delta)*VV
+            return get_witness(phi)
+        
+        def get_v_4(params):
+            """
+            Witness includes syx, syz, and szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            beta, gamma  = params[0], params[1] #optimizing parameters
+            #Debugging
+            if (np.sin(beta)/np.sin(2*gamma-beta)) == -1:
+                print("V3, div")
+            # Witness constraints  
+            a= 1/np.sqrt(2+2*(np.sin(beta)/np.sin(2*gamma-beta)))
+            b= a
+            c= a*np.sqrt(np.sin(beta)/np.sin(2*gamma-beta))
+            d= c
+            delta = beta-gamma
+            #makes the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*gamma)*VH + d*np.exp(1j*delta)*VV
+            return get_witness(phi)
+        
+        def get_w_pp_a1(params):
+            """
+            Witness includes szx, syz, and szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= -a*b/c
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+        
+        def get_w_pp_a2(params):
+            """
+            Witness includes szx, syz, and szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= -a*c/b
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+
+        def get_w_pp_b1(params):
+            """
+            Witness includes szx, syz, and szy
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= a*b/c
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+        
+        def get_w_pp_b2(params):
+            """
+            Witness includes szx, syz, and szy
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= a*c/b
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+        
         # get the witness values by minimizing the witness function
         if not(ads_test): 
-            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9]
+            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9, get_w_pp_a1, get_w_pp_a2, get_w_pp_b1,  get_w_pp_b2]
             W_expec_vals = []
+            if return_params: # to log the params
+                min_params = []
             for i, W in enumerate(all_W):
                 if i <= 5: # just theta optimization
                     # get initial guess at boundary
                     def min_W(x0):
-                        return minimize(W, x0=x0, bounds=[(0, np.pi)])['fun']
-                    x0 = [0]
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi)])
+                        return do_min['fun']
+                    x0 = [np.random.rand()*np.pi]
                     w0 = min_W(x0)
-                    x0 = [np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.random.rand()*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
+                        x0_best = x0
                     else:
                         w_min = w1
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -895,21 +1078,26 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             
                             if w < w_min:
                                 w_min = w
+                                x0_best = x0
                                 isi=0
                             else:
                                 isi+=1
+                    # print('------------------')
                 elif i==8 or i==11 or i==14: # theta, alpha, and beta
                     def min_W(x0):
-                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])['fun']
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)])
+                        return do_min['fun']
 
-                    x0 = [0, 0, 0]
+                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                     w0 = min_W(x0)
-                    x0 = [np.pi/2 , 2*np.pi, 2*np.pi]
-                    w1 = min_W(x0)
+                    x1 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                    w1 = min_W(x1)
                     if w0 < w1:
                         w_min = w0
+                        x0_best = x0
                     else:
                         w_min = w1
+                        x0_best = x1
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -929,36 +1117,45 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             
                             if w < w_min:
                                 w_min = w
+                                x0_best = x0
                                 isi=0
                             else:
                                 isi+=1
-                else:# theta and alpha
+                elif i == 15 or i==16 or i==17 or i==18: # the W'' witness
                     def min_W(x0):
-                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                        
-                    x0 = [0, 0]
+                        # print(x0)
+                        do_min = minimize(W, x0=x0, bounds=[(-np.pi/2 +0.01,np.pi/2-0.01), (0.01,np.pi-0.01), (0,2*np.pi)])
+                        # print(do_min['x'])
+                        return do_min['fun']
+
+                    #Begin with two random states
+                    x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
                     w0 = min_W(x0)
-                    x0 = [np.pi/2 , 2*np.pi]
-                    w1 = min_W(x0)
-                    if w0 < w1:
+                    x1 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
+                    w1 = min_W(x1)
+                    
+                    if w0 < w1: #choose the better one 
                         w_min = w0
+                        x0_best = x0
                     else:
                         w_min = w1
-                    if optimize:
+                        x0_best = x1
+                    if optimize: #Optimize the witness based on the previous best
                         isi = 0 # index since last improvement
-                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                        count = 0
+                        for _ in range(num_reps): # repeat numsteps times and take the minimum
+                            count += 1
                             if gd:
                                 if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
-                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                    x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
                                 else:
-                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    grad = approx_fprime(x0, min_W, 1e-6) #Error here assk oscar why it might be doing this>
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
-                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                     else:
-                                        x0 = x0 - zeta*grad
+                                        x0 = x0 - zeta*grad          
                             else:
-                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
-
+                                x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
                             w = min_W(x0)
                             
                             if w < w_min:
@@ -966,22 +1163,100 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 isi=0
                             else:
                                 isi+=1
+                
+                    
+                else:# theta and alpha
+                    def min_W(x0, grad_des):
+                        do_min = minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])
+                        # print(do_min['x'])
+                        if grad_des:
+                            return do_min['fun']
+                        else:
+                            return do_min['fun'], do_min['x']
+                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                    w0 = min_W(x0,True)
+                    x1 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                    w1 = min_W(x1,True)
+                    if w0 < w1:
+                        w_min = w0
+                        x0_best = x0
+                    else:
+                        w_min = w1
+                        x0_best = x1
+                    if optimize:
+                        isi = 0 # index since last improvement
+                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                            if gd:
+                                if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
+                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                else:
+                                    min_W_gd = partial(min_W, grad_des=True)
+                                    grad = approx_fprime(x0, min_W_gd, 1e-6)
+                                    if np.all(grad < 1e-5*np.ones(len(grad))):
+                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                    else:
+                                        x0 = x0 - zeta*grad
+                            else:
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
 
+                            w, w_min_params = min_W(x0, False)
+                            
+                            if w < w_min:
+                                w_min = w
+                                x0_best = w_min_params
+                                isi=0
+                            else:
+                                isi+=1
+                if return_params:
+                    min_params.append(x0_best)
+    
+                
                 W_expec_vals.append(w_min)
-            # print('W', np.round(W_expec_vals[:6], 3))
-            # print('W\'', np.round(W_expec_vals[6:], 3))
+            
             # find min witness expectation values
             W_min = min(W_expec_vals[:6])
+            print(W_expec_vals)
+            # print(min_params)
             Wp_t1 = min(W_expec_vals[6:9])
             Wp_t2 = min(W_expec_vals[9:12])
             Wp_t3 = min(W_expec_vals[12:15])
-            return W_expec_vals
+            Wpp = min(W_exp_val_ls[15:])
+            
+
+            # get the corresponding parameters
+            if return_params:
+                # sort by witness value; want the most negative, so take first element in sorted
+                W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]),key=lambda x: x[0])][0]
+                Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]),key=lambda x: x[0])][0]
+                Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]),key=lambda x: x[0])][0]
+                Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]),key=lambda x: x[0])][0]
+                Wpp_param = [x for _,x in sorted(zip(W_expec_vals[15:], min_params[15:]),key=lambda x: x[0])][0]
+                
+
+
+            # calculate lynn
+            W_lynn = get_witness(get_lynn())
+
+            if not(return_all):
+                if return_params:
+                    print("returning v_1")
+                else:
+                    if return_lynn:
+                        return W_min, Wp_t1, Wp_t2, Wp_t3, Wpp, W_lynn #add new witnesses here 
+                    else:
+                        return W_min, Wp_t1, Wp_t2, Wp_t3, Wpp
+            else:
+                if return_params:
+                    return W_expec_vals[15], min_params[15]#W_expec_vals, min_params
+                else:
+                    return W_expec_vals[15]#W_expec_vals
         else: 
             W2_main= minimize(get_W2, x0=[0], bounds=[(0, np.pi)])
             W2_val = W2_main['fun']
             W2_param = W2_main['x']
 
             return W2_val, W2_param[0]
+
 
 def test_witnesses():
     '''Calculate witness vals for select experimental states'''
@@ -1086,10 +1361,10 @@ def check_conc_min_eig(rho, printf=False):
 
 ##############################################
 ## for testing ##
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
     ## testing witness functions ##
-    test_witnesses()
+    # test_witnesses()
 
     # from random_gen import *
     # import matplotlib.pyplot as plt
@@ -1193,5 +1468,4 @@ if __name__ == '__main__':
 #     # conditions:
 #         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
 #     # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
-#     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
-    # pass
+#     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')# pass

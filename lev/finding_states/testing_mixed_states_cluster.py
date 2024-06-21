@@ -211,30 +211,29 @@ def find_states(states, prob, state_name):
     rho_actual = generate_state(states, prob, state_name)
     # get the important info from the state
     W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param = analyze_rho(rho_actual, verbose = True)
-    print('Ws are:', W_min, Wp_t1, Wp_t2, Wp_t3, 'for:', states, prob, state_name)
-    if W_min > 0.01:
-        if Wp_t1 < -0.01 or Wp_t2 < -0.01 or Wp_t3 < -0.01:
-            values = [Wp_t1, Wp_t2, Wp_t3]
-            params_prime = [Wp1_param, Wp2_param, Wp3_param]
-            names_list = ['Wp1', 'Wp2', 'Wp3']
-            min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
+    #print('Ws are:', W_min, Wp_t1, Wp_t2, Wp_t3, 'for:', states, prob, state_name)
+    if W_min > 0.01 and Wp_t1>0.01 and Wp_t2>0.01 and Wp_t3>0.01:
+        values = [Wp_t1, Wp_t2, Wp_t3]
+        params_prime = [Wp1_param, Wp2_param, Wp3_param]
+        names_list = ['Wp1', 'Wp2', 'Wp3']
+        min_name, min_value, min_param = min(zip(names_list, values, params_prime), key = lambda pair: pair[1])
             
             # print out if it was a state we're saving
-            print('A pretty good state was:',  [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]])
+        print('A W" candidtate is:',  [states, state_name, prob])
             
-            return [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
+        return [states, state_name, prob, [W_min_name, W_min, W_param], [min_name, min_value, min_param]]
     else:
         return None
 if __name__ == '__main__':
     #  Instantiate all the things we need
     list_of_creatable_states = ['HR_VL', 'HR_iVL', 'HL_VR', 'HL_iVR', 'HD_VA', 'HD_iVA', 'HA_VD', 'HA_iVD', 'phi plus, phi minus', 'psi plus, psi minus'] #, 
     
-    etas = [np.pi/12, np.pi/6, np.pi/4, np.pi/3, np.pi/2]
+    etas = [ np.pi/6, np.pi/4, np.pi/3]
     chis = np.linspace(0.001, np.pi/2, 6)
     num_etas = len(etas)
     num_chis = len(chis)
 
-    probs = [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7], [0.4, 0.6], [0.5, 0.5]] # 
+    probs = [[0.2,0.8], [0.3, 0.7], [0.4, 0.6], [0.5, 0.5]] # 
 
     # Instantiate states to sweep over for every mixed state
     states_names = []
@@ -278,4 +277,4 @@ if __name__ == '__main__':
     print('saving!')
 
 
-    df.to_csv(f'paper_states/creatable_state_run/all_good_states_test.csv', index=False)
+    df.to_csv(f'paper_states/creatable_state_run/New_Candidates_test.csv', index=False)

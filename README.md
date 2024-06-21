@@ -6,5 +6,5 @@ This file contains contact information for the research group members, as well a
 ## Contact Information
 
 - Paco Navarro : pnavarro@g.hmc.edu
-- Lev Gruber   
+- Lev Gruber   : lgruber@g.hmc.edu
 - Stuart Kerr  : stkerr@g.hmc.edu

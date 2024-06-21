@@ -973,7 +973,7 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
             phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*gamma)*VH + d*np.exp(1j*delta)*VV
             return get_witness(phi)
         
-        def get_w_pp_a(params):
+        def get_w_pp_a1(params):
             """
             Witness includes szx, syz, and szx
             params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
@@ -989,8 +989,23 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
             phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
             return get_witness(phi)
         
+        def get_w_pp_a2(params):
+            """
+            Witness includes szx, syz, and szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= -a*c/b
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
 
-        def get_w_pp_b(params):
+        def get_w_pp_b1(params):
             """
             Witness includes szx, syz, and szy
             params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
@@ -1006,9 +1021,25 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
             phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
             return get_witness(phi)
         
+        def get_w_pp_b2(params):
+            """
+            Witness includes szx, syz, and szy
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= a*c/b
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+        
         # get the witness values by minimizing the witness function
         if not(ads_test): 
-            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9, get_w_pp_a, get_w_pp_b,  get_v_2, get_v_3]
+            all_W = [get_W1,get_W2, get_W3, get_W4, get_W5, get_W6, get_Wp1, get_Wp2, get_Wp3, get_Wp4, get_Wp5, get_Wp6, get_Wp7, get_Wp8, get_Wp9, get_w_pp_a1, get_w_pp_a2, get_w_pp_b1,  get_w_pp_b2]
             W_expec_vals = []
             if return_params: # to log the params
                 min_params = []
@@ -1090,7 +1121,7 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
                                 isi=0
                             else:
                                 isi+=1
-                elif i == 15 or i==16: # the W'' witness
+                elif i == 15 or i==16 or i==17 or i==18: # the W'' witness
                     def min_W(x0):
                         # print(x0)
                         do_min = minimize(W, x0=x0, bounds=[(-np.pi/2 +0.01,np.pi/2-0.01), (0.01,np.pi-0.01), (0,2*np.pi)])
@@ -1132,7 +1163,7 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
                                 isi=0
                             else:
                                 isi+=1
-                elif i > 16: # the V witnesses
+                elif i > 60: # the V witnesses
                     def min_W(x0):
                         do_min = minimize(W, x0=x0, bounds=[(0-0.01,np.pi/4-0.01), (np.pi/8,np.pi/4)])
                         return do_min['fun']
@@ -1234,7 +1265,7 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
             Wp_t1 = min(W_expec_vals[6:9])
             Wp_t2 = min(W_expec_vals[9:12])
             Wp_t3 = min(W_expec_vals[12:15])
-            v_1 = W_expec_vals[15]
+            Wpp = min(W_exp_val_ls[15:])
             # print("Wp_t3",W_expec_vals[12:15])
             # print("min_params",min_params[12:15])
 
@@ -1245,7 +1276,8 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
                 Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]),key=lambda x: x[0])][0]
                 Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]),key=lambda x: x[0])][0]
                 Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]),key=lambda x: x[0])][0]
-                v_1_param = [x for _,x in sorted(zip(W_expec_vals[15:], min_params[15]),key=lambda x: x[0])][0]
+                Wpp_param = [x for _,x in sorted(zip(W_expec_vals[15:], min_params[15:]),key=lambda x: x[0])][0]
+                #v_1_param = [x for _,x in sorted(zip(W_expec_vals[15:], min_params[15]),key=lambda x: x[0])][0]
 
 
             # calculate lynn
@@ -1254,12 +1286,11 @@ def compute_witnesses(rho, counts = None, expt = False,  verbose = True, do_coun
             if not(return_all):
                 if return_params:
                     print("returning v_1")
-                    return v_1_param #W_min, Wp_t1, Wp_t2, Wp_t3, v_1, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param, v_1_param
                 else:
                     if return_lynn:
-                        return W_min, Wp_t1, Wp_t2, Wp_t3, W_lynn #add new witnesses here 
+                        return W_min, Wp_t1, Wp_t2, Wp_t3, Wpp, W_lynn #add new witnesses here 
                     else:
-                        return W_min, Wp_t1, Wp_t2, Wp_t3
+                        return W_min, Wp_t1, Wp_t2, Wp_t3, Wpp
             else:
                 if return_params:
                     return W_expec_vals[15], min_params[15]#W_expec_vals, min_params
