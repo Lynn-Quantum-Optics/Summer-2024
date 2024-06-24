@@ -164,13 +164,16 @@ def analyze_rho(rho_actual, verbose = False, id='id', get_wpp = False):
     
     # calculate W and W' theory
     W_T_ls, W_params = compute_witnesses(rho = rho_actual, return_all = True, return_params = True) # theory #, return_all = True, return_params = True
-    print(W_T_ls)
+    #print(W_T_ls)
     # parse lists
     W_min = min(W_T_ls[:6])
     Wp_t1 = min(W_T_ls[6:9])
     Wp_t2 = min(W_T_ls[9:12])
     Wp_t3 = min(W_T_ls[12:15])
+    #print("I got here")
+    #print(len(W_T_ls))
     Wpp = min(W_T_ls[15:])
+    #print("I finished")
     
     if verbose:
         # If verbose, return not just the 4 values but also the names of the minimal witnesses!
