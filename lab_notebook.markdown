@@ -1586,3 +1586,7 @@ MP: Paco
 
 Finishing recalibratin phi plus with the BCQWP. First changed CQP from -14.6871 to -14.1537, then UVHWP changed from -112.0104611045436 to -112.41754451550933, lastly we changed the PCC from -0.2105263157894739 to -0.3157894736842106. This resulted in a purity of 94.3
 
+# 6/24/2024
+MP: Lev, Stu
+
+9:00 Laser on. Beginning with running stu_sweep which will give us a state of the form 1+e^ix /2?kjix 
