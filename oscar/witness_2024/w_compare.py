@@ -183,12 +183,26 @@ def plot_result(n_iterations):
     for ax in axs.flat:
         ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
 
+    # calculate R^2 for each plot
+    def r(x, y):
+        return np.corrcoef(x, y)[0, 1]
+    
+    r_w = r(w_old, w_new)
+    r_wp1 = r(wp1_old, wp1_new)
+    r_wp2 = r(wp2_old, wp2_new)
+    r_wp3 = r(wp3_old, wp3_new)
+
+    axs[0, 0].text(0.5, 0.1, f'$R = {r_w}$', horizontalalignment='center', verticalalignment='center', transform=axs[0, 0].transAxes)
+    axs[0, 1].text(0.5, 0.1, f'$R = {r_wp1}$', horizontalalignment='center', verticalalignment='center', transform=axs[0, 1].transAxes)
+    axs[1, 0].text(0.5, 0.1, f'$R = {r_wp2}$', horizontalalignment='center', verticalalignment='center', transform=axs[1, 0].transAxes)
+    axs[1, 1].text(0.5, 0.1, f'$R = {r_wp3}$', horizontalalignment='center', verticalalignment='center', transform=axs[1, 1].transAxes)
+
     plt.savefig(f'oscar/witness_2024/witness_comparison_{n_iterations}.pdf')
     plt.show()
     
 
 if __name__ == '__main__':
-    n_iterations = 10000
+    n_iterations = 100000
     parallel_evaluate(n_iterations)
     plot_result(n_iterations)
 

@@ -921,9 +921,14 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                     def min_W(x0):
                         return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
                         
-                    x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
+                    # x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
+                    # w0 = min_W(x0)
+                    # x1 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
+                    # w1 = min_W(x1)
+
+                    x0 = [np.random.rand()*np.pi/2,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
                     w0 = min_W(x0)
-                    x1 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
+                    x1 = [np.random.rand()*np.pi/2,np.random.rand()*2*np.pi]
                     w1 = min_W(x1)
                     
                     if w0 < w1: #choose the better one 
