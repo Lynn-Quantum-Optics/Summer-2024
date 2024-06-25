@@ -112,8 +112,8 @@ if __name__ == '__main__':
     # manually perform sweep of UVHWP
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
-            ### UV HWP SECTION ###
-        GUESS = -112.4175 + 45
+        ### UV HWP SECTION ###
+        GUESS = -112.4175 + 45 # flip all the quartz plate minimum so it actually minimizes
         RANGE = 22.5
         N = 35
         SAMP = (5, 3)
@@ -165,7 +165,8 @@ if __name__ == '__main__':
 
         # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
-                           B_C_QWP = np.pi/4)
+                           B_C_HWP = 67.5,
+                           B_C_QWP = 45)
         
         # measuring!
         rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
