@@ -26,7 +26,7 @@ def get_theo_rho(chi):
 
 if __name__ == '__main__':
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
-    CHI_PARAMS = [0, np.pi, 6]
+    CHI_PARAMS = [0.001, np.pi/2, 6]
 
     # initialize the manager
     m = Manager('config.json')
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
         # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
-                           B_C_QWP = np.pi/4)
+                           B_C_QWP = 45)
         
         # measuring!
         rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -188,9 +188,9 @@ if __name__ == '__main__':
         
         # 0 -> B_C_HWP, 45 -> B_C_QWP
         angles = [UVHWP_angle, C_QP_angle, 0, 45] # change output data function to inlude B_C_QWP
-
+        chi = np.rad2deg(chi)
         # save results
-        with open(f"stu_hrvl/rho_('E0', {chi})_1.npy", 'wb') as f:
+        with open(f"stu_hrvl/rho_('E0', (45.0, {chi}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
         date = "6242024"
         tomo_df = m.output_data(f'stu_hrvl/tomo_data_{chi}_{date}.csv')
