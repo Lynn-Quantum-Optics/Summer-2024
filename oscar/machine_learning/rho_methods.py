@@ -504,11 +504,9 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             return_all: bool, whether to return all the Ws or just the min of the 6 and the min of the 3 triples
             return_params: bool, whether to return the params that give the min of the 6 and the min of the 3 triples
     '''
-
     # check if experimental data
     if expt and counts is not None:
         do_counts = True
-
     # if wanting to account for experimental purity, add noise to the density matrix for adjusted theoretical purity calculation
 
     # automatic correction is depricated; send the theoretical rho after whatever correction you want to this function
@@ -1417,6 +1415,6 @@ if __name__ == '__main__':
 #         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
 #     # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
 #     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
-    # pass    # pass
+    # pass
 =======
 >>>>>>> Stashed changes
