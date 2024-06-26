@@ -145,12 +145,12 @@ def parallel_evaluate(n_iterations):
     t1 = time.time()
     print(f'Parallel evaluation took {t1-t0} seconds')
     results = pd.DataFrame(results)
-    results.to_csv(f'oscar/witness_2024/witness_comparison_{n_iterations}.csv', index=False)
+    results.to_csv(f'witness_comparison_{n_iterations}.csv', index=False)
     
     return results
 
 def plot_result(n_iterations):
-    file = f'oscar/witness_2024/witness_comparison_{n_iterations}.csv'
+    file = f'witness_comparison_{n_iterations}.csv'
     results = pd.read_csv(file)
     w_old = results['w_old']
     w_new = results['w_new']
@@ -197,12 +197,12 @@ def plot_result(n_iterations):
     axs[1, 0].text(0.5, 0.1, f'$R = {r_wp2}$', horizontalalignment='center', verticalalignment='center', transform=axs[1, 0].transAxes)
     axs[1, 1].text(0.5, 0.1, f'$R = {r_wp3}$', horizontalalignment='center', verticalalignment='center', transform=axs[1, 1].transAxes)
 
-    plt.savefig(f'oscar/witness_2024/witness_comparison_{n_iterations}.pdf')
+    plt.savefig(f'witness_comparison_{n_iterations}.pdf')
     plt.show()
     
 
 if __name__ == '__main__':
-    n_iterations = 100000
+    n_iterations = 60
     parallel_evaluate(n_iterations)
     plot_result(n_iterations)
 

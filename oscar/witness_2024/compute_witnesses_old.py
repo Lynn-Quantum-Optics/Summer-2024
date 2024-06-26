@@ -428,7 +428,7 @@ def compute_witnesses_old(rho, counts = None, expt = False, do_counts = False, e
                                 else:
                                     grad = approx_fprime(x0, min_W, 1e-6)
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
-                                        break
+                                        x0 = [np.random.rand()*np.pi]
                                     else:
                                         x0 = x0 - zeta*grad
                             else:
