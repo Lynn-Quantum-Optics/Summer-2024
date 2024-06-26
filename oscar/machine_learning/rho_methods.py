@@ -321,7 +321,6 @@ def get_all_roik_projs_sc(resoult):
             projs[i, j] = compute_roik_proj_sc(p1,p2,x,m,phi)
     return projs
 
-<<<<<<< Updated upstream
 def adjust_rho(rho, angles, expt_purity, state='E0'):
     ''' Adjusts theoretical density matrix to account for experimental impurity.'''
     if state=='E0':
@@ -336,21 +335,6 @@ def adjust_rho(rho, angles, expt_purity, state='E0'):
 
         # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
 
-=======
-def adjust_rho(rho, angles, expt_purity, state = 'E0'):
-    ''' Adjusts theo density matrix to account for experimental impurity
-        Multiplies off-diagonal elements by expt purity to account for 
-        non=entanGled particles in our system '''
-    if state =='E0':    
-        for i in range(rho.shape[0]):
-            for j in range(rho.shape[1]):
-                if i == j:
-                    pass
-                else:
-                    rho[i][j] = expt_purity * rho[i][j]
-        return rho
-        
->>>>>>> Stashed changes
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
     --
@@ -477,11 +461,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-<<<<<<< Updated upstream
 def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
-=======
-def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 45, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
->>>>>>> Stashed changes
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -760,44 +740,9 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
         
-<<<<<<< Updated upstream
         return W_min, Wp_t1, Wp_t2, Wp_t3
         # return W_expec_vals
 
-=======
-        if verbose:
-            #print('i got to verbosity')
-            # Define dictionary to get name of
-            all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
-            index_names = {i: name for i, name in enumerate(all_W)}
-           
-            W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]))][0]
-            Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]))][0]
-            Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
-            Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
-           
-           
-            W_exp_val_ls = []
-            for val in W_expec_vals:
-                W_exp_val_ls.append(unp.nominal_values(val))
-            
-            W_min_name = [x for _,x in sorted(zip(W_exp_val_ls[:6], all_W[:6]))][0]
-            Wp1_min_name = [x for _,x in sorted(zip(W_exp_val_ls[6:9], all_W[6:9]))][0]
-            Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
-            Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
-            
-            print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
-            print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
-
-            if not return_params:
-                return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
-            else:
-                # return same as above but with the minimum params list at end
-                return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
-                
-        else:
-            return W_min, Wp_t1, Wp_t2, Wp_t3
->>>>>>> Stashed changes
         
         # return W_expec_vals
 
@@ -885,73 +830,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             phi9_p = np.cos(theta)*np.cos(alpha)*HH + np.cos(theta)*np.sin(alpha)*HV + np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
             return get_witness(phi9_p)
         
-<<<<<<< Updated upstream
-=======
-        def get_w_pp_a1(params):
-            """
-            Witness includes szx, syz, and szx
-            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
-            returns - the expectation value of the witness with the input state, rho
-            """
-            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
-            #Witness constraints
-            a= np.cos(theta)*np.cos(alpha)
-            b= np.sin(theta)*np.sin(alpha)
-            c= np.cos(theta)*np.sin(alpha)
-            d= -a*b/c
-            #constructs the witness
-            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
-            return get_witness(phi)
-        
-        def get_w_pp_a2(params):
-            """
-            Witness includes szx, syz, and szx
-            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
-            returns - the expectation value of the witness with the input state, rho
-            """
-            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
-            #Witness constraints
-            a= np.cos(theta)*np.cos(alpha)
-            b= np.sin(theta)*np.sin(alpha)
-            c= np.cos(theta)*np.sin(alpha)
-            d= -a*c/b
-            #constructs the witness
-            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
-            return get_witness(phi)
-
-        def get_w_pp_b1(params):
-            """
-            Witness includes szx, syz, and szy
-            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
-            returns - the expectation value of the witness with the input state, rho
-            """
-            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
-            #Witness constraints
-            a= np.cos(theta)*np.cos(alpha)
-            b= np.sin(theta)*np.sin(alpha)
-            c= np.cos(theta)*np.sin(alpha)
-            d= a*b/c
-            #constructs the witness
-            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
-            return get_witness(phi)
-        
-        def get_w_pp_b2(params):
-            """
-            Witness includes szx, syz, and szy
-            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
-            returns - the expectation value of the witness with the input state, rho
-            """
-            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
-            #Witness constraints
-            a= np.cos(theta)*np.cos(alpha)
-            b= np.sin(theta)*np.sin(alpha)
-            c= np.cos(theta)*np.sin(alpha)
-            d= a*c/b
-            #constructs the witness
-            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
-            return get_witness(phi)
-        
->>>>>>> Stashed changes
         def get_lynn():
             return 1/5*(2*HH +2*np.exp(1j*np.pi/4)*  HV +  np.exp(1j*np.pi/4)*VH +4*VV) 
         if return_lynn_only:
@@ -1043,17 +921,12 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                                 isi+=1
                 else:# theta and alpha
                     def min_W(x0):
-<<<<<<< Updated upstream
-                        return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                        
-=======
                         # print(x0)
                         do_min = minimize(W, x0=x0, bounds=[(-np.pi/2 + 0.01,np.pi/2-0.01), (0.01,np.pi-0.01), (0,2*np.pi)])
                         # print(do_min['x'])
                         return do_min['fun']
 
                     #Begin with two random states
->>>>>>> Stashed changes
                     x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
                     w0 = min_W(x0)
                     x1 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
@@ -1065,50 +938,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                     else:
                         w_min = w1
                         x0_best = x1
-<<<<<<< Updated upstream
-=======
-                    if optimize: #Optimize the witness based on the previous best
-                        isi = 0 # index since last improvement
-                        count = 0
-                        for _ in range(num_reps): # repeat numsteps times and take the minimum
-                            count += 1
-                            if gd:
-                                if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
-                                    x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
-                                else:
-                                    grad = approx_fprime(x0, min_W, 1e-6) #Error here assk oscar why it might be doing this>
-                                    if np.all(grad < 1e-5*np.ones(len(grad))):
-                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
-                                    else:
-                                        x0 = x0 - zeta*grad          
-                            else:
-                                x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
-                            w = min_W(x0)
-                            
-                            if w < w_min:
-                                w_min = w
-                                x0_best = x0
-                                isi=0
-                            else:
-                                isi+=1
-                else:# theta and alpha
-                    def min_W(x0, return_params = False):
-                        if return_params == False:
-                            return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                        else:
-                            return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])
-                        
-                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
-                    w0 = min_W(x0)
-                    x1 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
-                    w1 = min_W(x1)
-                    if w0 < w1:
-                        w_min = w0
-                        x0_best = x0
-                    else:
-                        w_min = w1
-                        x0_best = x1
->>>>>>> Stashed changes
                     if optimize:
                         isi = 0 # index since last improvement
                         for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -1149,17 +978,10 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 for val in W_expec_vals:
                     W_expec_vals_ls.append(unp.nominal_values(val))
                 # sort by witness value; want the most negative, so take first element in sorted
-<<<<<<< Updated upstream
                 W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]))][0]
                 Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]))][0]
                 Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
                 Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
-=======
-                W_param = [x for _,x in sorted(zip(W_expec_vals_ls[:6], min_params[:6]))][0]
-                Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals_ls[6:9], min_params[6:9]))][0]
-                Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals_ls[9:12], min_params[9:12]))][0]
-                Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals_ls[12:15], min_params[12:15]))][0]
->>>>>>> Stashed changes
 
             # calculate lynn
             W_lynn = get_witness(get_lynn())
@@ -1302,119 +1124,3 @@ def get_rel_entropy_concurrence(basis_key, rho):
     rho_diag = get_rho_diag(rho)
     
     return get_entropy(rho_diag) - get_entropy(rho)
-<<<<<<< Updated upstream
-
-
-##############################################
-## for testing ##
-if __name__ == '__main__':
-
-    ## testing witness functions ##
-    test_witnesses()
-
-    # from random_gen import *
-    # import matplotlib.pyplot as plt
-    # def sample_reconstruct(num=100):
-    #     ''' Samples random density matrices and reconstructs them using the 36 projections. Returns the average fidelity.'''
-    #     fidelity_ls =[]
-    #     for i in trange(num):
-    #         rho = get_random_hurwitz()
-    #         rho_prob= get_all_projs(rho)
-    #         rho_recon = reconstruct_rho(rho_prob)
-    #         print(is_valid_rho(rho_recon))
-    #         fidelity_ls.append(get_fidelity(rho, rho_recon))
-    #     plt.hist(fidelity_ls, bins=20)
-    #     plt.show()
-    #     print(np.mean(fidelity_ls), np.std(fidelity_ls) / np.sqrt(num))
-    # sample_reconstruct(100)
-#     ## testing randomization processes ##
-#     # random state gen imports #
-#     from jones import get_random_jones
-#     from random_gen import get_random_simplex, get_random_roik
-
-#     def check_conc_min_eig_sample(N=10000, conditions=None, func=get_random_simplex, method_name='Simplex', savedir='rho_test_plots', special_name='0', display=False, fit=False):        ''' Checks random sample of N simplex generated matrices. 
-#         params:
-#             N: number of random states to check
-#             conditions: list of conditions to check for: tuple of tuple for min max bounds for concurrence and min eigenvalue. e.g. ((0, .5), (0, -.5)) will ensure states have concurrence between 0 and 0.5 and min eigenvalue between 0 and -0.5
-#             func: function to generate random state
-#             method_name: name of method used to generate random state
-#             savedir: directory to save plots
-#             special_name: if searching with specific conditions, add a unique name to the plot
-#             display: whether to display plot
-#             fit: whether to fit a func to the data
-#         '''
-#         concurrence_ls = []
-#         min_eig_ls = []
-#         for n in trange(N):
-#         # for n in range(N):
-#             # get state
-#             def get_state():
-#                 if func.__name__ == 'get_random_jones' or func.__name__ == 'get_random_simplex':
-#                     rho = func()[0]
-#                 else:
-#                     rho=func()
-#                 return rho
-#             # impose conditions
-#             if conditions != None:
-#                 go=False
-#                 while not(go):
-#                     rho = get_state()
-#                     concurrence, min_eig = check_conc_min_eig(rho)
-#                     if conditions[0][0] <= concurrence <= conditions[0][1] and conditions[1][0] <= min_eig <= conditions[1][1]:
-#                         # print(is_valid_rho(state))
-#                         go=True
-#                     else:
-#                         concurrence, min_eig = check_conc_min_eig(get_state())
-#             else:
-#                 # check if entangled
-#                 concurrence, min_eig = check_conc_min_eig(get_state())
-#             # plot
-#             concurrence_ls.append(concurrence)
-#             min_eig_ls.append(min_eig)
-
-#         # fig, axes = plt.subplots(2,1, figsize=(10,5))
-#         # axes[0].hist(concurrence_ls, bins=100)
-#         # axes[1].hist(min_eig_ls, bins=100)
-#         # plt.show()
-#         plt.figure(figsize=(10,7))
-#         plt.plot(concurrence_ls, min_eig_ls, 'o', label='Random states')
-#         plt.xlabel('Concurrence')
-#         plt.ylabel('Min eigenvalue')
-#         plt.title('Concurrence vs. PT Min Eigenvalue for %s'%method_name)
-        
-#         if fit: # fit exponential!
-#             from scipy.optimize import curve_fit
-#             def func(x, a, b,c, d, e, f, g):
-#                 # return a*np.exp(-b*(x+c)) + d*x**3 + e*x**2 +f*x+g
-#                 return a + b*x + c*x**2 + d*x**3 + e*x**4 + f*x**5 + g*x**6
-#             popt, pcov = curve_fit(func, concurrence_ls, min_eig_ls)
-#             perr = np.sqrt(np.diag(pcov))
-#             conc_lin = np.linspace(min(concurrence_ls), max(concurrence_ls), 1000)
-
-#             # calculate chi2red
-#             # chi2red= np.sum((np.array(min_eig_ls) - func(np.array(concurrence_ls), *popt))**2)/(len(min_eig_ls) - len(pcov))
-#             # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-')
-#             # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)}+ %5.3fx^3 + %5.3fx^2 + %5.3fx + %5.3f \pm (%5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f, %5.3f), \chi^2_\\nu = %5.3f$'%(*popt, *perr, chi2red))
-#             # plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f e^{-%5.3f (x+%5.3f)} %5.3fx^3  +%5.3fx^2  %5.3fx  %5.3f$'%(*popt,))
-#             plt.plot(conc_lin, func(np.array(conc_lin), *popt), 'r-', label='$\lambda_{min}= %5.3f + %5.3fx + %5.3fx^2 + %5.3fx^3 + %5.3fx^4 + %5.3fx^5 + %5.3fx^6$'%(*popt,))
-#             plt.legend()
-
-#         plt.savefig('%s/conc_min_eig_%s_%s.pdf'%(savedir, method_name, special_name))
-
-#         if display:
-#             plt.show()
-
-#     # no conditions
-#     # check_conc_min_eig_sample(fit=True, method_name='Simplex', func=get_random_simplex, special_name='fit')
-#     check_conc_min_eig_sample(fit=True, method_name='Roik', func=get_random_roik, special_name='fit')
-#     # check_conc_min_eig_sample(fit=True, method_name='Jones', func=get_random_jones, special_name='fit')
-#     # check_conc_min_eig_sample(func=get_random_roik, method_name='roik')
-#     # check_conc_min_eig_sample(func=get_random_jones, method_name='jones')
-
-#     # conditions:
-#         # investigating typeI and type2 errors: type1 = concurrence = 0, min_eig < 0; type2 = concurrence > 0, min_eig > 0
-#     # check_conc_min_eig_sample(N=100, method_name='jones', conditions=((0, 0), (-1000, 0)), func=get_random_jones, special_name='type1')
-#     # check_conc_min_eig_sample(N=1000, method_name='roik', conditions=((0, 0), (-1000, 0)), func=get_random_roik, special_name='conc_0')
-    # pass
-=======
->>>>>>> Stashed changes
