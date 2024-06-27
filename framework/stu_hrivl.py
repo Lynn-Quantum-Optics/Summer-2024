@@ -32,7 +32,7 @@ if __name__ == '__main__':
     m = Manager('config.json')
 
     # make phi plus 
-    m.make_state('phi_plus')
+    m.make_state('phi_minus')
     m.C_UV_HWP.goto(-112.41754451550933 + 45)
     # check count rates
     m.log('Checking HH and VV count rates...')
@@ -54,14 +54,14 @@ if __name__ == '__main__':
     # setup the phase sweep
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
-    m.meas_basis('DR')
+    m.meas_basis('DD')
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
 
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    df = m.output_data(f"stu_hrvl/QP_sweep.csv")
-    data = pd.read_csv(f"stu_hrvl/QP_sweep.csv")
+    df = m.output_data(f"stu_hrivl/QP_sweep.csv")
+    data = pd.read_csv(f"stu_hrivl/QP_sweep.csv")
 
     # take the counts of the quartz sweep at each angle and find the index of the minimum data point
     QP_counts = data["C4"]
@@ -131,8 +131,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         # obtain the first round of data and switch to a new output file
-        df1 = m.output_data(f"stu_hrvl/UVHWP_balance_sweep1.csv")
-        data1 = pd.read_csv(f"stu_hrvl/UVHWP_balance_sweep1.csv")
+        df1 = m.output_data(f"stu_hrivl/UVHWP_balance_sweep1.csv")
+        data1 = pd.read_csv(f"stu_hrivl/UVHWP_balance_sweep1.csv")
 
         # sweep in the second basis
         print(m.time, f'Configuring measurement basis VV')
@@ -142,8 +142,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         print(m.time, 'Data collected')
-        df2 = m.output_data(f'stu_hrvl/UVHWP_balance_sweep2.csv')
-        data2 = pd.read_csv(f'stu_hrvl/UVHWP_balance_sweep2.csv')
+        df2 = m.output_data(f'stu_hrivl/UVHWP_balance_sweep2.csv')
+        data2 = pd.read_csv(f'stu_hrivl/UVHWP_balance_sweep2.csv')
 
         args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
         args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
                            B_C_HWP = 67.5,
-                           B_C_QWP = 45)
+                           B_C_QWP = 0)
         
         # measuring!
         rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -187,8 +187,8 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        # 67.5 -> B_C_HWP, 45 -> B_C_QWP
-        angles = [UVHWP_angle, C_QP_angle, 67.5, 45] # change output data function to inlude B_C_QWP
+        # 67.5 -> B_C_HWP, 0 -> B_C_QWP
+        angles = [UVHWP_angle, C_QP_angle, 67.5, 0] # change output data function to inlude B_C_QWP
 
         # save results
         with open(f"stu_hrvl/rho_('E0', {chi})_1.npy", 'wb') as f:

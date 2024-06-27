@@ -1590,3 +1590,8 @@ Finishing recalibratin phi plus with the BCQWP. First changed CQP from -14.6871 
 MP: Lev, Stu
 
 9:00 Laser on. Beginning with running stu_sweep which will give us a state of the form 1+e^ix /2?kjix 
+
+# 6/25-27/2024
+MP: Lev, Stu
+
+Running files for +W and -W'. Calibrated phi minus. 
