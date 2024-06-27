@@ -461,7 +461,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
+def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 50, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -520,11 +520,11 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
         def get_W5(params, counts):
             a, b = np.cos(params), np.sin(params)
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL  = counts
-            return np.real(0.25*(1 + ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) + 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) + ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+            return np.real(0.25*(1 + ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) - 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) + ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
         def get_W6(params, counts):
             a, b = np.cos(params), np.sin(params)
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL  = counts
-            return np.real(0.25*(1 - ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) - (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) - 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+            return np.real(0.25*(1 - ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) - (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) + 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
         
         ## W' from summer 2022 ##
         def get_Wp1(params, counts):
@@ -588,18 +588,24 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 def min_W_params(x0):
                     return min_W(x0).x
 
-                x0 = [np.random.rand()*np.pi]
+                x0 = [0]
                 w0_val = min_W_val(x0)
                 w0_params = min_W_params(x0)
-                x1 = [np.random.rand()*np.pi]
+                x1 = [np.pi]
                 w1_val = min_W_val(x1)
                 w1_params = min_W_params(x1)
-                if w0_val < w1_val:
+                x2 = [np.random.rand()*np.pi]
+                w2_val = min_W_val(x2)
+                w2_params = min_W_params(x2)
+                if w0_val < w1_val and w0_val <w2_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
-                else:
+                elif w1_val< w0_val and w1_val < w2_val:
                     w_min_val = w1_val
                     w_min_params = w1_params
+                else:
+                    w_min_val = w2_val
+                    w_min_params = w2_params
                 if optimize:
                     isi = 0 # index since last improvement
                     for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -608,8 +614,8 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 x0 = [np.random.rand()*np.pi]
                             else:
                                 grad = approx_fprime(x0, min_W_val, 1e-6)
-                                if np.all(grad < 1e-5*np.ones(len(grad))):
-                                    break
+                                if np.all(grad < 1e-5*np.ones(len(grad))): #if your guess is good randomize and keep trying
+                                    x0 = [np.random.rand()*np.pi]
                                 else:
                                     x0 = x0 - zeta*grad
                         else:
@@ -714,7 +720,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 else:
                                     x0 = x0 - zeta*grad
                         else:
-                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
 
                         w_val = min_W_val(x0)
                         w_params = min_W_params(x0)
@@ -864,7 +870,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 else:
                                     grad = approx_fprime(x0, min_W, 1e-6)
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
-                                        break
+                                        x0 = [np.random.rand()*np.pi]
                                     else:
                                         x0 = x0 - zeta*grad
                             else:
@@ -920,12 +926,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                 else:# theta and alpha
                     def min_W(x0):
                         return minimize(W, x0=x0, bounds=[(0, np.pi/2),(0, np.pi*2)])['fun']
-                        
-                    # x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
-                    # w0 = min_W(x0)
-                    # x1 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
-                    # w1 = min_W(x1)
-
+        
                     x0 = [np.random.rand()*np.pi/2,np.random.rand()*2*np.pi] #generates a random set of parameters based on its relationship to beta
                     w0 = min_W(x0)
                     x1 = [np.random.rand()*np.pi/2,np.random.rand()*2*np.pi]
@@ -950,7 +951,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                     else:
                                         x0 = x0 - zeta*grad
                             else:
-                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
 
                             w = min_W(x0)
                             

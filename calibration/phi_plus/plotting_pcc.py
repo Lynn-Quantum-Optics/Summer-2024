@@ -7,7 +7,7 @@ import uncertainties as unc
 
 # Approx. 1 min
 
-df = pd.read_csv('purity_data_5152024.csv')
+df = pd.read_csv('purity_data_6202024.csv')
 df['purity'] = df['purity'].apply(unc.ufloat_fromstr)
 
 def poly5(x, x0, y0, a, b, c, d, e):
@@ -22,6 +22,6 @@ plt.xlabel('PCC Angle (deg)')
 plt.ylabel('Purity')
 plt.title('Purity vs. PCC Angle')
 plt.legend()
-plt.savefig('purity_sweep_5152024.png', dpi=600)
+plt.savefig('purity_sweep_6202024.png', dpi=600)
 print(params)
 plt.show()

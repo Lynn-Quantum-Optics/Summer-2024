@@ -321,20 +321,19 @@ def get_all_roik_projs_sc(resoult):
             projs[i, j] = compute_roik_proj_sc(p1,p2,x,m,phi)
     return projs
 
-def adjust_rho(rho, angles, expt_purity, state='E0'):
-    ''' Adjusts theoretical density matrix to account for experimental impurity.'''
-    if state=='E0':
-        r_hv = (1 + np.cos(np.deg2rad(angles[1]))*np.sin(2*np.deg2rad(angles[0]))) / 2
-        r_vh = 1 - r_hv
-        HV= np.array([0, 1, 0, 0]).reshape(4,1)
-        VH = np.array([0, 0, 1, 0]).reshape(4,1)
-        rho_adj = expt_purity * rho + (1 - expt_purity) * (r_hv * HV @ adjoint(HV) + r_vh * VH @ adjoint(VH))
-        # swap elements [1, 1] and [2,2]
-        # rho_adj[1,1], rho_adj[2,2] = rho_adj[2,2], rho_adj[1,1]
-        return rho_adj
-
-        # ho_c = (1-purity) * (1-e) *(a*HV_rho + b*VH_rho) + (1-purity) * e * (a*HH_rho + b*VV_rho) + purity * (1-e) * rho_actual + purity * e * rho_actual_2
-
+def adjust_rho(rho, angles, expt_purity, state = 'E0'):
+    ''' Adjusts theo density matrix to account for experimental impurity
+        Multiplies off-diagonal elements by expt purity to account for 
+        non=entanGled particles in our system '''
+    if state =='E0':    
+        for i in range(rho.shape[0]):
+            for j in range(rho.shape[1]):
+                if i == j:
+                    pass
+                else:
+                    rho[i][j] = expt_purity * rho[i][j]
+        return rho
+        
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
     --
@@ -461,7 +460,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 30, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
+def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 45, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -609,7 +608,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                             else:
                                 grad = approx_fprime(x0, min_W_val, 1e-6)
                                 if np.all(grad < 1e-5*np.ones(len(grad))):
-                                    break
+                                    x0 = [np.random.rand()*np.pi]
                                 else:
                                     x0 = x0 - zeta*grad
                         else:
@@ -714,7 +713,7 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                                 else:
                                     x0 = x0 - zeta*grad
                         else:
-                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
+                            x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
 
                         w_val = min_W_val(x0)
                         w_params = min_W_params(x0)
@@ -740,9 +739,38 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             Wp_t2 = np.real(min(W_expec_vals[9:12]))
             Wp_t3 = np.real(min(W_expec_vals[12:15]))
         
-        return W_min, Wp_t1, Wp_t2, Wp_t3
-        # return W_expec_vals
+        if verbose:
+            #print('i got to verbosity')
+            # Define dictionary to get name of
+            all_W = ['W1','W2', 'W3', 'W4', 'W5', 'W6', 'Wp1', 'Wp2', 'Wp3', 'Wp4', 'Wp5', 'Wp6', 'Wp7', 'Wp8', 'Wp9']
+            index_names = {i: name for i, name in enumerate(all_W)}
+           
+            W_param = [x for _,x in sorted(zip(W_expec_vals[:6], min_params[:6]))][0]
+            Wp_t1_param = [x for _,x in sorted(zip(W_expec_vals[6:9], min_params[6:9]))][0]
+            Wp_t2_param = [x for _,x in sorted(zip(W_expec_vals[9:12], min_params[9:12]))][0]
+            Wp_t3_param = [x for _,x in sorted(zip(W_expec_vals[12:15], min_params[12:15]))][0]
+           
+           
+            W_exp_val_ls = []
+            for val in W_expec_vals:
+                W_exp_val_ls.append(unp.nominal_values(val))
+            
+            W_min_name = [x for _,x in sorted(zip(W_exp_val_ls[:6], all_W[:6]))][0]
+            Wp1_min_name = [x for _,x in sorted(zip(W_exp_val_ls[6:9], all_W[6:9]))][0]
+            Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
+            Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
+            
+            print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
+            print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
 
+            if not return_params:
+                return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
+            else:
+                # return same as above but with the minimum params list at end
+                return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp_t1_param, Wp_t2_param, Wp_t3_param
+                
+        else:
+            return W_min, Wp_t1, Wp_t2, Wp_t3
         
         # return W_expec_vals
 
@@ -829,6 +857,70 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
             theta, alpha, beta = params[0], params[1], params[2]
             phi9_p = np.cos(theta)*np.cos(alpha)*HH + np.cos(theta)*np.sin(alpha)*HV + np.sin(theta)*np.sin(beta)*VH + np.sin(theta)*np.cos(beta)*VV
             return get_witness(phi9_p)
+        
+        def get_w_pp_a1(params):
+            """
+            Witness includes szx, syz, and szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= -a*b/c
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+        
+        def get_w_pp_a2(params):
+            """
+            Witness includes szx, syz, and szx
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= -a*c/b
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+
+        def get_w_pp_b1(params):
+            """
+            Witness includes szx, syz, and szy
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= a*b/c
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
+        
+        def get_w_pp_b2(params):
+            """
+            Witness includes szx, syz, and szy
+            params - list of parameters to optimize, note a^2 + b^2 + c^2 + d^2 = 1 and a,b,c,d > 0 and real.
+            returns - the expectation value of the witness with the input state, rho
+            """
+            theta, alpha, beta = params[0], params[1], params[2] #optimizing parameters
+            #Witness constraints
+            a= np.cos(theta)*np.cos(alpha)
+            b= np.sin(theta)*np.sin(alpha)
+            c= np.cos(theta)*np.sin(alpha)
+            d= a*c/b
+            #constructs the witness
+            phi = a*HH + b*np.exp(1j*beta)*HV + c*np.exp(1j*beta)*VH + d*VV
+            return get_witness(phi)
         
         def get_lynn():
             return 1/5*(2*HH +2*np.exp(1j*np.pi/4)*  HV +  np.exp(1j*np.pi/4)*VH +4*VV) 
@@ -938,21 +1030,22 @@ def compute_witnesses(rho, counts = None, expt = False, do_counts = False, expt_
                     else:
                         w_min = w1
                         x0_best = x1
-                    if optimize:
+                    if optimize: #Optimize the witness based on the previous best
                         isi = 0 # index since last improvement
-                        for _ in range(num_reps): # repeat 10 times and take the minimum
+                        count = 0
+                        for _ in range(num_reps): # repeat numsteps times and take the minimum
+                            count += 1
                             if gd:
                                 if isi == num_reps//2: # if isi hasn't improved in a while, reset to random initial guess
-                                    x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                    x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
                                 else:
-                                    grad = approx_fprime(x0, min_W, 1e-6)
+                                    grad = approx_fprime(x0, min_W, 1e-6) #Error here assk oscar why it might be doing this>
                                     if np.all(grad < 1e-5*np.ones(len(grad))):
-                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
+                                        x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
                                     else:
-                                        x0 = x0 - zeta*grad
+                                        x0 = x0 - zeta*grad          
                             else:
-                                x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
-
+                                x0 = [np.random.rand()*np.pi/2,np.random.rand()*np.pi,np.random.rand()*2*np.pi]
                             w = min_W(x0)
                             
                             if w < w_min:
