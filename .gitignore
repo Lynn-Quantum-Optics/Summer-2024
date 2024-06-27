@@ -5,3 +5,4 @@ lev/py-venv/
 oscar/witness_2024/*.csv
 __pycache__/
 oscar/machine_learning/__pycache__/_
+/lev/py-venv

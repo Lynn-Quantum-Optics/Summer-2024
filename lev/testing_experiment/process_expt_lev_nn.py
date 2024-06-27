@@ -432,13 +432,13 @@ def nn_exp(filenames):
 
         # input to models
         nn5_pred = nn5.predict(np.reshape(np.array([HH, HV, VV, DD, DA, AA, RR, RL, LL]), (1,9)))
-        print(nn5_pred)
+        print('NN prediction is:', nn5_pred)
         #bl_pred = model_bl.predict(np.reshape(np.array([HH, HV, VH, VV, DD, DA, AD, AA, RR, RL, LR, LL]), (1,12)))
-        pop_pred_val = np.argmax([0.5 - (HH + VV), 0.5 - (DD + AA), 0.5 - (RR + LL)])
+        pop_pred_val = np.argmax([abs(0.5 - (HH + VV)), abs(0.5 - (DD + AA)), abs(0.5 - (RR + LL))])
         pop_pred = [0, 0, 0]
         pop_pred[pop_pred_val] = 1
         pop_pred = np.array(pop_pred)
-
+        print('Pop prediction is:', pop_pred)
         # take dot product with target
         W_ls = compute_witnesses(rho = rho)
         Wp_min = np.argmin(W_ls[1:])

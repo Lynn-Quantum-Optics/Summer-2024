@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'richard'
+DATA_PATH = 'stu_hdiva'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -234,12 +234,14 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp2_param_expt = W_expt_ls[10]
         Wp3_param_expt = W_expt_ls[11]
     
-        if i == 2: # print out W values and rho for greatest differences W prime.
-            print('At third data point, theo rho was:', rho_actual)
-            print('And expt rho was:', rho)
-            print('THE CURRENT POINT IS POINT:', i)
-            print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
-            print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
+        # # print('THE CURRENT POINT IS POINT:', i)
+        # # print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
+        # # print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
+
+        print('Theoretical rho is:', rho_actual)
+        print('Actual rho is:', rho)
+        print('With W/W primes of:', W_name_T, W_min_T, Wp1_name_T, Wp_t1_T, Wp2_name_T, Wp_t2_T, Wp3_name_T, Wp_t3_T)
+        print('Experimental Ws:', W_name_expt, W_min_expt,  Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
 
         if eta is not None and chi is not None:
             adj_fidelity= get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
@@ -305,7 +307,7 @@ def make_plots_E0(dfname):
         print('W min T is:', W_min_T)
         print('W min AT is:', W_min_AT)
         popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
-        popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
+        popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT, maxfev = 10000)
         #print('popt_W are:', popt_W_AT_eta) 
         popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T)
         popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
@@ -471,6 +473,10 @@ def get_theo_rho(state, eta, chi):
     # Define kets and bell states in vector form 
     H = ket([1,0])
     V = ket([0,1])
+    R = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
+    L = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
+    D = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
+    A = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
     
     PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
@@ -487,28 +493,48 @@ def get_theo_rho(state, eta, chi):
     
     ## The following 6 states inspired the W primes
     
-    # create the state PHI+ + PSI-
     if state == 'phi plus, psi minus':
         phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
     
-    # create the state PHI- + PSI+
     if state == 'phi minus, psi plus':
         phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
     
-    # create the state PHI+ +i PSI+
     if state == 'phi plus, i psi plus':
         phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
     
-    # create the state PHI+ + i PHI-
     if state == 'phi plus, i phi minus':
         phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
-    
-    # create the state PSI+ + iPSI-
+
     if state == 'psi plus, i psi minus':
         phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
     
     if state == 'phi minus, i psi minus':
         phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+    
+    ## The following state(s) are an attempt to find new positive W negative W prime states.
+    if state == 'HR_VL':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,R) + (1 - np.exp(1j*chi))/2 * np.kron(V,L)
+    
+    if state == 'HR_iVL':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,R) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,L)
+    
+    if state == 'HL_VR':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,L) + (1 - np.exp(1j*chi))/2 * np.kron(V,R)
+        
+    if state == 'HL_iVR':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,L) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,R)
+        
+    if state == 'HD_VA':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,D) + (1 - np.exp(1j*chi))/2 * np.kron(V,A)
+    
+    if state == 'HD_iVA':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,D) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,A)
+        
+    if state == 'HA_VD':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,A) + (1 - np.exp(1j*chi))/2 * np.kron(V,D)
+    
+    if state == 'HA_iVD':
+        phi = (1 + np.exp(1j*chi))/2 * np.kron(H,A) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,D)
     
     # create rho and return it
     rho = phi @ phi.conj().T
@@ -521,7 +547,7 @@ if __name__ == '__main__':
     chis = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
-    names = ['psi plus, psi minus']
+    names = ['HD_iVA']
     probs = [1]
     
     for eta in etas:
@@ -534,7 +560,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_26.npy")
+        filenames.append(f"rho_('E0', {(state_n[0], states[i][1])})_1.npy") # messed with typically state_n naming convention bc of mistake in file creation
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
@@ -544,7 +570,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_summer_2023_psi_45'
+    id = 'rho_summer_2024_hdiva'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

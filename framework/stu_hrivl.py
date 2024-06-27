@@ -26,7 +26,7 @@ def get_theo_rho(chi):
 
 if __name__ == '__main__':
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
-    CHI_PARAMS = [0, np.pi/2, 6]
+    CHI_PARAMS = [0.001, np.pi/2, 6]
 
     # initialize the manager
     m = Manager('config.json')
