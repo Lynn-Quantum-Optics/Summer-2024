@@ -1,0 +1,1066 @@
+0:00:00	Manager started at 2024-06-28_09-25-49.
+0:00:01	Configuration file: "config.json".
+0:00:01	Initializing CCU.
+0:00:01	Initializing motors.
+0:00:09	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -112.41754451550933, 'C_QP': -14.1537, 'C_PCC': -0.3157894736842106, 'B_C_HWP': 0.0}.
+0:00:13	Checking HH and VV count rates...
+0:00:13	Loading measurement basis "HH" from config file.
+0:00:29	Taking data; sampling 5 x 3 s.
+0:00:45	Loading measurement basis "VV" from config file.
+0:00:56	Taking data; sampling 5 x 3 s.
+0:01:19	Clearing output data.
+0:01:20	Loading measurement basis "DR" from config file.
+0:01:35	Sweeping C_QP from -35 to -1 degrees in 20 steps.
+0:01:36	Taking data; sampling 5 x 3 s.
+0:01:52	Taking data; sampling 5 x 3 s.
+0:02:09	Taking data; sampling 5 x 3 s.
+0:02:26	Taking data; sampling 5 x 3 s.
+0:02:42	Taking data; sampling 5 x 3 s.
+0:02:59	Taking data; sampling 5 x 3 s.
+0:03:16	Taking data; sampling 5 x 3 s.
+0:03:32	Taking data; sampling 5 x 3 s.
+0:03:49	Taking data; sampling 5 x 3 s.
+0:04:05	Taking data; sampling 5 x 3 s.
+0:04:22	Taking data; sampling 5 x 3 s.
+0:04:39	Taking data; sampling 5 x 3 s.
+0:04:56	Taking data; sampling 5 x 3 s.
+0:05:12	Taking data; sampling 5 x 3 s.
+0:05:28	Taking data; sampling 5 x 3 s.
+0:05:45	Taking data; sampling 5 x 3 s.
+0:06:02	Taking data; sampling 5 x 3 s.
+0:06:19	Taking data; sampling 5 x 3 s.
+0:06:36	Taking data; sampling 5 x 3 s.
+0:06:52	Taking data; sampling 5 x 3 s.
+0:07:08	Saving data to "stu_hdiva/QP_sweep.csv".
+0:07:08	Clearing output data.
+0:07:09	Loading measurement basis "HH" from config file.
+0:07:25	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+0:07:25	Taking data; sampling 5 x 3 s.
+0:07:41	Taking data; sampling 5 x 3 s.
+0:07:57	Taking data; sampling 5 x 3 s.
+0:08:13	Taking data; sampling 5 x 3 s.
+0:08:29	Taking data; sampling 5 x 3 s.
+0:08:45	Taking data; sampling 5 x 3 s.
+0:09:01	Taking data; sampling 5 x 3 s.
+0:09:16	Taking data; sampling 5 x 3 s.
+0:09:33	Taking data; sampling 5 x 3 s.
+0:09:48	Taking data; sampling 5 x 3 s.
+0:10:04	Taking data; sampling 5 x 3 s.
+0:10:20	Taking data; sampling 5 x 3 s.
+0:10:36	Taking data; sampling 5 x 3 s.
+0:10:52	Taking data; sampling 5 x 3 s.
+0:11:08	Taking data; sampling 5 x 3 s.
+0:11:23	Taking data; sampling 5 x 3 s.
+0:11:39	Taking data; sampling 5 x 3 s.
+0:11:55	Taking data; sampling 5 x 3 s.
+0:12:11	Taking data; sampling 5 x 3 s.
+0:12:27	Taking data; sampling 5 x 3 s.
+0:12:43	Taking data; sampling 5 x 3 s.
+0:12:59	Taking data; sampling 5 x 3 s.
+0:13:15	Taking data; sampling 5 x 3 s.
+0:13:31	Taking data; sampling 5 x 3 s.
+0:13:47	Taking data; sampling 5 x 3 s.
+0:14:02	Saving data to "stu_hdiva/UVHWP_balance_sweep1.csv".
+0:14:02	Clearing output data.
+0:14:03	Loading measurement basis "VV" from config file.
+0:14:15	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+0:14:16	Taking data; sampling 5 x 3 s.
+0:14:32	Taking data; sampling 5 x 3 s.
+0:14:48	Taking data; sampling 5 x 3 s.
+0:15:04	Taking data; sampling 5 x 3 s.
+0:15:20	Taking data; sampling 5 x 3 s.
+0:15:36	Taking data; sampling 5 x 3 s.
+0:15:52	Taking data; sampling 5 x 3 s.
+0:16:08	Taking data; sampling 5 x 3 s.
+0:16:23	Taking data; sampling 5 x 3 s.
+0:16:39	Taking data; sampling 5 x 3 s.
+0:16:55	Taking data; sampling 5 x 3 s.
+0:17:11	Taking data; sampling 5 x 3 s.
+0:17:27	Taking data; sampling 5 x 3 s.
+0:17:43	Taking data; sampling 5 x 3 s.
+0:17:59	Taking data; sampling 5 x 3 s.
+0:18:15	Taking data; sampling 5 x 3 s.
+0:18:31	Taking data; sampling 5 x 3 s.
+0:18:47	Taking data; sampling 5 x 3 s.
+0:19:03	Taking data; sampling 5 x 3 s.
+0:19:19	Taking data; sampling 5 x 3 s.
+0:19:35	Taking data; sampling 5 x 3 s.
+0:19:52	Taking data; sampling 5 x 3 s.
+0:20:08	Taking data; sampling 5 x 3 s.
+0:20:24	Taking data; sampling 5 x 3 s.
+0:20:40	Taking data; sampling 5 x 3 s.
+0:20:55	Saving data to "stu_hdiva/UVHWP_balance_sweep2.csv".
+0:20:55	Clearing output data.
+0:20:59	Loading measurement basis "HH" from config file.
+0:21:12	Taking data; sampling 5 x 3 s.
+0:21:12		Note: "HH"
+0:21:27	Loading measurement basis "HV" from config file.
+0:21:34	Taking data; sampling 5 x 3 s.
+0:21:34		Note: "HV"
+0:21:50	Loading measurement basis "HD" from config file.
+0:21:54	Taking data; sampling 5 x 3 s.
+0:21:54		Note: "HD"
+0:22:10	Loading measurement basis "HA" from config file.
+0:22:17	Taking data; sampling 5 x 3 s.
+0:22:17		Note: "HA"
+0:22:33	Loading measurement basis "HR" from config file.
+0:22:43	Taking data; sampling 5 x 3 s.
+0:22:44		Note: "HR"
+0:22:59	Loading measurement basis "HL" from config file.
+0:23:10	Taking data; sampling 5 x 3 s.
+0:23:11		Note: "HL"
+0:23:27	Loading measurement basis "VH" from config file.
+0:23:48	Taking data; sampling 5 x 3 s.
+0:23:48		Note: "VH"
+0:24:04	Loading measurement basis "VV" from config file.
+0:24:11	Taking data; sampling 5 x 3 s.
+0:24:11		Note: "VV"
+0:24:27	Loading measurement basis "VD" from config file.
+0:24:31	Taking data; sampling 5 x 3 s.
+0:24:31		Note: "VD"
+0:24:47	Loading measurement basis "VA" from config file.
+0:24:54	Taking data; sampling 5 x 3 s.
+0:24:54		Note: "VA"
+0:25:10	Loading measurement basis "VR" from config file.
+0:25:20	Taking data; sampling 5 x 3 s.
+0:25:20		Note: "VR"
+0:25:36	Loading measurement basis "VL" from config file.
+0:25:47	Taking data; sampling 5 x 3 s.
+0:25:47		Note: "VL"
+0:26:03	Loading measurement basis "DH" from config file.
+0:26:22	Taking data; sampling 5 x 3 s.
+0:26:22		Note: "DH"
+0:26:38	Loading measurement basis "DV" from config file.
+0:26:44	Taking data; sampling 5 x 3 s.
+0:26:44		Note: "DV"
+0:27:00	Loading measurement basis "DD" from config file.
+0:27:04	Taking data; sampling 5 x 3 s.
+0:27:04		Note: "DD"
+0:27:20	Loading measurement basis "DA" from config file.
+0:27:27	Taking data; sampling 5 x 3 s.
+0:27:27		Note: "DA"
+0:27:43	Loading measurement basis "DR" from config file.
+0:27:53	Taking data; sampling 5 x 3 s.
+0:27:53		Note: "DR"
+0:28:09	Loading measurement basis "DL" from config file.
+0:28:20	Taking data; sampling 5 x 3 s.
+0:28:20		Note: "DL"
+0:28:35	Loading measurement basis "AH" from config file.
+0:28:57	Taking data; sampling 5 x 3 s.
+0:28:58		Note: "AH"
+0:29:13	Loading measurement basis "AV" from config file.
+0:29:19	Taking data; sampling 5 x 3 s.
+0:29:20		Note: "AV"
+0:29:35	Loading measurement basis "AD" from config file.
+0:29:39	Taking data; sampling 5 x 3 s.
+0:29:39		Note: "AD"
+0:29:55	Loading measurement basis "AA" from config file.
+0:30:02	Taking data; sampling 5 x 3 s.
+0:30:02		Note: "AA"
+0:30:18	Loading measurement basis "AR" from config file.
+0:30:28	Taking data; sampling 5 x 3 s.
+0:30:28		Note: "AR"
+0:30:44	Loading measurement basis "AL" from config file.
+0:30:55	Taking data; sampling 5 x 3 s.
+0:30:55		Note: "AL"
+0:31:10	Loading measurement basis "RH" from config file.
+0:31:36	Taking data; sampling 5 x 3 s.
+0:31:36		Note: "RH"
+0:31:52	Loading measurement basis "RV" from config file.
+0:31:58	Taking data; sampling 5 x 3 s.
+0:31:58		Note: "RV"
+0:32:14	Loading measurement basis "RD" from config file.
+0:32:18	Taking data; sampling 5 x 3 s.
+0:32:18		Note: "RD"
+0:32:33	Loading measurement basis "RA" from config file.
+0:32:41	Taking data; sampling 5 x 3 s.
+0:32:41		Note: "RA"
+0:32:56	Loading measurement basis "RR" from config file.
+0:33:06	Taking data; sampling 5 x 3 s.
+0:33:07		Note: "RR"
+0:33:22	Loading measurement basis "RL" from config file.
+0:33:33	Taking data; sampling 5 x 3 s.
+0:33:33		Note: "RL"
+0:33:49	Loading measurement basis "LH" from config file.
+0:34:15	Taking data; sampling 5 x 3 s.
+0:34:15		Note: "LH"
+0:34:31	Loading measurement basis "LV" from config file.
+0:34:37	Taking data; sampling 5 x 3 s.
+0:34:37		Note: "LV"
+0:34:53	Loading measurement basis "LD" from config file.
+0:34:57	Taking data; sampling 5 x 3 s.
+0:34:57		Note: "LD"
+0:35:12	Loading measurement basis "LA" from config file.
+0:35:19	Taking data; sampling 5 x 3 s.
+0:35:20		Note: "LA"
+0:35:35	Loading measurement basis "LR" from config file.
+0:35:46	Taking data; sampling 5 x 3 s.
+0:35:46		Note: "LR"
+0:36:02	Loading measurement basis "LL" from config file.
+0:36:12	Taking data; sampling 5 x 3 s.
+0:36:13		Note: "LL"
+0:36:28	Saving data to "stu_hdiva/tomo_data_0.001_6272024_test.csv".
+0:36:28	Clearing output data.
+0:36:29	Loading measurement basis "HH" from config file.
+0:37:00	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+0:37:01	Taking data; sampling 5 x 3 s.
+0:37:17	Taking data; sampling 5 x 3 s.
+0:37:33	Taking data; sampling 5 x 3 s.
+0:37:49	Taking data; sampling 5 x 3 s.
+0:38:04	Taking data; sampling 5 x 3 s.
+0:38:21	Taking data; sampling 5 x 3 s.
+0:38:37	Taking data; sampling 5 x 3 s.
+0:38:52	Taking data; sampling 5 x 3 s.
+0:39:08	Taking data; sampling 5 x 3 s.
+0:39:24	Taking data; sampling 5 x 3 s.
+0:39:40	Taking data; sampling 5 x 3 s.
+0:39:56	Taking data; sampling 5 x 3 s.
+0:40:12	Taking data; sampling 5 x 3 s.
+0:40:28	Taking data; sampling 5 x 3 s.
+0:40:44	Taking data; sampling 5 x 3 s.
+0:41:00	Taking data; sampling 5 x 3 s.
+0:41:16	Taking data; sampling 5 x 3 s.
+0:41:32	Taking data; sampling 5 x 3 s.
+0:41:48	Taking data; sampling 5 x 3 s.
+0:42:03	Taking data; sampling 5 x 3 s.
+0:42:19	Taking data; sampling 5 x 3 s.
+0:42:35	Taking data; sampling 5 x 3 s.
+0:42:51	Taking data; sampling 5 x 3 s.
+0:43:07	Taking data; sampling 5 x 3 s.
+0:43:23	Taking data; sampling 5 x 3 s.
+0:43:39	Saving data to "stu_hdiva/UVHWP_balance_sweep1.csv".
+0:43:39	Clearing output data.
+0:43:40	Loading measurement basis "VV" from config file.
+0:43:51	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+0:43:52	Taking data; sampling 5 x 3 s.
+0:44:08	Taking data; sampling 5 x 3 s.
+0:44:24	Taking data; sampling 5 x 3 s.
+0:44:40	Taking data; sampling 5 x 3 s.
+0:44:56	Taking data; sampling 5 x 3 s.
+0:45:13	Taking data; sampling 5 x 3 s.
+0:45:28	Taking data; sampling 5 x 3 s.
+0:45:44	Taking data; sampling 5 x 3 s.
+0:46:00	Taking data; sampling 5 x 3 s.
+0:46:16	Taking data; sampling 5 x 3 s.
+0:46:32	Taking data; sampling 5 x 3 s.
+0:46:48	Taking data; sampling 5 x 3 s.
+0:47:04	Taking data; sampling 5 x 3 s.
+0:47:20	Taking data; sampling 5 x 3 s.
+0:47:36	Taking data; sampling 5 x 3 s.
+0:47:52	Taking data; sampling 5 x 3 s.
+0:48:07	Taking data; sampling 5 x 3 s.
+0:48:23	Taking data; sampling 5 x 3 s.
+0:48:39	Taking data; sampling 5 x 3 s.
+0:48:55	Taking data; sampling 5 x 3 s.
+0:49:11	Taking data; sampling 5 x 3 s.
+0:49:27	Taking data; sampling 5 x 3 s.
+0:49:43	Taking data; sampling 5 x 3 s.
+0:49:59	Taking data; sampling 5 x 3 s.
+0:50:15	Taking data; sampling 5 x 3 s.
+0:50:31	Saving data to "stu_hdiva/UVHWP_balance_sweep2.csv".
+0:50:31	Clearing output data.
+0:50:34	Loading measurement basis "HH" from config file.
+0:50:47	Taking data; sampling 5 x 3 s.
+0:50:47		Note: "HH"
+0:51:03	Loading measurement basis "HV" from config file.
+0:51:09	Taking data; sampling 5 x 3 s.
+0:51:09		Note: "HV"
+0:51:25	Loading measurement basis "HD" from config file.
+0:51:29	Taking data; sampling 5 x 3 s.
+0:51:30		Note: "HD"
+0:51:45	Loading measurement basis "HA" from config file.
+0:51:52	Taking data; sampling 5 x 3 s.
+0:51:53		Note: "HA"
+0:52:09	Loading measurement basis "HR" from config file.
+0:52:19	Taking data; sampling 5 x 3 s.
+0:52:19		Note: "HR"
+0:52:35	Loading measurement basis "HL" from config file.
+0:52:46	Taking data; sampling 5 x 3 s.
+0:52:46		Note: "HL"
+0:53:02	Loading measurement basis "VH" from config file.
+0:53:23	Taking data; sampling 5 x 3 s.
+0:53:23		Note: "VH"
+0:53:39	Loading measurement basis "VV" from config file.
+0:53:45	Taking data; sampling 5 x 3 s.
+0:53:45		Note: "VV"
+0:54:01	Loading measurement basis "VD" from config file.
+0:54:05	Taking data; sampling 5 x 3 s.
+0:54:05		Note: "VD"
+0:54:21	Loading measurement basis "VA" from config file.
+0:54:28	Taking data; sampling 5 x 3 s.
+0:54:28		Note: "VA"
+0:54:45	Loading measurement basis "VR" from config file.
+0:54:55	Taking data; sampling 5 x 3 s.
+0:54:55		Note: "VR"
+0:55:11	Loading measurement basis "VL" from config file.
+0:55:22	Taking data; sampling 5 x 3 s.
+0:55:22		Note: "VL"
+0:55:37	Loading measurement basis "DH" from config file.
+0:55:56	Taking data; sampling 5 x 3 s.
+0:55:57		Note: "DH"
+0:56:12	Loading measurement basis "DV" from config file.
+0:56:19	Taking data; sampling 5 x 3 s.
+0:56:19		Note: "DV"
+0:56:34	Loading measurement basis "DD" from config file.
+0:56:38	Taking data; sampling 5 x 3 s.
+0:56:38		Note: "DD"
+0:56:54	Loading measurement basis "DA" from config file.
+0:57:01	Taking data; sampling 5 x 3 s.
+0:57:01		Note: "DA"
+0:57:17	Loading measurement basis "DR" from config file.
+0:57:27	Taking data; sampling 5 x 3 s.
+0:57:27		Note: "DR"
+0:57:43	Loading measurement basis "DL" from config file.
+0:57:53	Taking data; sampling 5 x 3 s.
+0:57:54		Note: "DL"
+0:58:09	Loading measurement basis "AH" from config file.
+0:58:31	Taking data; sampling 5 x 3 s.
+0:58:31		Note: "AH"
+0:58:47	Loading measurement basis "AV" from config file.
+0:58:53	Taking data; sampling 5 x 3 s.
+0:58:54		Note: "AV"
+0:59:09	Loading measurement basis "AD" from config file.
+0:59:13	Taking data; sampling 5 x 3 s.
+0:59:14		Note: "AD"
+0:59:29	Loading measurement basis "AA" from config file.
+0:59:36	Taking data; sampling 5 x 3 s.
+0:59:36		Note: "AA"
+0:59:52	Loading measurement basis "AR" from config file.
+1:00:03	Taking data; sampling 5 x 3 s.
+1:00:03		Note: "AR"
+1:00:18	Loading measurement basis "AL" from config file.
+1:00:29	Taking data; sampling 5 x 3 s.
+1:00:30		Note: "AL"
+1:00:45	Loading measurement basis "RH" from config file.
+1:01:11	Taking data; sampling 5 x 3 s.
+1:01:11		Note: "RH"
+1:01:27	Loading measurement basis "RV" from config file.
+1:01:33	Taking data; sampling 5 x 3 s.
+1:01:33		Note: "RV"
+1:01:49	Loading measurement basis "RD" from config file.
+1:01:53	Taking data; sampling 5 x 3 s.
+1:01:53		Note: "RD"
+1:02:08	Loading measurement basis "RA" from config file.
+1:02:15	Taking data; sampling 5 x 3 s.
+1:02:15		Note: "RA"
+1:02:31	Loading measurement basis "RR" from config file.
+1:02:42	Taking data; sampling 5 x 3 s.
+1:02:42		Note: "RR"
+1:02:57	Loading measurement basis "RL" from config file.
+1:03:08	Taking data; sampling 5 x 3 s.
+1:03:08		Note: "RL"
+1:03:24	Loading measurement basis "LH" from config file.
+1:03:50	Taking data; sampling 5 x 3 s.
+1:03:50		Note: "LH"
+1:04:06	Loading measurement basis "LV" from config file.
+1:04:13	Taking data; sampling 5 x 3 s.
+1:04:13		Note: "LV"
+1:04:29	Loading measurement basis "LD" from config file.
+1:04:34	Taking data; sampling 5 x 3 s.
+1:04:34		Note: "LD"
+1:04:50	Loading measurement basis "LA" from config file.
+1:04:57	Taking data; sampling 5 x 3 s.
+1:04:57		Note: "LA"
+1:05:13	Loading measurement basis "LR" from config file.
+1:05:23	Taking data; sampling 5 x 3 s.
+1:05:23		Note: "LR"
+1:05:39	Loading measurement basis "LL" from config file.
+1:05:49	Taking data; sampling 5 x 3 s.
+1:05:50		Note: "LL"
+1:06:06	Saving data to "stu_hdiva/tomo_data_0.31495926535897933_6272024_test.csv".
+1:06:06	Clearing output data.
+1:06:06	Loading measurement basis "HH" from config file.
+1:06:37	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+1:06:38	Taking data; sampling 5 x 3 s.
+1:06:54	Taking data; sampling 5 x 3 s.
+1:07:10	Taking data; sampling 5 x 3 s.
+1:07:26	Taking data; sampling 5 x 3 s.
+1:07:42	Taking data; sampling 5 x 3 s.
+1:07:58	Taking data; sampling 5 x 3 s.
+1:08:14	Taking data; sampling 5 x 3 s.
+1:08:30	Taking data; sampling 5 x 3 s.
+1:08:46	Taking data; sampling 5 x 3 s.
+1:09:02	Taking data; sampling 5 x 3 s.
+1:09:18	Taking data; sampling 5 x 3 s.
+1:09:34	Taking data; sampling 5 x 3 s.
+1:09:50	Taking data; sampling 5 x 3 s.
+1:10:06	Taking data; sampling 5 x 3 s.
+1:10:22	Taking data; sampling 5 x 3 s.
+1:10:38	Taking data; sampling 5 x 3 s.
+1:10:54	Taking data; sampling 5 x 3 s.
+1:11:10	Taking data; sampling 5 x 3 s.
+1:11:26	Taking data; sampling 5 x 3 s.
+1:11:42	Taking data; sampling 5 x 3 s.
+1:11:58	Taking data; sampling 5 x 3 s.
+1:12:14	Taking data; sampling 5 x 3 s.
+1:12:30	Taking data; sampling 5 x 3 s.
+1:12:46	Taking data; sampling 5 x 3 s.
+1:13:02	Taking data; sampling 5 x 3 s.
+1:13:18	Saving data to "stu_hdiva/UVHWP_balance_sweep1.csv".
+1:13:18	Clearing output data.
+1:13:18	Loading measurement basis "VV" from config file.
+1:13:30	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+1:13:31	Taking data; sampling 5 x 3 s.
+1:13:47	Taking data; sampling 5 x 3 s.
+1:14:03	Taking data; sampling 5 x 3 s.
+1:14:19	Taking data; sampling 5 x 3 s.
+1:14:35	Taking data; sampling 5 x 3 s.
+1:14:51	Taking data; sampling 5 x 3 s.
+1:15:07	Taking data; sampling 5 x 3 s.
+1:15:23	Taking data; sampling 5 x 3 s.
+1:15:39	Taking data; sampling 5 x 3 s.
+1:15:55	Taking data; sampling 5 x 3 s.
+1:16:11	Taking data; sampling 5 x 3 s.
+1:16:27	Taking data; sampling 5 x 3 s.
+1:16:43	Taking data; sampling 5 x 3 s.
+1:16:59	Taking data; sampling 5 x 3 s.
+1:17:15	Taking data; sampling 5 x 3 s.
+1:17:31	Taking data; sampling 5 x 3 s.
+1:17:47	Taking data; sampling 5 x 3 s.
+1:18:03	Taking data; sampling 5 x 3 s.
+1:18:19	Taking data; sampling 5 x 3 s.
+1:18:35	Taking data; sampling 5 x 3 s.
+1:18:51	Taking data; sampling 5 x 3 s.
+1:19:07	Taking data; sampling 5 x 3 s.
+1:19:23	Taking data; sampling 5 x 3 s.
+1:19:39	Taking data; sampling 5 x 3 s.
+1:19:55	Taking data; sampling 5 x 3 s.
+1:20:11	Saving data to "stu_hdiva/UVHWP_balance_sweep2.csv".
+1:20:12	Clearing output data.
+1:20:14	Loading measurement basis "HH" from config file.
+1:20:27	Taking data; sampling 5 x 3 s.
+1:20:27		Note: "HH"
+1:20:43	Loading measurement basis "HV" from config file.
+1:20:49	Taking data; sampling 5 x 3 s.
+1:20:49		Note: "HV"
+1:21:05	Loading measurement basis "HD" from config file.
+1:21:09	Taking data; sampling 5 x 3 s.
+1:21:09		Note: "HD"
+1:21:25	Loading measurement basis "HA" from config file.
+1:21:32	Taking data; sampling 5 x 3 s.
+1:21:33		Note: "HA"
+1:21:48	Loading measurement basis "HR" from config file.
+1:21:58	Taking data; sampling 5 x 3 s.
+1:21:59		Note: "HR"
+1:22:14	Loading measurement basis "HL" from config file.
+1:22:25	Taking data; sampling 5 x 3 s.
+1:22:25		Note: "HL"
+1:22:41	Loading measurement basis "VH" from config file.
+1:23:02	Taking data; sampling 5 x 3 s.
+1:23:02		Note: "VH"
+1:23:18	Loading measurement basis "VV" from config file.
+1:23:25	Taking data; sampling 5 x 3 s.
+1:23:25		Note: "VV"
+1:23:41	Loading measurement basis "VD" from config file.
+1:23:45	Taking data; sampling 5 x 3 s.
+1:23:45		Note: "VD"
+1:24:00	Loading measurement basis "VA" from config file.
+1:24:08	Taking data; sampling 5 x 3 s.
+1:24:08		Note: "VA"
+1:24:23	Loading measurement basis "VR" from config file.
+1:24:34	Taking data; sampling 5 x 3 s.
+1:24:34		Note: "VR"
+1:24:49	Loading measurement basis "VL" from config file.
+1:25:00	Taking data; sampling 5 x 3 s.
+1:25:00		Note: "VL"
+1:25:16	Loading measurement basis "DH" from config file.
+1:25:35	Taking data; sampling 5 x 3 s.
+1:25:35		Note: "DH"
+1:25:51	Loading measurement basis "DV" from config file.
+1:25:58	Taking data; sampling 5 x 3 s.
+1:25:58		Note: "DV"
+1:26:14	Loading measurement basis "DD" from config file.
+1:26:18	Taking data; sampling 5 x 3 s.
+1:26:18		Note: "DD"
+1:26:34	Loading measurement basis "DA" from config file.
+1:26:41	Taking data; sampling 5 x 3 s.
+1:26:41		Note: "DA"
+1:26:57	Loading measurement basis "DR" from config file.
+1:27:07	Taking data; sampling 5 x 3 s.
+1:27:07		Note: "DR"
+1:27:23	Loading measurement basis "DL" from config file.
+1:27:33	Taking data; sampling 5 x 3 s.
+1:27:33		Note: "DL"
+1:27:49	Loading measurement basis "AH" from config file.
+1:28:11	Taking data; sampling 5 x 3 s.
+1:28:12		Note: "AH"
+1:28:27	Loading measurement basis "AV" from config file.
+1:28:34	Taking data; sampling 5 x 3 s.
+1:28:34		Note: "AV"
+1:28:49	Loading measurement basis "AD" from config file.
+1:28:53	Taking data; sampling 5 x 3 s.
+1:28:54		Note: "AD"
+1:29:09	Loading measurement basis "AA" from config file.
+1:29:16	Taking data; sampling 5 x 3 s.
+1:29:17		Note: "AA"
+1:29:32	Loading measurement basis "AR" from config file.
+1:29:42	Taking data; sampling 5 x 3 s.
+1:29:43		Note: "AR"
+1:29:58	Loading measurement basis "AL" from config file.
+1:30:09	Taking data; sampling 5 x 3 s.
+1:30:09		Note: "AL"
+1:30:25	Loading measurement basis "RH" from config file.
+1:30:50	Taking data; sampling 5 x 3 s.
+1:30:50		Note: "RH"
+1:31:06	Loading measurement basis "RV" from config file.
+1:31:12	Taking data; sampling 5 x 3 s.
+1:31:12		Note: "RV"
+1:31:28	Loading measurement basis "RD" from config file.
+1:31:32	Taking data; sampling 5 x 3 s.
+1:31:32		Note: "RD"
+1:31:48	Loading measurement basis "RA" from config file.
+1:31:55	Taking data; sampling 5 x 3 s.
+1:31:55		Note: "RA"
+1:32:10	Loading measurement basis "RR" from config file.
+1:32:21	Taking data; sampling 5 x 3 s.
+1:32:21		Note: "RR"
+1:32:37	Loading measurement basis "RL" from config file.
+1:32:48	Taking data; sampling 5 x 3 s.
+1:32:48		Note: "RL"
+1:33:04	Loading measurement basis "LH" from config file.
+1:33:29	Taking data; sampling 5 x 3 s.
+1:33:30		Note: "LH"
+1:33:46	Loading measurement basis "LV" from config file.
+1:33:52	Taking data; sampling 5 x 3 s.
+1:33:52		Note: "LV"
+1:34:08	Loading measurement basis "LD" from config file.
+1:34:12	Taking data; sampling 5 x 3 s.
+1:34:12		Note: "LD"
+1:34:28	Loading measurement basis "LA" from config file.
+1:34:35	Taking data; sampling 5 x 3 s.
+1:34:35		Note: "LA"
+1:34:51	Loading measurement basis "LR" from config file.
+1:35:01	Taking data; sampling 5 x 3 s.
+1:35:01		Note: "LR"
+1:35:16	Loading measurement basis "LL" from config file.
+1:35:27	Taking data; sampling 5 x 3 s.
+1:35:28		Note: "LL"
+1:35:43	Saving data to "stu_hdiva/tomo_data_0.6289185307179587_6272024_test.csv".
+1:35:43	Clearing output data.
+1:35:44	Loading measurement basis "HH" from config file.
+1:36:15	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+1:36:16	Taking data; sampling 5 x 3 s.
+1:36:32	Taking data; sampling 5 x 3 s.
+1:36:48	Taking data; sampling 5 x 3 s.
+1:37:04	Taking data; sampling 5 x 3 s.
+1:37:19	Taking data; sampling 5 x 3 s.
+1:37:35	Taking data; sampling 5 x 3 s.
+1:37:51	Taking data; sampling 5 x 3 s.
+1:38:07	Taking data; sampling 5 x 3 s.
+1:38:23	Taking data; sampling 5 x 3 s.
+1:38:39	Taking data; sampling 5 x 3 s.
+1:38:54	Taking data; sampling 5 x 3 s.
+1:39:11	Taking data; sampling 5 x 3 s.
+1:39:26	Taking data; sampling 5 x 3 s.
+1:39:42	Taking data; sampling 5 x 3 s.
+1:39:58	Taking data; sampling 5 x 3 s.
+1:40:14	Taking data; sampling 5 x 3 s.
+1:40:30	Taking data; sampling 5 x 3 s.
+1:40:46	Taking data; sampling 5 x 3 s.
+1:41:02	Taking data; sampling 5 x 3 s.
+1:41:18	Taking data; sampling 5 x 3 s.
+1:41:33	Taking data; sampling 5 x 3 s.
+1:41:50	Taking data; sampling 5 x 3 s.
+1:42:05	Taking data; sampling 5 x 3 s.
+1:42:21	Taking data; sampling 5 x 3 s.
+1:42:37	Taking data; sampling 5 x 3 s.
+1:42:53	Saving data to "stu_hdiva/UVHWP_balance_sweep1.csv".
+1:42:53	Clearing output data.
+1:42:53	Loading measurement basis "VV" from config file.
+1:43:05	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+1:43:06	Taking data; sampling 5 x 3 s.
+1:43:22	Taking data; sampling 5 x 3 s.
+1:43:38	Taking data; sampling 5 x 3 s.
+1:43:54	Taking data; sampling 5 x 3 s.
+1:44:10	Taking data; sampling 5 x 3 s.
+1:44:25	Taking data; sampling 5 x 3 s.
+1:44:41	Taking data; sampling 5 x 3 s.
+1:44:57	Taking data; sampling 5 x 3 s.
+1:45:13	Taking data; sampling 5 x 3 s.
+1:45:29	Taking data; sampling 5 x 3 s.
+1:45:45	Taking data; sampling 5 x 3 s.
+1:46:01	Taking data; sampling 5 x 3 s.
+1:46:17	Taking data; sampling 5 x 3 s.
+1:46:33	Taking data; sampling 5 x 3 s.
+1:46:49	Taking data; sampling 5 x 3 s.
+1:47:05	Taking data; sampling 5 x 3 s.
+1:47:21	Taking data; sampling 5 x 3 s.
+1:47:36	Taking data; sampling 5 x 3 s.
+1:47:53	Taking data; sampling 5 x 3 s.
+1:48:09	Taking data; sampling 5 x 3 s.
+1:48:24	Taking data; sampling 5 x 3 s.
+1:48:40	Taking data; sampling 5 x 3 s.
+1:48:56	Taking data; sampling 5 x 3 s.
+1:49:12	Taking data; sampling 5 x 3 s.
+1:49:28	Taking data; sampling 5 x 3 s.
+1:49:44	Saving data to "stu_hdiva/UVHWP_balance_sweep2.csv".
+1:49:44	Clearing output data.
+1:49:46	Loading measurement basis "HH" from config file.
+1:49:59	Taking data; sampling 5 x 3 s.
+1:50:00		Note: "HH"
+1:50:15	Loading measurement basis "HV" from config file.
+1:50:22	Taking data; sampling 5 x 3 s.
+1:50:22		Note: "HV"
+1:50:37	Loading measurement basis "HD" from config file.
+1:50:41	Taking data; sampling 5 x 3 s.
+1:50:41		Note: "HD"
+1:50:57	Loading measurement basis "HA" from config file.
+1:51:04	Taking data; sampling 5 x 3 s.
+1:51:04		Note: "HA"
+1:51:20	Loading measurement basis "HR" from config file.
+1:51:30	Taking data; sampling 5 x 3 s.
+1:51:30		Note: "HR"
+1:51:46	Loading measurement basis "HL" from config file.
+1:51:56	Taking data; sampling 5 x 3 s.
+1:51:57		Note: "HL"
+1:52:12	Loading measurement basis "VH" from config file.
+1:52:34	Taking data; sampling 5 x 3 s.
+1:52:34		Note: "VH"
+1:52:49	Loading measurement basis "VV" from config file.
+1:52:55	Taking data; sampling 5 x 3 s.
+1:52:55		Note: "VV"
+1:53:11	Loading measurement basis "VD" from config file.
+1:53:15	Taking data; sampling 5 x 3 s.
+1:53:15		Note: "VD"
+1:53:31	Loading measurement basis "VA" from config file.
+1:53:38	Taking data; sampling 5 x 3 s.
+1:53:38		Note: "VA"
+1:53:53	Loading measurement basis "VR" from config file.
+1:54:04	Taking data; sampling 5 x 3 s.
+1:54:04		Note: "VR"
+1:54:19	Loading measurement basis "VL" from config file.
+1:54:30	Taking data; sampling 5 x 3 s.
+1:54:30		Note: "VL"
+1:54:46	Loading measurement basis "DH" from config file.
+1:55:05	Taking data; sampling 5 x 3 s.
+1:55:05		Note: "DH"
+1:55:20	Loading measurement basis "DV" from config file.
+1:55:27	Taking data; sampling 5 x 3 s.
+1:55:27		Note: "DV"
+1:55:42	Loading measurement basis "DD" from config file.
+1:55:46	Taking data; sampling 5 x 3 s.
+1:55:46		Note: "DD"
+1:56:02	Loading measurement basis "DA" from config file.
+1:56:09	Taking data; sampling 5 x 3 s.
+1:56:09		Note: "DA"
+1:56:24	Loading measurement basis "DR" from config file.
+1:56:34	Taking data; sampling 5 x 3 s.
+1:56:35		Note: "DR"
+1:56:50	Loading measurement basis "DL" from config file.
+1:57:01	Taking data; sampling 5 x 3 s.
+1:57:01		Note: "DL"
+1:57:17	Loading measurement basis "AH" from config file.
+1:57:39	Taking data; sampling 5 x 3 s.
+1:57:39		Note: "AH"
+1:57:54	Loading measurement basis "AV" from config file.
+1:58:00	Taking data; sampling 5 x 3 s.
+1:58:01		Note: "AV"
+1:58:16	Loading measurement basis "AD" from config file.
+1:58:20	Taking data; sampling 5 x 3 s.
+1:58:20		Note: "AD"
+1:58:36	Loading measurement basis "AA" from config file.
+1:58:43	Taking data; sampling 5 x 3 s.
+1:58:43		Note: "AA"
+1:58:59	Loading measurement basis "AR" from config file.
+1:59:09	Taking data; sampling 5 x 3 s.
+1:59:09		Note: "AR"
+1:59:25	Loading measurement basis "AL" from config file.
+1:59:35	Taking data; sampling 5 x 3 s.
+1:59:35		Note: "AL"
+1:59:51	Loading measurement basis "RH" from config file.
+2:00:17	Taking data; sampling 5 x 3 s.
+2:00:17		Note: "RH"
+2:00:33	Loading measurement basis "RV" from config file.
+2:00:39	Taking data; sampling 5 x 3 s.
+2:00:39		Note: "RV"
+2:00:54	Loading measurement basis "RD" from config file.
+2:00:58	Taking data; sampling 5 x 3 s.
+2:00:58		Note: "RD"
+2:01:14	Loading measurement basis "RA" from config file.
+2:01:21	Taking data; sampling 5 x 3 s.
+2:01:21		Note: "RA"
+2:01:36	Loading measurement basis "RR" from config file.
+2:01:46	Taking data; sampling 5 x 3 s.
+2:01:47		Note: "RR"
+2:02:02	Loading measurement basis "RL" from config file.
+2:02:13	Taking data; sampling 5 x 3 s.
+2:02:13		Note: "RL"
+2:02:28	Loading measurement basis "LH" from config file.
+2:02:54	Taking data; sampling 5 x 3 s.
+2:02:54		Note: "LH"
+2:03:10	Loading measurement basis "LV" from config file.
+2:03:16	Taking data; sampling 5 x 3 s.
+2:03:17		Note: "LV"
+2:03:32	Loading measurement basis "LD" from config file.
+2:03:36	Taking data; sampling 5 x 3 s.
+2:03:37		Note: "LD"
+2:03:52	Loading measurement basis "LA" from config file.
+2:03:59	Taking data; sampling 5 x 3 s.
+2:03:59		Note: "LA"
+2:04:15	Loading measurement basis "LR" from config file.
+2:04:26	Taking data; sampling 5 x 3 s.
+2:04:26		Note: "LR"
+2:04:41	Loading measurement basis "LL" from config file.
+2:04:52	Taking data; sampling 5 x 3 s.
+2:04:52		Note: "LL"
+2:05:07	Saving data to "stu_hdiva/tomo_data_0.942877796076938_6272024_test.csv".
+2:05:08	Clearing output data.
+2:05:08	Loading measurement basis "HH" from config file.
+2:05:39	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+2:05:41	Taking data; sampling 5 x 3 s.
+2:05:57	Taking data; sampling 5 x 3 s.
+2:06:14	Taking data; sampling 5 x 3 s.
+2:06:30	Taking data; sampling 5 x 3 s.
+2:06:46	Taking data; sampling 5 x 3 s.
+2:07:02	Taking data; sampling 5 x 3 s.
+2:07:17	Taking data; sampling 5 x 3 s.
+2:07:33	Taking data; sampling 5 x 3 s.
+2:07:49	Taking data; sampling 5 x 3 s.
+2:08:05	Taking data; sampling 5 x 3 s.
+2:08:20	Taking data; sampling 5 x 3 s.
+2:08:36	Taking data; sampling 5 x 3 s.
+2:08:52	Taking data; sampling 5 x 3 s.
+2:09:08	Taking data; sampling 5 x 3 s.
+2:09:24	Taking data; sampling 5 x 3 s.
+2:09:40	Taking data; sampling 5 x 3 s.
+2:09:56	Taking data; sampling 5 x 3 s.
+2:10:12	Taking data; sampling 5 x 3 s.
+2:10:28	Taking data; sampling 5 x 3 s.
+2:10:44	Taking data; sampling 5 x 3 s.
+2:11:00	Taking data; sampling 5 x 3 s.
+2:11:16	Taking data; sampling 5 x 3 s.
+2:11:32	Taking data; sampling 5 x 3 s.
+2:11:47	Taking data; sampling 5 x 3 s.
+2:12:03	Taking data; sampling 5 x 3 s.
+2:12:19	Saving data to "stu_hdiva/UVHWP_balance_sweep1.csv".
+2:12:19	Clearing output data.
+2:12:19	Loading measurement basis "VV" from config file.
+2:12:31	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+2:12:32	Taking data; sampling 5 x 3 s.
+2:12:48	Taking data; sampling 5 x 3 s.
+2:13:04	Taking data; sampling 5 x 3 s.
+2:13:19	Taking data; sampling 5 x 3 s.
+2:13:35	Taking data; sampling 5 x 3 s.
+2:13:51	Taking data; sampling 5 x 3 s.
+2:14:07	Taking data; sampling 5 x 3 s.
+2:14:23	Taking data; sampling 5 x 3 s.
+2:14:39	Taking data; sampling 5 x 3 s.
+2:14:55	Taking data; sampling 5 x 3 s.
+2:15:11	Taking data; sampling 5 x 3 s.
+2:15:27	Taking data; sampling 5 x 3 s.
+2:15:43	Taking data; sampling 5 x 3 s.
+2:15:58	Taking data; sampling 5 x 3 s.
+2:16:14	Taking data; sampling 5 x 3 s.
+2:16:30	Taking data; sampling 5 x 3 s.
+2:16:46	Taking data; sampling 5 x 3 s.
+2:17:02	Taking data; sampling 5 x 3 s.
+2:17:18	Taking data; sampling 5 x 3 s.
+2:17:34	Taking data; sampling 5 x 3 s.
+2:17:50	Taking data; sampling 5 x 3 s.
+2:18:06	Taking data; sampling 5 x 3 s.
+2:18:22	Taking data; sampling 5 x 3 s.
+2:18:37	Taking data; sampling 5 x 3 s.
+2:18:53	Taking data; sampling 5 x 3 s.
+2:19:09	Saving data to "stu_hdiva/UVHWP_balance_sweep2.csv".
+2:19:09	Clearing output data.
+2:19:11	Loading measurement basis "HH" from config file.
+2:19:24	Taking data; sampling 5 x 3 s.
+2:19:25		Note: "HH"
+2:19:40	Loading measurement basis "HV" from config file.
+2:19:47	Taking data; sampling 5 x 3 s.
+2:19:47		Note: "HV"
+2:20:02	Loading measurement basis "HD" from config file.
+2:20:06	Taking data; sampling 5 x 3 s.
+2:20:07		Note: "HD"
+2:20:22	Loading measurement basis "HA" from config file.
+2:20:29	Taking data; sampling 5 x 3 s.
+2:20:29		Note: "HA"
+2:20:45	Loading measurement basis "HR" from config file.
+2:20:55	Taking data; sampling 5 x 3 s.
+2:20:55		Note: "HR"
+2:21:11	Loading measurement basis "HL" from config file.
+2:21:21	Taking data; sampling 5 x 3 s.
+2:21:21		Note: "HL"
+2:21:37	Loading measurement basis "VH" from config file.
+2:21:58	Taking data; sampling 5 x 3 s.
+2:21:59		Note: "VH"
+2:22:14	Loading measurement basis "VV" from config file.
+2:22:21	Taking data; sampling 5 x 3 s.
+2:22:21		Note: "VV"
+2:22:36	Loading measurement basis "VD" from config file.
+2:22:40	Taking data; sampling 5 x 3 s.
+2:22:41		Note: "VD"
+2:22:56	Loading measurement basis "VA" from config file.
+2:23:03	Taking data; sampling 5 x 3 s.
+2:23:03		Note: "VA"
+2:23:19	Loading measurement basis "VR" from config file.
+2:23:29	Taking data; sampling 5 x 3 s.
+2:23:29		Note: "VR"
+2:23:45	Loading measurement basis "VL" from config file.
+2:23:55	Taking data; sampling 5 x 3 s.
+2:23:56		Note: "VL"
+2:24:11	Loading measurement basis "DH" from config file.
+2:24:31	Taking data; sampling 5 x 3 s.
+2:24:31		Note: "DH"
+2:24:46	Loading measurement basis "DV" from config file.
+2:24:52	Taking data; sampling 5 x 3 s.
+2:24:52		Note: "DV"
+2:25:08	Loading measurement basis "DD" from config file.
+2:25:12	Taking data; sampling 5 x 3 s.
+2:25:12		Note: "DD"
+2:25:28	Loading measurement basis "DA" from config file.
+2:25:35	Taking data; sampling 5 x 3 s.
+2:25:35		Note: "DA"
+2:25:50	Loading measurement basis "DR" from config file.
+2:26:01	Taking data; sampling 5 x 3 s.
+2:26:01		Note: "DR"
+2:26:16	Loading measurement basis "DL" from config file.
+2:26:27	Taking data; sampling 5 x 3 s.
+2:26:27		Note: "DL"
+2:26:43	Loading measurement basis "AH" from config file.
+2:27:05	Taking data; sampling 5 x 3 s.
+2:27:05		Note: "AH"
+2:27:21	Loading measurement basis "AV" from config file.
+2:27:27	Taking data; sampling 5 x 3 s.
+2:27:27		Note: "AV"
+2:27:43	Loading measurement basis "AD" from config file.
+2:27:47	Taking data; sampling 5 x 3 s.
+2:27:47		Note: "AD"
+2:28:02	Loading measurement basis "AA" from config file.
+2:28:09	Taking data; sampling 5 x 3 s.
+2:28:09		Note: "AA"
+2:28:25	Loading measurement basis "AR" from config file.
+2:28:35	Taking data; sampling 5 x 3 s.
+2:28:35		Note: "AR"
+2:28:51	Loading measurement basis "AL" from config file.
+2:29:01	Taking data; sampling 5 x 3 s.
+2:29:02		Note: "AL"
+2:29:17	Loading measurement basis "RH" from config file.
+2:29:42	Taking data; sampling 5 x 3 s.
+2:29:43		Note: "RH"
+2:29:58	Loading measurement basis "RV" from config file.
+2:30:04	Taking data; sampling 5 x 3 s.
+2:30:04		Note: "RV"
+2:30:20	Loading measurement basis "RD" from config file.
+2:30:24	Taking data; sampling 5 x 3 s.
+2:30:24		Note: "RD"
+2:30:40	Loading measurement basis "RA" from config file.
+2:30:47	Taking data; sampling 5 x 3 s.
+2:30:47		Note: "RA"
+2:31:02	Loading measurement basis "RR" from config file.
+2:31:12	Taking data; sampling 5 x 3 s.
+2:31:12		Note: "RR"
+2:31:28	Loading measurement basis "RL" from config file.
+2:31:39	Taking data; sampling 5 x 3 s.
+2:31:39		Note: "RL"
+2:31:54	Loading measurement basis "LH" from config file.
+2:32:20	Taking data; sampling 5 x 3 s.
+2:32:20		Note: "LH"
+2:32:36	Loading measurement basis "LV" from config file.
+2:32:42	Taking data; sampling 5 x 3 s.
+2:32:42		Note: "LV"
+2:32:58	Loading measurement basis "LD" from config file.
+2:33:02	Taking data; sampling 5 x 3 s.
+2:33:02		Note: "LD"
+2:33:17	Loading measurement basis "LA" from config file.
+2:33:24	Taking data; sampling 5 x 3 s.
+2:33:24		Note: "LA"
+2:33:40	Loading measurement basis "LR" from config file.
+2:33:50	Taking data; sampling 5 x 3 s.
+2:33:50		Note: "LR"
+2:34:05	Loading measurement basis "LL" from config file.
+2:34:16	Taking data; sampling 5 x 3 s.
+2:34:16		Note: "LL"
+2:34:32	Saving data to "stu_hdiva/tomo_data_1.2568370614359172_6272024_test.csv".
+2:34:32	Clearing output data.
+2:34:32	Loading measurement basis "HH" from config file.
+2:35:03	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+2:35:04	Taking data; sampling 5 x 3 s.
+2:35:20	Taking data; sampling 5 x 3 s.
+2:35:36	Taking data; sampling 5 x 3 s.
+2:35:52	Taking data; sampling 5 x 3 s.
+2:36:08	Taking data; sampling 5 x 3 s.
+2:36:24	Taking data; sampling 5 x 3 s.
+2:36:39	Taking data; sampling 5 x 3 s.
+2:36:55	Taking data; sampling 5 x 3 s.
+2:37:11	Taking data; sampling 5 x 3 s.
+2:37:27	Taking data; sampling 5 x 3 s.
+2:37:43	Taking data; sampling 5 x 3 s.
+2:37:59	Taking data; sampling 5 x 3 s.
+2:38:15	Taking data; sampling 5 x 3 s.
+2:38:30	Taking data; sampling 5 x 3 s.
+2:38:46	Taking data; sampling 5 x 3 s.
+2:39:02	Taking data; sampling 5 x 3 s.
+2:39:18	Taking data; sampling 5 x 3 s.
+2:39:34	Taking data; sampling 5 x 3 s.
+2:39:50	Taking data; sampling 5 x 3 s.
+2:40:06	Taking data; sampling 5 x 3 s.
+2:40:22	Taking data; sampling 5 x 3 s.
+2:40:38	Taking data; sampling 5 x 3 s.
+2:40:54	Taking data; sampling 5 x 3 s.
+2:41:09	Taking data; sampling 5 x 3 s.
+2:41:25	Taking data; sampling 5 x 3 s.
+2:41:41	Saving data to "stu_hdiva/UVHWP_balance_sweep1.csv".
+2:41:41	Clearing output data.
+2:41:41	Loading measurement basis "VV" from config file.
+2:41:53	Sweeping C_UV_HWP from -89.9175 to -44.917500000000004 degrees in 25 steps.
+2:41:54	Taking data; sampling 5 x 3 s.
+2:42:10	Taking data; sampling 5 x 3 s.
+2:42:26	Taking data; sampling 5 x 3 s.
+2:42:42	Taking data; sampling 5 x 3 s.
+2:42:58	Taking data; sampling 5 x 3 s.
+2:43:13	Taking data; sampling 5 x 3 s.
+2:43:29	Taking data; sampling 5 x 3 s.
+2:43:45	Taking data; sampling 5 x 3 s.
+2:44:01	Taking data; sampling 5 x 3 s.
+2:44:17	Taking data; sampling 5 x 3 s.
+2:44:33	Taking data; sampling 5 x 3 s.
+2:44:49	Taking data; sampling 5 x 3 s.
+2:45:05	Taking data; sampling 5 x 3 s.
+2:45:21	Taking data; sampling 5 x 3 s.
+2:45:37	Taking data; sampling 5 x 3 s.
+2:45:53	Taking data; sampling 5 x 3 s.
+2:46:08	Taking data; sampling 5 x 3 s.
+2:46:24	Taking data; sampling 5 x 3 s.
+2:46:40	Taking data; sampling 5 x 3 s.
+2:46:56	Taking data; sampling 5 x 3 s.
+2:47:12	Taking data; sampling 5 x 3 s.
+2:47:28	Taking data; sampling 5 x 3 s.
+2:47:44	Taking data; sampling 5 x 3 s.
+2:48:00	Taking data; sampling 5 x 3 s.
+2:48:16	Taking data; sampling 5 x 3 s.
+2:48:32	Saving data to "stu_hdiva/UVHWP_balance_sweep2.csv".
+2:48:32	Clearing output data.
+2:48:34	Loading measurement basis "HH" from config file.
+2:48:47	Taking data; sampling 5 x 3 s.
+2:48:47		Note: "HH"
+2:49:03	Loading measurement basis "HV" from config file.
+2:49:09	Taking data; sampling 5 x 3 s.
+2:49:09		Note: "HV"
+2:49:24	Loading measurement basis "HD" from config file.
+2:49:28	Taking data; sampling 5 x 3 s.
+2:49:29		Note: "HD"
+2:49:44	Loading measurement basis "HA" from config file.
+2:49:51	Taking data; sampling 5 x 3 s.
+2:49:51		Note: "HA"
+2:50:07	Loading measurement basis "HR" from config file.
+2:50:17	Taking data; sampling 5 x 3 s.
+2:50:17		Note: "HR"
+2:50:32	Loading measurement basis "HL" from config file.
+2:50:43	Taking data; sampling 5 x 3 s.
+2:50:43		Note: "HL"
+2:50:59	Loading measurement basis "VH" from config file.
+2:51:20	Taking data; sampling 5 x 3 s.
+2:51:20		Note: "VH"
+2:51:36	Loading measurement basis "VV" from config file.
+2:51:42	Taking data; sampling 5 x 3 s.
+2:51:42		Note: "VV"
+2:51:58	Loading measurement basis "VD" from config file.
+2:52:02	Taking data; sampling 5 x 3 s.
+2:52:02		Note: "VD"
+2:52:18	Loading measurement basis "VA" from config file.
+2:52:24	Taking data; sampling 5 x 3 s.
+2:52:25		Note: "VA"
+2:52:40	Loading measurement basis "VR" from config file.
+2:52:50	Taking data; sampling 5 x 3 s.
+2:52:51		Note: "VR"
+2:53:06	Loading measurement basis "VL" from config file.
+2:53:17	Taking data; sampling 5 x 3 s.
+2:53:17		Note: "VL"
+2:53:33	Loading measurement basis "DH" from config file.
+2:53:52	Taking data; sampling 5 x 3 s.
+2:53:52		Note: "DH"
+2:54:08	Loading measurement basis "DV" from config file.
+2:54:14	Taking data; sampling 5 x 3 s.
+2:54:14		Note: "DV"
+2:54:30	Loading measurement basis "DD" from config file.
+2:54:34	Taking data; sampling 5 x 3 s.
+2:54:34		Note: "DD"
+2:54:50	Loading measurement basis "DA" from config file.
+2:54:56	Taking data; sampling 5 x 3 s.
+2:54:57		Note: "DA"
+2:55:12	Loading measurement basis "DR" from config file.
+2:55:22	Taking data; sampling 5 x 3 s.
+2:55:22		Note: "DR"
+2:55:38	Loading measurement basis "DL" from config file.
+2:55:48	Taking data; sampling 5 x 3 s.
+2:55:49		Note: "DL"
+2:56:04	Loading measurement basis "AH" from config file.
+2:56:26	Taking data; sampling 5 x 3 s.
+2:56:26		Note: "AH"
+2:56:42	Loading measurement basis "AV" from config file.
+2:56:48	Taking data; sampling 5 x 3 s.
+2:56:48		Note: "AV"
+2:57:04	Loading measurement basis "AD" from config file.
+2:57:08	Taking data; sampling 5 x 3 s.
+2:57:08		Note: "AD"
+2:57:23	Loading measurement basis "AA" from config file.
+2:57:30	Taking data; sampling 5 x 3 s.
+2:57:30		Note: "AA"
+2:57:46	Loading measurement basis "AR" from config file.
+2:57:56	Taking data; sampling 5 x 3 s.
+2:57:56		Note: "AR"
+2:58:12	Loading measurement basis "AL" from config file.
+2:58:22	Taking data; sampling 5 x 3 s.
+2:58:22		Note: "AL"
+2:58:38	Loading measurement basis "RH" from config file.
+2:59:03	Taking data; sampling 5 x 3 s.
+2:59:03		Note: "RH"
+2:59:19	Loading measurement basis "RV" from config file.
+2:59:25	Taking data; sampling 5 x 3 s.
+2:59:25		Note: "RV"
+2:59:41	Loading measurement basis "RD" from config file.
+2:59:45	Taking data; sampling 5 x 3 s.
+2:59:45		Note: "RD"
+3:00:00	Loading measurement basis "RA" from config file.
+3:00:07	Taking data; sampling 5 x 3 s.
+3:00:08		Note: "RA"
+3:00:23	Loading measurement basis "RR" from config file.
+3:00:33	Taking data; sampling 5 x 3 s.
+3:00:33		Note: "RR"
+3:00:49	Loading measurement basis "RL" from config file.
+3:01:00	Taking data; sampling 5 x 3 s.
+3:01:00		Note: "RL"
+3:01:15	Loading measurement basis "LH" from config file.
+3:01:41	Taking data; sampling 5 x 3 s.
+3:01:41		Note: "LH"
+3:01:57	Loading measurement basis "LV" from config file.
+3:02:03	Taking data; sampling 5 x 3 s.
+3:02:03		Note: "LV"
+3:02:19	Loading measurement basis "LD" from config file.
+3:02:23	Taking data; sampling 5 x 3 s.
+3:02:23		Note: "LD"
+3:02:39	Loading measurement basis "LA" from config file.
+3:02:46	Taking data; sampling 5 x 3 s.
+3:02:46		Note: "LA"
+3:03:01	Loading measurement basis "LR" from config file.
+3:03:11	Taking data; sampling 5 x 3 s.
+3:03:12		Note: "LR"
+3:03:27	Loading measurement basis "LL" from config file.
+3:03:38	Taking data; sampling 5 x 3 s.
+3:03:38		Note: "LL"
+3:03:53	Saving data to "stu_hdiva/tomo_data_1.5707963267948966_6272024_test.csv".
+3:03:54	Clearing output data.
+3:03:54	Beginning shutdown procedure.
+3:03:54	Shutting down motor objects.
+3:03:55	C_UV_HWP returned to true position 359.97488839285717 degrees.
+3:03:56	Deleting C_UV_HWP object.
+3:03:57	C_QP returned to true position 0.005022321428571428 degrees.
+3:03:57	Deleting C_QP object.
+3:03:58	C_PCC returned to true position 359.99497767857144 degrees.
+3:03:58	Deleting C_PCC object.
+3:03:59	B_C_HWP returned to true position 0.00753348214285765 degrees.
+3:03:59	Deleting B_C_HWP object.
+3:04:00	B_C_QWP returned to true position 0.00753348214285765 degrees.
+3:04:00	Deleting B_C_QWP object.
+3:04:02	B_HWP returned to true position 0.001562791527248919 degrees.
+3:04:02	Deleting B_HWP object.
+3:04:16	B_QWP returned to true position 0.00244140625 degrees.
+3:04:16	Deleting B_QWP object.
+3:04:17	A_HWP returned to true position 0.000520930509082973 degrees.
+3:04:17	Deleting A_HWP object.
+3:04:32	A_QWP returned to true position 359.9974060058594 degrees.
+3:04:33	Deleting A_QWP object.
+3:04:33	Closing COM ports.
+3:04:33	Closing CCU.
+3:04:34	Closing log file.
