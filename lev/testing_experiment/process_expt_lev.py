@@ -183,7 +183,7 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         rho_actual = rho_actuals[i]
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
-        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.945), verbose = True) # adjusted theory
+        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.90), verbose = True) # adjusted theory
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
 
@@ -560,7 +560,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {(state_n[0], states[i][1])})_1.npy") # messed with typically state_n naming convention bc of mistake in file creation
+        filenames.append(f"rho_('E0', {state_n})_1.npy") 
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state

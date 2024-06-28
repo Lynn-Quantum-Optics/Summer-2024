@@ -761,6 +761,9 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp1_min_name = [x for _,x in sorted(zip(W_exp_val_ls[6:9], all_W[6:9]))][0]
             Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
             Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
+            
+            print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
+            print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
 
             if not return_params:
                 return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
