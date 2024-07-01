@@ -149,11 +149,10 @@ if __name__ == '__main__':
         args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
 
         # Calculate the UVHWP angle we want.
-        desired_ratio = np.cos(chi/2)**2 + np.sin(chi/2)**2
-        func = sin2_sq
+        desired_ratio = (np.cos(chi/2) / np.sin(chi/2))**2
         def min_me(x_:np.ndarray, args1_:tuple, args2_:tuple):
             ''' Function want to minimize'''
-            return sin2_sq(x_, *args1) / sin2_sq(x_, *args2) - desired_ratio
+            return (sin2_sq(x_, *args1) / sin2_sq(x_, *args2) - desired_ratio)**2
         x_min, x_max = np.min(data1.C_UV_HWP), np.max(data1.C_UV_HWP)
         UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
 
