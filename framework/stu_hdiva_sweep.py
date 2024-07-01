@@ -32,8 +32,8 @@ if __name__ == '__main__':
     m = Manager('config.json')
 
     # make phi plus 
-    m.make_state('phi_plus')
-    m.C_UV_HWP.goto(-112.41754451550933 + 45)
+    m.make_state('phi_minus')
+    m.C_UV_HWP.goto(-112.41754451550933 )
     # check count rates
     m.log('Checking HH and VV count rates...')
     m.meas_basis('HH')

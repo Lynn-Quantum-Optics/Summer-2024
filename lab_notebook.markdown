@@ -1595,3 +1595,8 @@ MP: Lev, Stu
 MP: Lev, Stu
 
 Running files for +W and -W'. Calibrated phi minus. 
+
+# 7/1
+MP: Lev, Paco
+
+Recalibration Phi minus as we did not correctly before -- using phi plus calib files but subtract 45 deg from uvhwp everywhere!

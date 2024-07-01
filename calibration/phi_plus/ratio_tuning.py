@@ -4,9 +4,9 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 13
-    #SWEEP_PARAMETERS = [65.38+3,65.38-3,20,5,3]
-    SWEEP_PARAMETERS = [-111,-113,10,5,1]
+    TRIAL = 14
+    SWEEP_PARAMETERS = [-67.41-15,-67.41+15,30,5,3]
+    #SWEEP_PARAMETERS = [-111,-113,10,5,1]
 
     # initialize manager
     m = Manager('../config.json')
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     #m.B_C_HWP.goto(0)
 
     # If confident in current phi_plus calib, set up using config
-    m.make_state('phi_plus')
+    m.make_state('phi_minus')
 
     # sweep UVHWP
     m.meas_basis('HH')
