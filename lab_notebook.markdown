@@ -1600,3 +1600,8 @@ Running files for +W and -W'. Calibrated phi minus.
 MP: Lev, Paco
 
 Recalibration Phi minus as we did not correctly before -- using phi plus calib files but subtract 45 deg from uvhwp everywhere!
+
+# 7/2
+MP: Paco
+
+Getting a finer calibration on phi minus. Changed QP to -15.3099 from -16.20877, changed UVHWP to -66.13495202781274 from -65.86833, changed pcc to 0.6764705882352944 from -0.7894736842105265. This resulted in a purity of 91... I will continue on from the phase finding to ratio tuning tomorrow morning or tonight.
