@@ -154,7 +154,7 @@ if __name__ == '__main__':
         desired_ratio = (np.cos(chi/2) / np.sin(chi/2))**2
         def min_me(x_:np.ndarray, args1_:tuple, args2_:tuple):
             ''' Function want to minimize'''
-            return (sin2_sq(x_, *args1) / sin2_sq(x_, *args2) - desired_ratio)**2
+            return (sin2_sq(x_, *args1_) / sin2_sq(x_, *args2_) - desired_ratio)**2
         x_min, x_max = np.min(data1.C_UV_HWP), np.max(data1.C_UV_HWP)
         UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
 
@@ -192,9 +192,9 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 67.5, 90] # change output data function to inlude B_C_QWP
 
         # save results
-        with open(f"stu_hrvl/rho_('E0', {chi})_1.npy", 'wb') as f:
+        with open(f"stu_hrivl/rho_('E0', (45.0, {chi}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-        date = "6242024"
-        tomo_df = m.output_data(f'stu_hrvl/tomo_data_{chi}_{date}.csv')
+        date = "7022024"
+        tomo_df = m.output_data(f'stu_hrivl/tomo_data_{chi}_{date}.csv')
     
     m.shutdown()

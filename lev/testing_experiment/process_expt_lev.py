@@ -64,7 +64,6 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
         # rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
         rho, unc, Su, un_proj, un_proj_unc, _, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-        print(angles)
         ## update df with info about this trial ##
         if "E0" in filename: # if E0, split up into eta and chi
             trial, eta, chi = split_filename()
@@ -169,7 +168,8 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
             try:
                 
                 trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
-                print(purity)
+                print('purity is:', purity)
+                print('fidelity is:', fidelity)
                 #display('expt rho:', rho)
             except:
                 trial, rho, unc, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
@@ -181,9 +181,15 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
                 trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
                 eta, chi = None, None
         rho_actual = rho_actuals[i]
+        
+        print('theoretical rho is:')
+        display(rho_actual)
+        print('Experimental rho is:')
+        display(rho)
+        
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
-        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.90), verbose = True) # adjusted theory
+        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.945), verbose = True) # adjusted theory
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
 
@@ -200,6 +206,7 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp1_param_T = W_T_ls[9]
         Wp2_param_T = W_T_ls[10]
         Wp3_param_T = W_T_ls[11]
+        #print('The minimized first triplet W prime is:', Wp1_name_T)
         # ---- #
         # not returning params for adjusted theory at the moment
         W_min_AT = W_AT_ls[0]
@@ -238,11 +245,11 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         # # print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
         # # print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
 
-        print('Theoretical rho is:', rho_actual)
-        print('Actual rho is:', rho)
-        print('With W/W primes of:', W_name_T, W_min_T, Wp1_name_T, Wp_t1_T, Wp2_name_T, Wp_t2_T, Wp3_name_T, Wp_t3_T)
-        print('Experimental Ws:', W_name_expt, W_min_expt,  Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
-
+        #print('Theoretical rho is:', rho_actual)
+        #print('Actual rho is:', rho)
+        #print('With W/W primes of:', W_name_T, W_min_T, Wp1_name_T, Wp_t1_T, Wp2_name_T, Wp_t2_T, Wp3_name_T, Wp_t3_T)
+        #print('Experimental Ws:', W_name_expt, W_min_expt,  Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
+        print()
         if eta is not None and chi is not None:
             adj_fidelity= get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
 
@@ -271,7 +278,7 @@ def make_plots_E0(dfname):
 
     # preset plot sizes
     if len(eta_vals) == 1:
-        fig, ax = plt.subplots(figsize = (10, 10))
+        fig, ax = plt.subplots(figsize = (8, 8))
         # get df for each eta
         df_eta = df
         purity_eta = df_eta['purity'].to_numpy()
@@ -302,30 +309,26 @@ def make_plots_E0(dfname):
         def sinsq(x, a, b, c, d):
             return a*np.sin(b*np.deg2rad(x) + c)**2 + d
 
-        #print('W_min_T is:', W_min_T)
-        #print('W_min_expt is:', W_min_expt)
-        print('W min T is:', W_min_T)
-        print('W min AT is:', W_min_AT)
-        popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
+        popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T, maxfev = 10000)
         popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT, maxfev = 10000)
         #print('popt_W are:', popt_W_AT_eta) 
-        popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T)
+        popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T, maxfev = 10000)
         popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
         
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
-        ax.errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
+        ax.errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue', markersize=5)
 
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
-        ax.errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
-        ax.set_title(f'$\eta = 45\degree$', fontsize=18)
-        ax.set_ylabel('Witness value', fontsize=16)
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.legend(ncol=2, fontsize=16)
-        ax.set_xlabel('$\chi$', fontsize=16)
+        ax.errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon', markersize=5)
+        #ax.set_title(f'$\eta = 45\degree$', fontsize=18)
+        ax.set_ylabel('Witness value', fontsize=20)
+        ax.tick_params(axis='both', which='major', labelsize=20)
+        ax.legend(ncol=2, fontsize=20)
+        ax.set_xlabel('$\chi$ (deg)', fontsize=20)
         # ax[1,i].set_ylabel('Value', fontsize=31)
         # ax[1,i].legend()
     else:
@@ -364,7 +367,6 @@ def make_plots_E0(dfname):
             # plot curves for T and AT
             def sinsq(x, a, b, c, d):
                 return a*np.sin(b*np.deg2rad(x) + c)**2 + d
-            print('Minimum theory Ws are:', W_min_T)
             popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
             popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
 
@@ -389,7 +391,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    plt.suptitle('Witnesses for Psi Plus Psi Minus', fontsize=22)
+    #plt.suptitle('Entangled State Witnessed by 1st W\' Triplet', fontsize=25)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -570,7 +572,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_summer_2024_hdiva'
+    id = 'rho_summer_2024_hd_iva'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

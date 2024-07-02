@@ -460,7 +460,7 @@ def get_adj_E0_fidelity_purity(rho, rho_actual, purity, eta, chi, model, UV_HWP_
     adj_rho = load_saved_get_E0_rho_c(rho_actual, [eta, chi], purity, model, UV_HWP_offset)
     return get_fidelity(adj_rho, rho), get_purity(adj_rho)
 
-def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 45, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
+def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_counts = False, expt_purity = None, model=None, do_W = False, do_richard = False, UV_HWP_offset=None, angles = None, num_reps = 50, optimize = True, gd=True, zeta=0.7, ads_test=False, return_all=False, return_params=False, return_lynn=False, return_lynn_only=False):
     ''' Computes the minimum of the 6 Ws and the minimum of the 3 triples of the 9 W's. 
         Params:
             rho: the density matrix
@@ -498,6 +498,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
         #     # rho = adjust_rho(rho, angles, expt_purity)
 
     if do_counts:
+     if do_counts:
         counts = np.reshape(counts, (36,1))
         def get_W1(params, counts):
             a, b = np.cos(params), np.sin(params)
@@ -518,11 +519,11 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
         def get_W5(params, counts):
             a, b = np.cos(params), np.sin(params)
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL  = counts
-            return np.real(0.25*(1 + ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) + 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) + ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+            return np.real(0.25*(1 + ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) + (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) - 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) + ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
         def get_W6(params, counts):
             a, b = np.cos(params), np.sin(params)
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL  = counts
-            return np.real(0.25*(1 - ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) - (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) - 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
+            return np.real(0.25*(1 - ((RR - RL - LR + LL) / (RR + RL + LR + LL)) + (a**2 - b**2)*((HH - HV - VH + VV) / (HH + HV + VH + VV)) - (a**2 - b**2)*((DD - DA - AD + AA) / (DD + DA + AD + AA)) + 2*a*b*(((RR - LR + RL - LL) / (RR + LR + RL + LL)) - ((RR + LR - RL - LL) / (RR + LR + RL + LL)))))
         
         ## W' from summer 2022 ##
         def get_Wp1(params, counts):
@@ -544,7 +545,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
         def get_Wp5(params, counts):
             theta, alpha = params[0], params[1]
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL  = counts
-            return np.real(.25*(1-((DD - DA - AD + AA) / (DD + DA + AD + AA))+np.cos(2*theta)*(((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.cos(alpha)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) - ((DD + DA - AD - AA) / (DD + DA + AD + AA))) - np.sin(2*theta)*np.sin(alpha)*(((RH - RV - LH + LV) / (RH + RV + LH + LV)) - ((HR - HL - VR + VL) / (HR + HL + VR + VL)))))
+            return np.real(.25*(1-((DD - DA - AD + AA) / (DD + DA + AD + AA))+np.cos(2*theta)*(((HH - HV - VH + VV) / (HH + HV + VH + VV)) - ((RR - RL - LR + LL) / (RR + RL + LR + LL))) + np.sin(2*theta)*np.cos(alpha)*(((DD - DA + AD - AA) / (DD + DA + AD + AA)) - ((DD + DA - AD - AA) / (DD + DA + AD + AA))) - np.sin(2*theta)*np.sin(alpha)*(((RH - RV - LH + LV) / (RH + RV + LH + LV)) + ((HR - HL - VR + VL) / (HR + HL + VR + VL)))))
         def get_Wp6(params, counts):
             theta, alpha, beta = params[0], params[1], params[2]
             HH, HV, HD, HA, HR, HL, VH, VV, VD, VA, VR, VL, DH, DV, DD, DA, DR, DL, AH, AV, AD, AA, AR, AL, RH, RV, RD, RA, RR, RL, LH, LV, LD, LA, LR, LL  = counts
@@ -587,18 +588,24 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
                 def min_W_params(x0):
                     return min_W(x0).x
 
-                x0 = [np.random.rand()*np.pi]
+                x0 = [0]
                 w0_val = min_W_val(x0)
                 w0_params = min_W_params(x0)
-                x1 = [np.random.rand()*np.pi]
+                x1 = [np.pi]
                 w1_val = min_W_val(x1)
                 w1_params = min_W_params(x1)
-                if w0_val < w1_val:
+                x2 = [np.random.rand()*np.pi]
+                w2_val = min_W_val(x2)
+                w2_params = min_W_params(x2)
+                if w0_val < w1_val and w0_val <w2_val:
                     w_min_val = w0_val
                     w_min_params = w0_params
-                else:
+                elif w1_val< w0_val and w1_val < w2_val:
                     w_min_val = w1_val
                     w_min_params = w1_params
+                else:
+                    w_min_val = w2_val
+                    w_min_params = w2_params
                 if optimize:
                     isi = 0 # index since last improvement
                     for _ in range(num_reps): # repeat 10 times and take the minimum
@@ -761,6 +768,9 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp1_min_name = [x for _,x in sorted(zip(W_exp_val_ls[6:9], all_W[6:9]))][0]
             Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
             Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
+            
+            print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
+            print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
 
             if not return_params:
                 return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name
