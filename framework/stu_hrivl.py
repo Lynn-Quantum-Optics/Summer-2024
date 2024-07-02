@@ -32,13 +32,16 @@ if __name__ == '__main__':
     m = Manager('config.json')
 
     # make phi plus 
-    m.make_state('phi_minus')
+    m.make_state('phi_plus')
     # check count rates
     m.log('Checking HH and VV count rates...')
     m.meas_basis('HH')
     hh_counts = m.take_data(5,3,'C4')
     m.meas_basis('VV')
     vv_counts = m.take_data(5,3,'C4')
+
+    m.configure_motors(B_C_HWP = 0,
+                       B_C_QWP = 90)    
 
     # tell the user what is up
     print(f'HH count rates: {hh_counts}\nVV count rates: {vv_counts}')
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     # setup the phase sweep
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
-    m.meas_basis('DD')
+    m.meas_basis('DL')
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
 
     print(m.time, "Sweep complete")
@@ -164,7 +167,7 @@ if __name__ == '__main__':
         # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
                            B_C_HWP = 67.5,
-                           B_C_QWP = 0)
+                           B_C_QWP = 90)
         
         # measuring!
         rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -185,8 +188,8 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        # 67.5 -> B_C_HWP, 0 -> B_C_QWP
-        angles = [UVHWP_angle, C_QP_angle, 67.5, 0] # change output data function to inlude B_C_QWP
+        # 67.5 -> B_C_HWP, 90 -> B_C_QWP
+        angles = [UVHWP_angle, C_QP_angle, 67.5, 90] # change output data function to inlude B_C_QWP
 
         # save results
         with open(f"stu_hrvl/rho_('E0', {chi})_1.npy", 'wb') as f:
