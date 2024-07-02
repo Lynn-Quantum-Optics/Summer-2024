@@ -32,8 +32,7 @@ if __name__ == '__main__':
     m = Manager('config.json')
 
     # make phi plus 
-    m.make_state('phi_minus')
-    m.C_UV_HWP.goto(-112.41754451550933 )
+    m.make_state('phi_plus')
     # check count rates
     m.log('Checking HH and VV count rates...')
     m.meas_basis('HH')
@@ -113,7 +112,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
         ### UV HWP SECTION ###
-        GUESS = -112.4175 + 45 # flip all the quartz plate minimum so it actually minimizes
+        GUESS = -112.4175 # took out +45 which would flip all the quartz plate minimum so it actually minimizes
         RANGE = 22.5
         N = 25
         SAMP = (5, 3)
