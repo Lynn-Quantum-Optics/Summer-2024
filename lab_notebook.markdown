@@ -1606,4 +1606,9 @@ MP: Paco
 
 Getting a finer calibration on phi minus. Changed QP to -15.3099 from -16.20877, changed UVHWP to -66.13495202781274 from -65.86833, changed pcc to 0.6764705882352944 from -0.7894736842105265. This resulted in a purity of 91... I will continue on from the phase finding to ratio tuning tomorrow morning or tonight.
 
-Next, we ran the rewroked hrivl file.
+Next, we ran the rewroked hrivl file. 
+
+# 7/2/24
+MP: Paco 
+
+Running Stu's file for hdiva. 

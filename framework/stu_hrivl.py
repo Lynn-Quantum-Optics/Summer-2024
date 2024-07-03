@@ -56,7 +56,7 @@ if __name__ == '__main__':
     m.meas_basis('DL')
     m.configure_motors(C_UV_HWP =-112.41754451550933 +45)
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
-
+    m.configure_motors(C_UV_HWP =-112.41754451550933 )
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
