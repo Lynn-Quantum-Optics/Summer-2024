@@ -6,6 +6,10 @@ from analysis_old import *
 from rho_methods import get_fidelity, get_purity
 import pandas as pd
 
+
+#### NOT COMPLETE ###
+
+
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
@@ -59,8 +63,8 @@ if __name__ == '__main__':
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
-    df = m.output_data(f"stu_hdiva/QP_sweep.csv")
-    data = pd.read_csv(f"stu_hdiva/QP_sweep.csv")
+    df = m.output_data(f"stu_hrivl/QP_sweep.csv")
+    data = pd.read_csv(f"stu_hrivl/QP_sweep.csv")
 
     # take the counts of the quartz sweep at each angle and find the index of the minimum data point
     QP_counts = data["C4"]
@@ -112,9 +116,9 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
         ### UV HWP SECTION ###
-        GUESS = -112.4175 # took out +45 which would flip all the quartz plate minimum so it actually minimizes
+        GUESS = -65.86833 # flip all the quartz plate minimum so it actually minimizes
         RANGE = 22.5
-        N = 25
+        N = 35
         SAMP = (5, 3)
         # sweeping over chi values, tuning ratio first 
         chi_vals = np.linspace(*CHI_PARAMS)
@@ -130,8 +134,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         # obtain the first round of data and switch to a new output file
-        df1 = m.output_data(f"stu_hdiva/UVHWP_balance_sweep1.csv")
-        data1 = pd.read_csv(f"stu_hdiva/UVHWP_balance_sweep1.csv")
+        df1 = m.output_data(f"stu_hrivl/UVHWP_balance_sweep1.csv")
+        data1 = pd.read_csv(f"stu_hrivl/UVHWP_balance_sweep1.csv")
 
         # sweep in the second basis
         print(m.time, f'Configuring measurement basis VV')
@@ -141,12 +145,11 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         print(m.time, 'Data collected')
-        df2 = m.output_data(f'stu_hdiva/UVHWP_balance_sweep2.csv')
-        data2 = pd.read_csv(f'stu_hdiva/UVHWP_balance_sweep2.csv')
+        df2 = m.output_data(f'stu_hrivl/UVHWP_balance_sweep2.csv')
+        data2 = pd.read_csv(f'stu_hrivl/UVHWP_balance_sweep2.csv')
 
         args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
         args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
-        print('args1, args2 are:', args1, args2)
 
         # Calculate the UVHWP angle we want.
         desired_ratio = (np.cos(chi/2) / np.sin(chi/2))**2
@@ -165,7 +168,7 @@ if __name__ == '__main__':
         # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
                            B_C_HWP = 67.5,
-                           B_C_QWP = 45)
+                           B_C_QWP = 90)
         
         # measuring!
         rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -186,13 +189,13 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        # 67.5 -> B_C_HWP, 45 -> B_C_QWP
-        angles = [UVHWP_angle, C_QP_angle, 67.5, 45] # change output data function to inlude B_C_QWP
-        chi_name = np.rad2deg(chi)
+        # 67.5 -> B_C_HWP, 90 -> B_C_QWP
+        angles = [UVHWP_angle, C_QP_angle, 67.5, 90] # change output data function to inlude B_C_QWP
+
         # save results
-        with open(f"stu_hdiva/rho_('E0', (45.0, {chi}))_1.npy", 'wb') as f:
+        with open(f"stu_hrivl/rho_('E0', (45.0, {chi}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-        date = "702024"
-        tomo_df = m.output_data(f'stu_hdiva/tomo_data_{chi}_{date}_test.csv')
+        date = "7022024"
+        tomo_df = m.output_data(f'stu_hrivl/tomo_data_{chi}_{date}.csv')
     
     m.shutdown()

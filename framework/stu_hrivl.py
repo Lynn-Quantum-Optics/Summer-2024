@@ -40,9 +40,6 @@ if __name__ == '__main__':
     m.meas_basis('VV')
     vv_counts = m.take_data(5,3,'C4')
 
-    m.configure_motors(B_C_HWP = 0,
-                       B_C_QWP = 90)    
-
     # tell the user what is up
     print(f'HH count rates: {hh_counts}\nVV count rates: {vv_counts}')
 
