@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'stu_hdiva'
+DATA_PATH = 'stu_hrivl'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -549,7 +549,7 @@ if __name__ == '__main__':
     chis = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
-    names = ['HD_iVA']
+    names = ['HR_iVL']
     probs = [1]
     
     for eta in etas:
@@ -572,7 +572,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_summer_2024_hd_iva'
+    id = 'rho_summer_2024_hr_ivl'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

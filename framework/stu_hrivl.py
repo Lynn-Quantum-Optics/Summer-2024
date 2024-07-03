@@ -113,7 +113,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
         ### UV HWP SECTION ###
-        GUESS = -65.86833 # flip all the quartz plate minimum so it actually minimizes
+        GUESS = -112.4175 # flip all the quartz plate minimum so it actually minimizes
         RANGE = 22.5
         N = 35
         SAMP = (5, 3)
@@ -156,12 +156,6 @@ if __name__ == '__main__':
         x_min, x_max = np.min(data1.C_UV_HWP), np.max(data1.C_UV_HWP)
         UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
 
-        # find the fit function and optimal value 
-        # coefficients = np.polyfit(angles, ratios, 5)
-        # a, b, c, d, e = coefficients
-        # e = e - desired_ratio
-        # UVHWP_angle = np.roots(coefficients)[0]
-
         # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
                            B_C_HWP = 67.5,
@@ -188,11 +182,11 @@ if __name__ == '__main__':
         
         # 67.5 -> B_C_HWP, 90 -> B_C_QWP
         angles = [UVHWP_angle, C_QP_angle, 67.5, 90] # change output data function to inlude B_C_QWP
-
+        chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
-        with open(f"stu_hrivl/rho_('E0', (45.0, {chi}))_1.npy", 'wb') as f:
+        with open(f"stu_hrivl/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
         date = "7022024"
-        tomo_df = m.output_data(f'stu_hrivl/tomo_data_{chi}_{date}.csv')
+        tomo_df = m.output_data(f'stu_hrivl/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()
