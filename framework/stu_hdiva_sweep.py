@@ -190,9 +190,9 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 67.5, 45] # change output data function to inlude B_C_QWP
         chi_name = np.rad2deg(chi)
         # save results
-        with open(f"stu_hdiva/rho_('E0', (45.0, {chi}))_1.npy", 'wb') as f:
+        with open(f"stu_hdiva/rho_('E0', (45.0, {chi_name}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
         date = "702024"
-        tomo_df = m.output_data(f'stu_hdiva/tomo_data_{chi}_{date}_test.csv')
+        tomo_df = m.output_data(f'stu_hdiva/tomo_data_{chi_name}_{date}_test.csv')
     
     m.shutdown()
