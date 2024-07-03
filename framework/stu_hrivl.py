@@ -113,7 +113,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
         ### UV HWP SECTION ###
-        GUESS = -65.86833 # flip all the quartz plate minimum so it actually minimizes
+        GUESS = -65.86833 + 45 # flip all the quartz plate minimum so it actually minimizes
         RANGE = 22.5
         N = 35
         SAMP = (5, 3)
