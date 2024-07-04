@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'stu_hrivl'
+DATA_PATH = 'stu_hdiva'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -183,13 +183,13 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         rho_actual = rho_actuals[i]
         
         print('theoretical rho is:')
-        display(rho_actual)
+        print(np.round(rho_actual, 4))
         print('Experimental rho is:')
-        display(rho)
+        print(np.round(rho, 4))
         
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
-        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.945), verbose = True) # adjusted theory
+        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.95), verbose = True) # adjusted theory
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
 
@@ -319,16 +319,17 @@ def make_plots_E0(dfname):
 
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
-        ax.errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue', markersize=5)
+        ax.errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue', markersize=10)
 
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
         ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
-        ax.errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon', markersize=5)
+        ax.errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon', markersize=10)
         #ax.set_title(f'$\eta = 45\degree$', fontsize=18)
         ax.set_ylabel('Witness value', fontsize=20)
         ax.tick_params(axis='both', which='major', labelsize=20)
         ax.legend(ncol=2, fontsize=20)
         ax.set_xlabel('$\chi$ (deg)', fontsize=20)
+        ax.axhline(y=0, color='black')
         # ax[1,i].set_ylabel('Value', fontsize=31)
         # ax[1,i].legend()
     else:
@@ -391,7 +392,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    #plt.suptitle('Entangled State Witnessed by 1st W\' Triplet', fontsize=25)
+    plt.suptitle('Entangled State Witnessed by 1st W\' Triplet', fontsize=25)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -538,6 +539,15 @@ def get_theo_rho(state, eta, chi):
     if state == 'HA_iVD':
         phi = (1 + np.exp(1j*chi))/2 * np.kron(H,A) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,D)
     
+    if state == 'testing-hdiva-73':
+        phi = np.cos(chi/2) * np.kron(H,D) + np.exp(-1j* np.pi/3)*np.sin(chi/2) * np.kron(V, A)
+        rho_main = (phi @ phi.conj().T)
+        rho_hd = (np.cos(chi/2))**2 * (np.kron(H,D) @ np.kron(H,D).conj().T)
+        rho_va = (np.sin(chi/2))**2 * (np.kron(V,A) @ np.kron(V,A).conj().T)
+        rho_return = 0.95 * rho_main + 0.05 * rho_hd + 0.05 * rho_va
+        return rho_return
+        
+    
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
@@ -549,7 +559,7 @@ if __name__ == '__main__':
     chis = np.linspace(0.001, np.pi/2, 6)
     states_names = []
     states = []
-    names = ['HR_iVL']
+    names = ['testing-hdiva-73']
     probs = [1]
     
     for eta in etas:
@@ -572,7 +582,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_summer_2024_hr_ivl'
+    id = 'rho_summer_2024_hdiva_mix_test'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

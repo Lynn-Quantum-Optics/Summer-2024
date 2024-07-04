@@ -497,7 +497,6 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
         #         rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model, UV_HWP_offset, do_W = do_W, do_richard = do_richard)
         #     # rho = adjust_rho(rho, angles, expt_purity)
 
-    if do_counts:
      if do_counts:
         counts = np.reshape(counts, (36,1))
         def get_W1(params, counts):
