@@ -160,13 +160,6 @@ if __name__ == '__main__':
         x_min, x_max = np.min(data1.C_UV_HWP), np.max(data1.C_UV_HWP)
         UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
 
-        # find the fit function and optimal value 
-        # coefficients = np.polyfit(angles, ratios, 5)
-        # a, b, c, d, e = coefficients
-        # e = e - desired_ratio
-        # UVHWP_angle = np.roots(coefficients)[0]
-
-        # might need to retune this if there are multiple roots. I'm only assuming one root
         m.configure_motors(C_UV_HWP = UVHWP_angle, 
                            B_C_HWP = 67.5,
                            B_C_QWP = 45)
@@ -196,7 +189,7 @@ if __name__ == '__main__':
         # save results
         with open(f"stu_hdiva/rho_('E0', (45.0, {chi_name}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-        date = "702024"
+        date = "708024"
         tomo_df = m.output_data(f'stu_hdiva/tomo_data_{chi_name}_{date}_test.csv')
     
     m.shutdown()

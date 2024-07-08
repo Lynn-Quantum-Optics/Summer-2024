@@ -1612,3 +1612,8 @@ Next, we ran the rewroked hrivl file.
 MP: Paco 
 
 Running Stu's file for hdiva. 
+
+# 7/8/24
+MP: Lev, Stu
+
+Laser on at 9, temp 19.7 which is great! Stu fixed hd_iva to (hopefully) correctly get the stater we want by actually setting the qp to its calibrated angle (which is was not previously).
