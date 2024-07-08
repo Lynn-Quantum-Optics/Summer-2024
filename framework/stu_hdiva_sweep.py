@@ -109,6 +109,9 @@ if __name__ == '__main__':
     # prints and returns the angle
     print('QP minimum angle is:', C_QP_angle)
 
+    # set the qp angle
+    m.C_QP.goto(C_QP_angle)
+
     # manually perform sweep of UVHWP
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
@@ -121,7 +124,7 @@ if __name__ == '__main__':
         chi_vals = np.linspace(*CHI_PARAMS)
 
         UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
-
+        
         # configure measurement basis
         print(m.time, f'Configuring measurement basis HH')
         m.meas_basis('HH')
