@@ -53,7 +53,7 @@ if __name__ == '__main__':
     # setup the phase sweep
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
-    m.meas_basis('DL')
+    m.meas_basis('DR')
     m.configure_motors(C_UV_HWP =-112.41754451550933)
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
     m.configure_motors(C_UV_HWP =-112.41754451550933 )
