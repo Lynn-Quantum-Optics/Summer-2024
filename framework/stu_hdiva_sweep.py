@@ -54,7 +54,7 @@ if __name__ == '__main__':
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
     m.configure_motors(C_UV_HWP =-112.41754451550933 +45)
-    m.meas_basis('DA')
+    m.meas_basis('DD')
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
     m.configure_motors(C_UV_HWP =-112.41754451550933 )
     print(m.time, "Sweep complete")
