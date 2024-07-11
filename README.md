@@ -9,10 +9,33 @@ This file contains contact information for the research group members, as well a
 - Lev Gruber   : lgruber@g.hmc.edu
 - Stuart Kerr  : stkerr@g.hmc.edu
 
-## Individual Folders
-Lev
-See my folder for an in-depth Read Me on each section!
-- calibration -> pdf/tex of a full 'how to calibrate everything' calibration tutorial! This is also found in the calibration folder, and contains both what to run and common troubleshooting tricks.
-- finding_states -> all of my code for theoretically finding states that we can experimentally create and produce +W, -W'.
-- testing experiment -> all of my code for analyzing experimental data, both for W/W' and for NN/population model.
+## Experimental Data Analysis
+
+Contact: Lev
+
+The folder 'lev/testing_experiment' contains code to analyze experimental data for witness values, to test both the population model and the group's neural net, and to mix experimentally derived pure states into mixed states. More info in my folder.
+
+## Calibration / Guide
+
+Contact: Lev
+
+The folder 'calibration' contains a guide to calibrating the experimental apparatus, troubleshooting bugs, and using the Manager. The folder also includes code to calibrate each apparatus element, much of this written by Alec Roberson and Richard Zheng, and adapted by us this summer.
+
+## Finding Theoretical States 
+
+Contact: Lev
+
+The folder 'lev/finding_states' is dedicated to finding states for which a certain witness or witness group (i.e. the Ws or W's) and are creatable by our experimental apparatus. More info in my folder.
+
+## Obtaining Experimental Data
+
+Contact:  Stuart Kerr
+
+The folder 'framework' contains files to generate all of the data we obtained this summer. Please do not edit this folder, and if you'd like to use the files ensure they do not overwrite currently saved data!
+
+## Machine Learning
+
+Contact: Paco Navarro
+
+The folder 'oscar/machine_learning' contains code for the generation of both the five-layer neural net and large set of random states. Specifically, ml_hypersweep.py creates the neural net and was used for hyperparameter optimization and master_datagen.py created the set of 2400000 random states we use for neural net creation, validation, and testing. This is largely unchanged from Oscar Scholin's original code in summer 2023.
 
