@@ -6,7 +6,7 @@ This file contains contact information for the research group members, as well a
 ## Contact Information
 
 - Paco Navarro : pnavarro@g.hmc.edu
-- Lev Gruber   : lgruber@g.hmc.edu
+- Lev Gruber   : lgruber@g.hmc.edu, 510-227-4602
 - Stuart Kerr  : stkerr@g.hmc.edu
 
 ## Experimental Data Analysis
