@@ -196,7 +196,7 @@ if __name__ == '__main__':
         # save results
         with open(f"stu_havd/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-        date = "7022024"
+        date = "7112024"
         tomo_df = m.output_data(f'stu_havd/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()
