@@ -61,7 +61,9 @@ if __name__ == '__main__':
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
     m.meas_basis('DR')
-    m.configure_motors(C_UV_HWP =-112.41754451550933 +45)
+    m.configure_motors(C_UV_HWP =-112.41754451550933 +45,
+                       B_C_HWP = 0,
+                       B_C_QWP = 0)
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
     m.configure_motors(C_UV_HWP =-112.41754451550933 )
     print(m.time, "Sweep complete")
@@ -196,7 +198,7 @@ if __name__ == '__main__':
         # save results
         with open(f"stu_havd/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-        date = "7112024"
+        date = "7142024"
         tomo_df = m.output_data(f'stu_havd/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()
