@@ -143,8 +143,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         # obtain the first round of data and switch to a new output file
-        df1 = m.output_data(f"stu_havd/UVHWP_balance_sweep1.csv")
-        data1 = pd.read_csv(f"stu_havd/UVHWP_balance_sweep1.csv")
+        df1 = m.output_data(f"stu_havd_trial_2/UVHWP_balance_sweep1.csv")
+        data1 = pd.read_csv(f"stu_havd_trial_2/UVHWP_balance_sweep1.csv")
 
         # sweep in the second basis
         print(m.time, f'Configuring measurement basis VV')
@@ -154,8 +154,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         print(m.time, 'Data collected')
-        df2 = m.output_data(f'stu_havd/UVHWP_balance_sweep2.csv')
-        data2 = pd.read_csv(f'stu_havd/UVHWP_balance_sweep2.csv')
+        df2 = m.output_data(f'stu_havd_trial_2/UVHWP_balance_sweep2.csv')
+        data2 = pd.read_csv(f'stu_havd_trial_2/UVHWP_balance_sweep2.csv')
 
         args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
         args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
@@ -196,9 +196,9 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, C_QP_angle, 112.5, 135] # change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
-        with open(f"stu_havd/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
+        with open(f"stu_havd_trial_2/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
         date = "7142024"
-        tomo_df = m.output_data(f'stu_havd/tomo_data_{chi_save}_{date}.csv')
+        tomo_df = m.output_data(f'stu_havd_trial_2/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()
