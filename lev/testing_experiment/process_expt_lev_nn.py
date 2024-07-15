@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'stu_hdiva_weirdmix'
+DATA_PATH = 'hrivl_hdiva_mix_flippedminus'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -539,6 +539,10 @@ def get_theo_rho(state, eta, chi):
     # Define kets and bell states in vector form 
     H = ket([1,0])
     V = ket([0,1])
+    R = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
+    L = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
+    D = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
+    A = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
     
     PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
@@ -577,6 +581,12 @@ def get_theo_rho(state, eta, chi):
     
     if state == 'phi minus, i psi minus':
         phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
+        
+    if state == 'cosHD_minussinVA':
+        phi = np.cos(chi/2) * np.kron(H,D) - np.sin(chi/2) * np.kron(V,A) # no i shows in this form
+        
+    if state == 'cosHR_minussinVL':
+        phi = np.cos(chi/2) * np.kron(H, R) - np.sin(chi/2) * np.kron(V,L) # no i shows in this form
     
     # create rho and return it
     rho = phi @ phi.conj().T
@@ -591,8 +601,8 @@ if __name__ == '__main__':
     states = []
     # names = ['phi plus, psi minus', 'phi minus, psi plus']
     # probs = [0.65, 0.35]
-    names = ['HD_iVA']
-    probs = [1]
+    names = ['cosHD_minussinVA', 'cosHR_minussinVL']
+    probs = [0.65, 0.35]
     
     for eta in etas:
         for chi in chis:
@@ -604,7 +614,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_1.npy")
+        filenames.append(f"rho_('E0', {state_n})_3.npy")
         settings.append([state_n[0],state_n[1]])
 
     # #  # Obtain the density matrix for each state

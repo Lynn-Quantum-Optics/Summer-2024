@@ -323,16 +323,37 @@ def get_all_roik_projs_sc(resoult):
 
 def adjust_rho(rho, angles, expt_purity, state = 'E0'):
     ''' Adjusts theo density matrix to account for experimental impurity
+        Multiplies unwanted experimental impurities (top right bottom right block) by expt purity to account for 
+        non-entangled particles in our system '''
+    if state == 'E0':
+        for i in range(rho.shape[0]):
+            for j in range(rho.shape[1]):
+                if i < 3:
+                    if j < 3:
+                        pass
+                if i > 2:
+                    if j > 2:
+                        pass
+                else:
+                    rho[i][j] = expt_purity * rho[i][j]
+    return rho
+    
+    
+def adjust_rho_hhvv(rho, angles, expt_purity, state = 'E0'):
+    ''' Adjusts theo density matrix to account for experimental impurity
         Multiplies off-diagonal elements by expt purity to account for 
-        non=entanGled particles in our system '''
+        non=entanGled particles in our system 
+        
+        Specifically adjusts only off diagonal elements if your entangled state only has H and V in it.
+        '''
     if state =='E0':    
         for i in range(rho.shape[0]):
             for j in range(rho.shape[1]):
                 if i == j:
                     pass
-                else:
-                    rho[i][j] = expt_purity * rho[i][j]
-        return rho
+            else:
+                rho[i][j] = expt_purity * rho[i][j]
+    return rho
         
 def adjust_E0_rho_general(x, rho_actual, purity, eta, chi):
     ''' Adjusts theoretical density matrix for class E0 to account for experimental impurity, but generalized to any state.
@@ -497,7 +518,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
         #         rho = load_saved_get_E0_rho_c(rho, angles, expt_purity, model, UV_HWP_offset, do_W = do_W, do_richard = do_richard)
         #     # rho = adjust_rho(rho, angles, expt_purity)
 
-     if do_counts:
+    if do_counts:
         counts = np.reshape(counts, (36,1))
         def get_W1(params, counts):
             a, b = np.cos(params), np.sin(params)
@@ -768,8 +789,8 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
             Wp2_min_name = [x for _,x in sorted(zip(W_exp_val_ls[9:12], all_W[9:12]))][0]
             Wp3_min_name = [x for _,x in sorted(zip(W_exp_val_ls[12:15], all_W[12:15]))][0]
             
-            print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
-            print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
+            # print('Wp2 and its params are:', W_expec_vals[7], min_params[7])
+            # print('The found W and param are:', Wp_t1, Wp1_min_name, Wp_t1_param)
 
             if not return_params:
                 return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name

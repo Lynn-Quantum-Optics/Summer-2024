@@ -15,7 +15,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'stu_hdiva'
+DATA_PATH = 'hr-ivl_ha-ivd_mix_wp2'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -185,7 +185,7 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         print('theoretical rho is:')
         print(np.round(rho_actual, 4))
         print('Experimental rho is:')
-        print(np.round(rho, 4))
+        print(np.round(rho, 3))
         
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
@@ -241,8 +241,8 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp2_param_expt = W_expt_ls[10]
         Wp3_param_expt = W_expt_ls[11]
     
-        # # print('THE CURRENT POINT IS POINT:', i)
-        # # print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
+        print('THE CURRENT POINT IS POINT:', i)
+        print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
         # # print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
 
         #print('Theoretical rho is:', rho_actual)
@@ -392,7 +392,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    plt.suptitle('Entangled State Witnessed by 1st W\' Triplet', fontsize=25)
+    plt.suptitle('Entangled State Witnessed by 2nd W\' Triplet', fontsize=25)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -547,7 +547,26 @@ def get_theo_rho(state, eta, chi):
         rho_return = 0.95 * rho_main + 0.05 * rho_hd + 0.05 * rho_va
         return rho_return
         
-    
+    if state == 'cosHR_minussinVL':
+        phi = np.cos(chi/2) * np.kron(H, R) - np.sin(chi/2) * np.kron(V,L) # no i shows in this form
+        
+    if state == 'cosHD_minussinVA':
+        phi = np.cos(chi/2) * np.kron(H,D) - np.sin(chi/2) * np.kron(V,A) # no i shows in this form
+        
+    if state == 'cosHD_sinVA':
+        phi = np.cos(chi/2) * np.kron(H,D) + np.sin(chi/2) * np.kron(V,A)
+        
+    if state == 'cosHA_minussinVD':
+        phi = np.cos(chi/2) * np.kron(H,A) - np.sin(chi/2) * np.kron(V,D)
+        
+    if state == 'cosHA_minusisinVD':
+        phi = np.cos(chi/2) * np.kron(H,A) - 1j * np.sin(chi/2) * np.kron(V,D)
+            
+    if state == 'cosHR_minusisinVL':
+        phi = np.cos(chi/2) * np.kron(H, R) - 1j * np.sin(chi/2) * np.kron(V,L) 
+        
+    if state == 'testing_hdiva_phase':
+        phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, A)
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
@@ -557,9 +576,10 @@ if __name__ == '__main__':
 
     etas = [np.pi/4]
     chis = np.linspace(0.001, np.pi/2, 6)
+    #chis = [np.pi/2]
     states_names = []
     states = []
-    names = ['testing-hdiva-73']
+    names = ['cosHA_minusisinVD']
     probs = [1]
     
     for eta in etas:
@@ -572,7 +592,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_1.npy") 
+        filenames.append(f"rho_('E0', {state_n})_2.npy") 
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
@@ -582,7 +602,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_summer_2024_hdiva_mix_test'
+    id = 'rho_summer_2024_havd_7-14'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

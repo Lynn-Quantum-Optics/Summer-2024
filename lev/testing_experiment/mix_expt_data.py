@@ -15,7 +15,7 @@ from rho_methods import *
 from process_expt_lev import *
 
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'hr_vl_mix_psi_bell'
+DATA_PATH = 'hr-ivl_ha-ivd_mix_wp2'
     
 def mix_states(file_names, probs, state_name):
     '''
@@ -62,7 +62,7 @@ def mix_states(file_names, probs, state_name):
     rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity = df_to_save.iloc[:, 0] 
     print(rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity)
  
-    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_28"), df_to_save['col'].to_numpy())
+    np.save(join(DATA_PATH,f"rho_('E0', {state_name})_3"), df_to_save['col'].to_numpy())
     #save results
     #with open(f"int_state_sweep_phi45/rho_('E0', {state_n})_1.npy", 'wb') as f:
         #np.save(f, (rho, unc, Su, un_proj, un_proj_unc, state, angles, fidelity, purity))
@@ -87,8 +87,8 @@ if __name__ == '__main__':
         state_n = (float(state_n[0]), float(state_n[1]))
 
         filenames = []
-        filenames.append(f"rho_('E0', {state_n})_26.npy")
-        filenames.append(f"rho_('E0', {state_n})_1.npy") # Only using chi in naming convention when using hr_vl due to absence of eta
+        filenames.append(f"rho_('E0', {state_n})_1.npy")
+        filenames.append(f"rho_('E0', {state_n})_2.npy") 
         rad_angles = states[i]
         mix_states(filenames, probs, state_n)
     
