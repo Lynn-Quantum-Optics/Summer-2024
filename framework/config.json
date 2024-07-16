@@ -39,7 +39,7 @@
             "type": "Elliptec",
             "port": "COM7",
             "address": "A",
-            "offset": -30.949568
+            "offset": -31.645568
         },
         "B_C_QWP": {
             "type": "Elliptec",
