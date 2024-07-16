@@ -50,7 +50,7 @@
         "B_HWP": {
             "type": "ThorLabs",
             "sn": 83811901,
-            "offset": -6.264
+            "offset": -8.303
         },
         "B_QWP": {
             "type": "ThorLabs",

@@ -11,11 +11,11 @@ if __name__ == '__main__':
     # SWEEP_PARAMS = [-19, -11, 20, 5, 3]
     # TRIAL = 0
     # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
+    #TRIAL = 1
+    #SWEEP_PARAMS = [-25, -7, 39, 5, 3]
     TRIAL = 1
-    SWEEP_PARAMS = [-19, -11, 20, 5, 3]
-    TRIAL = 2
-    SWEEP_PARAMS = [-15.5-3, -15.5+3, 20, 5, 3]
-    '''
+    SWEEP_PARAMS = [-6-8, -6+8, 32, 5, 3]
+    
     # initialize the manager
     m = Manager(config='../config.json')
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # save the output
     df = m.output_data(f'BHWP_sweep{TRIAL}.csv')
     m.shutdown()
-    '''
+   
     df = Manager.load_data(f'BHWP_sweep{TRIAL}.csv')
     angles, rates = df['B_HWP'], df['C4']
     
