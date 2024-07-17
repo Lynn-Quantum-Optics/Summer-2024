@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # setup the phase sweep
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
-    m.meas_basis('DL')
+    m.meas_basis('DR')
     m.configure_motors(C_UV_HWP =-112.2352648283306,
                        B_C_HWP = 0,
                        B_C_QWP = 0)
