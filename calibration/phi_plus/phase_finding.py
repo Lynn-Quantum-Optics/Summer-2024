@@ -7,7 +7,7 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    SWEEP_PARAMS = [-22, -10, 20, 5, 1]
+    SWEEP_PARAMS = [-22, -10, 30, 5, 1]
 
     # initialize the manager
     m = Manager('../config.json')
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     #m.C_PCC.goto(2.894736842105263) # ballpark based on an old calibration
     #m.B_C_HWP.goto(0)
 
-    m.make_state('phi_minus')
+    m.make_state('phi_plus')
      
     # check count rates
     m.log('Checking HH and VV count rates...')
@@ -56,13 +56,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('all_phase_finding_data2_test7022024_1.csv')
+    pd.DataFrame(datas).to_csv('all_phase_finding_data2_test7162024_1.csv')
 
     # calculate the phase difference
     datas['phi'] = unp.arctan2((datas['DR'] - datas['DL'] - datas['AR'] + datas['AL']),(-datas['RR'] + datas['RL'] + datas['LR'] - datas['LL']))
 
     # save the data
-    pd.DataFrame(datas).to_csv('phi_data_7022024_1.csv')
+    pd.DataFrame(datas).to_csv('phi_data_7162024_1.csv')
 
     
 

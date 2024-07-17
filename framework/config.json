@@ -45,7 +45,7 @@
             "type": "Elliptec",
             "port": "COM7",
             "address": "B",
-            "offset": -8.16361
+            "offset": -11.10361
         },
         "B_HWP": {
             "type": "ThorLabs",
@@ -125,8 +125,8 @@
     },
     "state_presets": {
         "phi_plus": {
-            "C_UV_HWP": -112.41754451550933, 
-            "C_QP": -14.1537,
+            "C_UV_HWP": -112.2352648283306, 
+            "C_QP": -17.098,
             "C_PCC": -0.3157894736842106,
             "B_C_HWP": 0.00
         },

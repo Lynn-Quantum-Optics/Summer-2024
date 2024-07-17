@@ -6,7 +6,7 @@ import numpy as np
 if __name__ == '__main__':
     ###### RUNNING THE SWEEP ######
     TRIAL = 2
-    SWEEP_PARAMS = [-15, 15, 30, 5, 3]
+    SWEEP_PARAMS = [-5, 5, 10, 5, 3]
 
     # check for two minimums, one at 0, one at pi plus our offset
     offset = -30

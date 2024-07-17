@@ -40,11 +40,10 @@ if __name__ == '__main__':
 
     # make phi plus 
     m.make_state('phi_plus') 
-    #EXPT RHO: [[ 0.47467198+0.j         -0.06878036-0.07844748j  0.10186207-0.04137023j 0.40717172+0.19552666j]
- #[-0.06878036+0.07844748j  0.02142501+0.j         -0.00295779+0.03100692j -0.08480667+0.0507326j ]
- #[ 0.10186207+0.04137023j -0.00295779-0.03100692j  0.03309251+0.j  0.06790547+0.08224192j]
- #[ 0.40717172-0.19552666j -0.08480667-0.0507326j   0.06790547-0.08224192j 0.4708105 +0.j        ]]
-    # check count rates
+    #EXPT RHO: [[ 0.47454074+0.j         -0.06709392-0.08197673j  0.06898514-0.07974512j 0.4490784 +0.007968j  ]
+    #[-0.06709392+0.08197673j  0.02125584+0.j          0.00899171+0.03168201j  -0.06700322+0.08257928j]
+    #[ 0.06898514+0.07974512j  0.00899171-0.03168201j  0.03703166+0.j 0.06641263+0.09287574j]
+    #[ 0.4490784 -0.007968j   -0.06700322-0.08257928j  0.06641263-0.09287574j 0.46717177+0.j        ]]
     m.log('Checking HH and VV count rates...')
     m.meas_basis('HH')
     hh_counts = m.take_data(5,3,'C4')
@@ -64,12 +63,11 @@ if __name__ == '__main__':
     # setup the phase sweep
     m.reset_output()
     #x_vals = np.linspace(*SWEEP_PARAMS[:3])
-    m.meas_basis('DR')
-    m.configure_motors(C_UV_HWP =-112.41754451550933 +45,
+    m.meas_basis('DL')
+    m.configure_motors(C_UV_HWP =-112.2352648283306,
                        B_C_HWP = 0,
                        B_C_QWP = 0)
     m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
-    m.configure_motors(C_UV_HWP =-112.41754451550933 )
     print(m.time, "Sweep complete")
 
     # read the data into a dataframe
@@ -129,7 +127,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
         ### UV HWP SECTION ###
-        GUESS = -112.4175 # flip all the quartz plate minimum so it actually minimizes
+        GUESS = -112.2352648283306 # flip all the quartz plate minimum so it actually minimizes
         RANGE = 22.5
         N = 30
         SAMP = (5, 3)
