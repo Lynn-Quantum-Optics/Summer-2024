@@ -4,9 +4,9 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 14
+    TRIAL = 15
     #SWEEP_PARAMETERS = [-65.868-8,-65.868+8,20,5,3]
-    SWEEP_PARAMETERS = [-100,-120,20,5,1]
+    SWEEP_PARAMETERS = [-100,-120,15,5,1]
 
     # initialize manager
     m = Manager('../config.json')

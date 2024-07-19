@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     # TRIAL = 0
     # SWEEP_PARAMS = [75, 110, 20, 5, 1]
-    TRIAL = 0
-    SWEEP_PARAMS = [83, 96, 20, 5, 3]
+    TRIAL = 1
+    #SWEEP_PARAMS = [83, 96, 20, 5, 3]
+    SWEEP_PARAMS = [-15, 15, 20, 5, 3]
     
-    '''
+    #'''
     # initialize the manager
     m = Manager(config='../config.json')
 
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     # save the output
     df = m.output_data(f'BQWP_sweep{TRIAL}.csv')
     m.shutdown()
-    '''
+    #'''
     df = Manager.load_data(f'BQWP_sweep{TRIAL}.csv')
     angles, rates = df['B_QWP'], df['C4']
     # '''

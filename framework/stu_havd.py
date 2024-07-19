@@ -25,7 +25,7 @@ def get_theo_rho(chi):
     R = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
     L = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
 
-    phi = (np.cos(chi/2) * np.kron(H, R) - 1j * np.sin(chi/2) * np.kron(V, L))/np.sqrt(2)
+    phi = (np.cos(chi/2) * np.kron(H, A) - 1j * np.sin(chi/2) * np.kron(V, D))
 
     rho = phi @ phi.conj().T
 
@@ -38,91 +38,93 @@ if __name__ == '__main__':
     # initialize the manager
     m = Manager('config.json')
 
-    # make phi plus 
-    m.make_state('phi_plus') 
-    #EXPT RHO: [[ 0.47454074+0.j         -0.06709392-0.08197673j  0.06898514-0.07974512j 0.4490784 +0.007968j  ]
-    #[-0.06709392+0.08197673j  0.02125584+0.j          0.00899171+0.03168201j  -0.06700322+0.08257928j]
-    #[ 0.06898514+0.07974512j  0.00899171-0.03168201j  0.03703166+0.j 0.06641263+0.09287574j]
-    #[ 0.4490784 -0.007968j   -0.06700322-0.08257928j  0.06641263-0.09287574j 0.46717177+0.j        ]]
-    m.log('Checking HH and VV count rates...')
-    m.meas_basis('HH')
-    hh_counts = m.take_data(5,3,'C4')
-    m.meas_basis('VV')
-    vv_counts = m.take_data(5,3,'C4')
 
-    # tell the user what is up
-    print(f'HH count rates: {hh_counts}\nVV count rates: {vv_counts}')
+    # Manually found QP angle to be -24.8.
+    # # make phi plus 
+    # m.make_state('phi_plus') 
+    # #EXPT RHO: [[ 0.47589049+0.j         -0.06945163-0.08411542j  0.07464098-0.07892626j 0.44664475+0.03311149j]
+    # #[-0.06945163+0.08411542j  0.02195016+0.j          0.00581658+0.03551439j -0.06989104+0.08194604j]
+    # #[ 0.07464098+0.07892626j  0.00581658-0.03551439j  0.03664963+0.j 0.06780289+0.08958259j]
+    # #[ 0.44664475-0.03311149j -0.06989104-0.08194604j  0.06780289-0.08958259j 0.46550973+0.j        ]]
+    # m.log('Checking HH and VV count rates...')
+    # m.meas_basis('HH')
+    # hh_counts = m.take_data(5,3,'C4')
+    # m.meas_basis('VV')
+    # vv_counts = m.take_data(5,3,'C4')
 
-    # check if the count rates are good
-    inp = input('Continue? [y/n] ')
-    if inp.lower() != 'y':
-        print('Exiting...')
-        m.shutdown()
-        quit()
+    # # tell the user what is up
+    # print(f'HH count rates: {hh_counts}\nVV count rates: {vv_counts}')
 
-    # setup the phase sweep
-    m.reset_output()
-    #x_vals = np.linspace(*SWEEP_PARAMS[:3])
-    m.meas_basis('DL')
-    m.configure_motors(C_UV_HWP =-112.2352648283306,
-                       B_C_HWP = 0,
-                       B_C_QWP = 0)
-    m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
-    print(m.time, "Sweep complete")
+    # # check if the count rates are good
+    # inp = input('Continue? [y/n] ')
+    # if inp.lower() != 'y':
+    #     print('Exiting...')
+    #     m.shutdown()
+    #     quit()
 
-    # read the data into a dataframe
-    df = m.output_data(f"stu_havd_trial_4/QP_sweep.csv")
-    data = pd.read_csv(f"stu_havd_trial_4/QP_sweep.csv")
+    # # setup the phase sweep
+    # m.reset_output()
+    # #x_vals = np.linspace(*SWEEP_PARAMS[:3])
+    # m.meas_basis('DL')
+    # m.configure_motors(C_UV_HWP =-112.2352648283306,
+    #                    B_C_HWP = 0,
+    #                    B_C_QWP = 0)
+    # m.sweep("C_QP", -35, -1, 20, 5, 3) #Sometimes the minimum is near the edge of the bounds in which case you won't get a parabola/normal angle. 
+    # print(m.time, "Sweep complete")
 
-    # take the counts of the quartz sweep at each angle and find the index of the minimum data point
-    QP_counts = data["C4"]
-    print('QP Counts', QP_counts)
-    min_ind = 0
-    for i in range(len(QP_counts)):
-        if QP_counts[i] == min(QP_counts):
-            min_ind = i
+    # # read the data into a dataframe
+    # df = m.output_data(f"stu_havd_trial_4/QP_sweep.csv")
+    # data = pd.read_csv(f"stu_havd_trial_4/QP_sweep.csv")
+
+    # # take the counts of the quartz sweep at each angle and find the index of the minimum data point
+    # QP_counts = data["C4"]
+    # print('QP Counts', QP_counts)
+    # min_ind = 0
+    # for i in range(len(QP_counts)):
+    #     if QP_counts[i] == min(QP_counts):
+    #         min_ind = i
     
-    # creates a new data set of counts centered around the previous sweep's minimum data point
-    new_guess = data["C_QP"][min_ind]
-    RANGE = 5
+    # # creates a new data set of counts centered around the previous sweep's minimum data point
+    # new_guess = data["C_QP"][min_ind]
+    # RANGE = 5
 
-    # finds the new minimum and maximum indices of the truncated data set
-    min_bound = 0
-    max_bound = len(QP_counts)
+    # # finds the new minimum and maximum indices of the truncated data set
+    # min_bound = 0
+    # max_bound = len(QP_counts)
 
-    # sets the minimum and maximum indices to the data point with the angle value (in degrees) new_guess +- RANGE
-    for i in range(len(QP_counts)):
-        if data["C_QP"][i] <= new_guess - RANGE:
-            min_bound = i
-        if data["C_QP"][i] >= new_guess + RANGE:
-            max_bound = i
-            break
+    # # sets the minimum and maximum indices to the data point with the angle value (in degrees) new_guess +- RANGE
+    # for i in range(len(QP_counts)):
+    #     if data["C_QP"][i] <= new_guess - RANGE:
+    #         min_bound = i
+    #     if data["C_QP"][i] >= new_guess + RANGE:
+    #         max_bound = i
+    #         break
     
-    # create new truncated data set using min_bound and max_bound
-    fit_data = QP_counts[min_bound:max_bound]
-    fit_angles = data["C_QP"][min_bound:max_bound]
-    fit_unc = data["C4_SEM"][min_bound:max_bound]
-    print('fit data:', fit_data)
-    print('fit angles:', fit_angles)
-    print('fit unc:', fit_unc)
-    # fits the truncated data set to a quartic fit function
-    args1, unc1 = fit('quartic', fit_angles, fit_data, fit_unc)
+    # # create new truncated data set using min_bound and max_bound
+    # fit_data = QP_counts[min_bound:max_bound]
+    # fit_angles = data["C_QP"][min_bound:max_bound]
+    # fit_unc = data["C4_SEM"][min_bound:max_bound]
+    # print('fit data:', fit_data)
+    # print('fit angles:', fit_angles)
+    # print('fit unc:', fit_unc)
+    # # fits the truncated data set to a quartic fit function
+    # args1, unc1 = fit('quartic', fit_angles, fit_data, fit_unc)
 
-    # finds the angle that corresponds to the minimum value of the fit function
-    def fit_func(x):
+    # # finds the angle that corresponds to the minimum value of the fit function
+    # def fit_func(x):
 
-        return args1[0] * x**4 + args1[1] * x**3 + args1[2] * x**2 + args1[3] * x + args1[4]
+    #     return args1[0] * x**4 + args1[1] * x**3 + args1[2] * x**2 + args1[3] * x + args1[4]
 
-    # finds the angle at which the minimum of the fit function occurs to return as the QP angle setting
-    minimum = opt.minimize(fit_func, new_guess)
-    C_QP_angle = minimum.pop('x')
+    # # finds the angle at which the minimum of the fit function occurs to return as the QP angle setting
+    # minimum = opt.minimize(fit_func, new_guess)
+    # C_QP_angle = minimum.pop('x')
 
-    # prints and returns the angle
-    print('QP minimum angle is:', C_QP_angle)
+    # # prints and returns the angle
+    # print('QP minimum angle is:', C_QP_angle)
 
     # set the qp angle
-    m.C_QP.goto(C_QP_angle)
-
+    m.C_QP.goto(-24.8)
+    m.C_PCC.goto(-0.3063616071428328)
     # manually perform sweep of UVHWP
     chi_vals = np.linspace(*CHI_PARAMS)
     for chi in chi_vals:
@@ -145,8 +147,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         # obtain the first round of data and switch to a new output file
-        df1 = m.output_data(f"stu_havd_trial_4/UVHWP_balance_sweep1.csv")
-        data1 = pd.read_csv(f"stu_havd_trial_4/UVHWP_balance_sweep1.csv")
+        df1 = m.output_data(f"stu_havd_trial_6/UVHWP_balance_sweep1.csv")
+        data1 = pd.read_csv(f"stu_havd_trial_6/UVHWP_balance_sweep1.csv")
 
         # sweep in the second basis
         print(m.time, f'Configuring measurement basis VV')
@@ -156,8 +158,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         print(m.time, 'Data collected')
-        df2 = m.output_data(f'stu_havd_trial_4/UVHWP_balance_sweep2.csv')
-        data2 = pd.read_csv(f'stu_havd_trial_4/UVHWP_balance_sweep2.csv')
+        df2 = m.output_data(f'stu_havd_trial_6/UVHWP_balance_sweep2.csv')
+        data2 = pd.read_csv(f'stu_havd_trial_6/UVHWP_balance_sweep2.csv')
 
         args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
         args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
@@ -197,12 +199,12 @@ if __name__ == '__main__':
         print('purity', purity)
         
         # 67.5 -> B_C_HWP, 90 -> B_C_QWP
-        angles = [UVHWP_angle, C_QP_angle, 112.5, 135] # change output data function to inlude B_C_QWP
+        angles = [UVHWP_angle, -24.8, 112.5, 135] # change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
-        with open(f"stu_havd_trial_4/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
+        with open(f"stu_havd_trial_6/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
         date = "7152024"
-        tomo_df = m.output_data(f'stu_havd_trial_4/tomo_data_{chi_save}_{date}.csv')
+        tomo_df = m.output_data(f'stu_havd_trial_6/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()

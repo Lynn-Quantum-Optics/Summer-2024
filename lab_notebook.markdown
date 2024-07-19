@@ -1617,3 +1617,19 @@ Running Stu's file for hdiva.
 MP: Lev, Stu
 
 Laser on at 9, temp 19.7 which is great! Stu fixed hd_iva to (hopefully) correctly get the stater we want by actually setting the qp to its calibrated angle (which is was not previously).
+
+# 7/17/2024
+MP: Lev, Stuart
+
+We are currently troubleshooting an odd density matrix for the state cos HA -isin VD. 
+
+UVHWP went from -112.51341452347606 to -105.877. I don't think this is right, because our quartz plate angle only changed by one degree. 
+
+# 7/19/2024
+MP: Lev
+
+Laser on 9:20; goal for today is to take cos(chi/2)HA - i*sin(chi/2)VD. We have previously been unable to do this as we have introduced an unwanted phase diffrence of ~ e^i 2pi/5. To resolve this, we manually find the QP angle by setting waveplates to the chi = 90 deg trial of the previous trial, minimize whichever is smaller of RL or LR for the QP, then re-run uvhwp sweep at this QP angle. 
+1. Set m.configure_motors(C_UV_HWP = -111.05692678571427, C_QP = -25.533482142857167, C_PCC = -0.3063616071428328, B_C_HWP = 112.504943, B_C_QWP = 135.00176848214286
+2. Measured in RL 5x3 and got LH is: 1435+/-7 RH is: 51.1+/-1.9.
+3. Nudge QP to minimize this further. An issue I ran into is even w/ 5x5s measurements, we were varying coincidence counts for the same angle by 1-3 counts. Narrowed it down to -24.8 deg at 36.1 counts.
+4. Because this was not too much of a difference (20 counts and 0.73 deg dif) we are taking a full tomography of this state as it is to compare to our theo density matrix.

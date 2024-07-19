@@ -13,8 +13,8 @@ if __name__ == '__main__':
     # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
     #TRIAL = 1
     #SWEEP_PARAMS = [-25, -7, 39, 5, 3]
-    TRIAL = 1
-    SWEEP_PARAMS = [-8, 8, 30, 5, 3]
+    TRIAL = 2
+    SWEEP_PARAMS = [-8, 8, 20, 5, 3]
     
     # initialize the manager
     m = Manager(config='../config.json')

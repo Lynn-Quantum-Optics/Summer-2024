@@ -4,7 +4,7 @@ import pandas as pd
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    SWEEP_PARAMS = [-5, 5, 20, 5, 3]
+    SWEEP_PARAMS = [-5, 2, 30, 5, 3]
 
     # initialize the manager
     m = Manager('../config.json')
@@ -48,13 +48,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('pcc_sweep_test_7162024.csv')
+    pd.DataFrame(datas).to_csv('pcc_sweep_test_7172024.csv')
 
     # calculate the purity of the state
     datas['purity'] = (datas['DD'] + datas['AA'] - (datas['DA'] + datas['AD']))/(datas['DD'] + datas['AA'] + datas['DA'] + datas['AD'])
 
     # save the data
-    pd.DataFrame(datas).to_csv('purity_test_7162024.csv')
+    pd.DataFrame(datas).to_csv('purity_test_7172024.csv')
 
     
 

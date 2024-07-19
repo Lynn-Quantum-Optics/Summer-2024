@@ -7,7 +7,7 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    SWEEP_PARAMS = [-22, -10, 30, 5, 1]
+    SWEEP_PARAMS = [-20, -14, 10, 5, 1]
 
     # initialize the manager
     m = Manager('../config.json')

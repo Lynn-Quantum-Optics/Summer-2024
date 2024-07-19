@@ -1,64 +1,56 @@
-0:00:00	Manager started at 2024-07-15_13-56-35.
+0:00:00	Manager started at 2024-07-17_09-02-28.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:00:09	BCHWP.py TRIAL # 0; SWEEP PARAMS = [-8, 8, 32, 5, 3]
+0:00:09	BCHWP.py TRIAL # 1; SWEEP PARAMS = [-12, 12, 24, 5, 3]
 0:00:09	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
-0:00:28	Sweeping B_C_HWP from -8 to 8 degrees in 32 steps.
-0:00:28	Taking data; sampling 5 x 3 s.
-0:00:44	Taking data; sampling 5 x 3 s.
+0:00:28	Sweeping B_C_HWP from -12 to 12 degrees in 24 steps.
+0:00:29	Taking data; sampling 5 x 3 s.
+0:00:45	Taking data; sampling 5 x 3 s.
 0:01:00	Taking data; sampling 5 x 3 s.
 0:01:16	Taking data; sampling 5 x 3 s.
 0:01:32	Taking data; sampling 5 x 3 s.
-0:01:49	Taking data; sampling 5 x 3 s.
-0:02:05	Taking data; sampling 5 x 3 s.
-0:02:21	Taking data; sampling 5 x 3 s.
-0:02:37	Taking data; sampling 5 x 3 s.
-0:02:53	Taking data; sampling 5 x 3 s.
-0:03:10	Taking data; sampling 5 x 3 s.
-0:03:26	Taking data; sampling 5 x 3 s.
-0:03:42	Taking data; sampling 5 x 3 s.
-0:03:58	Taking data; sampling 5 x 3 s.
-0:04:14	Taking data; sampling 5 x 3 s.
-0:04:30	Taking data; sampling 5 x 3 s.
-0:04:46	Taking data; sampling 5 x 3 s.
-0:05:02	Taking data; sampling 5 x 3 s.
-0:05:18	Taking data; sampling 5 x 3 s.
-0:05:35	Taking data; sampling 5 x 3 s.
-0:05:51	Taking data; sampling 5 x 3 s.
-0:06:06	Taking data; sampling 5 x 3 s.
-0:06:22	Taking data; sampling 5 x 3 s.
-0:06:38	Taking data; sampling 5 x 3 s.
-0:06:54	Taking data; sampling 5 x 3 s.
-0:07:10	Taking data; sampling 5 x 3 s.
-0:07:25	Taking data; sampling 5 x 3 s.
-0:07:41	Taking data; sampling 5 x 3 s.
-0:07:58	Taking data; sampling 5 x 3 s.
-0:08:13	Taking data; sampling 5 x 3 s.
-0:08:29	Taking data; sampling 5 x 3 s.
-0:08:45	Taking data; sampling 5 x 3 s.
-0:09:01	Saving data to "BCHWP_sweep0.csv".
-0:09:01	Clearing output data.
-0:09:02	Beginning shutdown procedure.
-0:09:03	Shutting down motor objects.
-0:09:04	C_UV_HWP returned to true position 359.97237723214283 degrees.
-0:09:04	Deleting C_UV_HWP object.
-0:09:05	C_QP returned to true position 359.9974888392857 degrees.
-0:09:05	Deleting C_QP object.
-0:09:06	C_PCC returned to true position 0.007533482142857143 degrees.
-0:09:06	Deleting C_PCC object.
-0:09:07	B_C_HWP returned to true position 359.99246651785717 degrees.
-0:09:07	Deleting B_C_HWP object.
-0:09:08	B_C_QWP returned to true position 0.0025111607142864756 degrees.
-0:09:08	Deleting B_C_QWP object.
-0:09:09	B_HWP returned to true position 0.0 degrees.
-0:09:09	Deleting B_HWP object.
-0:09:21	B_QWP returned to true position 0.0 degrees.
-0:09:21	Deleting B_QWP object.
-0:09:28	A_HWP returned to true position 0.0 degrees.
-0:09:28	Deleting A_HWP object.
-0:09:30	A_QWP returned to true position 359.9974060058594 degrees.
-0:09:30	Deleting A_QWP object.
-0:09:30	Closing COM ports.
-0:09:31	Closing CCU.
-0:09:32	Closing log file.
+0:01:48	Taking data; sampling 5 x 3 s.
+0:02:04	Taking data; sampling 5 x 3 s.
+0:02:19	Taking data; sampling 5 x 3 s.
+0:02:35	Taking data; sampling 5 x 3 s.
+0:02:51	Taking data; sampling 5 x 3 s.
+0:03:07	Taking data; sampling 5 x 3 s.
+0:03:23	Taking data; sampling 5 x 3 s.
+0:03:38	Taking data; sampling 5 x 3 s.
+0:03:54	Taking data; sampling 5 x 3 s.
+0:04:10	Taking data; sampling 5 x 3 s.
+0:04:26	Taking data; sampling 5 x 3 s.
+0:04:42	Taking data; sampling 5 x 3 s.
+0:04:58	Taking data; sampling 5 x 3 s.
+0:05:14	Taking data; sampling 5 x 3 s.
+0:05:29	Taking data; sampling 5 x 3 s.
+0:05:46	Taking data; sampling 5 x 3 s.
+0:06:01	Taking data; sampling 5 x 3 s.
+0:06:17	Taking data; sampling 5 x 3 s.
+0:06:33	Taking data; sampling 5 x 3 s.
+0:06:49	Saving data to "BCHWP_sweep1.csv".
+0:06:49	Clearing output data.
+0:06:49	Beginning shutdown procedure.
+0:06:49	Shutting down motor objects.
+0:06:50	C_UV_HWP returned to true position 359.96986607142856 degrees.
+0:06:51	Deleting C_UV_HWP object.
+0:06:51	C_QP returned to true position 359.9974888392857 degrees.
+0:06:51	Deleting C_QP object.
+0:06:52	C_PCC returned to true position 0.005022321428571428 degrees.
+0:06:52	Deleting C_PCC object.
+0:06:53	B_C_HWP returned to true position 359.99246651785717 degrees.
+0:06:53	Deleting B_C_HWP object.
+0:06:54	B_C_QWP returned to true position 359.99497767857144 degrees.
+0:06:54	Deleting B_C_QWP object.
+0:06:55	B_HWP returned to true position 0.0 degrees.
+0:06:55	Deleting B_HWP object.
+0:07:07	B_QWP returned to true position 359.99993896484375 degrees.
+0:07:07	Deleting B_QWP object.
+0:07:14	A_HWP returned to true position 0.0 degrees.
+0:07:14	Deleting A_HWP object.
+0:07:16	A_QWP returned to true position 359.9974060058594 degrees.
+0:07:16	Deleting A_QWP object.
+0:07:16	Closing COM ports.
+0:07:16	Closing CCU.
+0:07:17	Closing log file.
