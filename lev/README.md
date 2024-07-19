@@ -11,7 +11,15 @@ This folder contains code to determine what states we should gather experimental
 ## testing_experiment
 This folder contains code to analyze experimental data and neural net/population model performance.
 ### Important Files:
-- process_expt_lev.py; this file processes experimental data, calculates its W/W' witness values using rho_methods.py, calculates adjusted theory, and plots all. It also saves these values to a csv file, which can be plotted separately using gen_paper_plots.py (which was used to generate plots for both the paper and poster).
+- process_expt_lev.py; this file processes experimental data, calculates its W/W' witness values using rho_methods.py, calculates adjusted theory, and plots all. It also saves these values to a csv file, which can be plotted separately using gen_paper_plots.py (which was used to generate plots for both the paper and poster). You can specify what theoretical state you'd like to compare against and their relative probabilites if mixing.
+- process_expt_lev_nn; this file returns whether the W/W' triplet was guessed correctly for the population model and 5 layer neural network.
+- gen_paper_plots.py; using the csv output of process_expt_lev.py, this nicely plots our W/W' witness values. As of writingg (7/19/2024) this is set up to generate plots for our Summer 2024 poster.
+- mix_expt_data.py; here you can mix two experimentally generated states at different probabilities, outputting an .npy in the same format as the two inputs.
+### Important Folders:
+- all_summer2024_data; as the name implies, this contains all data we took and analyzed this summer. Important folders within include mixed_phi_psi_45 (Wp1), hrvl_havd_wp2_testmixwithbadhavddata (Wp2), and hrivl_hdiva_mix_flippedminus (Wp3). See the poster for what states these include specifically, with the naming convention of it is in the folder's name first, its file corresponds to _1, second is _2, and the mix of them is the two numbers added together. Notably the Wp1 states don't follow this, with phi being _1, psi being _26, and their mix being _27.
+- old-models; contains NN5 and other models trained in Summer 2023. #note, this may not show in github as it is too large, download the folder from Oscar's README in the Summer 2023 repo and place it here!
+- richard; contains the psi plus state obtained by Richard in summer 2023.
+- 
 
 ## calibration
-This folder contains the Tex file for the calibration/troubleshooting document I created. 
+This folder contains the Tex file for the calibration/troubleshooting document I created. This pdf is identical to the one in the actual calibration folder.
