@@ -15,10 +15,10 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'hr-ivl_ha-ivd_mix_wp2'
+DATA_PATH = 'hrivl7-19_havd_mix'
 
 def get_rho_from_file_depricated(filename, rho_actual):
-    '''Function to read in experimental density matrix from file. Depricated since newer experiments will save the target density matrix in the file; for trials <= 14'''
+    '''Function to read in experimental density matrix from file. Deprecated since newer experiments will save the target density matrix in the file; for trials <= 14'''
     # read in data
     try:
         rho, unc, Su = np.load(join(DATA_PATH,filename), allow_pickle=True)
@@ -313,7 +313,7 @@ def make_plots_E0(dfname):
         popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT, maxfev = 10000)
         #print('popt_W are:', popt_W_AT_eta) 
         popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T, maxfev = 10000)
-        popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
+        popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT, maxfev = 10000)
         
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
@@ -547,8 +547,14 @@ def get_theo_rho(state, eta, chi):
         rho_return = 0.95 * rho_main + 0.05 * rho_hd + 0.05 * rho_va
         return rho_return
         
+    if state == 'cosHL_sinVR':
+        phi = np.cos(chi/2) * np.kron(H, L) + np.sin(chi/2) * np.kron(V,R)    
+    
     if state == 'cosHR_minussinVL':
         phi = np.cos(chi/2) * np.kron(H, R) - np.sin(chi/2) * np.kron(V,L) # no i shows in this form
+        
+    if state == 'cosHL_minussinVR': 
+        phi = np.cos(chi/2) * np.kron(H, L) - np.sin(chi/2) * np.kron(V,R)
         
     if state == 'cosHD_minussinVA':
         phi = np.cos(chi/2) * np.kron(H,D) - np.sin(chi/2) * np.kron(V,A) # no i shows in this form
@@ -565,8 +571,16 @@ def get_theo_rho(state, eta, chi):
     if state == 'cosHR_minusisinVL':
         phi = np.cos(chi/2) * np.kron(H, R) - 1j * np.sin(chi/2) * np.kron(V,L) 
         
+    if state == 'cosHL_minusisinVR':
+        phi = np.cos(chi/2) * np.kron(H, L) - 1j * np.sin(chi/2) * np.kron(V,R) 
+        
+    if state =='cosHA_minusiphasesinVD':
+        phi = np.cos(chi/2) * np.kron(H, A) - np.exp(1j * 1.311) * np.sin(chi/2) * np.kron(V,D)
+    
     if state == 'testing_hdiva_phase':
         phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, A)
+    if state =='cosHA_minusphasesinVD':
+        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
@@ -579,8 +593,8 @@ if __name__ == '__main__':
     #chis = [np.pi/2]
     states_names = []
     states = []
-    names = ['cosHA_minusisinVD']
-    probs = [1]
+    names = ['cosHR_minusisinVL', 'cosHA_minusisinVD'] #'cosHA_minusisinVD', 
+    probs = [0.65, 0.35]
     
     for eta in etas:
         for chi in chis:
@@ -592,7 +606,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_2.npy") 
+        filenames.append(f"rho_('E0', {state_n})_3.npy") 
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
@@ -602,7 +616,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'rho_summer_2024_havd_7-14'
+    id = 'hrivl_mix_HAVD_trial6_7-19_final'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 

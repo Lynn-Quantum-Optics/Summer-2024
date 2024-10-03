@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1720734539 "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" "qo_group_guide.pdf" "qo_group_guide" 1720734544 0
+["pdflatex"] 1721414254 "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" "qo_group_guide.pdf" "qo_group_guide" 1721414264 0
   "C:/Users/levjg/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1720717268 82507 a9eef8696c92627b87e9975edea03b2a ""
   "C:/Users/levjg/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1698096121 24175185 79e1b2c342b27ae712d9306bb5d2827e ""
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1233951848 1004 54797486969f23fa377b128694d548df ""
@@ -102,7 +102,7 @@
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1657800696 9714 ba3194bd52c8499b3f1e3eb91d409670 ""
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/tex/latex/titling/titling.sty" 1252048308 7358 95ac619994bd30d405a74f3eca431c84 ""
   "C:/Users/levjg/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
-  "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" 1720734538 17066 44577aaf000a6b19d9e746eabeb2fad0 ""
+  "c:/hmc files/Github Dock/Summer-2024/lev/calibration/calib_guide/qo_group_guide.tex" 1721414254 18646 974d2e289e0384c822257d7a5d3d8364 ""
   "figs/AHWP_sweep1.png" 1715974938 215394 188592aa2965a2d4ea0090f9f0767cc4 ""
   "figs/AQWP_sweep2.png" 1715974938 216182 7617da728c23bc385ba798befec81828 ""
   "figs/BCHWP_sweep0.png" 1715974938 235420 8134c38bcd42d98be605465fd2055ef3 ""
@@ -110,11 +110,15 @@
   "figs/BHWP_sweep2.png" 1715974938 205010 afa707b38d5ef940591add0618a4ee9d ""
   "figs/BQWP_sweep0.png" 1715974938 223845 c7bb4afa76ca4088847702b18c821aff ""
   "figs/UVHWP_sweep1.png" 1715974938 208089 3c0418a073b513c2fed061fbd5bc3e93 ""
+  "figs/bchwp_zero.jpg" 1721412847 3517228 0ae5221b28ff42473a87e03382af5ae9 ""
+  "figs/bcqwp_zero.jpg" 1721412949 1819391 7336dad7da5d9663e81a46fb3b09cf1b ""
   "figs/phi_sweep_7022024_2.png" 1720026930 268779 556ca8140ed1bb7729eaf4fd28f697cd ""
-  "qo_group_guide.aux" 1720734544 3955 389133485ec43a1bb5525d4506706ad9 "pdflatex"
-  "qo_group_guide.out" 1720734544 2384 c74d5c19df122ee997397acc3bf4f3b4 "pdflatex"
-  "qo_group_guide.tex" 1720734538 17066 44577aaf000a6b19d9e746eabeb2fad0 ""
-  "qo_group_guide.toc" 1720734544 1130 c0948ea92f55faeaa74b74c5faedf55e "pdflatex"
+  "figs/qp_zero.jpg" 1721412966 3233242 0f5b3a89eeed09486b07f8c790f0df5a ""
+  "figs/thorlabs_zero.jpg" 1721412824 3892319 70630624fec6fb660c6532fa71282308 ""
+  "qo_group_guide.aux" 1721414264 4834 88134f24181b57ca682a03d2afeef6eb "pdflatex"
+  "qo_group_guide.out" 1721414264 2640 08b0964e7260ed1373b81b86ea78a5fa "pdflatex"
+  "qo_group_guide.tex" 1721414254 18646 974d2e289e0384c822257d7a5d3d8364 ""
+  "qo_group_guide.toc" 1721414264 1232 7f8ae3a57db5aba1b90ff64c5e6e37c6 "pdflatex"
   (generated)
   "qo_group_guide.aux"
   "qo_group_guide.log"

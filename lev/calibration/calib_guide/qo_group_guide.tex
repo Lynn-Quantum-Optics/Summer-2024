@@ -139,6 +139,38 @@ Calibration of phi plus and the PCC is a three step process:
 
 You are now ready to run experiments! Note that these files can be used to calibrate $\ket{\Phi^-}$ as well, given an adjustment to the UVHWP sweep in ratio\_tuning of 45 degees. 
 
+\subsection{Images of Wave Plates at their Zeros}
+Here are some images of the wave plates at their zeros (with the config.json containing offsets; instantiating a new manager sets the wave plates to their calibrated zeros). Only one image of the Thorlabs motors have been included, as they are all identical with a visual zero calibrated. The UV HWP will be marked with a line at the top when at its zero, and the PCC will be added soon. The BBO is not part of the calibration procedure, but should be oriented such that it retroreflects off the the screw as in the image below.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.45\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth, angle = -90]{figs/thorlabs_zero.jpg}
+        \caption{}
+        \label{fig:thorlabs_zero}
+    \end{subfigure}
+    \begin{subfigure}{0.45\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth, angle = -90]{figs/bcqwp_zero.jpg}
+        \caption{}
+        \label{fig:bcqwp_zero}
+    \end{subfigure}
+    \begin{subfigure}{0.45\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth, angle = -90]{figs/bchwp_zero.jpg}
+        \caption{}
+        \label{fig:bchwp_zero}
+    \end{subfigure}
+    \begin{subfigure}{0.45\linewidth}
+        \centering
+        \includegraphics[width=1\linewidth, angle = -90]{figs/qp_zero}
+        \caption{}
+        \label{fig:qp_zero}
+    \end{subfigure}
+    \caption{Top left to bottom right, visual zero of: Thorlabs measurement plates, BCQWP, BCHWP, and QP. }
+\end{figure}
+
 \section{Random Issues with the Apparatus}
 The number one thing to remember whenever an error occurs is to first run 'm.shutdown()' in the terminal if the Manager has been instantiated. This resets all wave plates to their calibrated zeros and removes the risk of losing calibrations. See how to instantiate the manager from terminal in section \ref{sec:calib_not_from_scratch}.
 

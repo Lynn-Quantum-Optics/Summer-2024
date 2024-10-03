@@ -4,10 +4,11 @@
 \contentsline {subsection}{\numberline {2.2}Alice's Wave Plates (and the UV Half Wave Plate)}{3}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}Bob's Wave Plates}{3}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}Phi Plus and the PCC}{4}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Images of Wave Plates at their Zeros}{6}{subsection.2.5}%
 \contentsline {section}{\numberline {3}Random Issues with the Apparatus}{6}{section.3}%
 \contentsline {subsection}{\numberline {3.1}The Quartz Plate Refusing to Move}{6}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}COM5/7 Refusing to Open}{6}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Serial Number Errors}{6}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Fitting Errors}{7}{subsection.3.4}%
-\contentsline {section}{\numberline {4}Calibration not from Scratch}{7}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Github (Please Push)}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {3.2}COM5/7 Refusing to Open}{8}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Serial Number Errors}{8}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Fitting Errors}{8}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Calibration not from Scratch}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Github (Please Push)}{9}{subsection.4.1}%
