@@ -241,15 +241,15 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp2_param_expt = W_expt_ls[10]
         Wp3_param_expt = W_expt_ls[11]
     
-        print('THE CURRENT POINT IS POINT:', i)
-        print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
+        #print('THE CURRENT POINT IS POINT:', i)
+        #print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
         # # print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
 
         #print('Theoretical rho is:', rho_actual)
         #print('Actual rho is:', rho)
         #print('With W/W primes of:', W_name_T, W_min_T, Wp1_name_T, Wp_t1_T, Wp2_name_T, Wp_t2_T, Wp3_name_T, Wp_t3_T)
         #print('Experimental Ws:', W_name_expt, W_min_expt,  Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
-        print()
+        #print()
         if eta is not None and chi is not None:
             adj_fidelity= get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
 
@@ -616,7 +616,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'hrivl_mix_HAVD_trial6_7-19_final'
+    id = 'hrivl_mix_HAVD_trial6_7-19_test'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 
