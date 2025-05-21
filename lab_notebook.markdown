@@ -1633,3 +1633,158 @@ Laser on 9:20; goal for today is to take cos(chi/2)HA - i*sin(chi/2)VD. We have 
 2. Measured in RL 5x3 and got LH is: 1435+/-7 RH is: 51.1+/-1.9.
 3. Nudge QP to minimize this further. An issue I ran into is even w/ 5x5s measurements, we were varying coincidence counts for the same angle by 1-3 counts. Narrowed it down to -24.8 deg at 36.1 counts.
 4. Because this was not too much of a difference (20 counts and 0.73 deg dif) we are taking a full tomography of this state as it is to compare to our theo density matrix.
+
+# 9/10/2024
+MP: Stu
+
+Laser on at 3:05
+
+Checking phi plus again after around two months. RR and LL coincidence counts looked to be not quite 0 (50-110 range), so I'm going to recalibrate the quartz plate, and then run a ratio tune after.
+
+new qp angle: -16.42
+old qp angle: -17.46
+
+# 10/1/2024
+MP: Stu
+
+Laser on at 6:04
+
+Checking phi plus today. Phi plus looks good!
+
+Going to run stu_havd. Hope there is no pesky weird phase shift. Ran it a couple of times, but couldn't get a single point due to the quartz plate bugging out.
+
+Couldn't get a point. 
+
+# 10/16/2024
+MP: Stu, Eddy
+
+Laser on at 7:30
+ran stu.havd, still encountered same issue with quartz plate
+
+# 10/20/2024
+MP: Eddy
+
+going through different files to familiarize myself w the code
+
+# 10/21/2024
+MP: Stu
+
+Laser on at 11:22
+
+Trying to fix the quartz plate. Ello would not connect, so I took out the quartz plate, cleaned it, and recalibrated it. Going to run stu_havd. 
+
+Setup is really bugging out now, and it now has a problem in the motor_drivers.py and manager files. I'll try to sort this out. Alsop just got the same error on the Ello with COM12 and COM5, says they are "not available"
+
+
+# 12/6/2024
+
+MP: Eddy, Prof. Lynn
+
+There was a power outage on 12/2/24, and now the waveplates wanted to initialize on the first address. BCQWP wouldn't connect to the ello when plugged in by itself, so we changed the rotation mount.
+
+We plugged in one waveplate at a time on busses with more than one waveplate, moved its address on ello using the address manager, disconnected, and then reconnected. This sets the waveplates on 
+different addresses. 
+
+Then we needed to recalibrate the setup, and found a minimum in the UVHWP to be around -7. The PCC expected a response of length 11 but gave b'0GS02'. We attached it to its own bus but gave the same
+error. 
+
+We're leaving Bob's creation waveaplates out of the setup for calibration of the UVHWP and PCC (later). 
+
+
+
+
+
+# 2/22/2025
+MP: Ria Stu
+
+We calibrated the UVHWP. Found that the zero was at -9.416, so we added it to the home offset in both configs. We also ran the ratio tuning, and found that -115.47984073036596 gave us the even superposition. We will sense check this next time. 
+
+
+
+# 3/2/2025
+MP: Ria Stu
+
+We ran a ratio tuning check and changed the angle from -112.07832135652241 to -115.8210111919202. We also ran a quartz plate sweep and changed the angle from -17.46 to -5.28. Phase is still off 
+by a bit because DA AD counts are around 400. We are also getting lower count rates overall, maybe due to the stand that is supposed to stop back reflection off the pcc. Counts were around 850 when we expect around 1100-1250.
+
+
+# 3/5/2025
+MP: Ria and Prof Lynn
+
+We investigated the cause of the lower counting rates from 3/2/2025. We first messed with the tilt of the crystal to see if this had gotten misaligned. This only decreased counting rates, so we looked at the path of the laser and realized it was slightly misaligned at the detectors. We adjusted the side to side and up and down tilt of the second mirror until the path was realigned, and confirmed this raised counting rates to the range we would expect (1300-1500). We also made the HH and VV basis to investigate whether we are currently making those two basis accurately and found that when making HH, we are still measuring about 80 counts of VV, and when making VV, we are still measuring about 70 counts of HH. We also found we are better at making VV than HH (about 2600-2800 counts compared to 2400-2600), but need to look back at old information to see whether this has always been the case or if our calibration is off.
+
+
+# 3/12/2025
+MP: Ria Stu and Prof Lynn
+
+We found that the difference in measuring HH and VV came down to a -24.1215 QP angle when making HH. When we set the qp angle to 0, the HH and VV counts were similar. We then ran two calibrations: one making HH and measuring VV and one making V and measuring HH. We found the results to be shifting the UVHWP -3.43 and -3.455 degrees from the two calibrations. We decided to split the difference and adjust the UVHWP by -3.44 degrees. 
+
+
+# 3/26/2025
+MP: Ria Stu and Prof Lynn
+
+We were going to perform the PCC calibration; however, when checking AD and DA counts, they were about 150, so we decided to check if the UVHWP and QP were correctly calibrated. By doing a rough estimate by hand, we found we should actually move the UVHWP back to -112.5 (which was what it was before we changed it earlier this month). We also ran the phase finding for the QP. We had it fail twice when running, but the third time we switched (0, -15) to be (-15, 0) and it seemed to run just fine. Perhaps having the smaller number first fixes this issue? Or we just got lucky. The data from that sweep is saved in 'all_phase_finding_data2_test3262025.csv' and 'phi_data_3262025.csv' Stu and Prof Lynn left early, so we will look at that data next time we meet.
+
+
+# 3/30/2025
+MP: Ria Stu
+
+We recalibrated the QP visually in Ello to reset the zero because the results we were getting from the sweep data weren't as expected. We then reran the sweep and found the minimum was at 0.165, so we set the QP offset in phi_plus to be this value (was -5.28 before). One thing to note is the error bars on the fit were pretty large. We then ran the ratio tuning and changed the value in phi_plus for the UV_HWP from -112.5 to 
+-112.56670098555715. VSCode also crashed when I was checking count rates. Something is definitely off in the calibration because HH rates are a bit low and VV rates are a bit high (1200ish and 1800ish). This was actually just because one of the config files hadn't been updated (still had -22.3401 old value, not updated -25.78). AD counts are about 100-150 and DA counts are 50-100. Hopefully will be able to calibrate PCC next time, will mention the DA and AD counts to Stu and Prof Lynn.
+
+
+# 04/02/2025
+MP: Ria Stu Prof Lynn
+
+Because the QP calibration data from last week never reached 0, we decided to adjust the UV_HWP so it would result in a shift of about pi - chaning it from -112.5667 to -67.433. With this in mind, we expected the QP to cross zero around -24 degrees. We ran the QP sweep from -20 to -30 degrees (crashed when we ran -30 to -20, maybe flipping the bounds helped, maybe we got lucky). This gave us -24.622 as our QP angle. We then ran the ratio tuning again (sweep from -65 to -75 as this is the range we expected it to be in) and changed the UV_HWP angle to -67.19164757979544. I double check HH and VV (both about 1500) and AD and DA counts (both maxing out at about 40). Will run PCC sweep sunday.
+We also discussed updating the phase finding file so it moved less - rather than going basis by basis, we talked about going to each location and collecting data for each basis (would only move ~10 times rather than ~80). Also, we talked about saving the data as it went so if it failed, we wouldn't have to recollect the points that had succeeded in the previous run.
+
+# 04/02/2025
+MP: Ria
+
+I ran the PCC sweep. First, on the bigger sweep (-15 to 10), I found the maximum was about 1.44 degrees. So I narrowed the range to sweep from -3 to 4 degrees to get a better accuracy.
+
+# 04/06/2025
+MP: Stu, Ria
+
+We ran the BCHWP calibration, changed the offset from -30.58 to 5.278. VSCode crashed again, which seems a little strange.
+We also ran the BCQWP calibration and found the offset should be change by -38.846 degrees. The current offset is -7.83761 so it looks like the new offset should be 31.008, but I want to double check that first.
+
+# 04/09/2025
+MP: Stu, Ria, Prof Lynn
+
+The BCQWP calibration seemed to be a bit off, and the minimum was as 80 counts, not as close to zero as desired. We ended up recalibrating both the BCHWP and BCQWP waveplate because when we checked the BCHWP zero position, it was off. We think this might be because of VSCode crashing, even though it doesn't necessarily make sense with how the motors work, because it was off by almost exactly the 5.278 degrees it had been zeroed at. We ran into some issue with calibrations being finicky. The BCWHP calibration file says the calibration is off by about 5.5 degrees, but when we checked the counts in the manager, they were minimized (hovering around 8). I decided to leave it as is and calibration the BCQWP. 97.242 degrees was the fit found from this calibration (so went from 31.008 to 128.25). The minimum had about 8 counts, so it looks like BCHWP was fine at zero. We should investigate why the calibration for that was being so finicky though because it thought the minimum was at 5 degrees (it evidently was not).
+
+# 04/16/2025
+MP: Ria, Prof Lynn
+
+We double checked BCHWP calibration and decided to leave it as is. We then proceded with re-calibrating the QP to finalize calibration. Ultimately, we decided to leave the UVHWP in the same location (though will run ratio tuning after QP) because moving it to the other side of -45 meant the QP would have had to be at a steeper angle then we like. We found (by hand) the QP should be somewhere around -15 degrees, and proceded the sweep. Unfortunately, we had the same error this file always gives 3 times, but I ultimately go it to work, changing the value from -24.622 to -15.415.  Would recommmend reformating the QP sweep file bc it keeps failing which is pretty frustrating especially if you have limited time (see 04/02/2025 lab notebook entry).
+
+# 04/16/2025
+MP: Ria
+
+I ran the ratiuo tuning and changed the value from -67.19164757979544 to -65.40963303415398. Note: DA counts are lower than AD (80ish compared to 30ish). I ran a PCC sweep and the purity was pretty low (around 92.5 percent). I reran phase finding and adjusted the QP to -14.75. I then reran ratio tuning and it gave the same angle as before (well, it was off by 1/10 of a degree). I then reran another PCC sweep and got state purity 93.5 which is still a little lower than I would hope. I expanded the range of the sweep just to double check the PCC is still correctly calibrated and determined purity peaked right at 1 degree (94%). So I changed the PCC from 0.138 to 1. AD and DA counts seem more balanced with this (both around 40).
+VSCode crashed again while ratio tuning: reason oom, code -536870904 (OUT OF MEMORY)
+
+# 05/01/2025
+MP: Stuart Ria
+
+Checked BCHWP and BCQWP angles for HDVA (BCHWP = 67.5, BCQWP = 45). Counts seemed good at around ~1600 for both HD and VA bases. 
+For measuring, we set Bob to measure V amd Alice's plates as follows: AHWP = -37.5, AQWP = -120. By hand, it looks like our minimum occurs with the QP around -21 degrees, which is about as expected based on the phase sweep we ran for this state without the phase shift. Before measuring the state we just have to minimize the QP angle and ratio tune. 
+
+
+# 05/20/2025
+MP: Ria
+
+I created a QP sweep file that just runs a QP sweep in the correct basis while measuring in the basis that expects minimum counts (basic_qp_sweep.py). I used this to find the QP minimized counts in the correct basis (using settings from 5/1) at -21.288 degrees for the HD+e^-ipi/eVA state.
+I created another ratio tuning file so as not to clog up the phi_plus calibration one that I will use for these two states. It is called "basic_ratio_tuning.py". I ran this file and found the UVHWP should be at -66.02461563913445.
+
+I also took a look at documentation while the files were running to make a note of what is missing and how to better organize it in the future. Additionally, I think the file tree in calibration (especially) needs some cleaning up. I think all important calibration and intro documentation could get moved to also be in the drive so it doesn't get lost when repositories change?
+Note: the QP seems to error much more if it hasn't been used recently -- you have to move it a few times using the manager before running a file if it has been a bit, otherwise it errors almost immediately.
+
+
+
+# 05/21/2025
+MP: Ria
+
+I started by double-checking the value of counts at the given QP angle. It was 44.
