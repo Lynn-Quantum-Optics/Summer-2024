@@ -1,0 +1,4 @@
+0:00:00	Manager started at 2025-04-16_23-47-31.
+0:00:01	Configuration file: "../config.json".
+0:00:01	Initializing CCU.
+0:00:01	Initializing motors.
