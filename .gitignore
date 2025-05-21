@@ -1,7 +1,6 @@
 lev/testing_experiment/random_gen/
 lev/py-venv/
-/lev
-/framework
+/lev/testing_experiment
 
 /lev/py-venv
 oscar/witness_2024/*.csv
