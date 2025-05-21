@@ -36,13 +36,6 @@ def make_plots_E0(DATA_PATH, file_name):
     chi_eta = df_eta['chi'].to_numpy()
     adj_fidelity = df_eta['AT_fidelity'].to_numpy()
 
-    # # do purity and fidelity plots
-    # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
-    # ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
-
-    # # plot adjusted theory purity
-    # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
-
     # extract witness values
     W_min_T = df_eta['W_min_T'].to_numpy()
     W_min_AT = df_eta['W_min_AT'].to_numpy()
@@ -63,7 +56,7 @@ def make_plots_E0(DATA_PATH, file_name):
     popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT, maxfev = 10000)
     #print('popt_W are:', popt_W_AT_eta) 
     popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T, maxfev = 10000)
-    popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
+    popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT, maxfev = 10000)
     
     chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
@@ -79,28 +72,30 @@ def make_plots_E0(DATA_PATH, file_name):
     ax.tick_params(axis='both', which='major', labelsize=20)
     ax.set_xlabel('$\chi$ (deg)', fontsize=22)
     ax.axhline(y=0, color='black')
-    # ax[1,i].set_ylabel('Value', fontsize=31)
-    # ax[1,i].legend()
+    #ax.set_ylabel('Value', fontsize=31)
+    ax.legend(loc = 'lower left', fontsize=22)
 
-    plt.text(55.5, 0.11, 
-        r'$|\varphi_1\rangle = \cos{(\frac{\chi}{2})}|HD\rangle - \sin{(\frac{\chi}{2})}|VA\rangle$' + '\n' +
-        r'$|\varphi_2\rangle = \cos{(\frac{\chi}{2})}|HR\rangle - \sin{(\frac{\chi}{2})}|VL\rangle$' + '\n' +
-        r'$\rho = 0.65|\varphi_1\rangle\langle \varphi_1| + 0.35|\varphi_2\rangle\langle\varphi_2|$',  
-        size=18, va="baseline", ha="right", multialignment="left",
-        bbox=dict(fc="none"))
-    
     plt.suptitle('Entangled State Witnessed by 3rd W\' Triplet', fontsize=25)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{file_name}.pdf'))
     plt.show()
 
 if __name__ == '__main__':
+    # file_name = 'analysis_rho_summer_2024_hdminusva_hrminusvl_mix6535.csv'
+    # DATA_PATH = 'hrivl_hdiva_mix_flippedminus'
     file_name = 'analysis_rho_summer_2024_hdminusva_hrminusvl_mix6535.csv'
-    DATA_PATH = 'hrivl_hdiva_mix_flippedminus'
+    DATA_PATH = 'all_summer2024_data/hrivl_hdiva_mix_flippedminus'
     
     make_plots_E0(DATA_PATH, file_name)
     
 ### Text for making other plots
+# WP2
+# plt.text(92.5, -0.08, 
+#         r'$|\varphi_1\rangle = \cos{(\frac{\chi}{2})}|HR\rangle - i\sin{(\frac{\chi}{2})}|VL\rangle$' + '\n' +
+#         r'$|\varphi_2\rangle = \cos{(\frac{\chi}{2})}|HA\rangle + e^{-i\frac{2\pi}{5}}\sin{(\frac{\chi}{2})}|VD\rangle$' + '\n' +
+#         r'$\rho = 0.65|\varphi_1\rangle\langle \varphi_1| + 0.35|\varphi_2\rangle\langle\varphi_2|$',  
+#         size=18, va="baseline", ha="right", multialignment="left",
+#         bbox=dict(fc="none"))
 
 # WP1 in Bell State Form
 # plt.text(58.6, 0.136, 
@@ -119,9 +114,15 @@ if __name__ == '__main__':
     #     bbox=dict(fc="none"))
 
 # WP3 State
-# plt.text(55.5, 0.11, 
-#         r'$\varphi_1 = \cos{(\frac{\chi}{2})}|HD\rangle - \sin{(\frac{\chi}{2})}|VA\rangle$' + '\n' +
-#         r'$\varphi_2 = \cos{(\frac{\chi}{2})}|HR\rangle - \sin{(\frac{\chi}{2})}|VL\rangle$' + '\n' +
-#         r'$\rho = 0.65|\varphi_1\rangle\langle \varphi_1| + 0.35|\varphi_2\rangle\langle\varphi_2|$',  
-#         size=18, va="baseline", ha="right", multialignment="left",
-#         bbox=dict(fc="none"))
+    # plt.text(55.5, 0.11, 
+    #     r'$|\varphi_1\rangle = \cos{(\frac{\chi}{2})}|HD\rangle - \sin{(\frac{\chi}{2})}|VA\rangle$' + '\n' +
+    #     r'$|\varphi_2\rangle = \cos{(\frac{\chi}{2})}|HR\rangle - \sin{(\frac{\chi}{2})}|VL\rangle$' + '\n' +
+    #     r'$\rho = 0.65|\varphi_1\rangle\langle \varphi_1| + 0.35|\varphi_2\rangle\langle\varphi_2|$',  
+    #     size=18, va="baseline", ha="right", multialignment="left",
+    #     bbox=dict(fc="none"))
+    
+# text for in progress expt 
+#    plt.text(100, 0.0,
+        # 'Experiment in progress',
+        # size = 22, va="baseline", ha="right", multialignment="center",
+        # bbox=dict(fc="none"))

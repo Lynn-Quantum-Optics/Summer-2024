@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.10.12) (preloaded format=pdflatex 2023.10.23)  11 JUL 2024 14:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.10.12) (preloaded format=pdflatex 2023.10.23)  19 JUL 2024 11:37
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -386,38 +386,38 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
  [1
 
 {C:/Users/levjg/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}] [2]
-<figs/AQWP_sweep2.png, id=90, 433.62pt x 289.08pt>
+<figs/AQWP_sweep2.png, id=95, 433.62pt x 289.08pt>
 File: figs/AQWP_sweep2.png Graphic file (type png)
 <use figs/AQWP_sweep2.png>
 Package pdftex.def Info: figs/AQWP_sweep2.png  used on input line 63.
 (pdftex.def)             Requested size: 137.60461pt x 91.73555pt.
-<figs/AHWP_sweep1.png, id=92, 433.62pt x 289.08pt>
+<figs/AHWP_sweep1.png, id=97, 433.62pt x 289.08pt>
 File: figs/AHWP_sweep1.png Graphic file (type png)
 <use figs/AHWP_sweep1.png>
 Package pdftex.def Info: figs/AHWP_sweep1.png  used on input line 69.
 (pdftex.def)             Requested size: 137.60461pt x 91.73555pt.
-<figs/UVHWP_sweep1.png, id=93, 433.62pt x 289.08pt>
+<figs/UVHWP_sweep1.png, id=98, 433.62pt x 289.08pt>
 File: figs/UVHWP_sweep1.png Graphic file (type png)
 <use figs/UVHWP_sweep1.png>
 Package pdftex.def Info: figs/UVHWP_sweep1.png  used on input line 75.
 (pdftex.def)             Requested size: 137.60461pt x 91.73555pt.
  [3]
-<figs/BQWP_sweep0.png, id=104, 433.62pt x 289.08pt>
+<figs/BQWP_sweep0.png, id=109, 433.62pt x 289.08pt>
 File: figs/BQWP_sweep0.png Graphic file (type png)
 <use figs/BQWP_sweep0.png>
 Package pdftex.def Info: figs/BQWP_sweep0.png  used on input line 99.
 (pdftex.def)             Requested size: 150.50424pt x 100.337pt.
-<figs/BCHWP_sweep0.png, id=105, 433.62pt x 289.08pt>
+<figs/BCHWP_sweep0.png, id=110, 433.62pt x 289.08pt>
 File: figs/BCHWP_sweep0.png Graphic file (type png)
 <use figs/BCHWP_sweep0.png>
 Package pdftex.def Info: figs/BCHWP_sweep0.png  used on input line 105.
 (pdftex.def)             Requested size: 150.50424pt x 100.337pt.
-<figs/BHWP_sweep2.png, id=106, 433.62pt x 289.08pt>
+<figs/BHWP_sweep2.png, id=111, 433.62pt x 289.08pt>
 File: figs/BHWP_sweep2.png Graphic file (type png)
 <use figs/BHWP_sweep2.png>
 Package pdftex.def Info: figs/BHWP_sweep2.png  used on input line 111.
 (pdftex.def)             Requested size: 150.50424pt x 100.337pt.
-<figs/BCQWP2.png, id=107, 462.528pt x 346.896pt>
+<figs/BCQWP2.png, id=112, 462.528pt x 346.896pt>
 File: figs/BCQWP2.png Graphic file (type png)
 <use figs/BCQWP2.png>
 Package pdftex.def Info: figs/BCQWP2.png  used on input line 117.
@@ -427,31 +427,52 @@ Package pdftex.def Info: figs/BCQWP2.png  used on input line 117.
 LaTeX Warning: No positions in optional float specifier.
                Default added (so using `!tbp') on input line 124.
 
-<figs/phi_sweep_7022024_2.png, id=108, 462.528pt x 346.896pt>
+<figs/phi_sweep_7022024_2.png, id=113, 462.528pt x 346.896pt>
 File: figs/phi_sweep_7022024_2.png Graphic file (type png)
 <use figs/phi_sweep_7022024_2.png>
 Package pdftex.def Info: figs/phi_sweep_7022024_2.png  used on input line 126.
 (pdftex.def)             Requested size: 322.50346pt x 241.88864pt.
-[4 <./figs/AQWP_sweep2.png> <./figs/AHWP_sweep1.png> <./figs/UVHWP_sweep1.png>] [5 <./figs/BQWP_sweep0.png> <./figs/BCHWP_sweep0.png> <./figs/BHWP_sweep2.png> <./figs/BCQWP2.png> <./figs/phi_sweep_7022024_2.png>] [6] [7] [8] (qo_group_guide.aux)
+[4 <./figs/AQWP_sweep2.png> <./figs/AHWP_sweep1.png> <./figs/UVHWP_sweep1.png>] [5 <./figs/BQWP_sweep0.png> <./figs/BCHWP_sweep0.png> <./figs/BHWP_sweep2.png> <./figs/BCQWP2.png> <./figs/phi_sweep_7022024_2.png>]
+<figs/thorlabs_zero.jpg, id=137, 971.3088pt x 728.4816pt>
+File: figs/thorlabs_zero.jpg Graphic file (type jpg)
+<use figs/thorlabs_zero.jpg>
+Package pdftex.def Info: figs/thorlabs_zero.jpg  used on input line 149.
+(pdftex.def)             Requested size: 193.50076pt x 145.12683pt.
+<figs/bcqwp_zero.jpg, id=138, 971.3088pt x 728.4816pt>
+File: figs/bcqwp_zero.jpg Graphic file (type jpg)
+<use figs/bcqwp_zero.jpg>
+Package pdftex.def Info: figs/bcqwp_zero.jpg  used on input line 155.
+(pdftex.def)             Requested size: 193.50076pt x 145.12683pt.
+<figs/bchwp_zero.jpg, id=139, 971.3088pt x 728.4816pt>
+File: figs/bchwp_zero.jpg Graphic file (type jpg)
+<use figs/bchwp_zero.jpg>
+Package pdftex.def Info: figs/bchwp_zero.jpg  used on input line 161.
+(pdftex.def)             Requested size: 193.50076pt x 145.12683pt.
+<figs/qp_zero.jpg, id=140, 971.3088pt x 728.4816pt>
+File: figs/qp_zero.jpg Graphic file (type jpg)
+<use figs/qp_zero.jpg>
+Package pdftex.def Info: figs/qp_zero.jpg  used on input line 167.
+(pdftex.def)             Requested size: 193.50076pt x 145.12683pt.
+ [6] [7 <./figs/thorlabs_zero.jpg> <./figs/bcqwp_zero.jpg> <./figs/bchwp_zero.jpg> <./figs/qp_zero.jpg>] [8] [9] (qo_group_guide.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-10-10>
  ***********
 Package rerunfilecheck Info: File `qo_group_guide.out' has not changed.
-(rerunfilecheck)             Checksum: C74D5C19DF122EE997397ACC3BF4F3B4;2384.
+(rerunfilecheck)             Checksum: 08B0964E7260ED1373B81B86EA78A5FA;2640.
  ) 
 Here is how much of TeX's memory you used:
- 12271 strings out of 474824
- 195603 string characters out of 5750976
+ 12317 strings out of 474824
+ 196647 string characters out of 5750976
  1932043 words of memory out of 5000000
- 34020 multiletter control sequences out of 15000+600000
+ 34063 multiletter control sequences out of 15000+600000
  566877 words of font info for 70 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,9n,79p,1123b,591s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,10n,79p,1123b,591s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmss10.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmss9.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmssbx10.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/levjg/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on qo_group_guide.pdf (8 pages, 1685474 bytes).
+Output written on qo_group_guide.pdf (9 pages, 14151475 bytes).
 PDF statistics:
- 230 PDF objects out of 1000 (max. 8388607)
- 44 named destinations out of 1000 (max. 500000)
- 145 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 244 PDF objects out of 1000 (max. 8388607)
+ 47 named destinations out of 1000 (max. 500000)
+ 173 words of extra memory for PDF output out of 10000 (max. 10000000)
 

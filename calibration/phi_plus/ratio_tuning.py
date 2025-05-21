@@ -4,9 +4,10 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 15
+    TRIAL = 23
     #SWEEP_PARAMETERS = [-65.868-8,-65.868+8,20,5,3]
-    SWEEP_PARAMETERS = [-100,-120,15,5,1]
+    #SWEEP_PARAMETERS = [-100,-120,15,5,1]
+    SWEEP_PARAMETERS = [-60, -75, 15, 5, 3]
 
     # initialize manager
     m = Manager('../config.json')
@@ -19,6 +20,11 @@ if __name__ == '__main__':
 
     # If confident in current phi_plus calib, set up using config
     m.make_state('phi_plus')
+
+    # delete this later, only used for HDVA state
+    m.B_C_HWP.goto(67.5)
+    m.B_C_QWP.goto(45)
+    m.C_QP.goto(-21.288)
 
     # sweep UVHWP
     m.meas_basis('HH')

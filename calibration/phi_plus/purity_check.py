@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     # go through the bases and sweep each one across the angles
     for basis in ['DD', 'AA', 'DA', 'AD']:
-        m.log(f'Beginning {basis} sweep...')
+        m.log(f'Beginning {basis} measurement...')
         # setup the measurement basis
         m.meas_basis(basis)
         datas[b] = m.take_data(10, 5, 'C4')
@@ -28,12 +28,12 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('purity_test_5162024.csv')
+    pd.DataFrame(datas).to_csv('purity_test_05212025.csv')
 
     # calculate the purity of the state
     datas['purity'] = (datas[0] + datas[1] - (datas[2] + datas[3]))/(datas[0] + datas[1] + datas[2] + datas[3])
 
     # save the data
-    pd.DataFrame(datas).to_csv('purity_test_5162024.csv')
+    pd.DataFrame(datas).to_csv('purity_test_05212025.csv')
 
     

@@ -3,10 +3,10 @@ from numpy import sin, cos, deg2rad, inf
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    TRIAL = 1
-    SWEEP_PARAMS = [-8, 4, 30, 5, 5]
+    TRIAL = 7
+    SWEEP_PARAMS = [-10, 10, 20, 5, 1]
     
-    '''
+    
     # initialize the manager
     m = Manager(config='../config.json')
 
@@ -15,7 +15,13 @@ if __name__ == '__main__':
 
     # configure the UVHWP to produce _something_
     m.log('Sending Alice\'s QWP to calibrated zero')
-    m.A_QWP.goto(0)
+    #m.A_QWP.goto(0) If you have to recalibrate measurement waveplates uncomment this line
+    m.meas_basis('HH')
+    # comment line 19 out if you have to recalibrate measurement waveplates
+    m.C_QP.goto(0)
+    m.C_PCC.goto(0)
+    # just telling the QP and PPC to go to 0 if they are in 
+
 
     # sweep alice's quarter waveplate
     m.log('Sweeping UVHWP')
@@ -24,7 +30,7 @@ if __name__ == '__main__':
     # get the output
     df = m.output_data(f'UVHWP_sweep{TRIAL}.csv')
     m.shutdown()
-    '''
+    
     df = Manager.load_data(f'UVHWP_sweep{TRIAL}.csv')
     # '''
     # fit the function

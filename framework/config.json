@@ -1,5 +1,5 @@
 {   
-    "info": "Calibrated on 7/20/23 by Alec Roberson, 2024 (aroberson@hmc.edu/alectroberson@gmail.com)",
+    "info": "Calibrated April 2025 by Ria Haapala and Stuart Kerr",
     "channel_keys": ["A", "B", "Ap", "Bp", "C4", "C5", "C6", "C7"],
     "ccu": {
         "port": "COM4",
@@ -19,33 +19,32 @@
         "C_UV_HWP": {
             "type": "Elliptec",
             "port": "COM5",
-            "address": "A",
-            "offset": -12.9241
-    
+            "address": "0",
+            "offset": -25.78 
         },
         "C_QP": {
             "type": "Elliptec",
-            "port": "COM12",
-            "address": "A",
+            "port": "COM11",
+            "address": "0",
             "offset": 0
         },
         "C_PCC": {
             "type": "Elliptec",
-            "port": "COM5",
-            "address": "C",
-            "offset": 0
+            "port": "COM12",
+            "address": "0",
+            "offset": -24.5
         },
         "B_C_HWP": {
             "type": "Elliptec",
             "port": "COM7",
-            "address": "A",
-            "offset": -30.58
+            "address": "1",
+            "offset": 0
         },
         "B_C_QWP": {
             "type": "Elliptec",
             "port": "COM7",
-            "address": "B",
-            "offset":-7.83761
+            "address": "0",
+            "offset": 128.25
         },
         "B_HWP": {
             "type": "ThorLabs",
@@ -125,38 +124,45 @@
     },
     "state_presets": {
         "phi_plus": {
-            "C_UV_HWP": -112.07832135652241, 
-            "C_QP": -17.46,
-            "C_PCC": -1.862068965517241,
-            "B_C_HWP": 0.00
+            "C_UV_HWP": -65.40963303415398, 
+            "C_QP": -14.75,
+            "C_PCC": 1,
+            "B_C_HWP": 0.00,
+            "B_C_QWP": 0.00
         },
         "phi_minus": {
             "C_UV_HWP": -66.13495202781274, 
             "C_QP": -16.20877,
             "C_PCC": 0.6764705882352944,
-            "B_C_HWP": 0.00
+            "B_C_HWP": 0.00,
+            "B_C_QWP": 0.00
         },
         "phi_minus_i": {
             "C_UV_HWP": -112.41754451550933, 
             "C_QP": 0,
             "C_PCC": -0.3157894736842106,
-            "B_C_HWP": 0.00
+            "B_C_HWP": 0.00,
+            "B_C_QWP": 0.00
         },
         "HH": {
             "C_UV_HWP": 45,
             "C_QP": -24.1215,
             "C_PCC": 4.005,
-            "B_C_HWP": 0.00
+            "B_C_HWP": 0.00,
+            "B_C_QWP": 0.00
         },
         "VV": {
             "C_UV_HWP": 0,
             "C_QP": 0,
-            "C_PCC": 4.005
+            "C_PCC": 4.005,
+            "B_C_HWP": 0.00,
+            "B_C_QWP": 0.00
         },
         "VX": {
             "C_UV_HWP": 0,
             "C_QP": 0,
-            "C_PCC": 4.005
+            "C_PCC": 4.005,
+            "B_C_QWP": 0.00
         }
     },
     "full_tomography": ["LA", "RA", "VA", "HA", "DA", "AA", 

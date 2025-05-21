@@ -7,7 +7,7 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    SWEEP_PARAMS = [-20, -14, 10, 5, 1]
+    SWEEP_PARAMS = [-35, -15, 10, 3, 1]
 
     # initialize the manager
     m = Manager('../config.json')
@@ -36,6 +36,10 @@ if __name__ == '__main__':
         print('Exiting...')
         m.shutdown()
         quit()
+
+    # delete this later, only used for HDVA state phase finding
+    m.B_C_HWP.goto(67.5)
+    m.B_C_QWP.goto(45)
     
     # setup the phase sweep
     m.reset_output()
@@ -56,13 +60,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('all_phase_finding_data2_test7162024_1.csv')
+    pd.DataFrame(datas).to_csv('all_phase_finding_data2_test05202025.csv')
 
     # calculate the phase difference
     datas['phi'] = unp.arctan2((datas['DR'] - datas['DL'] - datas['AR'] + datas['AL']),(-datas['RR'] + datas['RL'] + datas['LR'] - datas['LL']))
 
     # save the data
-    pd.DataFrame(datas).to_csv('phi_data_7162024_1.csv')
+    pd.DataFrame(datas).to_csv('phi_data_05202025.csv')
 
     
 

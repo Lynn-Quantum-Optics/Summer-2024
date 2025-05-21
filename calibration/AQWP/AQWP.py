@@ -11,7 +11,7 @@ if __name__ == '__main__':
     SWEEP_PARAMS = [-15, -3, 30, 5, 3]
     UVHWP_ANGLE = 0
 
-    '''
+    
     # initialize the manager
     m = Manager(config='../config.json')
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # get the output
     df = m.output_data(f'AQWP_sweep{TRIAL}.csv')
     m.shutdown()
-    '''
+    
 
     df = Manager.load_data(f'AQWP_sweep{TRIAL}.csv')
     

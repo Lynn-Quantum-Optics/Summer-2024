@@ -1,56 +1,35 @@
-0:00:00	Manager started at 2024-07-17_09-02-28.
+0:00:00	Manager started at 2025-04-09_16-39-17.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:00:09	BCHWP.py TRIAL # 1; SWEEP PARAMS = [-12, 12, 24, 5, 3]
-0:00:09	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
-0:00:28	Sweeping B_C_HWP from -12 to 12 degrees in 24 steps.
-0:00:29	Taking data; sampling 5 x 3 s.
-0:00:45	Taking data; sampling 5 x 3 s.
-0:01:00	Taking data; sampling 5 x 3 s.
-0:01:16	Taking data; sampling 5 x 3 s.
-0:01:32	Taking data; sampling 5 x 3 s.
-0:01:48	Taking data; sampling 5 x 3 s.
-0:02:04	Taking data; sampling 5 x 3 s.
-0:02:19	Taking data; sampling 5 x 3 s.
-0:02:35	Taking data; sampling 5 x 3 s.
-0:02:51	Taking data; sampling 5 x 3 s.
-0:03:07	Taking data; sampling 5 x 3 s.
-0:03:23	Taking data; sampling 5 x 3 s.
-0:03:38	Taking data; sampling 5 x 3 s.
-0:03:54	Taking data; sampling 5 x 3 s.
-0:04:10	Taking data; sampling 5 x 3 s.
-0:04:26	Taking data; sampling 5 x 3 s.
-0:04:42	Taking data; sampling 5 x 3 s.
-0:04:58	Taking data; sampling 5 x 3 s.
-0:05:14	Taking data; sampling 5 x 3 s.
-0:05:29	Taking data; sampling 5 x 3 s.
-0:05:46	Taking data; sampling 5 x 3 s.
-0:06:01	Taking data; sampling 5 x 3 s.
-0:06:17	Taking data; sampling 5 x 3 s.
-0:06:33	Taking data; sampling 5 x 3 s.
-0:06:49	Saving data to "BCHWP_sweep1.csv".
-0:06:49	Clearing output data.
-0:06:49	Beginning shutdown procedure.
-0:06:49	Shutting down motor objects.
-0:06:50	C_UV_HWP returned to true position 359.96986607142856 degrees.
-0:06:51	Deleting C_UV_HWP object.
-0:06:51	C_QP returned to true position 359.9974888392857 degrees.
-0:06:51	Deleting C_QP object.
-0:06:52	C_PCC returned to true position 0.005022321428571428 degrees.
-0:06:52	Deleting C_PCC object.
-0:06:53	B_C_HWP returned to true position 359.99246651785717 degrees.
-0:06:53	Deleting B_C_HWP object.
-0:06:54	B_C_QWP returned to true position 359.99497767857144 degrees.
-0:06:54	Deleting B_C_QWP object.
-0:06:55	B_HWP returned to true position 0.0 degrees.
-0:06:55	Deleting B_HWP object.
-0:07:07	B_QWP returned to true position 359.99993896484375 degrees.
-0:07:07	Deleting B_QWP object.
-0:07:14	A_HWP returned to true position 0.0 degrees.
-0:07:14	Deleting A_HWP object.
-0:07:16	A_QWP returned to true position 359.9974060058594 degrees.
-0:07:16	Deleting A_QWP object.
-0:07:16	Closing COM ports.
-0:07:16	Closing CCU.
-0:07:17	Closing log file.
+0:00:31	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -67.19164757979544, 'C_QP': -24.622, 'C_PCC': 0.138, 'B_C_HWP': 0.0}.
+0:00:42	Loading measurement basis "HH" from config file.
+0:01:13	Loading measurement basis "V" from config file.
+0:01:18	Loading measurement basis "VV" from config file.
+0:02:39	Loading measurement basis "AD" from config file.
+0:02:59	Loading measurement basis "DA" from config file.
+0:03:23	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005, 'B_C_HWP': 0.0}.
+0:03:33	Loading measurement basis "VH" from config file.
+0:04:53	Beginning shutdown procedure.
+0:04:53	Shutting down motor objects.
+0:04:53	C_UV_HWP returned to true position 359.98995535714283 degrees.
+0:04:54	Deleting C_UV_HWP object.
+0:04:54	C_QP returned to true position 359.99497767857144 degrees.
+0:04:54	Deleting C_QP object.
+0:04:55	C_PCC returned to true position 0.0025111607142846992 degrees.
+0:04:55	Deleting C_PCC object.
+0:04:55	B_C_HWP returned to true position 359.99497767857144 degrees.
+0:04:55	Deleting B_C_HWP object.
+0:04:56	B_C_QWP returned to true position 0.0 degrees.
+0:04:56	Deleting B_C_QWP object.
+0:04:58	B_HWP returned to true position 0.001562791527248919 degrees.
+0:04:58	Deleting B_HWP object.
+0:05:10	B_QWP returned to true position 0.0 degrees.
+0:05:10	Deleting B_QWP object.
+0:05:17	A_HWP returned to true position 0.0 degrees.
+0:05:17	Deleting A_HWP object.
+0:05:19	A_QWP returned to true position 359.9974060058594 degrees.
+0:05:19	Deleting A_QWP object.
+0:05:19	Closing COM ports.
+0:05:20	Closing CCU.
+0:05:21	Closing log file.

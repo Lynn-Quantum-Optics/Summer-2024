@@ -1784,7 +1784,3 @@ Note: the QP seems to error much more if it hasn't been used recently -- you hav
 
 
 
-# 05/21/2025
-MP: Ria
-
-I started by double-checking the value of counts at the given QP angle. It was 44.

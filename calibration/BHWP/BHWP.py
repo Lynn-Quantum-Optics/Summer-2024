@@ -3,8 +3,8 @@ from numpy import sin, cos, deg2rad, inf
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    # TRIAL = 0
-    # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
+    TRIAL = 4
+    SWEEP_PARAMS = [-40, -20, 20, 5, 1]
     # TRIAL = 1
     # SWEEP_PARAMS = [-25, -13, 10, 5, 0.3]
     # TRIAL = 2
@@ -13,8 +13,8 @@ if __name__ == '__main__':
     # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
     #TRIAL = 1
     #SWEEP_PARAMS = [-25, -7, 39, 5, 3]
-    TRIAL = 2
-    SWEEP_PARAMS = [-8, 8, 20, 5, 3]
+    #TRIAL = 2
+    #SWEEP_PARAMS = [-8, 8, 20, 5, 3]
     
     # initialize the manager
     m = Manager(config='../config.json')

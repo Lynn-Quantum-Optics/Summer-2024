@@ -5,13 +5,9 @@ import numpy as np
 
 if __name__ == '__main__':
     ###### RUNNING THE SWEEP ######
-    TRIAL = 3
-    SWEEP_PARAMS = [-8, 8, 20, 5, 3]
+    TRIAL = 11
 
-    # check for two minimums, one at 0, one at pi plus our offset
-    offset = -30
-    angle_1 = offset
-    angle_2 = 180 + offset
+    SWEEP_PARAMS = [93, 103, 10, 5, 3]
 
     # initializing manager
     m = Manager(config='../config.json')
@@ -33,8 +29,8 @@ if __name__ == '__main__':
     m.B_HWP.goto(0)
     m.log('Sending BQWP to 0')
     m.B_QWP.goto(0)
-    m.log('Sending BCHWP to 0')
-    m.B_C_HWP.goto(0)
+    # m.log('Sending BCHWP to 0')
+    # m.B_C_HWP.goto(0)
 
     # sweep Bob's BCQWP
     m.log("Beginning Bob's BCQWP sweep")
