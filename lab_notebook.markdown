@@ -1788,3 +1788,12 @@ Note: the QP seems to error much more if it hasn't been used recently -- you hav
 MP: Ria
 
 I started by double-checking the value of counts at the given QP angle. It was 44.
+I also (finally) synced this computer to github. All conflicts I kept "their" copy.
+I checked state purity but accidentally used the wrong PCC angle. Will redo first thing tomorrow.
+
+
+# 05/22/2025
+MP: Ria
+
+I ran the purity check on phi_plus (result in purity_test_05222025.csv) and found the state purity is 0.9391+/-0.0006. This is a little lower than I got when I accidentally ran the sweep with the PCC at zero degrees, so I reran that state and it gave nearly the exact same results (results in purity_test_052222025_2.csv), so I decided to leave the PCC where it is. For some reason, our state purity is a little low today.
+It looks like the room is a little warm today (69.1F compared to a max of 66F yesterday, so that is likely it).

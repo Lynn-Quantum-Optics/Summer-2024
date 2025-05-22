@@ -6,7 +6,7 @@ import uncertainties.unumpy as unp
 if __name__ == '__main__':
     #SWEEP_PARAMS = [-7, 8, 30, 5, 3]
     #SWEEP_PARAMS = [-15, 15, 30, 5, 3]
-    SWEEP_PARAMS = [1, 2, 1, 10, 5] # use for checking state purity at the PCC angle of 1 degree (current place for phi_plus)
+    SWEEP_PARAMS = [0, 2, 1, 10, 6] # use for checking state purity at the PCC angle of 1 degree (current place for phi_plus)
     # initialize the manager
     m = Manager('../config.json')
 
@@ -49,13 +49,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('pcc_sweep_test_05222025.csv')
+    pd.DataFrame(datas).to_csv('pcc_sweep_test_05222025_2.csv')
 
     # calculate the purity of the state
     datas['purity'] = (datas['DD'] + datas['AA'] - (datas['DA'] + datas['AD']))/(datas['DD'] + datas['AA'] + datas['DA'] + datas['AD'])
 
     # save the data
-    pd.DataFrame(datas).to_csv('purity_test_05222025.csv')
+    pd.DataFrame(datas).to_csv('purity_test_05222025_2.csv')
 
     
 
