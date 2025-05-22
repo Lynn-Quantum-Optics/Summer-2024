@@ -6,3 +6,5 @@ oscar/witness_2024/*.csv
 __pycache__/
 oscar/machine_learning/__pycache__/_
 /lev/py-venv
+
+.venv

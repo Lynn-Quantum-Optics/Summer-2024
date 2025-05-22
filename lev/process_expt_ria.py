@@ -66,7 +66,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
     try:
 
         # rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-        rho, unc, Su, un_proj, un_proj_unc, _, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
+        rho, unc, Su, un_proj, un_proj_unc, _, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True, encoding='bytes')
         ## update df with info about this trial ##
         if "E0" in filename: # if E0, split up into eta and chi
             trial, eta, chi = split_filename()
@@ -592,8 +592,8 @@ if __name__ == '__main__':
     # set filenames for computing W values
 
     etas = [np.pi/4]
-    chis = np.linspace(0.001, np.pi/2, 6)
-    #chis = [np.pi/2]
+    #chis = np.linspace(0.001, np.pi/2, 6)
+    chis = [np.pi/2]
     states_names = []
     states = []
     names = ['cosHR_minusisinVL', 'cosHA_minusisinVD'] #'cosHA_minusisinVD', 
@@ -609,7 +609,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_3.npy") 
+        filenames.append(f"rho_('E0', {state_n}).npy") 
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
