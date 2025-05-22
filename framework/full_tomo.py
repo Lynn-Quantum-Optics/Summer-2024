@@ -150,13 +150,19 @@ def get_rho(m:Manager, samp:Tuple[int, float]) -> Tuple[np.ndarray, np.ndarray]:
     return rho_real, rho_imag, stokes, un_proj
 
 if __name__ == '__main__':
-    SAMP = (5, 1)
+    SAMP = (5, 3)
 
     # open manager
     m = Manager()
     
     # load configured state
     m.make_state('phi_plus')
+
+    # for hdva state
+    m.B_C_HWP.goto(67.5)
+    m.C_QP.goto(-21.288)
+    m.C_UV_HWP.goto(-66.02461563913445)
+    m.B_C_QWP.goto(45)
 
     # get the density matrix
     rho_real, rho_imag, stokes, un_proj = get_rho(m, SAMP)
