@@ -12,7 +12,9 @@ if __name__ == '__main__':
     SWEEP_PARAMS = [-24, -18, 10, 5, 3] 
     DATE = "05212025" #please update
     TRIAL = 1 #please update
-    fileName = f"QP_sweep_{DATE}_{TRIAL}_for_HDVA" #UPDATE
+    STATE = "HDVA"
+    
+    fileName = f"QP_sweep_{DATE}_{TRIAL}_for_{STATE}"
 
     # initialize the manager
     m = Manager('../config.json')
