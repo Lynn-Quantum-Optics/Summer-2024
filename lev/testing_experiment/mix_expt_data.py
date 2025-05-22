@@ -15,7 +15,7 @@ from rho_methods import *
 from process_expt_lev import *
 
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'hr-ivl_ha-ivd_mix_wp2'
+DATA_PATH = 'hrivl7-19_havd_mix'
     
 def mix_states(file_names, probs, state_name):
     '''
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # define experimental parameters
     etas = [np.pi/4]
     chis = np.linspace(0.001, np.pi/2, 6)
-    probs = [0.35, 0.65]
+    probs = [0.65, 0.35]
     states_names = []
     states = []
 
