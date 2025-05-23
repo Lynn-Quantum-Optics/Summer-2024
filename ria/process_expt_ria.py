@@ -10,36 +10,16 @@ import random
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
-import sys
-sys.path.append("c:\\Users\\izgod\\Summer-2024\\lev\\testing_experiment")
-
 from sample_rho import *
 from rho_methods import *
 
+
+#To read older data files see: FILENAME
+#For legacy states of the form phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS, see FILENAME
+
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'C:\\Users\\izgod\\Summer-2024\\ria\\ria_HDVA'
-
-def get_rho_from_file_depricated(filename, rho_actual):
-    '''Function to read in experimental density matrix from file. Deprecated since newer experiments will save the target density matrix in the file; for trials <= 14'''
-    # read in data
-    try:
-        rho, unc, Su = np.load(join(DATA_PATH,filename), allow_pickle=True)
-    except:
-        rho, unc = np.load(join(DATA_PATH,filename), allow_pickle=True)
-
-    # print results
-    print('measublue rho\n---')
-    print(rho)
-    print('uncertainty \n---')
-    print(unc)
-    print('actual rho\n ---')
-    print(rho_actual)
-    print('fidelity', get_fidelity(rho, rho_actual))
-    print('purity', get_purity(rho))
-
-    print('trace of measublue rho', np.trace(rho))
-    print('eigenvalues of measublue rho', np.linalg.eigvals(rho))
+DATA_PATH = 'ria_HDVA'
 
 def get_rho_from_file(filename, verbose=True, angles=None):
     '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23, angles were not saved (but recorded in lab_notebook markdown file). Also note that in trials 20 (E0 eta = 45), 21 (blueo of E0 (eta = 45, chi = 0, 18)), 22 (E0 eta = 60), and 23 (E0 eta = 60, chi = -90), there was a sign error in the phi phase in the Jones matrices, so will recalculate the correct density matrix; ** the one saved in the file as the theoretical density matrix is incorrect **
@@ -53,100 +33,37 @@ def get_rho_from_file(filename, verbose=True, angles=None):
             ''' Splits up the file name and identifies the trial number, eta, and chi values'''
 
             # split filename
-            split_filename = filename.split('_')
+            split_filename = filename.split('(')
+            split_filename = split_filename[1].split(')')
+            
             # get trial number
-            trial = int(split_filename[-1].split('.')[0])
-            # get eta
-            eta = float(split_filename[1].split(',')[1].split('(')[1])
-            chi = float(split_filename[1].split(',')[2].split(')')[0].split(' ')[1])
+            trial = int(split_filename[0].split('-')[2].split(')')[0])
+            chi = float(split_filename[0].split('-')[1])
 
-            return trial, eta, chi
+            return trial, chi
 
     # read in data
-    try:
+    rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
+    ## update df with info about this trial ##
+    trial, chi = split_filename()
+    
+    # print results
+    if verbose:
+        print('angles\n---')
+        print(angles)
+        print('measured rho\n---')
+        print(rho)
+        print('uncertainty \n---')
+        print(unc)
+        print('fidelity', fidelity)
+        print('purity', purity)
 
-        # rho, unc, Su, rho_actual, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-        rho, unc, Su, un_proj, un_proj_unc, _, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True, encoding='bytes')
-        ## update df with info about this trial ##
-        if "E0" in filename: # if E0, split up into eta and chi
-            trial, eta, chi = split_filename()
-        
-        # print results
-        if verbose:
-            print('angles\n---')
-            print(angles)
-            print('measured rho\n---')
-            print(rho)
-            print('uncertainty \n---')
-            print(unc)
-            print('actual rho\n ---')
-            print(rho_actual)
-            print('fidelity', fidelity)
-            print('purity', purity)
+        print('trace of measublue rho', np.trace(rho))
+        print('eigenvalues of measublue rho', np.linalg.eigvals(rho))
 
-            print('trace of measublue rho', np.trace(rho))
-            print('eigenvalues of measublue rho', np.linalg.eigvals(rho))
+    return trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc
 
-        return trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc
-    except:
-        rho, unc, Su, rho_actual, _, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-        # print(np.load(join(DATA_PATH,filename), allow_pickle=True))
-        
-        ## since angles were not saved, this means we also have the phi sign error as described in the comment to the function, so will need to recalculate the target. ##
-
-        def split_filename():
-            ''' Splits up the file name and identifies the trial number, eta, and chi values'''
-
-            # split filename
-            split_filename = filename.split('_')
-            # get trial number
-            trial = int(split_filename[-1].split('.')[0])
-            # get eta
-            eta = float(split_filename[1].split(',')[1].split('(')[1])
-            chi = float(split_filename[1].split(',')[2].split(')')[0].split(' ')[1])
-
-            return trial, eta, chi
-
-        if "E0" in filename: # if E0, split up into eta and chi
-            trial, eta, chi = split_filename()
-
-            # chi*=-1 # have to switch sign of chi
-
-            # calculate target rho
-            targ_rho = get_E0(np.deg2rad(eta), np.deg2rad(chi))
-            fidelity = get_fidelity(rho, targ_rho)
-
-            # print results
-            if verbose:
-                print('trial', trial)
-                print('eta', eta)
-                print('chi', chi)
-                print('measublue rho\n---')
-                print(rho)
-                print('uncertainty \n---')
-                print(unc)
-
-                print('actual rho\n ---')
-                print(rho_actual)
-                print('fidelity', fidelity)
-                print('purity', purity)
-
-            return trial, rho, unc, Su, rho_actual, fidelity, purity, eta, chi, angles
-
-        else: # if not E0, just print results
-            trial = int(split_filename('.')[0].split('_')[-1])
-            print('measublue rho\n---')
-            print(rho)
-            print('uncertainty \n---')
-            print(unc)
-            print('actual rho\n ---')
-            print(rho_actual)
-            print('fidelity', fidelity)
-            print('purity', purity)
-
-            return trial, rho, unc, Su, rho_actual, fidelity, purity, angles
-
-def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
+def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
     __
     inputs:
@@ -165,24 +82,12 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
     '''
     # initialize df
     df = pd.DataFrame()
+    eta = 45.0 # legacy, reformat for no eta with new rho methods file
 
     for i, file in tqdm(enumerate(filenames)):
-        if settings is None:
-            try:
-                
-                trial, rho, unc, Su, fidelity, purity, eta, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
-                print('purity is:', purity)
-                print('fidelity is:', fidelity)
-                #display('expt rho:', rho)
-            except:
-                trial, rho, unc, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False)
-                eta, chi = None, None
-        else:
-            try:
-                trial, rho, _, Su, fidelity, purity, eta, chi, angles = get_rho_from_file(file, angles = settings[i], verbose=False)
-            except:
-                trial, rho, _, Su, fidelity, purity, angles = get_rho_from_file(file, verbose=False,angles=settings[i] )
-                eta, chi = None, None
+        trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+        print('purity is:', purity)
+        print('fidelity is:', fidelity)
         rho_actual = rho_actuals[i]
         
         print('theoretical rho is:')
@@ -192,10 +97,13 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
+        print("W_T_ls computed")
         W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.95), verbose = True) # adjusted theory
+        print("W_AT_ls computed")
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
-
+        print("W_expt_ls computed")
+        
         # parse lists
         W_min_T = W_T_ls[0]
         Wp_t1_T = W_T_ls[1]
@@ -272,7 +180,7 @@ def make_plots_E0(dfname):
     dfname: str, name of df to read in
     num_plots: int, number of separate plots to make (based on eta)
     '''
-
+    print("plotting!")
     id = dfname.split('.')[0].split('_')[-1] # extract identifier from dfname
 
     # read in df
@@ -427,50 +335,13 @@ def create_noise(rho, power):
     
     return noisy_rho
 
-# def get_theo_rho(alpha, beta):
 
-#     H = ket([1,0])
-#     V = ket([0,1])
-    
-#     PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
-#     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
-
-#     phi = np.cos(alpha)*PHI_PLUS + np.exp(1j*beta)*np.sin(alpha)*PHI_MINUS
-
-#     rho = phi @ phi.conj().T
-
-#     #rho = create_noise(rho, 2)
-#     return rho
-
-def gen_mixed_state(state_list, state_prob, eta_chi):
-    '''
-    Uses above helper functions to generate a given mixed state
-    
-    Parameters:
-    state_list (list): list of state names that are to be mixed, must match creatable state names above
-    state_prob (list): probability of each state being mixed in state_list, must match index
-    eta_chi (list): what eta and chi to use for each state, must match index
-    
-    Returns:
-    rho: an NxN density matrix
-    '''
-    
-    # get individual rho's per state in state_list, taking probability into account
-    individual_rhos = []
-    for i, state in enumerate(state_list):
-        individual_rhos.append(state_prob[i] * get_theo_rho(state, *eta_chi))
-    # sum all matrices in individual rhos
-    rho = np.sum(individual_rhos, axis = 0)
-    
-    return rho
-
-def get_theo_rho(state, eta, chi):
+def get_theo_rho(state, chi):
     '''
     Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
     
     Parameters:
     state (string): Which state we want
-    eta (float): The parameter eta.
     chi (float): The parameter chi.
     
     Returns:
@@ -488,34 +359,7 @@ def get_theo_rho(state, eta, chi):
     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
     PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
     PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
-    
-    ##  The following 2 states inspired the Ws
-    
-    if state == 'phi plus, phi minus':
-        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
-    
-    if state == 'psi plus, psi minus':
-        phi = np.cos(eta)*PSI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-    
-    ## The following 6 states inspired the W primes
-    
-    if state == 'phi plus, psi minus':
-        phi = np.cos(eta)*PHI_PLUS + np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-    
-    if state == 'phi minus, psi plus':
-        phi = np.cos(eta)*PHI_MINUS + np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
-    
-    if state == 'phi plus, i psi plus':
-        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_PLUS
-    
-    if state == 'phi plus, i phi minus':
-        phi = np.cos(eta)*PHI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PHI_MINUS
 
-    if state == 'psi plus, i psi minus':
-        phi = np.cos(eta)*PSI_PLUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
-    
-    if state == 'phi minus, i psi minus':
-        phi = np.cos(eta)*PHI_MINUS + 1j*np.exp(1j*chi)*np.sin(eta)*PSI_MINUS
     
     ## The following state(s) are an attempt to find new positive W negative W prime states.
     if state == 'HR_VL':
@@ -541,14 +385,6 @@ def get_theo_rho(state, eta, chi):
     
     if state == 'HA_iVD':
         phi = (1 + np.exp(1j*chi))/2 * np.kron(H,A) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,D)
-    
-    if state == 'testing-hdiva-73':
-        phi = np.cos(chi/2) * np.kron(H,D) + np.exp(-1j* np.pi/3)*np.sin(chi/2) * np.kron(V, A)
-        rho_main = (phi @ phi.conj().T)
-        rho_hd = (np.cos(chi/2))**2 * (np.kron(H,D) @ np.kron(H,D).conj().T)
-        rho_va = (np.sin(chi/2))**2 * (np.kron(V,A) @ np.kron(V,A).conj().T)
-        rho_return = 0.95 * rho_main + 0.05 * rho_hd + 0.05 * rho_va
-        return rho_return
         
     if state == 'cosHL_sinVR':
         phi = np.cos(chi/2) * np.kron(H, L) + np.sin(chi/2) * np.kron(V,R)    
@@ -580,46 +416,35 @@ def get_theo_rho(state, eta, chi):
     if state =='cosHA_minusiphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) - np.exp(1j * 1.311) * np.sin(chi/2) * np.kron(V,D)
     
-    if state == 'testing_hdiva_phase':
+    if state == 'hd_negpi_3_va':
         phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, A)
+
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
+    
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
 
 if __name__ == '__main__':
-    # set filenames for computing W values
-
-    etas = [np.pi/4]
+    
+    #Update here
+    TRIAL = 1
+    name = 'hd_negpi_3_va'
+    id = 'ria_HDVA'
     #chis = np.linspace(0.001, np.pi/2, 6)
     chis = [np.pi/2]
-    states_names = []
-    states = []
-    names = ['cosHR_minusisinVL', 'cosHA_minusisinVD'] #'cosHA_minusisinVD', 
-    probs = [0.65, 0.35]
-    
-    for eta in etas:
-        for chi in chis:
-            states_names.append((float(np.rad2deg(eta)), float(np.rad2deg(chi))))
-            states.append((eta, chi))
 
+    rho_actuals = []
     filenames = []
-    settings = []
     rho_actuals = []
-    # get file names for data produced from mix_expt_data
-    for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n}).npy") 
-        settings.append([state_n[0],state_n[1]])
 
-     # Obtain the density matrix for each state
-    rho_actuals = []
-    for i, state_set in enumerate(states_names):
-        rad_angles = states[i]
-        rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
+    # Obtain the density matrix for each state
+    for chi in chis:
+        rho_actuals.append(get_theo_rho(name, chi))
+        filenames.append(f"rho_({name}-{np.rad2deg(chi)}-{TRIAL}).npy")
 
     # analyze rho files
-    id = 'hrivl_mix_HAVD_trial6_7-19_test'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 
