@@ -1797,3 +1797,22 @@ MP: Ria
 
 I ran the purity check on phi_plus (result in purity_test_05222025.csv) and found the state purity is 0.9391+/-0.0006. This is a little lower than I got when I accidentally ran the sweep with the PCC at zero degrees, so I reran that state and it gave nearly the exact same results (results in purity_test_052222025_2.csv), so I decided to leave the PCC where it is. For some reason, our state purity is a little low today.
 It looks like the room is a little warm today (69.1F compared to a max of 66F yesterday, so that is likely it).
+Ran into some roadblocks with data processing and which files to run (MORE INFO).
+
+Started process of calibration for the HRVL state - locations for Bob and Alice's plates are below. I also ran the QP sweep and ratio tuning. It looks like counts aren't as minimzed as expected -- investigate tomorrow.
+To create the HR+e^(-ipi/6)VL state:
+Make phi plus, make meas_basis VV and move as follows:
+BCHWP: 0
+BCQWP: -45
+AHWP: -30
+AQWP: -105
+QP: -19.137
+UVHWP: -112.74443676597194
+
+
+# 05/23/2025
+MP: Ria, Iz, Prof Lynn
+
+I created the HDVA full tomo at different eta values file and ran it. We ran into some errors with data processing and ended up creating a new file for non-mixed states that standardizes file format. Continued standardizing file format (especially file names/editing them) to make them more user friendly as I encountered them.
+
+I also finished up the QP and ratio tuning for the other state. It turns out I sent Alice's HWP to the wrong spot yesterday. Updated values for the QP and UVHWP are listed above. Note the ratio tuning plots had higher uncertainty than for the other state. Counts are still a bit high though. I ended up turning the UVHWP to about -112 rather than -66 and this allowed the qp to reach a minimum within the desired range.
