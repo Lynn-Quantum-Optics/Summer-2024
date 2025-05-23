@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize, approx_fprime
 from uncertainties import unumpy as unp
-import finding_states.states_and_witnesses as states
+import states_and_witnesses as states
 import operations as op
 
 def get_nom(params, expec_vals, func):
