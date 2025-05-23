@@ -11,7 +11,7 @@ from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
 from sample_rho import *
-from rho_methods import *
+from new_rho_methods import *
 
 
 #To read older data files see: FILENAME

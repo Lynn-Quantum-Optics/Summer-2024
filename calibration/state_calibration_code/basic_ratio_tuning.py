@@ -4,11 +4,12 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 2 #PLEASE UPDATE
-    DATE = "05202025" #PLEASE UPDATE
-    fileName = f"ratio_tuning_{DATE}_for_HDVA" 
+    TRIAL = 4 #PLEASE UPDATE
+    DATE = "05232025" #PLEASE UPDATE
+    STATE = "HRVL"
+    fileName = f"ratio_tuning_{DATE}_for_{STATE}" 
     
-    SWEEP_PARAMETERS = [-60, -75, 15, 5, 3] #fine sweep
+    SWEEP_PARAMETERS = [-105, -120, 15, 5, 3] #fine sweep
     #SWEEP_PARAMETERS = [-55, -85, 15, 3, 1] #coarse sweep
 
     # initialize manager
@@ -16,17 +17,17 @@ if __name__ == '__main__':
 
     m.make_state('phi_plus')
 
-    # parameters used for HD + e^-ipi/3 VA state
+    # parameters used for HR + e^-ipi/6 VL state
     m.log('Setting up state')
-    m.B_C_HWP.goto(67.5)
-    m.B_C_QWP.goto(45)
-    m.C_QP.goto(-21.288)
+    m.B_C_HWP.goto(0)
+    m.B_C_QWP.goto(-45)
+    m.C_QP.goto(-19.367)
 
     # sweep UVHWP
-    m.meas_basis('HD')
+    m.meas_basis('HR')
     _, hd_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
     m.output_data(f'hd_sweep_{TRIAL}.csv')
-    m.meas_basis('VA')
+    m.meas_basis('VL')
     _, va_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
     m.output_data(f'va_sweep_{TRIAL}.csv')
     m.shutdown()

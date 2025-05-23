@@ -28,6 +28,9 @@ if __name__ == '__main__':
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
 
+    TRIAL = 1
+    name = 'hd_negpi_3_va'
+
     # initialize the manager
     m = Manager('config.json')
 
@@ -127,9 +130,9 @@ if __name__ == '__main__':
         angles = [UVHWP_angle, -21.288, 67.5, 45] # change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
-        with open(f"ria_hdva/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
+        with open(f"ria_hd_negpi_3_va//rho_({name}-{chi}-{TRIAL}).npy", 'wb') as f:
             np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
         date = "05232025"
-        tomo_df = m.output_data(f'ria_hdva/tomo_data_{chi_save}_{date}.csv')
+        tomo_df = m.output_data(f'ria_hd_negpi_3_va/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()
