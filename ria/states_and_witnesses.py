@@ -1,5 +1,5 @@
 import numpy as np
-import finding_states.operations as op
+import operations as op
 
 #######################
 ## QUANTUM STATES

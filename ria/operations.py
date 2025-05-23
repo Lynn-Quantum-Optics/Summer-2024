@@ -1,5 +1,5 @@
 import numpy as np
-import finding_states.states_and_witnesses as states
+import states_and_witnesses as states
 import tensorflow as tf
 from inspect import signature
 
