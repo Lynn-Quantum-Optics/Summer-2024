@@ -27,6 +27,7 @@ def get_theo_rho(chi):
 if __name__ == '__main__':
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
+    SAMP = (5, 3)
 
     # initialize the manager
     m = Manager('config.json')
@@ -52,38 +53,38 @@ if __name__ == '__main__':
 
     # manually perform sweep of UVHWP
     chi_vals = np.linspace(*CHI_PARAMS)
-    for chi == 90.0:
-        m.make_state("phi_plus")
-        m.B_C_HWP.goto(67.5)
-        m.B_C_QWP.goto(45)
-        m.C_QP.goto(-21.288)
-        m.C_UV_HWP.goto(-66)
-        
-        # measuring!
-        rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
+    chi = np.pi/2
+    m.make_state("phi_plus")
+    m.B_C_HWP.goto(67.5)
+    m.B_C_QWP.goto(45)
+    m.C_QP.goto(-21.288)
+    m.C_UV_HWP.goto(-66.02461563913445)
+    
+    # measuring!
+    rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
 
-        actual_rho = get_theo_rho(chi)
+    actual_rho = get_theo_rho(chi)
 
-        # print results
-        print('measured rho\n---')
-        print(rho)
-        print('uncertainty \n---')
-        print(unc)
-        print('actual rho\n ---')
-        print(actual_rho)
+    # print results
+    print('measured rho\n---')
+    print(rho)
+    print('uncertainty \n---')
+    print(unc)
+    print('actual rho\n ---')
+    print(actual_rho)
 
-        # compute fidelity
-        fidelity = get_fidelity(rho, actual_rho)
-        print('fidelity', fidelity)
-        purity = get_purity(rho)
-        print('purity', purity)
-        
-        angles = [UVHWP_angle, -21.288, 67.5, 45] # change output data function to inlude B_C_QWP
-        chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
-        # save results
-        with open(f"ria_hdva_simple/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
-            np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-        date = "05232025"
-        tomo_df = m.output_data(f'ria_hdva_simple/tomo_data_{chi_save}_{date}.csv')
+    # compute fidelity
+    fidelity = get_fidelity(rho, actual_rho)
+    print('fidelity', fidelity)
+    purity = get_purity(rho)
+    print('purity', purity)
+    
+    angles = [-66.02461563913445, -21.288, 67.5, 45] # change output data function to inlude B_C_QWP
+    chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
+    # save results
+    with open(f"ria_hdva_simple/rho_('E0', (45.0, {chi_save}))_1.npy", 'wb') as f:
+        np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
+    date = "05232025"
+    tomo_df = m.output_data(f'ria_hdva_simple/tomo_data_{chi_save}_{date}.csv')
     
     m.shutdown()
