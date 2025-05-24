@@ -12,4 +12,4 @@ basic_ratio_tuning.py: used to find the UVHWP position that creates an equal bal
 3. Use basic_qp_sweep.py to minimize qp and basic_ratio_tuning.py to tune the UVHWP. These are located in calibration/state_calibration_code
 4. If you don't have purity data for phi_plus use pcc_sweep in calibration/phi_plus to collect data
 5. Located the full_tomo_and_eta_sweep_TEMPLATE in framework and create a copy for your use. Change the TODOs to match the experiment, and run this file to collect all the necessary data. Note the full_tomo_one_eta_TEMPLATE will run without the eta sweep (using the UVHWP) if you want to verify your state really quick
-6. Create a copy of the process_expt_TEMPLATE and run it to process your data. All the todos in the main function should be updated match the experiment.
+6. Create a copy of the process_expt_TEMPLATE and run it to process your data. All the todos in the main function should be updated match the experiment. Make sure you verify your state exists in the states for get_theo_rho.
