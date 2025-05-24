@@ -80,8 +80,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         # obtain the first round of data and switch to a new output file
-        df1 = m.output_data(f"ria_hdva/UVHWP_balance_sweep1.csv")
-        data1 = pd.read_csv(f"ria_hdva/UVHWP_balance_sweep1.csv")
+        df1 = m.output_data(f"ria_hd_negpi_3_va/UVHWP_balance_sweep1.csv")
+        data1 = pd.read_csv(f"ria_hd_negpi_3_va/UVHWP_balance_sweep1.csv")
 
         # sweep in the second basis
         print(m.time, f'Configuring measurement basis VA')
@@ -91,8 +91,8 @@ if __name__ == '__main__':
         m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
         print(m.time, 'Data collected')
-        df2 = m.output_data(f'ria_hdva/UVHWP_balance_sweep2.csv')
-        data2 = pd.read_csv(f'ria_hdva/UVHWP_balance_sweep2.csv')
+        df2 = m.output_data(f'ria_hd_negpi_3_va/UVHWP_balance_sweep2.csv')
+        data2 = pd.read_csv(f'ria_hd_negpi_3_va/UVHWP_balance_sweep2.csv')
 
         args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
         args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)

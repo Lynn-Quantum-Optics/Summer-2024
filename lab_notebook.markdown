@@ -1783,7 +1783,6 @@ I also took a look at documentation while the files were running to make a note 
 Note: the QP seems to error much more if it hasn't been used recently -- you have to move it a few times using the manager before running a file if it has been a bit, otherwise it errors almost immediately.
 
 
-
 # 05/21/2025
 MP: Ria
 
@@ -1813,6 +1812,6 @@ UVHWP: -112.74443676597194
 # 05/23/2025
 MP: Ria, Iz, Prof Lynn
 
-I created the HDVA full tomo at different eta values file and ran it. We ran into some errors with data processing and ended up creating a new file for non-mixed states that standardizes file format. Continued standardizing file format (especially file names/editing them) to make them more user friendly as I encountered them.
+I created the HDVA full tomo at different eta values file and ran it. We ran into some errors with data processing and ended up creating a new file for non-mixed states that standardizes file format. Continued standardizing file format (especially file names/editing them) to make them more user friendly as I encountered them. It looks like something is off in our calibration (too much H bias in the D and too much V bias in the A as well as phase issues) -- I double checked that up until we add the phase using the QP, the state is as expected, so unsure exactly what could be causing the non-phase related issues.
 
 I also finished up the QP and ratio tuning for the other state. It turns out I sent Alice's HWP to the wrong spot yesterday. Updated values for the QP and UVHWP are listed above. Note the ratio tuning plots had higher uncertainty than for the other state. Counts are still a bit high though. I ended up turning the UVHWP to about -112 rather than -66 and this allowed the qp to reach a minimum within the desired range.
