@@ -15,8 +15,8 @@ def get_theo_rho(chi):
     V = ket([0,1])
     D = ket([np.sqrt(0.5), np.sqrt(0.5)])
     A = ket([np.sqrt(0.5), -np.sqrt(0.5)])
-    R = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
-    L = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
+    R = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
+    L = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
 
     phi = (np.cos(chi/2) * np.kron(H, R) + np.exp(-1j*np.pi/6) * np.sin(chi/2) * np.kron(V, L))/np.sqrt(2) #TODO: change to current state
 
