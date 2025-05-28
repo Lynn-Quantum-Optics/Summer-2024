@@ -1,0 +1,144 @@
+0:00:00	Manager started at 2025-05-27_11-23-06.
+0:00:01	Configuration file: "config.json".
+0:00:01	Initializing CCU.
+0:00:01	Initializing motors.
+0:00:07	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -65.40963303415398, 'C_QP': -14.75, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:00:10	Checking HH and VV count rates...
+0:00:10	Loading measurement basis "HH" from config file.
+0:00:26	Taking data; sampling 5 x 3 s.
+0:00:41	Loading measurement basis "VV" from config file.
+0:00:53	Taking data; sampling 5 x 3 s.
+0:01:13	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -65.40963303415398, 'C_QP': -14.75, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:01:16	Loading measurement basis "HH" from config file.
+0:01:29	Taking data; sampling 5 x 3 s.
+0:01:30		Note: "HH"
+0:01:45	Loading measurement basis "HV" from config file.
+0:01:51	Taking data; sampling 5 x 3 s.
+0:01:51		Note: "HV"
+0:02:07	Loading measurement basis "HD" from config file.
+0:02:11	Taking data; sampling 5 x 3 s.
+0:02:11		Note: "HD"
+0:02:27	Loading measurement basis "HA" from config file.
+0:02:34	Taking data; sampling 5 x 3 s.
+0:02:34		Note: "HA"
+0:02:49	Loading measurement basis "HR" from config file.
+0:02:59	Taking data; sampling 5 x 3 s.
+0:02:59		Note: "HR"
+0:03:15	Loading measurement basis "HL" from config file.
+0:03:26	Taking data; sampling 5 x 3 s.
+0:03:26		Note: "HL"
+0:03:41	Loading measurement basis "VH" from config file.
+0:04:03	Taking data; sampling 5 x 3 s.
+0:04:03		Note: "VH"
+0:04:19	Loading measurement basis "VV" from config file.
+0:04:25	Taking data; sampling 5 x 3 s.
+0:04:25		Note: "VV"
+0:04:40	Loading measurement basis "VD" from config file.
+0:04:44	Taking data; sampling 5 x 3 s.
+0:04:44		Note: "VD"
+0:05:00	Loading measurement basis "VA" from config file.
+0:05:07	Taking data; sampling 5 x 3 s.
+0:05:07		Note: "VA"
+0:05:23	Loading measurement basis "VR" from config file.
+0:05:33	Taking data; sampling 5 x 3 s.
+0:05:33		Note: "VR"
+0:05:48	Loading measurement basis "VL" from config file.
+0:05:59	Taking data; sampling 5 x 3 s.
+0:05:59		Note: "VL"
+0:06:15	Loading measurement basis "DH" from config file.
+0:06:34	Taking data; sampling 5 x 3 s.
+0:06:34		Note: "DH"
+0:06:49	Loading measurement basis "DV" from config file.
+0:06:56	Taking data; sampling 5 x 3 s.
+0:06:56		Note: "DV"
+0:07:11	Loading measurement basis "DD" from config file.
+0:07:15	Taking data; sampling 5 x 3 s.
+0:07:15		Note: "DD"
+0:07:31	Loading measurement basis "DA" from config file.
+0:07:38	Taking data; sampling 5 x 3 s.
+0:07:38		Note: "DA"
+0:07:54	Loading measurement basis "DR" from config file.
+0:08:04	Taking data; sampling 5 x 3 s.
+0:08:04		Note: "DR"
+0:08:19	Loading measurement basis "DL" from config file.
+0:08:30	Taking data; sampling 5 x 3 s.
+0:08:30		Note: "DL"
+0:08:46	Loading measurement basis "AH" from config file.
+0:09:08	Taking data; sampling 5 x 3 s.
+0:09:08		Note: "AH"
+0:09:24	Loading measurement basis "AV" from config file.
+0:09:30	Taking data; sampling 5 x 3 s.
+0:09:30		Note: "AV"
+0:09:46	Loading measurement basis "AD" from config file.
+0:09:50	Taking data; sampling 5 x 3 s.
+0:09:50		Note: "AD"
+0:10:06	Loading measurement basis "AA" from config file.
+0:10:12	Taking data; sampling 5 x 3 s.
+0:10:13		Note: "AA"
+0:10:28	Loading measurement basis "AR" from config file.
+0:10:38	Taking data; sampling 5 x 3 s.
+0:10:38		Note: "AR"
+0:10:54	Loading measurement basis "AL" from config file.
+0:11:05	Taking data; sampling 5 x 3 s.
+0:11:05		Note: "AL"
+0:11:21	Loading measurement basis "RH" from config file.
+0:11:47	Taking data; sampling 5 x 3 s.
+0:11:47		Note: "RH"
+0:12:03	Loading measurement basis "RV" from config file.
+0:12:09	Taking data; sampling 5 x 3 s.
+0:12:09		Note: "RV"
+0:12:25	Loading measurement basis "RD" from config file.
+0:12:28	Taking data; sampling 5 x 3 s.
+0:12:29		Note: "RD"
+0:12:44	Loading measurement basis "RA" from config file.
+0:12:51	Taking data; sampling 5 x 3 s.
+0:12:51		Note: "RA"
+0:13:07	Loading measurement basis "RR" from config file.
+0:13:17	Taking data; sampling 5 x 3 s.
+0:13:17		Note: "RR"
+0:13:33	Loading measurement basis "RL" from config file.
+0:13:44	Taking data; sampling 5 x 3 s.
+0:13:44		Note: "RL"
+0:14:00	Loading measurement basis "LH" from config file.
+0:14:26	Taking data; sampling 5 x 3 s.
+0:14:26		Note: "LH"
+0:14:42	Loading measurement basis "LV" from config file.
+0:14:48	Taking data; sampling 5 x 3 s.
+0:14:48		Note: "LV"
+0:15:04	Loading measurement basis "LD" from config file.
+0:15:07	Taking data; sampling 5 x 3 s.
+0:15:08		Note: "LD"
+0:15:23	Loading measurement basis "LA" from config file.
+0:15:30	Taking data; sampling 5 x 3 s.
+0:15:30		Note: "LA"
+0:15:46	Loading measurement basis "LR" from config file.
+0:15:56	Taking data; sampling 5 x 3 s.
+0:15:56		Note: "LR"
+0:16:11	Loading measurement basis "LL" from config file.
+0:16:22	Taking data; sampling 5 x 3 s.
+0:16:22		Note: "LL"
+0:16:38	Saving data to "ria_hrvl_simple/tomo_data_hr_negpi_6_vl_90.0_05272025.csv".
+0:16:38	Clearing output data.
+0:16:39	Beginning shutdown procedure.
+0:16:39	Shutting down motor objects.
+0:16:40	C_UV_HWP returned to true position 359.9974888392857 degrees.
+0:16:40	Deleting C_UV_HWP object.
+0:16:41	C_QP returned to true position 359.99497767857144 degrees.
+0:16:41	Deleting C_QP object.
+0:16:42	C_PCC returned to true position 0.0 degrees.
+0:16:42	Deleting C_PCC object.
+0:16:42	B_C_HWP returned to true position 0.002511160714285714 degrees.
+0:16:43	Deleting B_C_HWP object.
+0:16:43	B_C_QWP returned to true position 359.9974888392857 degrees.
+0:16:43	Deleting B_C_QWP object.
+0:16:45	B_HWP returned to true position 0.001562791527248919 degrees.
+0:16:45	Deleting B_HWP object.
+0:16:59	B_QWP returned to true position 0.0029296875 degrees.
+0:16:59	Deleting B_QWP object.
+0:17:00	A_HWP returned to true position 0.000520930509082973 degrees.
+0:17:00	Deleting A_HWP object.
+0:17:16	A_QWP returned to true position 359.99688720703125 degrees.
+0:17:16	Deleting A_QWP object.
+0:17:16	Closing COM ports.
+0:17:17	Closing CCU.
+0:17:18	Closing log file.
