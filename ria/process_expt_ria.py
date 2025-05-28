@@ -11,7 +11,7 @@ from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
 from sample_rho import *
-from new_rho_methods import *
+from rho_methods import *
 
 
 #To read older data files see: FILENAME
@@ -19,7 +19,7 @@ from new_rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'ria_HDVA'
+DATA_PATH = 'ria_hr_negpi_6_vl'
 
 def get_rho_from_file(filename, verbose=True, angles=None):
     '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23, angles were not saved (but recorded in lab_notebook markdown file). Also note that in trials 20 (E0 eta = 45), 21 (blueo of E0 (eta = 45, chi = 0, 18)), 22 (E0 eta = 60), and 23 (E0 eta = 60, chi = -90), there was a sign error in the phi phase in the Jones matrices, so will recalculate the correct density matrix; ** the one saved in the file as the theoretical density matrix is incorrect **
@@ -422,6 +422,9 @@ def get_theo_rho(state, chi):
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
     
+    if state == 'hr_negpi_6_vl':
+        phi = np.cos(chi/2) * np.kron(H, R) + np.exp(-1j * np.pi/6) * np.sin(chi/2) * np.kron(V, L)
+        
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
@@ -429,9 +432,9 @@ def get_theo_rho(state, chi):
 if __name__ == '__main__':
     
     #Update here
-    TRIAL = 1
-    name = 'hd_negpi_3_va'
-    id = 'ria_HDVA'
+    TRIAL = 0
+    name = 'hr_negpi_6_vl'
+    id = 'ria_HRVL'
     #chis = np.linspace(0.001, np.pi/2, 6)
     chis = [np.pi/2]
 

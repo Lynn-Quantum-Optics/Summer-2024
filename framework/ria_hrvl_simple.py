@@ -15,8 +15,8 @@ def get_theo_rho(chi):
     V = ket([0,1])
     D = ket([np.sqrt(0.5), np.sqrt(0.5)])
     A = ket([np.sqrt(0.5), -np.sqrt(0.5)])
-    R = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
-    L = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
+    R = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
+    L = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
 
     phi = (np.cos(chi/2) * np.kron(H, R) + np.exp(-1j*np.pi/6) * np.sin(chi/2) * np.kron(V, L))/np.sqrt(2) # current state
 
@@ -26,9 +26,9 @@ def get_theo_rho(chi):
 
 if __name__ == '__main__':
 
-    TRIAL = 1
+    TRIAL = 0
     name = 'hr_negpi_6_vl'
-        date = "05272025"
+    date = "05272025"
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -60,10 +60,10 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
     chi = np.pi/2
     m.make_state("phi_plus")
-    m.B_C_HWP.goto(67.5)
-    m.B_C_QWP.goto(45)
-    m.C_QP.goto(-21.288)
-    m.C_UV_HWP.goto(-66.02461563913445)
+    m.B_C_HWP.goto(0)
+    m.B_C_QWP.goto(-45)
+    m.C_QP.goto(-19.137)
+    m.C_UV_HWP.goto(-112.74443676597194)
     
     # measuring!
     rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -84,10 +84,10 @@ if __name__ == '__main__':
     purity = get_purity(rho)
     print('purity', purity)
     
-    angles = [-66.02461563913445, -21.288, 67.5, 45] # change output data function to inlude B_C_QWP
+    angles = [-112.74443676597194, -19.137, 0, -45] # change output data function to inlude B_C_QWP
     chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
     # save results
-    with open(f"ria_hrvl_simple/rho_({name}-{chi}-{TRIAL}).npy", 'wb') as f:
+    with open(f"ria_hrvl_simple/rho_({name}-{chi_save}-{TRIAL}).npy", 'wb') as f:
         np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
     tomo_df = m.output_data(f'ria_hrvl_simple/tomo_data_{name}_{chi_save}_{date}.csv')
     
