@@ -350,8 +350,8 @@ def get_theo_rho(state, chi):
     # Define kets and bell states in vector form 
     H = ket([1,0])
     V = ket([0,1])
-    R = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
-    L = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
+    R = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
+    L = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
     D = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
     A = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
     
