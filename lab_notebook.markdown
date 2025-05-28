@@ -1812,6 +1812,24 @@ UVHWP: -112.74443676597194
 # 05/23/2025
 MP: Ria, Iz, Prof Lynn
 
-I created the HDVA full tomo at different eta values file and ran it. We ran into some errors with data processing and ended up creating a new file for non-mixed states that standardizes file format. Continued standardizing file format (especially file names/editing them) to make them more user friendly as I encountered them. It looks like something is off in our calibration (too much H bias in the D and too much V bias in the A as well as phase issues) -- I double checked that up until we add the phase using the QP, the state is as expected, so unsure exactly what could be causing the non-phase related issues.
+I created the HDVA full tomo at different eta values file and ran it. We ran into some errors with data processing and ended up creating a new file for non-mixed states that standardizes file format. Continued standardizing file format (especially file names/editing them) to make them more user friendly as I encountered them. It looks like something is off in our calibration (too much H bias in the D and too much V bias in the A as well as phase issues) -- I double checked that up until we add the phase using the QP, the state is as expected, so unsure exactly what could be causing the non-phase related issues. Phi_plus calibration also still seems decent (purity is still ok). Will double check these things next week as well.
 
 I also finished up the QP and ratio tuning for the other state. It turns out I sent Alice's HWP to the wrong spot yesterday. Updated values for the QP and UVHWP are listed above. Note the ratio tuning plots had higher uncertainty than for the other state. Counts are still a bit high though. I ended up turning the UVHWP to about -112 rather than -66 and this allowed the qp to reach a minimum within the desired range.
+
+
+# 05/27/2025
+MP: Ria
+
+I ran the tomography on the balanced version of the hrvl state, and like with the hdva state, it indicated that the theoretical and experimental rhos did not agree. I verified we were correctly making HRVL and HDVA without the phase shifts and we were. The temperature in the lab is similar to when I ran the calibration on this state, but perhaps that is part of the phase error.
+I then ran a purity check to make sure the phi_plus state is still being made as calibrated, and it was a bit low. I also double checked the state calibration for both of our target states, and they no longer seem to be correct. This does make some sense though because the room is significantly warmer today than last week (72F). I started recalibration for phi_plus but then decided to hold off on recalibrating these states as well as phi_plus since F&M said they were coming in to fix the AC today -- though they still hadn't come in by the end of the day.
+Looking at the output rho matrices, I deduced what states we appear to be making. They appear to be HD+e^-5ipi/6VA and HL+e^13ipi/12VR rather than HD+e^-ipi/3VA and HR+e^-ipi/6VL. However, when double checking these states by hand, we do still appear to be making some superposition of HR and VL for that state rather than the HL+VR mix implied by the density matrix. I noticed also that some of Stu's files had the definitions of R and L swapped, as compared to the experimental data processing file. It will be important to confirm which convention we are using.
+Because the most of this data was gathered last week when the temperature in the lab should have been comparable to the temp during calibration, it appears there is some error in our process of finding the QP angle. However, data gathered today is very likely influenced by this temperature increase.
+
+If the thermostat is not fixed tomorrow, I will need to decide whether recalibrating for the higher temperature and collecting data at that point is worth it or whether I should wait until our AC actually works to collect this data as the high temp impacts laser stability and state purity.
+
+# 05/28/2025
+MP: Ria
+
+It looks like the AC issue is affecting many of the nearby labs, so we decided to put a temporary hold on collecting data to see if F&M fixes this issue soon. 
+The misdefinition of R and L polarization was actually correct in Stu's file, so I corrected the experimental data processing to have R be (0, i) and L be (0, -i). After doing this correction, I recalculated which state the HR+e^ipi/6VL density matrix corresponded with - it looks like it is actually HR+e^-11ipi/12VL, so the issue from yeterday where the density matrix corresponded to a superposition of HL and VR was corrected by fixing the defintions of R and L.
+I also analyzed the csv from Thursday (the AC worked somewhat Thursday morning around the time of data collection) to get a density matrix and compared it with Friday's data -- it looks like Friday's temperature was not the cause of the pi/2 phase shift in the state we are creating. I then spent some time reviewing our process for making these states to determine what could be the cause of this inconsistency. 
