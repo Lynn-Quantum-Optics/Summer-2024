@@ -1869,23 +1869,22 @@ FOR HR+e^-ipi/6VL, set Bob to measure _ and AHWP @ ___ and AQWP @ ___
 MP: Ria
 
 It looks like something in the set-up got bumped since Friday. We adjusted the mirrors and the BBO as counts were lower than usual. I then recalibrated the UVHWP, ran a purity check (purity is now 0.9408+/-0.0009), and double checked the counts. The counts are as follows: 
- HH Counts: 1486+/-7
- VV Counts: 1450+/-11
- HV Counts: 14.4+/-1.0
- VH Counts: 14.7+/-0.5
-AD Counts: 33.8+/-1.3
- DA Counts: 56.9+/-1.4
- DD Counts: 1444+/-5
- AA Counts: 1431+/-9
+- HH Counts: 1486+/-7
+- VV Counts: 1450+/-11
+- HV Counts: 14.4+/-1.0
+- VH Counts: 14.7+/-0.5
+- AD Counts: 33.8+/-1.3
+- DA Counts: 56.9+/-1.4
+- DD Counts: 1444+/-5
+- AA Counts: 1431+/-9
  NOTE: QP FOR PHI_PLUS NEEDS RECALIBRATION!!!! this will better balance the ad and da counts :)
 
 I calibrated the HD+e^-ipi/3VA state with the updated measurement basis. The calibration is as follows: UVHWP @ -115.2803939016242, QP @ -27.027
 I then collected data on the counts rates. Note HA and VD are not balanced as well as one would hope. Counts are as follows:
-Min counts: 50.2+/-2.6
- HD Counts: 1479+/-5
- VA Counts: 1478+/-5
- HA Counts: 11.9+/-0.4
- VD Counts: 17.9+/-0.6
+- Min counts: 50.2+/-2.6
+- HD Counts: 1479+/-5
+- VA Counts: 1478+/-5
+- HA Counts: 11.9+/-0.4
+- VD Counts: 17.9+/-0.6
 I then ran a full tomography for the balanced version of this state (chi=90)
-https://github.com/Lynn-Quantum-Optics/Summer-2025.git
  
