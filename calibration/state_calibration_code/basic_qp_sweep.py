@@ -9,10 +9,10 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    SWEEP_PARAMS = [-25, -15, 10, 5, 3] 
-    DATE = "05232025" #please update
-    TRIAL = 6 #please update
-    STATE = "HRVL"
+    SWEEP_PARAMS = [-33, -23, 10, 5, 3] 
+    DATE = "06022025" #please update
+    TRIAL = 3 #please update
+    STATE = "hd_negpi_3_va"
 
     fileName = f"QP_sweep_{DATE}_{TRIAL}_for_{STATE}"
 
@@ -22,19 +22,20 @@ if __name__ == '__main__':
     m.make_state('phi_plus')
     m.meas_basis("VV")
 
-    # parameters used for HR + e^-ipi/6 VL state
+    # parameters used for HR + e^-ipi/6 VL sstate
     m.log('Setting up state')
-    m.B_C_HWP.goto(0)
-    m.B_C_QWP.goto(-45)
+    m.B_C_HWP.goto(67.5)
+    m.B_C_QWP.goto(45)
+    m.C_UV_HWP.goto(-115.2803939016242)
 
     m.log('Setting up measurement basis')
-    m.A_HWP.goto(-30)
-    m.A_QWP.goto(-105)
+    m.A_HWP.goto(-7.5)
+    m.A_QWP.goto(-60)
 
     # check count rates
     m.log('Moving QP and UVHWP where they have been tuned to be')
-    m.C_QP.goto(-19.367)
-    m.C_UV_HWP.goto(-112.74443676597194)
+    m.C_QP.goto(-27.027)
+    m.C_UV_HWP.goto(-115.2803939016242)
 
     m.log('Checking count rates...')
     counts = m.take_data(7,5,'C4')

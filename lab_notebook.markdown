@@ -1833,3 +1833,58 @@ MP: Ria
 It looks like the AC issue is affecting many of the nearby labs, so we decided to put a temporary hold on collecting data to see if F&M fixes this issue soon. 
 The misdefinition of R and L polarization was actually correct in Stu's file, so I corrected the experimental data processing to have R be (0, i) and L be (0, -i). After doing this correction, I recalculated which state the HR+e^ipi/6VL density matrix corresponded with - it looks like it is actually HR+e^-11ipi/12VL, so the issue from yeterday where the density matrix corresponded to a superposition of HL and VR was corrected by fixing the defintions of R and L.
 I also analyzed the csv from Thursday (the AC worked somewhat Thursday morning around the time of data collection) to get a density matrix and compared it with Friday's data -- it looks like Friday's temperature was not the cause of the pi/2 phase shift in the state we are creating. I then spent some time reviewing our process for making these states to determine what could be the cause of this inconsistency. 
+
+
+# 05/29/2025
+MP: Ria
+
+I worked on reviewing the process used for state generation and identified a potential issue. As the AC is still not fully working, I recalibrated phi_plus for the warmer lab temp, and started recalibrating the two states I am working on so that I can run a tomography tomorrow and verify whether or not the change I made to the procedure work.
+Warmer Phi_plus calib:
+QP ANGLE=  -16.8
+
+
+# 05/30/2025
+MP: Ria
+
+The AC is working again, note the lab is about 58F due to the way the building is cooled (as our air vent is currently propped open while waiting for parts on order, there is no way to warm the lab). 
+
+Since the lkab temperature have fluctuated so much in the past week, I spent some time recalibrating the phi_plus state as well.
+The new QP angle is -14.943 and the UVHWP angle is -65.06993022717926. I then double checked the calibration of Bob's creation waveplates for phi_plus as the density matrix from the tomographies last week showed an over emphasis of H and V as compared to D and A. The current phi_plus state purity is: 0.9514+/-0.0007. I collected some detailed data on counts while making phi_plus over 30 seconds. The results are below.
+HH Counts: 1507+/-7
+VV Counts: 1500+/-6
+HV Counts: 16.3+/-1.0
+VH Counts: 16.0+/-0.5
+AD Counts: 40.3+/-0.7
+DA Counts: 32.1+/-1.0
+DD Counts: 1496+/-4
+AA Counts: 1483+/-7
+
+We determined part of the phase issue is due to the fact that our measurement basis calculations did not take into account negative phase shifts (such as the one we want here), so there were some sign issues.
+FOR HD+e^-ipi/3VA, set Bob to measure V and AHWP @ -7.5, AQWP @ -60
+FOR HR+e^-ipi/6VL, set Bob to measure _ and AHWP @ ___ and AQWP @ ___
+
+
+
+# 06/02/2025
+MP: Ria
+
+It looks like something in the set-up got bumped since Friday. We adjusted the mirrors and the BBO as counts were lower than usual. I then recalibrated the UVHWP, ran a purity check (purity is now 0.9408+/-0.0009), and double checked the counts. The counts are as follows: 
+ HH Counts: 1486+/-7
+ VV Counts: 1450+/-11
+ HV Counts: 14.4+/-1.0
+ VH Counts: 14.7+/-0.5
+AD Counts: 33.8+/-1.3
+ DA Counts: 56.9+/-1.4
+ DD Counts: 1444+/-5
+ AA Counts: 1431+/-9
+ NOTE: QP FOR PHI_PLUS NEEDS RECALIBRATION!!!! this will better balance the ad and da counts :)
+
+I calibrated the HD+e^-ipi/3VA state with the updated measurement basis. The calibration is as follows: UVHWP @ -115.2803939016242, QP @ -27.027
+I then collected data on the counts rates. Note HA and VD are not balanced as well as one would hope. Counts are as follows:
+Min counts: 50.2+/-2.6
+ HD Counts: 1479+/-5
+ VA Counts: 1478+/-5
+ HA Counts: 11.9+/-0.4
+ VD Counts: 17.9+/-0.6
+I then ran a full tomography for the balanced version of this state (chi=90)
+ 
