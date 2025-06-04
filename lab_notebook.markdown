@@ -1861,7 +1861,7 @@ AA Counts: 1483+/-7
 
 We determined part of the phase issue is due to the fact that our measurement basis calculations did not take into account negative phase shifts (such as the one we want here), so there were some sign issues.
 FOR HD+e^-ipi/3VA, set Bob to measure V and AHWP @ -7.5, AQWP @ -60
-FOR HR+e^-ipi/6VL, set Bob to measure _ and AHWP @ ___ and AQWP @ ___
+FOR HR+e^-ipi/6VL, set Bob to measure _ and AHWP @ -15 and AQWP @ -75
 
 
 
@@ -1877,7 +1877,6 @@ It looks like something in the set-up got bumped since Friday. We adjusted the m
 - DA Counts: 56.9+/-1.4
 - DD Counts: 1444+/-5
 - AA Counts: 1431+/-9
- NOTE: QP FOR PHI_PLUS NEEDS RECALIBRATION!!!! this will better balance the ad and da counts :)
 
 I calibrated the HD+e^-ipi/3VA state with the updated measurement basis. The calibration is as follows: UVHWP @ -115.2803939016242, QP @ -27.027
 I then collected data on the counts rates. Note HA and VD are not balanced as well as one would hope. Counts are as follows:
@@ -1887,4 +1886,17 @@ I then collected data on the counts rates. Note HA and VD are not balanced as we
 - HA Counts: 11.9+/-0.4
 - VD Counts: 17.9+/-0.6
 I then ran a full tomography for the balanced version of this state (chi=90)
+
+# 06/03/2025
+MP: Ria
+
+I analyzed the data from yesterday. The phase shift appears to be 70 degrees, rather than the target value of 60 degrees. I decided to recalibrate the QP angle, this time by finding the minimum counts beteween the TWO minimized bases rather than picking one. The measurement settings for the second basis are FOR HD+e^-ipi/3VA, set Bob to measure H and AHWP @ -52.5, AQWP @ 30. I recalibrated the QP and re-ratio tuned to get the QP @ -27.379 and the UVHWP @ -115.56962464985094. Counts are as follows:
+Min counts 1: 52.8+/-1.7
+ Min counts 2: 37.8+/-1.2
+ HD Counts: 1501+/-4
+ VA Counts: 1507+/-6
+ HA Counts: 11.7+/-0.6
+ VD Counts: 17.1+/-0.5
+Note the imbalance between HA and VD still exists. 
+I then ran another tomography. However, results are similar to before, so I think fixing the imbalance between HA and VD is an important next step.
  
