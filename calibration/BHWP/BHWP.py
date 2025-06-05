@@ -3,18 +3,10 @@ from numpy import sin, cos, deg2rad, inf
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    TRIAL = 4
-    SWEEP_PARAMS = [-40, -20, 20, 5, 1]
-    # TRIAL = 1
-    # SWEEP_PARAMS = [-25, -13, 10, 5, 0.3]
-    # TRIAL = 2
-    # SWEEP_PARAMS = [-19, -11, 20, 5, 3]
-    # TRIAL = 0
-    # SWEEP_PARAMS = [-20, 20, 20, 5, 1]
-    #TRIAL = 1
-    #SWEEP_PARAMS = [-25, -7, 39, 5, 3]
-    #TRIAL = 2
-    #SWEEP_PARAMS = [-8, 8, 20, 5, 3]
+    
+    DATE = '06042025'
+    TRIAL = 2
+    SWEEP_PARAMS = [-10, 10, 20, 5, 3]
     
     # initialize the manager
     m = Manager(config='../config.json')
@@ -40,10 +32,10 @@ if __name__ == '__main__':
     angles, rates = m.sweep('B_HWP', *SWEEP_PARAMS)
 
     # save the output
-    df = m.output_data(f'BHWP_sweep{TRIAL}.csv')
+    df = m.output_data(f'BHWP_sweep_{DATE}_{TRIAL}.csv')
     m.shutdown()
    
-    df = Manager.load_data(f'BHWP_sweep{TRIAL}.csv')
+    df = Manager.load_data(f'BHWP_sweep_{DATE}_{TRIAL}.csv')
     angles, rates = df['B_HWP'], df['C4']
     
     #'''
@@ -68,5 +60,5 @@ if __name__ == '__main__':
     plt.legend()
 
     # save and show
-    plt.savefig(f'BHWP_sweep{TRIAL}.png', dpi=600)
+    plt.savefig(f'BHWP_sweep_{DATE}_{TRIAL}.png', dpi=600)
     plt.show()

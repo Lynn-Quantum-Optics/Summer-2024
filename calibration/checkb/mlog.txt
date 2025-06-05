@@ -1,150 +1,112 @@
-0:00:00	Manager started at 2024-07-17_08-14-13.
+0:00:00	Manager started at 2025-06-05_10-50-19.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:00:09	CHECKPOINT B: Checking calibrations on B_HWP, B_QWP, and B_C_HWP.
-0:00:09	Resetting...
-0:00:10	Loading presets for VV state.
-0:00:10	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
-0:00:11	Configuring Alice's measurement waveplates to measure V
-0:00:12	AQWP -> -0.0019624953270067635
-0:00:18	AHWP -> 45.00195678710938
-0:00:18	Configuring Bob's Waveplates to Minimize C4 Coincidences
-0:00:29	BQWP -> 0.0018549804687495453
-0:00:32	BHWP -> 0.0012866210937545475
-0:00:33	BCHWP -> 0.007454160714285507
-0:00:33	Sweeping B_HWP from -6 to 6 degrees in 20 steps.
-0:00:36	Taking data; sampling 5 x 3 s.
-0:00:52	Taking data; sampling 5 x 3 s.
-0:01:08	Taking data; sampling 5 x 3 s.
-0:01:24	Taking data; sampling 5 x 3 s.
-0:01:40	Taking data; sampling 5 x 3 s.
-0:01:56	Taking data; sampling 5 x 3 s.
-0:02:12	Taking data; sampling 5 x 3 s.
-0:02:29	Taking data; sampling 5 x 3 s.
-0:02:45	Taking data; sampling 5 x 3 s.
-0:03:01	Taking data; sampling 5 x 3 s.
-0:03:17	Taking data; sampling 5 x 3 s.
-0:03:33	Taking data; sampling 5 x 3 s.
-0:03:49	Taking data; sampling 5 x 3 s.
-0:04:05	Taking data; sampling 5 x 3 s.
-0:04:21	Taking data; sampling 5 x 3 s.
-0:04:37	Taking data; sampling 5 x 3 s.
-0:04:53	Taking data; sampling 5 x 3 s.
-0:05:09	Taking data; sampling 5 x 3 s.
-0:05:26	Taking data; sampling 5 x 3 s.
-0:05:42	Taking data; sampling 5 x 3 s.
-0:05:57	Saving data to "./sweeps2/BHWP.csv".
-0:05:57	Clearing output data.
-0:05:58	Resetting...
-0:05:58	Loading presets for VV state.
-0:05:58	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
-0:06:00	Configuring Alice's measurement waveplates to measure V
-0:06:00	AQWP -> -0.0019624953270067635
-0:06:00	AHWP -> 44.99987396240235
-0:06:01	Configuring Bob's Waveplates to Minimize C4 Coincidences
-0:06:01	BQWP -> -0.00022021484375045475
-0:06:04	BHWP -> 0.0012866210937545475
-0:06:04	BCHWP -> 0.007454160714285507
-0:06:04	Sweeping B_QWP from -6 to 6 degrees in 20 steps.
-0:06:07	Taking data; sampling 5 x 3 s.
-0:06:23	Taking data; sampling 5 x 3 s.
-0:06:39	Taking data; sampling 5 x 3 s.
-0:06:55	Taking data; sampling 5 x 3 s.
-0:07:11	Taking data; sampling 5 x 3 s.
-0:07:27	Taking data; sampling 5 x 3 s.
-0:07:43	Taking data; sampling 5 x 3 s.
-0:07:59	Taking data; sampling 5 x 3 s.
-0:08:15	Taking data; sampling 5 x 3 s.
-0:08:31	Taking data; sampling 5 x 3 s.
-0:08:47	Taking data; sampling 5 x 3 s.
+0:00:07	CHECKPOINT B: Checking calibrations on B_HWP, B_QWP, and B_C_HWP.
+0:00:07	Resetting...
+0:00:07	Loading presets for VV state.
+0:00:07	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:00:09	Configuring Alice's measurement waveplates to measure V
+0:00:11	AQWP -> -0.0015783691406454636
+0:00:17	AHWP -> 45.00272003173828
+0:00:17	Configuring Bob's Waveplates to Minimize C4 Coincidences
+0:00:28	BQWP -> 0.0018987426757774983
+0:00:31	BHWP -> 0.0009140624999872671
+0:00:31	BCHWP -> 0.011589285714285746
+0:00:31	Sweeping B_HWP from -4 to 4 degrees in 15 steps.
+0:00:34	Taking data; sampling 5 x 3 s.
+0:00:50	Taking data; sampling 5 x 3 s.
+0:01:06	Taking data; sampling 5 x 3 s.
+0:01:21	Taking data; sampling 5 x 3 s.
+0:01:37	Taking data; sampling 5 x 3 s.
+0:01:53	Taking data; sampling 5 x 3 s.
+0:02:10	Taking data; sampling 5 x 3 s.
+0:02:25	Taking data; sampling 5 x 3 s.
+0:02:41	Taking data; sampling 5 x 3 s.
+0:02:57	Taking data; sampling 5 x 3 s.
+0:03:14	Taking data; sampling 5 x 3 s.
+0:03:30	Taking data; sampling 5 x 3 s.
+0:03:46	Taking data; sampling 5 x 3 s.
+0:04:02	Taking data; sampling 5 x 3 s.
+0:04:18	Taking data; sampling 5 x 3 s.
+0:04:33	Saving data to "./sweeps_06042025_5/BHWP.csv".
+0:04:34	Clearing output data.
+0:04:35	Resetting...
+0:04:35	Loading presets for VV state.
+0:04:35	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:04:36	Configuring Alice's measurement waveplates to measure V
+0:04:36	AQWP -> -0.0005407714843954636
+0:04:36	AHWP -> 45.000114593505856
+0:04:37	Configuring Bob's Waveplates to Minimize C4 Coincidences
+0:04:37	BQWP -> -0.0001840820312395408
+0:04:39	BHWP -> 0.0009140624999872671
+0:04:40	BCHWP -> 0.009078125000000048
+0:04:40	Sweeping B_QWP from -4 to 4 degrees in 15 steps.
+0:04:42	Taking data; sampling 5 x 3 s.
+0:04:58	Taking data; sampling 5 x 3 s.
+0:05:14	Taking data; sampling 5 x 3 s.
+0:05:30	Taking data; sampling 5 x 3 s.
+0:05:46	Taking data; sampling 5 x 3 s.
+0:06:03	Taking data; sampling 5 x 3 s.
+0:06:19	Taking data; sampling 5 x 3 s.
+0:06:35	Taking data; sampling 5 x 3 s.
+0:06:51	Taking data; sampling 5 x 3 s.
+0:07:07	Taking data; sampling 5 x 3 s.
+0:07:23	Taking data; sampling 5 x 3 s.
+0:07:39	Taking data; sampling 5 x 3 s.
+0:07:55	Taking data; sampling 5 x 3 s.
+0:08:11	Taking data; sampling 5 x 3 s.
+0:08:27	Taking data; sampling 5 x 3 s.
+0:08:42	Saving data to "./sweeps_06042025_5/BQWP.csv".
+0:08:43	Clearing output data.
+0:08:43	Resetting...
+0:08:43	Loading presets for VV state.
+0:08:43	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:08:44	Configuring Alice's measurement waveplates to measure V
+0:08:44	AQWP -> -0.0005407714843954636
+0:08:45	AHWP -> 45.000114593505856
+0:08:45	Configuring Bob's Waveplates to Minimize C4 Coincidences
+0:08:48	BQWP -> -0.0001840820312395408
+0:08:48	BHWP -> 0.0009140624999872671
+0:08:48	BCHWP -> 0.0065669642857143495
+0:08:48	Sweeping B_C_HWP from -4 to 4 degrees in 15 steps.
+0:08:49	Taking data; sampling 5 x 3 s.
 0:09:04	Taking data; sampling 5 x 3 s.
 0:09:20	Taking data; sampling 5 x 3 s.
 0:09:36	Taking data; sampling 5 x 3 s.
 0:09:52	Taking data; sampling 5 x 3 s.
-0:10:08	Taking data; sampling 5 x 3 s.
-0:10:24	Taking data; sampling 5 x 3 s.
-0:10:41	Taking data; sampling 5 x 3 s.
-0:10:57	Taking data; sampling 5 x 3 s.
-0:11:13	Taking data; sampling 5 x 3 s.
-0:11:29	Saving data to "./sweeps2/BQWP.csv".
-0:11:29	Clearing output data.
-0:11:30	Resetting...
-0:11:30	Loading presets for VV state.
-0:11:30	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005}.
-0:11:31	Configuring Alice's measurement waveplates to measure V
-0:11:32	AQWP -> -0.0019624953270067635
-0:11:32	AHWP -> 44.99987396240235
-0:11:32	Configuring Bob's Waveplates to Minimize C4 Coincidences
-0:11:35	BQWP -> -0.00022021484375045475
-0:11:35	BHWP -> 0.0012866210937545475
-0:11:36	BCHWP -> 0.007454160714285507
-0:11:36	Sweeping B_C_HWP from -6 to 6 degrees in 20 steps.
-0:11:37	Taking data; sampling 5 x 3 s.
-0:11:53	Taking data; sampling 5 x 3 s.
-0:12:08	Taking data; sampling 5 x 3 s.
-0:12:24	Taking data; sampling 5 x 3 s.
-0:12:40	Taking data; sampling 5 x 3 s.
-0:12:56	Taking data; sampling 5 x 3 s.
-0:13:11	Taking data; sampling 5 x 3 s.
-0:13:27	Taking data; sampling 5 x 3 s.
-0:13:43	Taking data; sampling 5 x 3 s.
-0:13:59	Taking data; sampling 5 x 3 s.
-0:14:15	Taking data; sampling 5 x 3 s.
-0:14:31	Taking data; sampling 5 x 3 s.
-0:14:46	Taking data; sampling 5 x 3 s.
-0:15:02	Taking data; sampling 5 x 3 s.
-0:15:18	Taking data; sampling 5 x 3 s.
-0:15:34	Taking data; sampling 5 x 3 s.
-0:15:50	Taking data; sampling 5 x 3 s.
-0:16:06	Taking data; sampling 5 x 3 s.
-0:16:22	Taking data; sampling 5 x 3 s.
-0:16:37	Taking data; sampling 5 x 3 s.
-0:16:53	Saving data to "./sweeps2/BCHWP.csv".
-0:16:53	Clearing output data.
-0:16:53	Sweeping B_C_QWP from -6 to 6 degrees in 20 steps.
-0:16:54	Taking data; sampling 5 x 3 s.
-0:17:10	Taking data; sampling 5 x 3 s.
-0:17:26	Taking data; sampling 5 x 3 s.
-0:17:42	Taking data; sampling 5 x 3 s.
-0:17:57	Taking data; sampling 5 x 3 s.
-0:18:13	Taking data; sampling 5 x 3 s.
-0:18:30	Taking data; sampling 5 x 3 s.
-0:18:46	Taking data; sampling 5 x 3 s.
-0:19:01	Taking data; sampling 5 x 3 s.
-0:19:17	Taking data; sampling 5 x 3 s.
-0:19:33	Taking data; sampling 5 x 3 s.
-0:19:49	Taking data; sampling 5 x 3 s.
-0:20:05	Taking data; sampling 5 x 3 s.
-0:20:21	Taking data; sampling 5 x 3 s.
-0:20:37	Taking data; sampling 5 x 3 s.
-0:20:53	Taking data; sampling 5 x 3 s.
-0:21:09	Taking data; sampling 5 x 3 s.
-0:21:25	Taking data; sampling 5 x 3 s.
-0:21:42	Taking data; sampling 5 x 3 s.
-0:21:58	Taking data; sampling 5 x 3 s.
-0:22:14	Saving data to "./sweeps2/BCQWP.csv".
-0:22:15	Clearing output data.
-0:22:15	Beginning shutdown procedure.
-0:22:15	Shutting down motor objects.
-0:22:16	C_UV_HWP returned to true position 359.96986607142856 degrees.
-0:22:16	Deleting C_UV_HWP object.
-0:22:17	C_QP returned to true position 359.9974888392857 degrees.
-0:22:17	Deleting C_QP object.
-0:22:18	C_PCC returned to true position 359.9974888392857 degrees.
-0:22:19	Deleting C_PCC object.
-0:22:19	B_C_HWP returned to true position 359.99497767857144 degrees.
-0:22:20	Deleting B_C_HWP object.
-0:22:21	B_C_QWP returned to true position 359.99246651785717 degrees.
-0:22:21	Deleting B_C_QWP object.
-0:22:23	B_HWP returned to true position 0.001562791527248919 degrees.
-0:22:23	Deleting B_HWP object.
-0:22:35	B_QWP returned to true position 359.99993896484375 degrees.
-0:22:35	Deleting B_QWP object.
-0:22:42	A_HWP returned to true position 0.0 degrees.
-0:22:42	Deleting A_HWP object.
-0:22:44	A_QWP returned to true position 359.9974060058594 degrees.
-0:22:44	Deleting A_QWP object.
-0:22:44	Closing COM ports.
-0:22:45	Closing CCU.
-0:22:46	Closing log file.
+0:10:07	Taking data; sampling 5 x 3 s.
+0:10:23	Taking data; sampling 5 x 3 s.
+0:10:39	Taking data; sampling 5 x 3 s.
+0:10:55	Taking data; sampling 5 x 3 s.
+0:11:11	Taking data; sampling 5 x 3 s.
+0:11:27	Taking data; sampling 5 x 3 s.
+0:11:43	Taking data; sampling 5 x 3 s.
+0:11:59	Taking data; sampling 5 x 3 s.
+0:12:15	Taking data; sampling 5 x 3 s.
+0:12:31	Taking data; sampling 5 x 3 s.
+0:12:46	Saving data to "./sweeps_06042025_5/BCHWP.csv".
+0:12:46	Clearing output data.
+0:12:47	Beginning shutdown procedure.
+0:12:47	Shutting down motor objects.
+0:12:48	C_UV_HWP returned to true position 359.96986607142856 degrees.
+0:12:48	Deleting C_UV_HWP object.
+0:12:48	C_QP returned to true position 359.9974888392857 degrees.
+0:12:48	Deleting C_QP object.
+0:12:49	C_PCC returned to true position 359.99497767857144 degrees.
+0:12:49	Deleting C_PCC object.
+0:12:50	B_C_HWP returned to true position 0.0025111607142856984 degrees.
+0:12:50	Deleting B_C_HWP object.
+0:12:51	B_C_QWP returned to true position 0.007533482142889625 degrees.
+0:12:51	Deleting B_C_QWP object.
+0:12:53	B_HWP returned to true position 0.001562791527248919 degrees.
+0:12:53	Deleting B_HWP object.
+0:13:05	B_QWP returned to true position 0.0 degrees.
+0:13:05	Deleting B_QWP object.
+0:13:12	A_HWP returned to true position 0.0 degrees.
+0:13:12	Deleting A_HWP object.
+0:13:13	A_QWP returned to true position 359.9984436035156 degrees.
+0:13:13	Deleting A_QWP object.
+0:13:13	Closing COM ports.
+0:13:14	Closing CCU.
+0:13:15	Closing log file.

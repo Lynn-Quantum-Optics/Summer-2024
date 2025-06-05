@@ -1,35 +1,42 @@
-0:00:00	Manager started at 2025-04-09_16-39-17.
+0:00:00	Manager started at 2025-06-05_10-33-27.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:00:31	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -67.19164757979544, 'C_QP': -24.622, 'C_PCC': 0.138, 'B_C_HWP': 0.0}.
-0:00:42	Loading measurement basis "HH" from config file.
-0:01:13	Loading measurement basis "V" from config file.
-0:01:18	Loading measurement basis "VV" from config file.
-0:02:39	Loading measurement basis "AD" from config file.
-0:02:59	Loading measurement basis "DA" from config file.
-0:03:23	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005, 'B_C_HWP': 0.0}.
-0:03:33	Loading measurement basis "VH" from config file.
-0:04:53	Beginning shutdown procedure.
-0:04:53	Shutting down motor objects.
-0:04:53	C_UV_HWP returned to true position 359.98995535714283 degrees.
-0:04:54	Deleting C_UV_HWP object.
-0:04:54	C_QP returned to true position 359.99497767857144 degrees.
-0:04:54	Deleting C_QP object.
-0:04:55	C_PCC returned to true position 0.0025111607142846992 degrees.
-0:04:55	Deleting C_PCC object.
-0:04:55	B_C_HWP returned to true position 359.99497767857144 degrees.
-0:04:55	Deleting B_C_HWP object.
-0:04:56	B_C_QWP returned to true position 0.0 degrees.
-0:04:56	Deleting B_C_QWP object.
-0:04:58	B_HWP returned to true position 0.001562791527248919 degrees.
-0:04:58	Deleting B_HWP object.
-0:05:10	B_QWP returned to true position 0.0 degrees.
-0:05:10	Deleting B_QWP object.
-0:05:17	A_HWP returned to true position 0.0 degrees.
-0:05:17	Deleting A_HWP object.
-0:05:19	A_QWP returned to true position 359.9974060058594 degrees.
-0:05:19	Deleting A_QWP object.
-0:05:19	Closing COM ports.
-0:05:20	Closing CCU.
-0:05:21	Closing log file.
+0:00:07	BCHWP.py TRIAL # 3; SWEEP PARAMS = [-5, 5, 10, 5, 3]
+0:00:07	Loading state preset "VV" from config file -> {'C_UV_HWP': 0, 'C_QP': 0, 'C_PCC': 4.005, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:00:27	Sweeping B_C_HWP from -5 to 5 degrees in 10 steps.
+0:00:28	Taking data; sampling 5 x 3 s.
+0:00:44	Taking data; sampling 5 x 3 s.
+0:01:00	Taking data; sampling 5 x 3 s.
+0:01:16	Taking data; sampling 5 x 3 s.
+0:01:32	Taking data; sampling 5 x 3 s.
+0:01:48	Taking data; sampling 5 x 3 s.
+0:02:04	Taking data; sampling 5 x 3 s.
+0:02:19	Taking data; sampling 5 x 3 s.
+0:02:35	Taking data; sampling 5 x 3 s.
+0:02:51	Taking data; sampling 5 x 3 s.
+0:03:07	Saving data to "BCHWP_sweep_06042025_3.csv".
+0:03:07	Clearing output data.
+0:03:07	Beginning shutdown procedure.
+0:03:07	Shutting down motor objects.
+0:03:08	C_UV_HWP returned to true position 359.97237723214283 degrees.
+0:03:08	Deleting C_UV_HWP object.
+0:03:08	C_QP returned to true position 0.0 degrees.
+0:03:09	Deleting C_QP object.
+0:03:09	C_PCC returned to true position 0.0025111607142846992 degrees.
+0:03:10	Deleting C_PCC object.
+0:03:10	B_C_HWP returned to true position 0.007533482142889625 degrees.
+0:03:10	Deleting B_C_HWP object.
+0:03:11	B_C_QWP returned to true position 359.9924665178571 degrees.
+0:03:11	Deleting B_C_QWP object.
+0:03:12	B_HWP returned to true position 0.0 degrees.
+0:03:12	Deleting B_HWP object.
+0:03:24	B_QWP returned to true position 0.0 degrees.
+0:03:24	Deleting B_QWP object.
+0:03:31	A_HWP returned to true position 0.0 degrees.
+0:03:31	Deleting A_HWP object.
+0:03:32	A_QWP returned to true position 359.9984436035156 degrees.
+0:03:32	Deleting A_QWP object.
+0:03:32	Closing COM ports.
+0:03:33	Closing CCU.
+0:03:34	Closing log file.

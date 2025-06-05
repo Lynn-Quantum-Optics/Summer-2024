@@ -61,8 +61,8 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-27.028)
-    m.C_UV_HWP.goto(-115.2803939016242)
+    m.C_QP.goto(-27.379)
+    m.C_UV_HWP.goto(-115.56962464985094)
     
     # measuring!
     rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # save results
     with open(f"ria_hdva_simple/rho_({name}-{chi_save}-{TRIAL}).npy", 'wb') as f:
         np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-    date = "06022025"
+    date = "06032025"
     tomo_df = m.output_data(f'ria_hdva_simple/tomo_data_{name}_{chi_save}_{date}.csv')
     
     m.shutdown()

@@ -35,11 +35,12 @@ def reset(m:Manager):
 
 if __name__ == '__main__':
     # output folder
-    TRIAL = 2
+    DATE = '06042025'
+    TRIAL = 3
     SWEEP_PARAMS = (-4, 4, 20, 5, 3)
 
     # make output folder
-    outdir = f'./sweeps{TRIAL}'
+    outdir = f'./sweeps_{DATE}_{TRIAL}'
     if os.path.isdir(outdir):
         print('Output folder already exists')
         quit()

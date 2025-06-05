@@ -39,14 +39,12 @@ def reset(m:Manager):
     m.log(f'BCHWP -> {m.B_C_HWP.goto(0)}')
 
 if __name__ == '__main__':
-    # output folder
-    # TRIAL = 0
-    # SWEEP_PARAMS = (-4, 4, 15, 5, 1)
-    TRIAL = 2
-    SWEEP_PARAMS = (-6, 6, 20, 5, 3)
+    DATE = '06042025'
+    TRIAL = 5
+    SWEEP_PARAMS = (-4, 4, 15, 5, 3)
 
     # make output folder
-    outdir = f'./sweeps{TRIAL}'
+    outdir = f'./sweeps_{DATE}_{TRIAL}'
     if os.path.isdir(outdir):
         print('Output folder already exists')
         quit()
@@ -70,7 +68,8 @@ if __name__ == '__main__':
     BCHWP_ext = mini_sweep(m, 'B_C_HWP', SWEEP_PARAMS, f'{outdir}/BCHWP.csv', f'{outdir}/BCHWP.png')
     BCHWP_off = m.B_C_HWP.offset
     # reset(m)
-    BCQWP_ext = mini_sweep(m, 'B_C_QWP', SWEEP_PARAMS, f'{outdir}/BCQWP.csv', f'{outdir}/BCQWP.png')
+    # BCQWP_ext = mini_sweep(m, 'B_C_QWP', SWEEP_PARAMS, f'{outdir}/BCQWP.csv', f'{outdir}/BCQWP.png')
+    # BCQWP_off = m.B_C_QWP.offset
     m.shutdown()
 
     # print out the updates
@@ -80,5 +79,5 @@ if __name__ == '__main__':
     print(f'BQWP Update: {BQWP_off:.3f} + {BQWP_ext.n:.3f} -> {BQWP_off + BQWP_ext.n:.3f}')
     print(f'BCHWP extrema: {BCHWP_ext}')
     print(f'BCHWP Update: {BCHWP_off:.3f} + {BCHWP_ext.n:.3f} -> {BCHWP_off + BCHWP_ext.n:.3f}')
-    print(f'BCQWP extrema: {BCQWP_ext}')
-    print(f'BCQWP Update: {m.B_C_QWP.offset:.3f} + {BCQWP_ext.n:.3f} -> {m.B_C_QWP.offset + BCQWP_ext.n:.3f}')
+    # print(f'BCQWP extrema: {BCQWP_ext}')
+    # print(f'BCQWP Update: {BCQWP_off:.3f} + {BCQWP_ext.n:.3f} -> {BCQWP_off + BCQWP_ext.n:.3f}')

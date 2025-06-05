@@ -5,9 +5,10 @@ import numpy as np
 
 if __name__ == '__main__':
     ###### RUNNING THE SWEEP ######
-    TRIAL = 11
+    DATE = '06042025'
+    TRIAL = 2
 
-    SWEEP_PARAMS = [93, 103, 10, 5, 3]
+    SWEEP_PARAMS = [-10, 10, 20, 5, 3]
 
     # initializing manager
     m = Manager(config='../config.json')
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     angles, rates = m.sweep('B_C_QWP', *SWEEP_PARAMS)
 
     # save the output
-    df = m.output_data(f'BCQWP_sweep{TRIAL}.csv')
+    df = m.output_data(f'BCQWP_sweep_{DATE}_{TRIAL}.csv')
     m.shutdown()
 
     
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     plt.ylabel('Count Rate (#/s)')
     plt.legend()
     plt.title(f'Fit=${params[1].n:.3f}(x-{params[0].n:.3f})^2 + {params[2].n:.3f}$')
-    plt.savefig(f'BCQWP{TRIAL}.png', dpi=600)
+    plt.savefig(f'BCQWP_{DATE}_{TRIAL}.png', dpi=600)
     plt.show()
     
 

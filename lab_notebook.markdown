@@ -1850,14 +1850,14 @@ The AC is working again, note the lab is about 58F due to the way the building i
 
 Since the lkab temperature have fluctuated so much in the past week, I spent some time recalibrating the phi_plus state as well.
 The new QP angle is -14.943 and the UVHWP angle is -65.06993022717926. I then double checked the calibration of Bob's creation waveplates for phi_plus as the density matrix from the tomographies last week showed an over emphasis of H and V as compared to D and A. The current phi_plus state purity is: 0.9514+/-0.0007. I collected some detailed data on counts while making phi_plus over 30 seconds. The results are below.
-HH Counts: 1507+/-7
-VV Counts: 1500+/-6
-HV Counts: 16.3+/-1.0
-VH Counts: 16.0+/-0.5
-AD Counts: 40.3+/-0.7
-DA Counts: 32.1+/-1.0
-DD Counts: 1496+/-4
-AA Counts: 1483+/-7
+- HH Counts: 1507+/-7
+- VV Counts: 1500+/-6
+- HV Counts: 16.3+/-1.0
+- VH Counts: 16.0+/-0.5
+- AD Counts: 40.3+/-0.7
+- DA Counts: 32.1+/-1.0
+- DD Counts: 1496+/-4
+- AA Counts: 1483+/-7
 
 We determined part of the phase issue is due to the fact that our measurement basis calculations did not take into account negative phase shifts (such as the one we want here), so there were some sign issues.
 FOR HD+e^-ipi/3VA, set Bob to measure V and AHWP @ -7.5, AQWP @ -60
@@ -1887,16 +1887,31 @@ I then collected data on the counts rates. Note HA and VD are not balanced as we
 - VD Counts: 17.9+/-0.6
 I then ran a full tomography for the balanced version of this state (chi=90)
 
+
 # 06/03/2025
 MP: Ria
 
 I analyzed the data from yesterday. The phase shift appears to be 70 degrees, rather than the target value of 60 degrees. I decided to recalibrate the QP angle, this time by finding the minimum counts beteween the TWO minimized bases rather than picking one. The measurement settings for the second basis are FOR HD+e^-ipi/3VA, set Bob to measure H and AHWP @ -52.5, AQWP @ 30. I recalibrated the QP and re-ratio tuned to get the QP @ -27.379 and the UVHWP @ -115.56962464985094. Counts are as follows:
-Min counts 1: 52.8+/-1.7
- Min counts 2: 37.8+/-1.2
- HD Counts: 1501+/-4
- VA Counts: 1507+/-6
- HA Counts: 11.7+/-0.6
- VD Counts: 17.1+/-0.5
+- Min counts 1: 52.8+/-1.7
+- Min counts 2: 37.8+/-1.2
+- HD Counts: 1501+/-4
+- VA Counts: 1507+/-6
+- HA Counts: 11.7+/-0.6
+- VD Counts: 17.1+/-0.5
 Note the imbalance between HA and VD still exists. 
 I then ran another tomography. However, results are similar to before, so I think fixing the imbalance between HA and VD is an important next step.
- 
+
+
+# 06/04/2025
+MP: Ria
+
+As an alternative method for determining the QP angle that produces the correct phase shift, we decided to do a more complicated process that involves measuring a few different bases at different QP angle and using this to calculating the observed phase shift, gamma, in the density matrix. (see ____ for more info). I wrote the code file, and ran it. However, in middle of this, two of the measurement waveplates lost connection from the computer and I had to side-track to recalibrate them as one of them did not error while at zero. I double check counts for phi_plus and hd_negpi_3_va, and they were not balanced in the same way as previously (and visually BQWP/AQWP looked a bit off), so I decided to recalibrate the measurement waveplates before proceeding. It looks like the calibration didn't change as significantly as I would have expected, so perhaps the measurement waveplates did disconnect at their calibrated zeroes :/. Tomorrow, I will double check phi_plus calibration and update the calibration for hd_negpi_3_va using the new process.
+
+- AQWP: 0.538 -> -0.710
+- AHWP: -.465 -> -0.285
+- UVHWP: -25.78 -> -26.431
+- BHWP: -6.168 -> -5.914
+- BQWP: 99.04 -> 99.724
+- BCHWP: 0 -> -0.554
+- BCQWP: 128.25 -> 127.484
+

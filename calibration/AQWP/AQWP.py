@@ -6,9 +6,9 @@ def fit_func(theta, phi, alpha, N, C):
     return N*(cos(deg2rad(alpha))**2 - 0.5*cos(2*deg2rad(alpha))*sin(2*deg2rad(theta-phi))**2) + C
 
 if __name__ == '__main__':
-    
-    TRIAL = 2
-    SWEEP_PARAMS = [-15, -3, 30, 5, 3]
+    DATE = '060402025'
+    TRIAL = 3
+    SWEEP_PARAMS = [-15, 15, 30, 5, 3]
     UVHWP_ANGLE = 0
 
     
@@ -25,11 +25,11 @@ if __name__ == '__main__':
     m.sweep('A_QWP', *SWEEP_PARAMS)
 
     # get the output
-    df = m.output_data(f'AQWP_sweep{TRIAL}.csv')
+    df = m.output_data(f'AQWP_sweep_{DATE}_{TRIAL}.csv')
     m.shutdown()
     
 
-    df = Manager.load_data(f'AQWP_sweep{TRIAL}.csv')
+    df = Manager.load_data(f'AQWP_sweep_{DATE}_{TRIAL}.csv')
     
     # fit the function
     params = analysis.fit('quadratic', df['A_QWP'], df['C4'])
@@ -52,5 +52,5 @@ if __name__ == '__main__':
     plt.legend()
 
     # save and show
-    plt.savefig(f'AQWP_sweep{TRIAL}.png', dpi=600)
+    plt.savefig(f'AQWP_sweep_{DATE}_{TRIAL}.png', dpi=600)
     plt.show()

@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     # TRIAL = 0
     # SWEEP_PARAMS = [75, 110, 20, 5, 1]
-    TRIAL = 1
+    DATE = '06042025'
+    TRIAL = 2
     #SWEEP_PARAMS = [83, 96, 20, 5, 3]
     SWEEP_PARAMS = [-15, 15, 20, 5, 3]
     
@@ -27,10 +28,10 @@ if __name__ == '__main__':
     angles, rates = m.sweep('B_QWP', *SWEEP_PARAMS)
 
     # save the output
-    df = m.output_data(f'BQWP_sweep{TRIAL}.csv')
+    df = m.output_data(f'BQWP_sweep_{DATE}_{TRIAL}.csv')
     m.shutdown()
     #'''
-    df = Manager.load_data(f'BQWP_sweep{TRIAL}.csv')
+    df = Manager.load_data(f'BQWP_sweep_{DATE}_{TRIAL}.csv')
     angles, rates = df['B_QWP'], df['C4']
     # '''
 
@@ -55,5 +56,5 @@ if __name__ == '__main__':
     plt.legend()
 
     # save and show
-    plt.savefig(f'BQWP_sweep{TRIAL}.png', dpi=600)
+    plt.savefig(f'BQWP_sweep_{DATE}_{TRIAL}.png', dpi=600)
     plt.show()

@@ -10,11 +10,11 @@ import uncertainties.unumpy as unp
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
     SWEEP_PARAMS = [-33, -23, 10, 5, 3] 
-    DATE = "06022025" #please update
-    TRIAL = 3 #please update
-    STATE = "hd_negpi_3_va"
+    DATE = "06032025" #please update
+    TRIAL = 1 #please update
+    STATE = "hr_negpi_6_vl"
 
-    fileName = f"QP_sweep_{DATE}_{TRIAL}_for_{STATE}"
+    fileName = f"dual_basis_QP_sweep_{DATE}_{TRIAL}_for_{STATE}"
 
     # initialize the manager
     m = Manager('../config.json')
@@ -22,28 +22,28 @@ if __name__ == '__main__':
     # parameters used for HR + e^-ipi/6 VL sstate
     m.log('Setting up state')
     m.make_state('phi_plus')
-    m.B_C_HWP.goto(67.5)
-    m.B_C_QWP.goto(45)
-    m.C_UV_HWP.goto(-115.2803939016242)
+    m.B_C_HWP.goto(0)
+    m.B_C_QWP.goto(-45)
+    #m.C_UV_HWP.goto(-115.56962464985094)
 
     m.log('Setting up first measurement basis')
     m.meas_basis("VV")
-    m.A_HWP.goto(-7.5)
-    m.A_QWP.goto(-60)
+    m.A_HWP.goto(-15)
+    m.A_QWP.goto(-75)
 
     # sweep QP
     m.log('Sweeping QP')
     angles1, rates1 = m.sweep('C_QP', *SWEEP_PARAMS)
-    df = m.output_data(f'{fileName_basis_one}.csv')
+    df = m.output_data(f'{fileName}_basis_one.csv')
 
     m.log('Setting up second measurement basis')
-    m.meas_basis("VV")
-    m.A_HWP.goto(-7.5)
-    m.A_QWP.goto(-60)
+    m.meas_basis("HH")
+    m.A_HWP.goto(-60)
+    m.A_QWP.goto(15)
 
     m.log('Sweeping QP')
-    angles2, rates2 = m.sweep('C_QP', *SWEEP_PARAMS')
-    df = m.output_data(f'{fileName_basis_two}.csv')
+    angles2, rates2 = m.sweep('C_QP', *SWEEP_PARAMS)
+    df = m.output_data(f'{fileName}_basis_two.csv')
 
     # get the output
     

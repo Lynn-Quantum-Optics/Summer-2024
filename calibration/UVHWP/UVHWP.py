@@ -3,7 +3,8 @@ from numpy import sin, cos, deg2rad, inf
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    TRIAL = 7
+    DATE ='06042025'
+    TRIAL = 1
     SWEEP_PARAMS = [-10, 10, 20, 5, 1]
     
     
@@ -15,9 +16,8 @@ if __name__ == '__main__':
 
     # configure the UVHWP to produce _something_
     m.log('Sending Alice\'s QWP to calibrated zero')
-    #m.A_QWP.goto(0) If you have to recalibrate measurement waveplates uncomment this line
-    m.meas_basis('HH')
-    # comment line 19 out if you have to recalibrate measurement waveplates
+    m.A_QWP.goto(0) #If you have to recalibrate measurement waveplates uncomment this line
+    # m.meas_basis('HH') # comment line 19 out if you have to recalibrate measurement waveplates
     m.C_QP.goto(0)
     m.C_PCC.goto(0)
     # just telling the QP and PPC to go to 0 if they are in 
@@ -28,10 +28,10 @@ if __name__ == '__main__':
     m.sweep('C_UV_HWP', *SWEEP_PARAMS)
 
     # get the output
-    df = m.output_data(f'UVHWP_sweep{TRIAL}.csv')
+    df = m.output_data(f'UVHWP_sweep_{DATE}_{TRIAL}.csv')
     m.shutdown()
     
-    df = Manager.load_data(f'UVHWP_sweep{TRIAL}.csv')
+    df = Manager.load_data(f'UVHWP_sweep_{DATE}_{TRIAL}.csv')
     # '''
     # fit the function
     params = analysis.fit('quadratic', df['C_UV_HWP'], df['C4'])
@@ -54,5 +54,5 @@ if __name__ == '__main__':
     plt.legend()
 
     # save and show
-    plt.savefig(f'UVHWP_sweep{TRIAL}.png', dpi=600)
+    plt.savefig(f'UVHWP_sweep_{DATE}_{TRIAL}.png', dpi=600)
     plt.show()

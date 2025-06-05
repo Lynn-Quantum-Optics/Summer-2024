@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     # TRIAL = 0
     # SWEEP_PARAMS = [-15, 15, 20, 5, 1]
+    DATE = '06042025'
     TRIAL = 1
-    SWEEP_PARAMS = [-14, -4, 30, 5, 5]
-    '''
+    SWEEP_PARAMS = [-15, 15, 30, 5, 5]
+    
     
     # initialize the manager
     m = Manager(config='../config.json')
@@ -28,11 +29,11 @@ if __name__ == '__main__':
     m.sweep('A_HWP', *SWEEP_PARAMS)
 
     # get the output
-    df = m.output_data(f'AHWP_sweep{TRIAL}.csv')
+    df = m.output_data(f'AHWP_sweep_{DATE}_{TRIAL}.csv')
     m.shutdown()
     '''
-    df = Manager.load_data(f'AHWP_sweep{TRIAL}.csv')
-    # '''
+    df = Manager.load_data(f'AHWP_sweep_{DATE}_{TRIAL}.csv')
+     '''
 
     # fit the function
     params = analysis.fit('quadratic', df['A_HWP'], df['C4'])
@@ -55,5 +56,5 @@ if __name__ == '__main__':
     plt.legend()
 
     # save and show
-    plt.savefig(f'AHWP_sweep{TRIAL}.png', dpi=600)
+    plt.savefig(f'AHWP_sweep_{DATE}_{TRIAL}.png', dpi=600)
     plt.show()

@@ -4,8 +4,8 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 2 #PLEASE UPDATE
-    DATE = "06022025" #PLEASE UPDATE
+    TRIAL = 1 #PLEASE UPDATE
+    DATE = "06032025" #PLEASE UPDATE
     STATE = "hd_negpi_3_va"
     fileName = f"ratio_tuning_{DATE}_for_{STATE}" 
     
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     m.log('Setting up state')
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-27.027)
+    m.C_QP.goto(-27.379)
 
     # sweep UVHWP
     m.meas_basis('HD')
