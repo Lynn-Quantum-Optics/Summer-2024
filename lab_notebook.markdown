@@ -1915,3 +1915,35 @@ As an alternative method for determining the QP angle that produces the correct 
 - BCHWP: 0 -> -0.554
 - BCQWP: 128.25 -> 127.484
 
+
+# 06/05/2025
+MP: Ria
+
+I double checked the calibration for phi_plus then tested the new gamma_determination method for determining the qp angle to produce the correct phase shift for the hd_negpi_3_va state. There were a few modifications I had to make to the file from yesterday -- instead of finding theta (the ratio of the HD:VA), if we collect two more basis measurements, we can calculate gamma without needing to know the experimental purity.
+note that BCHWP had the error that usually occurs with the qp. I'm wondering if it has something to do with the way it is zeroed since this was never an issue before recalibration (ie does the issue come from where the zero location is relative to the waveplate's hardware home)
+
+-64.93242765727796->-64.14652091578432
+-14.9->-15.6788
+Phi_Plus counts after measurement waveplate & qp recalibration:
+- HH Counts: 1478+/-9
+- VV Counts: 1468+/-6
+- VH Counts: 9.9+/-0.7
+- HV Counts: 11.5+/-0.7
+- AD Counts: 29.2+/-1.0
+- DA Counts: 27.6+/-1.2
+- DD Counts: 1451+/-6
+- AA Counts: 1451+/-10
+Phi_plus purity is currently 0.9641+/-0.0007.
+
+It looks like the measurement waveplate recalibration combined with the QP recalibration has fixed the imbalance in vh/hv and da/ad counts. I will try to understand why this is while I am not in the lab tomorrow. Understanding this would be pretty nice.
+While running the gamma_determination file, I noticed an error in the bases we were using for caluclating gamma. I have corrected this in the file. After retuning, for hd_negpi_3_va the UVHWP angle was -114.90445548609685 and the QP angle was -26.773838565224096.
+
+Counts are as follows: 
+- Min counts 1: 46.6+/-1.0
+- Min counts 2: 37.9+/-0.5
+- HD Counts: 1549+/-9
+- VA Counts: 1551+/-7
+- HA Counts: 9.9+/-0.4
+- VD Counts: 14.4+/-0.7
+
+It looks like the recalibration of the measurment waveplates combined with the new gamma determination method has led to more balanced counts in general. There is still a bit of an imbalance in HA/VD (though they are closer than before)

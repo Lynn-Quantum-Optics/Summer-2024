@@ -5,7 +5,7 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     TRIAL = 1 #PLEASE UPDATE
-    DATE = "06032025" #PLEASE UPDATE
+    DATE = "06052025" #PLEASE UPDATE
     STATE = "hd_negpi_3_va"
     fileName = f"ratio_tuning_{DATE}_for_{STATE}" 
     
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     m.log('Setting up state')
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-27.379)
+    m.C_QP.goto(-27)
 
     # sweep UVHWP
     m.meas_basis('HD')
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     m.meas_basis('VA')
     _, va_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
     m.output_data(f'va_sweep_{TRIAL}.csv')
-    m.shutdown()
+    
     
     angles = np.linspace(*SWEEP_PARAMETERS[:3])
     thetas = unp.arctan(unp.sqrt((va_rates)/(hd_rates)))
@@ -41,7 +41,9 @@ if __name__ == '__main__':
     plt.xlabel('UVHWP Angle (deg)')
     plt.ylabel('Theta Parameter (rad)')
     plt.savefig(f'{fileName}_{TRIAL}.png', dpi=600)
-    plt.show()
+    # plt.show()
 
     x = analysis.find_value('line', params, np.pi/4, angles)
     print(f'Pi/4 at {x}')
+
+    m.shutdown()

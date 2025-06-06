@@ -26,7 +26,7 @@ def get_theo_rho(chi):
 
 if __name__ == '__main__':
 
-    TRIAL = 2
+    TRIAL = 3
     name = 'hd_negpi_3_va'
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
@@ -61,8 +61,9 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-27.379)
-    m.C_UV_HWP.goto(-115.56962464985094)
+    m.C_QP.goto(-26.773838565224096)
+    m.C_UV_HWP.goto(-114.90445548609685)
+    
     
     # measuring!
     rho, unc, Su, un_proj, un_proj_unc = get_rho(m, SAMP)
@@ -83,12 +84,12 @@ if __name__ == '__main__':
     purity = get_purity(rho)
     print('purity', purity)
     
-    angles = [-115.2803939016242, -27.027, 67.5, 45] # change output data function to inlude B_C_QWP
+    angles = [-114.90445548609685, -26.773838565224096, 67.5, 45] 
     chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
     # save results
     with open(f"ria_hdva_simple/rho_({name}-{chi_save}-{TRIAL}).npy", 'wb') as f:
         np.save(f, (rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity))
-    date = "06032025"
+    date = "06052025"
     tomo_df = m.output_data(f'ria_hdva_simple/tomo_data_{name}_{chi_save}_{date}.csv')
     
     m.shutdown()

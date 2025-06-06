@@ -2,6 +2,7 @@ from lab_framework import Manager, analysis
 import matplotlib.pyplot as plt
 import numpy as np
 import uncertainties.unumpy as unp
+import uncertainties as unc
 
 if __name__ == '__main__':
     DATE = '06052025'
@@ -9,7 +10,7 @@ if __name__ == '__main__':
     goalGamma = -1*np.pi/3
     fileName = f'plotted_gamma_data_{DATE}_{TRIAL}'
     df = Manager.load_data(f'all_gamma_data_{DATE}_{TRIAL}.csv')
-    angles, gammas = df['QP'], df['gamma']
+    angles, gammas = df['QP'], df['gamma'].apply(unc.ufloat_fromstr)
    
     params = analysis.fit('line', angles, gammas)
     analysis.plot_func('line', params, angles, color='blue')

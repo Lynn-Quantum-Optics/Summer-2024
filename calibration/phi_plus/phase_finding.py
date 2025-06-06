@@ -56,13 +56,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('all_phase_finding_data2_test05302025.csv')
+    pd.DataFrame(datas).to_csv('all_phase_finding_data_test06052025.csv')
 
     # calculate the phase difference
     datas['phi'] = unp.arctan2((datas['DR'] - datas['DL'] - datas['AR'] + datas['AL']),(-datas['RR'] + datas['RL'] + datas['LR'] - datas['LL']))
 
     # save the data
-    pd.DataFrame(datas).to_csv('phi_data_05302025.csv')
+    pd.DataFrame(datas).to_csv('phi_data_06052025.csv')
 
     
 

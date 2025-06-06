@@ -49,13 +49,13 @@ if __name__ == '__main__':
 
     # save the overall data
     print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv('pcc_sweep_test_06022025.csv')
+    pd.DataFrame(datas).to_csv('pcc_sweep_test_06052025.csv')
 
     # calculate the purity of the state
     datas['purity'] = (datas['DD'] + datas['AA'] - (datas['DA'] + datas['AD']))/(datas['DD'] + datas['AA'] + datas['DA'] + datas['AD'])
 
     # save the data
-    pd.DataFrame(datas).to_csv('purity_test_06022025.csv')
+    pd.DataFrame(datas).to_csv('purity_test_06052025.csv')
 
     
 
