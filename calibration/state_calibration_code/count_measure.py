@@ -15,7 +15,7 @@ if __name__ == '__main__':
     m.log('Setting up state')
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-26.773838565224096)
+    m.C_QP.goto(-28.13743446751645)
     m.C_UV_HWP.goto(-114.90445548609685)
 
     m.log('Setting up measurement basis')

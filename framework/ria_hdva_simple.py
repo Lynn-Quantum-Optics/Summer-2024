@@ -92,4 +92,4 @@ if __name__ == '__main__':
     date = "06052025"
     tomo_df = m.output_data(f'ria_hdva_simple/tomo_data_{name}_{chi_save}_{date}.csv')
     
-    m.shutdown()
+    m.shutdown() 

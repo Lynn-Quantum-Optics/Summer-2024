@@ -5,7 +5,7 @@ import uncertainties.unumpy as unp
 import uncertainties as unc
 
 if __name__ == '__main__':
-    DATE = '06052025'
+    DATE = '06092025'
     TRIAL = 1
     goalGamma = -1*np.pi/3
     fileName = f'plotted_gamma_data_{DATE}_{TRIAL}'

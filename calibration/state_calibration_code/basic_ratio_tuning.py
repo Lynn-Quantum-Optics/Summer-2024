@@ -5,7 +5,7 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     TRIAL = 1 #PLEASE UPDATE
-    DATE = "06052025" #PLEASE UPDATE
+    DATE = "06092025" #PLEASE UPDATE
     STATE = "hd_negpi_3_va"
     fileName = f"ratio_tuning_{DATE}_for_{STATE}" 
     

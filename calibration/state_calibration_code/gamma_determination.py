@@ -9,8 +9,8 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    QP_angle = -29 #update as necessary
-    DATE = "06052025" #please update
+    QP_angle = -24 #update as necessary
+    DATE = "06092025" #please update
     STATE = "hd_negpi_3_va"
     
     fileName = f"gamma_determination_{DATE}_{QP_angle}_for_{STATE}"

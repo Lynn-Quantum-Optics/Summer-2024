@@ -1947,3 +1947,17 @@ Counts are as follows:
 - VD Counts: 14.4+/-0.7
 
 It looks like the recalibration of the measurment waveplates combined with the new gamma determination method has led to more balanced counts in general. There is still a bit of an imbalance in HA/VD (though they are closer than before)
+
+
+# 06/09/2025
+MP: Ria
+
+The lab is a bit warmer this week (~61F rather than mid-50s). I double checked the counts and decided the temperature change warranted recalibrating the QP for the hd_negpi_3_va state. After, I ran the full tomography over all the eta values and analyzed the data.
+
+-28.13743446751645 
+Min counts 1: 55.1+/-0.7
+ Min counts 2: 46.3+/-1.2
+ HD Counts: 1572+/-4
+ VA Counts: 1642+/-7
+ HA Counts: 11.3+/-0.5
+ VD Counts: 14.3+/-0.6
