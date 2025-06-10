@@ -29,7 +29,7 @@ if __name__ == '__main__':
     basisName = 'hd_negpi_3_va'
     mpName = "ria"
     date = "06102025"
-    TRIAL = 2
+    TRIAL = 3
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]

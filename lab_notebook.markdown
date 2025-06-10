@@ -1954,10 +1954,27 @@ MP: Ria
 
 The lab is a bit warmer this week (~61F rather than mid-50s). I double checked the counts and decided the temperature change warranted recalibrating the QP for the hd_negpi_3_va state. After, I ran the full tomography over all the eta values and analyzed the data.
 
--28.13743446751645 
-Min counts 1: 55.1+/-0.7
- Min counts 2: 46.3+/-1.2
- HD Counts: 1572+/-4
- VA Counts: 1642+/-7
- HA Counts: 11.3+/-0.5
- VD Counts: 14.3+/-0.6
+The QP angle was: -28.13743446751645 and counts are as follows.
+- Min counts 1: 55.1+/-0.7
+- Min counts 2: 46.3+/-1.2
+- HD Counts: 1572+/-4
+- VA Counts: 1642+/-7
+- HA Counts: 11.3+/-0.5
+- VD Counts: 14.3+/-0.6
+
+
+# 06/10/2025
+MP: Ria
+
+The temperature was back down to 56F today, so I used the same QP calibration as last week after double checking counts.
+I then ran a couple more full tomographies with the full eta/chi sweep.
+Min counts 1: 46.6+/-1.2
+ Min counts 2: 33.2+/-1.1
+ HD Counts: 1566+/-12
+ VA Counts: 1557+/-8
+ HA Counts: 12.3+/-0.6
+ VD Counts: 15.30+/-0.30
+
+I ran a couple of sweeps for the hd_negpi_3_va states, and also processed the data with iz using the new data processing file. There were some issues we found with the file, so they did some debugging & made other changes throughout this.
+
+I also noticed the data from yesterday had a weird fit for the UVHWP -- it looks like the manager wasn't clearing at the right times, leading to the fits being messed up. I fixed this, but because of that, I would not trust the data in the "TRIAL 1" folder as being for the correct chi values (because the UVHWP fit was so far off). I noticed this because the fit for the chi=90 had the UVHWP around 66 degrees, which is the complete wrong quadrant for this state and lead to some sign errors.
