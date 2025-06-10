@@ -28,8 +28,8 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'hd_negpi_3_va'
     mpName = "ria"
-    date = "06092025"
-    TRIAL = 1
+    date = "06102025"
+    TRIAL = 2
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -56,6 +56,8 @@ if __name__ == '__main__':
         m.shutdown()
         quit()
 
+    m.reset_output()
+
     # manually perform sweep of UVHWP for various chi values (chi/2=eta)
     chi_vals = np.linspace(*CHI_PARAMS)
 
@@ -69,7 +71,7 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-28.13743446751645)
+    m.C_QP.goto(-26.773838565224096)
 
     UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
 
@@ -132,7 +134,7 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        angles = [UVHWP_angle, -28.13743446751645, 67.5, 45] #TODO: change output data function to inlude B_C_QWP
+        angles = [UVHWP_angle, -26.773838565224096, 67.5, 45] #TODO: change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
         with open(f"{mpName}_{basisName}/rho_({basisName}-{chi_save}-{TRIAL}).npy", 'wb') as f:
