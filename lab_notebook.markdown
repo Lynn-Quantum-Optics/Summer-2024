@@ -1978,3 +1978,35 @@ Min counts 1: 46.6+/-1.2
 I ran a couple of sweeps for the hd_negpi_3_va states, and also processed the data with iz using the new data processing file. There were some issues we found with the file, so they did some debugging & made other changes throughout this.
 
 I also noticed the data from yesterday had a weird fit for the UVHWP -- it looks like the manager wasn't clearing at the right times, leading to the fits being messed up. I fixed this, but because of that, I would not trust the data in the "TRIAL 1" folder as being for the correct chi values (because the UVHWP fit was so far off). I noticed this because the fit for the chi=90 had the UVHWP around 66 degrees, which is the complete wrong quadrant for this state and lead to some sign errors.
+
+
+# 06/11/2025
+MP: Ria
+
+
+I ran a few tomographies for the hd_negpi_va state. Just for reference, counts at the start of the day were as follows.
+- Min counts 1: 46.9+/-1.2
+- Min counts 2: 34.8+/-1.1
+- HD Counts: 1557+/-6
+- VA Counts: 1584+/-10
+- HA Counts: 12.5+/-0.6
+- VD Counts: 13.9+/-0.7
+
+I also calibrated the hr_negpi_6_vl state in preparation for running a tomography on it tomorrow.
+ FOR THE HR+e^-ipi/6VL state:
+ Measurement settings:
+ QP Angle: -12.11346435546875 UVHWP Angle: -111.29939852262797
+
+ 
+ # 06/12/2025
+ MP: Ria
+
+ We attended the lab safety training in the morning, so I didn't quite have enough time to run the tomography. 
+ In the afternoon, I ran a tomography on the hr_negpi_6_vl state so we could process this data. It looks like the calibration for the gamma isn't quite as good as for the other state, so I'll want to take more data for this in the future.
+ For reference, counts were as follows for the hr_negpi_6_vl state:
+- Min counts 1: 35.9+/-1.1
+- Min counts 2: 37.7+/-0.5
+- HR Counts: 1555+/-6
+- VL Counts: 1568+/-7
+- HL Counts: 16.1+/-0.6
+- VR Counts: 16.2+/-0.

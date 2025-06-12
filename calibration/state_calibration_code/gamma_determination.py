@@ -9,8 +9,8 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    QP_angle = -26.773838565224096 #update as necessary
-    DATE = "06102025" #please update
+    QP_angle = -26.98906575253135 #update as necessary
+    DATE = "06122025" #please update
     STATE = "hd_negpi_3_va"
     
     fileName = f"gamma_determination_{DATE}_{QP_angle}_for_{STATE}"
@@ -22,12 +22,18 @@ if __name__ == '__main__':
     # parameters used for HR + e^-ipi/6 VL sstate
     m.log('Setting up state')
     m.make_state('phi_plus')
+    # m.B_C_HWP.goto(0)
+    # m.B_C_QWP.goto(-45)
+    # m.C_UV_HWP.goto(-111.29939852262797)
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
     m.C_UV_HWP.goto(-114.90445548609685)
 
 
     datas = {'QP': np.linspace(QP_angle, PARAMS[1], 1, endpoint=False)}
+
+    #bases for hdva state: 'DR', 'AR', 'DL', 'AL', 'RR', 'LL', 'RL', 'LR'
+    #bases for hrvl state: 'DD', 'DA', 'AD', 'AA', 'RD', 'RA', 'LD', 'LA'
 
     for basis in ['DR', 'AR', 'DL', 'AL', 'RR', 'LL', 'RL', 'LR']:
         m.log(f'Beginning {basis} measurement...')
@@ -42,7 +48,11 @@ if __name__ == '__main__':
     print('Saving all sweep data...')
     pd.DataFrame(datas).to_csv(f'raw_gamma_data_{DATE}_{QP_angle}_for_{STATE}.csv')
 
+    # for hdva state: 
     datas['gamma'] = unp.arctan2(-(datas['DR']+datas['AL']-datas['DL']-datas['AR']), (datas['RR']+datas['LL']-datas['LR']-datas['RL']))
+    
+    # for hrvl state:
+    # datas['gamma'] = unp.arctan2((datas['DD']+datas['AA']-datas['DA']-datas['AD']), -(datas['RD']+datas['LA']-datas['RA']-datas['LD']))
     pd.DataFrame(datas).to_csv(f'{fileName}.csv')
 
     m.shutdown()

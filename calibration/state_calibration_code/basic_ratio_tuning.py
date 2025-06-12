@@ -5,8 +5,8 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     TRIAL = 1 #PLEASE UPDATE
-    DATE = "06092025" #PLEASE UPDATE
-    STATE = "hd_negpi_3_va"
+    DATE = "06112025" #PLEASE UPDATE
+    STATE = "hdr_negpi_6_vl"
     fileName = f"ratio_tuning_{DATE}_for_{STATE}" 
     
     SWEEP_PARAMETERS = [-105, -120, 15, 5, 3] #fine sweep
@@ -19,17 +19,17 @@ if __name__ == '__main__':
 
     # parameters used for HR + e^-ipi/6 VL state
     m.log('Setting up state')
-    m.B_C_HWP.goto(67.5)
-    m.B_C_QWP.goto(45)
-    m.C_QP.goto(-27)
+    m.B_C_HWP.goto(0)
+    m.B_C_QWP.goto(-45)
+    m.C_QP.goto(-13)
 
     # sweep UVHWP
-    m.meas_basis('HD')
+    m.meas_basis('HR')
     _, hd_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
-    m.output_data(f'hd_sweep_{TRIAL}.csv')
-    m.meas_basis('VA')
+    m.output_data(f'hr_sweep_{TRIAL}.csv')
+    m.meas_basis('VL')
     _, va_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
-    m.output_data(f'va_sweep_{TRIAL}.csv')
+    m.output_data(f'vl_sweep_{TRIAL}.csv')
     
     
     angles = np.linspace(*SWEEP_PARAMETERS[:3])

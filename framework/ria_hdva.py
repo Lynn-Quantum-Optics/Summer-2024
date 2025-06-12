@@ -28,8 +28,8 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'hd_negpi_3_va'
     mpName = "ria"
-    date = "06102025"
-    TRIAL = 3
+    date = "06122025"
+    TRIAL = 6
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-26.773838565224096)
+    m.C_QP.goto(-26.98906575253135)
 
     UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
 
@@ -113,6 +113,7 @@ if __name__ == '__main__':
         UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
 
         # might need to retune this if there are multiple roots. I'm only assuming one root
+        print(UVHWP_angle)
         m.C_UV_HWP.goto(UVHWP_angle)
         
         # measuring!
@@ -134,7 +135,7 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        angles = [UVHWP_angle, -26.773838565224096, 67.5, 45] #TODO: change output data function to inlude B_C_QWP
+        angles = [UVHWP_angle, -26.98906575253135, 67.5, 45] #TODO: change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
         with open(f"{mpName}_{basisName}/rho_({basisName}-{chi_save}-{TRIAL}).npy", 'wb') as f:
