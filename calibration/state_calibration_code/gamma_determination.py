@@ -9,9 +9,9 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    QP_angle = -26.98906575253135 #update as necessary
-    DATE = "06122025" #please update
-    STATE = "hd_negpi_3_va"
+    QP_angle = -9.70563616071427 #update as necessary -9.71449207491852 ...
+    DATE = "06272025" #please update
+    STATE = "hd_negpi_6_va"
     
     fileName = f"gamma_determination_{DATE}_{QP_angle}_for_{STATE}"
     PARAMS = [QP_angle, QP_angle+1, 1, 5, 3]
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # initialize the manager
     m = Manager('../config.json')
 
-    # parameters used for HR + e^-ipi/6 VL sstate
+    # parameters used for HD + e^-ipi/3 VA sstate
     m.log('Setting up state')
     m.make_state('phi_plus')
     # m.B_C_HWP.goto(0)
@@ -27,7 +27,8 @@ if __name__ == '__main__':
     # m.C_UV_HWP.goto(-111.29939852262797)
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_UV_HWP.goto(-114.90445548609685)
+    m.C_UV_HWP.goto(-47.6557745535714) # 18
+    #m.C_UV_HWP.goto(-65.42683049252159) #-115.10003140098172
 
 
     datas = {'QP': np.linspace(QP_angle, PARAMS[1], 1, endpoint=False)}
@@ -45,8 +46,8 @@ if __name__ == '__main__':
         m.output_data(f'QP_{basis}_measurement')
 
     # save the overall data
-    print('Saving all sweep data...')
-    pd.DataFrame(datas).to_csv(f'raw_gamma_data_{DATE}_{QP_angle}_for_{STATE}.csv')
+    #print('Saving all sweep data...')
+    #pd.DataFrame(datas).to_csv(f'raw_gamma_data_{DATE}_{QP_angle}_for_{STATE}.csv')
 
     # for hdva state: 
     datas['gamma'] = unp.arctan2(-(datas['DR']+datas['AL']-datas['DL']-datas['AR']), (datas['RR']+datas['LL']-datas['LR']-datas['RL']))

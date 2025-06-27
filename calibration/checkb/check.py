@@ -39,8 +39,8 @@ def reset(m:Manager):
     m.log(f'BCHWP -> {m.B_C_HWP.goto(0)}')
 
 if __name__ == '__main__':
-    DATE = '06042025'
-    TRIAL = 5
+    DATE = '06252025'
+    TRIAL = 2
     SWEEP_PARAMS = (-4, 4, 15, 5, 3)
 
     # make output folder

@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # initialize the manager
     m = Manager('../config.json')
 
-    state = 'hr_negpi_6_vl'
+    state = 'hd_negpi_3_va'
 
     m.make_state('phi_plus')
 
@@ -18,8 +18,8 @@ if __name__ == '__main__':
         m.log('Setting up state')
         m.B_C_HWP.goto(67.5)
         m.B_C_QWP.goto(45)
-        m.C_QP.goto(-26.98906575253135) #-26.773838565224096
-        m.C_UV_HWP.goto(-114.90445548609685)
+        m.C_QP.goto(-9.71449207491852) #-26.98906575253135 -26.773838565224096
+        m.C_UV_HWP.goto(-65.72638622083161) #-114.90445548609685 -115.10003140098172
 
         m.log('Setting up measurement basis')
         m.meas_basis("VV")
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         # tell the user the counts
         print(f'Min counts 1: {min_counts1} \n Min counts 2: {min_counts2}')
         print(f' HR Counts: {hr_counts} \n VL Counts: {vl_counts} \n HL Counts: {hl_counts} \n VR Counts: {vr_counts}')
-
+    
     if state == 'phi_plus':
         m.meas_basis("HH")
         hh_counts = m.take_data(6, 5, 'C4')

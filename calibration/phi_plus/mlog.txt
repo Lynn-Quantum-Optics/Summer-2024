@@ -1,35 +1,49 @@
-0:00:00	Manager started at 2025-06-11_15-59-52.
+0:00:00	Manager started at 2025-06-25_14-51-28.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:01:26	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -64.14652091578432, 'C_QP': -15.6788, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
-0:02:09	Loading measurement basis "HR" from config file.
-0:02:46	Loading measurement basis "VL" from config file.
-0:03:27	Loading measurement basis "HR" from config file.
-0:03:51	Loading measurement basis "HL" from config file.
-0:04:12	Loading measurement basis "VR" from config file.
-0:04:41	Loading measurement basis "HH" from config file.
-0:07:01	Loading measurement basis "VV" from config file.
-0:07:58	Beginning shutdown procedure.
-0:07:58	Shutting down motor objects.
-0:07:59	C_UV_HWP returned to true position 359.97488839285717 degrees.
-0:08:00	Deleting C_UV_HWP object.
-0:08:01	C_QP returned to true position 359.99497767857144 degrees.
-0:08:01	Deleting C_QP object.
-0:08:01	C_PCC returned to true position 359.99497767857144 degrees.
-0:08:02	Deleting C_PCC object.
-0:08:02	B_C_HWP returned to true position 359.99246651785717 degrees.
-0:08:03	Deleting B_C_HWP object.
-0:08:03	B_C_QWP returned to true position 0.002511160714277594 degrees.
-0:08:04	Deleting B_C_QWP object.
-0:08:10	B_HWP returned to true position 359.9994812011719 degrees.
-0:08:10	Deleting B_HWP object.
-0:08:22	B_QWP returned to true position 0.000244140625 degrees.
-0:08:22	Deleting B_QWP object.
-0:08:25	A_HWP returned to true position 0.002604652661830187 degrees.
-0:08:25	Deleting A_HWP object.
-0:08:34	A_QWP returned to true position 0.0 degrees.
-0:08:35	Deleting A_QWP object.
-0:08:35	Closing COM ports.
-0:08:36	Closing CCU.
-0:08:37	Closing log file.
+0:00:19	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -64.14652091578432, 'C_QP': -15.6788, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:00:31	Loading measurement basis "HH" from config file.
+0:03:16	Loading measurement basis "VV" from config file.
+0:05:16	Loading measurement basis "HH" from config file.
+0:06:31	Loading measurement basis "VV" from config file.
+0:07:26	Loading measurement basis "HV" from config file.
+0:07:38	Loading measurement basis "VH" from config file.
+0:07:57	Loading measurement basis "DD" from config file.
+0:08:15	Loading measurement basis "AA" from config file.
+0:08:32	Loading measurement basis "AD" from config file.
+0:08:48	Loading measurement basis "DA" from config file.
+0:09:05	Loading measurement basis "HH" from config file.
+0:10:54	Loading measurement basis "VV" from config file.
+0:13:26	Loading measurement basis "HH" from config file.
+0:18:40	Taking data; sampling 5 x 3 s.
+0:19:19	Loading measurement basis "VV" from config file.
+0:19:33	Taking data; sampling 5 x 3 s.
+0:20:30	Taking data; sampling 5 x 3 s.
+0:21:03	Taking data; sampling 5 x 3 s.
+0:21:36	Loading measurement basis "HH" from config file.
+0:21:51	Taking data; sampling 5 x 3 s.
+0:22:16	Beginning shutdown procedure.
+0:22:17	Shutting down motor objects.
+0:22:17	C_UV_HWP returned to true position 359.97488839285717 degrees.
+0:22:18	Deleting C_UV_HWP object.
+0:22:19	C_QP returned to true position 0.007533482142857143 degrees.
+0:22:19	Deleting C_QP object.
+0:22:20	C_PCC returned to true position 359.9974888392857 degrees.
+0:22:20	Deleting C_PCC object.
+0:22:21	B_C_HWP returned to true position 0.0025111607142856984 degrees.
+0:22:21	Deleting B_C_HWP object.
+0:22:22	B_C_QWP returned to true position 0.002511160714277594 degrees.
+0:22:22	Deleting B_C_QWP object.
+0:22:24	B_HWP returned to true position 0.001562791527248919 degrees.
+0:22:25	Deleting B_HWP object.
+0:22:37	B_QWP returned to true position 0.0 degrees.
+0:22:37	Deleting B_QWP object.
+0:22:38	A_HWP returned to true position 0.000520930509082973 degrees.
+0:22:38	Deleting A_HWP object.
+0:22:39	A_QWP returned to true position 359.9984436035156 degrees.
+0:22:39	Deleting A_QWP object.
+0:22:39	Closing COM ports.
+0:22:40	WARNING: Shutting down with 5 rows of (potentially) unsaved data.
+0:22:41	Closing CCU.
+0:22:42	Closing log file.

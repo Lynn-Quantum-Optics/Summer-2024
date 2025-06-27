@@ -1,46 +1,85 @@
-0:00:00	Manager started at 2025-06-12_16-29-26.
+0:00:00	Manager started at 2025-06-27_13-30-51.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
-0:00:02	Initializing motors.
-0:00:08	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -64.14652091578432, 'C_QP': -15.6788, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
-0:00:10	Setting up state
-0:00:12	Setting up measurement basis
-0:00:13	Loading measurement basis "VV" from config file.
-0:00:53	Checking count rates...
-0:00:54	Taking data; sampling 6 x 5 s.
-0:01:24	Setting up measurement basis
-0:01:25	Loading measurement basis "HH" from config file.
-0:01:53	Checking count rates...
-0:01:54	Taking data; sampling 6 x 5 s.
-0:02:24	Loading measurement basis "HR" from config file.
-0:02:41	Taking data; sampling 6 x 5 s.
-0:03:11	Loading measurement basis "VL" from config file.
-0:03:27	Taking data; sampling 6 x 5 s.
-0:03:58	Loading measurement basis "HL" from config file.
-0:04:04	Taking data; sampling 6 x 5 s.
-0:04:35	Loading measurement basis "VR" from config file.
-0:04:52	Taking data; sampling 6 x 5 s.
-0:05:22	Beginning shutdown procedure.
-0:05:23	Shutting down motor objects.
-0:05:23	C_UV_HWP returned to true position 359.97237723214283 degrees.
-0:05:24	Deleting C_UV_HWP object.
-0:05:25	C_QP returned to true position 359.9974888392857 degrees.
-0:05:25	Deleting C_QP object.
-0:05:26	C_PCC returned to true position 359.9974888392857 degrees.
-0:05:26	Deleting C_PCC object.
-0:05:27	B_C_HWP returned to true position 359.99246651785717 degrees.
-0:05:28	Deleting B_C_HWP object.
-0:05:28	B_C_QWP returned to true position 0.005022321428555188 degrees.
-0:05:29	Deleting B_C_QWP object.
-0:05:31	B_HWP returned to true position 0.001562791527248919 degrees.
-0:05:31	Deleting B_HWP object.
-0:05:47	B_QWP returned to true position 0.000244140625 degrees.
-0:05:47	Deleting B_QWP object.
-0:05:54	A_HWP returned to true position 0.0 degrees.
-0:05:54	Deleting A_HWP object.
-0:05:55	A_QWP returned to true position 359.99896240234375 degrees.
-0:05:55	Deleting A_QWP object.
-0:05:56	Closing COM ports.
-0:05:57	WARNING: Shutting down with 6 rows of (potentially) unsaved data.
-0:05:57	Closing CCU.
-0:05:58	Closing log file.
+0:00:01	Initializing motors.
+0:00:07	Setting up state
+0:00:07	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -64.14652091578432, 'C_QP': -15.6788, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:00:11	Beginning DR measurement...
+0:00:11	Loading measurement basis "DR" from config file.
+0:00:39	Measuring DR
+0:00:39	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:00:41	Taking data; sampling 5 x 3 s.
+0:00:57	Saving data to "QP_DR_measurement".
+0:00:57	Clearing output data.
+0:00:57	Beginning AR measurement...
+0:00:57	Loading measurement basis "AR" from config file.
+0:01:04	Measuring AR
+0:01:05	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:01:05	Taking data; sampling 5 x 3 s.
+0:01:21	Saving data to "QP_AR_measurement".
+0:01:21	Clearing output data.
+0:01:21	Beginning DL measurement...
+0:01:21	Loading measurement basis "DL" from config file.
+0:01:37	Measuring DL
+0:01:38	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:01:38	Taking data; sampling 5 x 3 s.
+0:01:54	Saving data to "QP_DL_measurement".
+0:01:54	Clearing output data.
+0:01:54	Beginning AL measurement...
+0:01:54	Loading measurement basis "AL" from config file.
+0:02:01	Measuring AL
+0:02:01	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:02:02	Taking data; sampling 5 x 3 s.
+0:02:17	Saving data to "QP_AL_measurement".
+0:02:17	Clearing output data.
+0:02:18	Beginning RR measurement...
+0:02:18	Loading measurement basis "RR" from config file.
+0:02:39	Measuring RR
+0:02:39	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:02:39	Taking data; sampling 5 x 3 s.
+0:02:55	Saving data to "QP_RR_measurement".
+0:02:55	Clearing output data.
+0:02:55	Beginning LL measurement...
+0:02:56	Loading measurement basis "LL" from config file.
+0:03:16	Measuring LL
+0:03:16	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:03:16	Taking data; sampling 5 x 3 s.
+0:03:32	Saving data to "QP_LL_measurement".
+0:03:33	Clearing output data.
+0:03:33	Beginning RL measurement...
+0:03:33	Loading measurement basis "RL" from config file.
+0:03:45	Measuring RL
+0:03:45	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:03:45	Taking data; sampling 5 x 3 s.
+0:04:00	Saving data to "QP_RL_measurement".
+0:04:01	Clearing output data.
+0:04:01	Beginning LR measurement...
+0:04:01	Loading measurement basis "LR" from config file.
+0:04:22	Measuring LR
+0:04:23	Sweeping C_QP from -9.70563616071427 to -8.70563616071427 degrees in 1 steps.
+0:04:23	Taking data; sampling 5 x 3 s.
+0:04:38	Saving data to "QP_LR_measurement".
+0:04:39	Clearing output data.
+0:04:39	Beginning shutdown procedure.
+0:04:39	Shutting down motor objects.
+0:04:40	C_UV_HWP returned to true position 359.96986607142856 degrees.
+0:04:40	Deleting C_UV_HWP object.
+0:04:41	C_QP returned to true position 0.005022321428571428 degrees.
+0:04:41	Deleting C_QP object.
+0:04:42	C_PCC returned to true position 0.0 degrees.
+0:04:42	Deleting C_PCC object.
+0:04:43	B_C_HWP returned to true position 0.005022321428571397 degrees.
+0:04:43	Deleting B_C_HWP object.
+0:04:44	B_C_QWP returned to true position 0.007533482142832781 degrees.
+0:04:44	Deleting B_C_QWP object.
+0:04:46	B_HWP returned to true position 0.001562791527248919 degrees.
+0:04:46	Deleting B_HWP object.
+0:05:03	B_QWP returned to true position 359.99993896484375 degrees.
+0:05:03	Deleting B_QWP object.
+0:05:04	A_HWP returned to true position 0.000520930509082973 degrees.
+0:05:04	Deleting A_HWP object.
+0:05:19	A_QWP returned to true position 359.9974060058594 degrees.
+0:05:20	Deleting A_QWP object.
+0:05:20	Closing COM ports.
+0:05:21	Closing CCU.
+0:05:21	Closing log file.

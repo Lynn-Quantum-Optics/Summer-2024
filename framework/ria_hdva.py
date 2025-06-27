@@ -18,7 +18,7 @@ def get_theo_rho(chi):
     R = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
     L = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
 
-    phi = (np.cos(chi/2) * np.kron(H, D) + np.exp(-1j*np.pi/3) * np.sin(chi/2) * np.kron(V, A))/np.sqrt(2) # current state
+    phi = (np.cos(chi/2) * np.kron(H, D) + np.exp(-1j*np.pi/3) * np.sin(chi/2) * np.kron(V, A)) # current state
 
     rho = phi @ phi.conj().T
 
@@ -28,8 +28,8 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'hd_negpi_3_va'
     mpName = "ria"
-    date = "06122025"
-    TRIAL = 6
+    date = "06262025"
+    TRIAL = 0
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
 
     # Sweep UVHWP
-    GUESS = -112.5 #TODO: Change if necessary for correct sign
+    GUESS = -62.5 #TODO: Change if necessary for correct sign
     RANGE = 22.5
     N = 35
     SAMP = (5, 3)
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-26.98906575253135)
+    m.C_QP.goto(-9.71449207491852) #-26.773838565224096
 
     UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
 
@@ -102,6 +102,25 @@ if __name__ == '__main__':
 
     args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
     args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
+    
+    for chi in chi_vals:
+        # Calculate the UVHWP angle we want for a given CHI value
+        desired_ratio = (np.cos(chi/2) / np.sin(chi/2))**2
+        def min_me(x_:np.ndarray, args1_:tuple, args2_:tuple):
+            ''' Function want to minimize'''
+            return (sin2_sq(x_, *args1_) / sin2_sq(x_, *args2_) - desired_ratio)**2
+        x_min, x_max = np.min(data1.C_UV_HWP), np.max(data1.C_UV_HWP)
+        UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
+
+        # might need to retune this if there are multiple roots. I'm only assuming one root
+        print(UVHWP_angle)
+
+    # pause to check UVHWP
+    inp = input('Continue? [y/n] ')
+    if inp.lower() != 'y':
+        print('Exiting...')
+        m.shutdown()
+        quit()
 
     for chi in chi_vals:
         # Calculate the UVHWP angle we want for a given CHI value
@@ -135,7 +154,7 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        angles = [UVHWP_angle, -26.98906575253135, 67.5, 45] #TODO: change output data function to inlude B_C_QWP
+        angles = [UVHWP_angle, -9.71449207491852, 67.5, 45] #TODO: change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
         with open(f"{mpName}_{basisName}/rho_({basisName}-{chi_save}-{TRIAL}).npy", 'wb') as f:

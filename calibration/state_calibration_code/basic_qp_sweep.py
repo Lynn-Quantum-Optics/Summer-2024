@@ -9,8 +9,8 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    SWEEP_PARAMS = [-35, -25, 10, 5, 3] 
-    DATE = "06022025" #please update
+    SWEEP_PARAMS = [-15, 0, 15, 5, 1] 
+    DATE = "06252025" #please update
     TRIAL = 3 #please update
     STATE = "hd_negpi_3_va"
 
@@ -26,29 +26,29 @@ if __name__ == '__main__':
     m.log('Setting up state')
     m.B_C_HWP.goto(67.5)
     m.B_C_QWP.goto(45)
-    m.C_UV_HWP.goto(-115.56962464985094)
+    m.C_UV_HWP.goto(-65.18826575028268) #-115.56962464985094
 
     m.log('Setting up measurement basis')
     m.A_HWP.goto(-7.5)
     m.A_QWP.goto(-60)
 
-    # check count rates
-    m.log('Moving QP and UVHWP where they have been tuned to be')
-    m.C_QP.goto(-27.379)
-    m.C_UV_HWP.goto(-115.56962464985094)
+    # # check count rates
+    # m.log('Moving QP and UVHWP where they have been tuned to be')
+    # m.C_QP.goto(-27.379)
+    # m.C_UV_HWP.goto(-115.56962464985094)
 
-    m.log('Checking count rates...')
-    counts = m.take_data(7,5,'C4')
+    # m.log('Checking count rates...')
+    # counts = m.take_data(7,5,'C4')
 
-    # tell the user what is up
-    print(f'Count rates: {counts}')
+    # # tell the user what is up
+    # print(f'Count rates: {counts}')
 
-    # check if the count rates are good
-    inp = input('Recalibrate QP? [y/n] ')
-    if inp.lower() != 'y':
-        print('Exiting...')
-        m.shutdown()
-        quit()
+    # # check if the count rates are good
+    # inp = input('Recalibrate QP? [y/n] ')
+    # if inp.lower() != 'y':
+    #     print('Exiting...')
+    #     m.shutdown()
+    #     quit()
 
     # sweep QP
     m.log('Sweeping QP')
