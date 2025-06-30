@@ -2279,3 +2279,25 @@ Min counts 1: 49.1+/-1.8
 After this, I ran a tomography. This is hd_negpi_3_va_trial9. Unfortunately, the UVHWP sweep led to the second chi value being in the wrong quadrant (because it swept past the minimum), so I used the UVHWP sweep data (minus the angles that are in the incorrect quadrant) to recalculate the UVHWP angle for that chi value. I then collected data on that point immediately after the full tomography, and stored it in the same folder. This is noted in the folder as well (in file names).
 
 I also calculated what the actual state we are making for hr_negpi_6_vl is -- it appears to have an 88 degree difference between the H/V in R and L, rather than 90.
+
+
+# 06/27/2026
+MP: Ria
+
+Found phase drift in hd_negpi_3_va state
+Analyze w prof lynn
+found potential solution (swap sine and cosine so make pure H not pure V)
+try it out (UVHWP angles below) -> data in test 4 these are UVHWP values & correspond to all_gamma_chi_06272025_trial2 (trial1 was earlier w uvhwp angles from yeserday)
+[-88.40268658]
+[-84.76152667]
+[-79.38040221]
+[-74.5211473]
+[-69.83436021]
+[-65.26673128]
+
+[-178.43334997]
+[-174.4035695]
+[-169.28190979]
+[-164.47610195]
+[-159.79179246]
+[-155.20270599]

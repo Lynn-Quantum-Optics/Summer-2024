@@ -24,8 +24,8 @@ if __name__ == '__main__':
 
     # x = analysis.find_value('line', params, goalGamma, angles)
     # print(f'{goalGamma} at {x}')
-    df = Manager.load_data('all_gamma_chi_data_06272025.csv')
-    fileName = f'plotted_gamma_chi_data_06272025'
+    df = Manager.load_data('all_gamma_chi_data_06272025_trial3.csv')
+    fileName = f'plotted_gamma_chi_data_06272025_trial3'
     chis, gammas = df['chi'], df['gamma'].apply(unc.ufloat_fromstr)
    
     params = analysis.fit('line', chis, gammas)

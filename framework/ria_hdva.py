@@ -18,7 +18,7 @@ def get_theo_rho(chi):
     R = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
     L = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
 
-    phi = (np.cos(chi/2) * np.kron(H, D) + np.exp(-1j*np.pi/3) * np.sin(chi/2) * np.kron(V, A)) # current state
+    phi = (np.sin(chi/2) * np.kron(H, D) + np.exp(-1j*np.pi/3) * np.cos(chi/2) * np.kron(V, A)) # current state
 
     rho = phi @ phi.conj().T
 
@@ -28,8 +28,8 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'hd_negpi_3_va'
     mpName = "ria"
-    date = "06262025"
-    TRIAL = 0
+    date = "06272025"
+    TRIAL = 10
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
 
     # Sweep UVHWP
-    GUESS = -62.5 #TODO: Change if necessary for correct sign
+    GUESS = -157.5 #TODO: Change if necessary for correct sign
     RANGE = 22.5
     N = 35
     SAMP = (5, 3)
@@ -77,11 +77,11 @@ if __name__ == '__main__':
 
     #TODO: Change measurment bases to be correct for your state
     # configure measurement basis
-    print(m.time, f'Configuring measurement basis HD')
-    m.meas_basis('HD')
+    print(m.time, f'Configuring measurement basis VA')
+    m.meas_basis('VA')
 
     # do sweep
-    print(m.time, f'Beginning sweep of uvhwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: HR')
+    print(m.time, f'Beginning sweep of uvhwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: VA')
     m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
@@ -90,10 +90,10 @@ if __name__ == '__main__':
 
     #TODO: Change measurement basis to correct one for your state
     # sweep in the second basis
-    print(m.time, f'Configuring measurement basis VA')
-    m.meas_basis('VA')
+    print(m.time, f'Configuring measurement basis HD')
+    m.meas_basis('HD')
 
-    print(m.time, f'Beginning sweep of uv_hwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: VL')
+    print(m.time, f'Beginning sweep of uv_hwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: HD')
     m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     print(m.time, 'Data collected')
