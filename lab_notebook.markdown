@@ -1801,12 +1801,12 @@ Ran into some roadblocks with data processing and which files to run (MORE INFO)
 Started process of calibration for the HRVL state - locations for Bob and Alice's plates are below. I also ran the QP sweep and ratio tuning. It looks like counts aren't as minimzed as expected -- investigate tomorrow.
 To create the HR+e^(-ipi/6)VL state:
 Make phi plus, make meas_basis VV and move as follows:
-BCHWP: 0
-BCQWP: -45
-AHWP: -30
-AQWP: -105
-QP: -19.137
-UVHWP: -112.74443676597194
+- BCHWP: 0
+- BCQWP: -45
+- AHWP: -30
+- AQWP: -105
+- QP: -19.137
+- UVHWP: -112.74443676597194
 
 
 # 05/23/2025
@@ -1821,11 +1821,13 @@ I also finished up the QP and ratio tuning for the other state. It turns out I s
 MP: Ria
 
 I ran the tomography on the balanced version of the hrvl state, and like with the hdva state, it indicated that the theoretical and experimental rhos did not agree. I verified we were correctly making HRVL and HDVA without the phase shifts and we were. The temperature in the lab is similar to when I ran the calibration on this state, but perhaps that is part of the phase error.
+
 I then ran a purity check to make sure the phi_plus state is still being made as calibrated, and it was a bit low. I also double checked the state calibration for both of our target states, and they no longer seem to be correct. This does make some sense though because the room is significantly warmer today than last week (72F). I started recalibration for phi_plus but then decided to hold off on recalibrating these states as well as phi_plus since F&M said they were coming in to fix the AC today -- though they still hadn't come in by the end of the day.
 Looking at the output rho matrices, I deduced what states we appear to be making. They appear to be HD+e^-5ipi/6VA and HL+e^13ipi/12VR rather than HD+e^-ipi/3VA and HR+e^-ipi/6VL. However, when double checking these states by hand, we do still appear to be making some superposition of HR and VL for that state rather than the HL+VR mix implied by the density matrix. I noticed also that some of Stu's files had the definitions of R and L swapped, as compared to the experimental data processing file. It will be important to confirm which convention we are using.
 Because the most of this data was gathered last week when the temperature in the lab should have been comparable to the temp during calibration, it appears there is some error in our process of finding the QP angle. However, data gathered today is very likely influenced by this temperature increase.
 
 If the thermostat is not fixed tomorrow, I will need to decide whether recalibrating for the higher temperature and collecting data at that point is worth it or whether I should wait until our AC actually works to collect this data as the high temp impacts laser stability and state purity.
+
 
 # 05/28/2025
 MP: Ria
@@ -1839,8 +1841,7 @@ I also analyzed the csv from Thursday (the AC worked somewhat Thursday morning a
 MP: Ria
 
 I worked on reviewing the process used for state generation and identified a potential issue. As the AC is still not fully working, I recalibrated phi_plus for the warmer lab temp, and started recalibrating the two states I am working on so that I can run a tomography tomorrow and verify whether or not the change I made to the procedure work.
-Warmer Phi_plus calib:
-QP ANGLE=  -16.8
+Warmer Phi_plus calib: QP ANGLE=  -16.8
 
 
 # 05/30/2025
@@ -1848,7 +1849,7 @@ MP: Ria
 
 The AC is working again, note the lab is about 58F due to the way the building is cooled (as our air vent is currently propped open while waiting for parts on order, there is no way to warm the lab). 
 
-Since the lkab temperature have fluctuated so much in the past week, I spent some time recalibrating the phi_plus state as well.
+Since the lab temperature has fluctuated so much in the past week, I spent some time recalibrating the phi_plus state as well.
 The new QP angle is -14.943 and the UVHWP angle is -65.06993022717926. I then double checked the calibration of Bob's creation waveplates for phi_plus as the density matrix from the tomographies last week showed an over emphasis of H and V as compared to D and A. The current phi_plus state purity is: 0.9514+/-0.0007. I collected some detailed data on counts while making phi_plus over 30 seconds. The results are below.
 - HH Counts: 1507+/-7
 - VV Counts: 1500+/-6
@@ -1862,7 +1863,6 @@ The new QP angle is -14.943 and the UVHWP angle is -65.06993022717926. I then do
 We determined part of the phase issue is due to the fact that our measurement basis calculations did not take into account negative phase shifts (such as the one we want here), so there were some sign issues.
 FOR HD+e^-ipi/3VA, set Bob to measure V and AHWP @ -7.5, AQWP @ -60
 FOR HR+e^-ipi/6VL, set Bob to measure _ and AHWP @ -15 and AQWP @ -75
-
 
 
 # 06/02/2025
@@ -1879,6 +1879,7 @@ It looks like something in the set-up got bumped since Friday. We adjusted the m
 - AA Counts: 1431+/-9
 
 I calibrated the HD+e^-ipi/3VA state with the updated measurement basis. The calibration is as follows: UVHWP @ -115.2803939016242, QP @ -27.027
+
 I then collected data on the counts rates. Note HA and VD are not balanced as well as one would hope. Counts are as follows:
 - Min counts: 50.2+/-2.6
 - HD Counts: 1479+/-5
@@ -1905,7 +1906,7 @@ I then ran another tomography. However, results are similar to before, so I thin
 # 06/04/2025
 MP: Ria
 
-As an alternative method for determining the QP angle that produces the correct phase shift, we decided to do a more complicated process that involves measuring a few different bases at different QP angle and using this to calculating the observed phase shift, gamma, in the density matrix. (see ____ for more info). I wrote the code file, and ran it. However, in middle of this, two of the measurement waveplates lost connection from the computer and I had to side-track to recalibrate them as one of them did not error while at zero. I double check counts for phi_plus and hd_negpi_3_va, and they were not balanced in the same way as previously (and visually BQWP/AQWP looked a bit off), so I decided to recalibrate the measurement waveplates before proceeding. It looks like the calibration didn't change as significantly as I would have expected, so perhaps the measurement waveplates did disconnect at their calibrated zeroes :/. Tomorrow, I will double check phi_plus calibration and update the calibration for hd_negpi_3_va using the new process.
+As an alternative method for determining the QP angle that produces the correct phase shift, we decided to do a more complicated process that involves measuring a few different bases at different QP angle and using this to calculating the observed phase shift, gamma, in the density matrix. I wrote the code file, and ran it. However, in middle of this, two of the measurement waveplates lost connection from the computer and I had to side-track to recalibrate them as one of them did not error while at zero. I double check counts for phi_plus and hd_negpi_3_va, and they were not balanced in the same way as previously (and visually BQWP/AQWP looked a bit off), so I decided to recalibrate the measurement waveplates before proceeding. It looks like the calibration didn't change as significantly as I would have expected, so perhaps the measurement waveplates did disconnect at their calibrated zeroes. Tomorrow, I will double check phi_plus calibration and update the calibration for hd_negpi_3_va using the new process.
 
 - AQWP: 0.538 -> -0.710
 - AHWP: -.465 -> -0.285
@@ -1920,10 +1921,11 @@ As an alternative method for determining the QP angle that produces the correct 
 MP: Ria
 
 I double checked the calibration for phi_plus then tested the new gamma_determination method for determining the qp angle to produce the correct phase shift for the hd_negpi_3_va state. There were a few modifications I had to make to the file from yesterday -- instead of finding theta (the ratio of the HD:VA), if we collect two more basis measurements, we can calculate gamma without needing to know the experimental purity.
-note that BCHWP had the error that usually occurs with the qp. I'm wondering if it has something to do with the way it is zeroed since this was never an issue before recalibration (ie does the issue come from where the zero location is relative to the waveplate's hardware home)
+Note that BCHWP had the error that usually occurs with the qp. I'm wondering if it has something to do with the way it is zeroed since this was never an issue before recalibration (ie does the issue come from where the zero location is relative to the waveplate's hardware home).
 
--64.93242765727796->-64.14652091578432
--14.9->-15.6788
+UVHWP Update: -64.93242765727796->-64.14652091578432
+QP UpdateL-14.9->-15.6788
+
 Phi_Plus counts after measurement waveplate & qp recalibration:
 - HH Counts: 1478+/-9
 - VV Counts: 1468+/-6
@@ -1935,7 +1937,8 @@ Phi_Plus counts after measurement waveplate & qp recalibration:
 - AA Counts: 1451+/-10
 Phi_plus purity is currently 0.9641+/-0.0007.
 
-It looks like the measurement waveplate recalibration combined with the QP recalibration has fixed the imbalance in vh/hv and da/ad counts. I will try to understand why this is while I am not in the lab tomorrow. Understanding this would be pretty nice.
+It looks like the measurement waveplate recalibration combined with the QP recalibration has fixed the imbalance in vh/hv and da/ad counts. Understanding why this is seems like something we should try to do.
+
 While running the gamma_determination file, I noticed an error in the bases we were using for caluclating gamma. I have corrected this in the file. After retuning, for hd_negpi_3_va the UVHWP angle was -114.90445548609685 and the QP angle was -26.773838565224096.
 
 Counts are as follows: 
@@ -1968,21 +1971,20 @@ MP: Ria
 
 The temperature was back down to 56F today, so I used the same QP calibration as last week after double checking counts.
 I then ran a couple more full tomographies with the full eta/chi sweep.
-Min counts 1: 46.6+/-1.2
- Min counts 2: 33.2+/-1.1
- HD Counts: 1566+/-12
- VA Counts: 1557+/-8
- HA Counts: 12.3+/-0.6
- VD Counts: 15.30+/-0.30
+- Min counts 1: 46.6+/-1.2
+- Min counts 2: 33.2+/-1.1
+- HD Counts: 1566+/-12
+- VA Counts: 1557+/-8
+- HA Counts: 12.3+/-0.6
+- VD Counts: 15.30+/-0.30
 
-I ran a couple of sweeps for the hd_negpi_3_va states, and also processed the data with iz using the new data processing file. There were some issues we found with the file, so they did some debugging & made other changes throughout this.
+I ran a couple of sweeps for the hd_negpi_3_va states, and also processed the data with Iz using the new data processing file. There were some issues we found with the file, so they did some debugging & made other changes throughout this.
 
 I also noticed the data from yesterday had a weird fit for the UVHWP -- it looks like the manager wasn't clearing at the right times, leading to the fits being messed up. I fixed this, but because of that, I would not trust the data in the "TRIAL 1" folder as being for the correct chi values (because the UVHWP fit was so far off). I noticed this because the fit for the chi=90 had the UVHWP around 66 degrees, which is the complete wrong quadrant for this state and lead to some sign errors.
 
 
 # 06/11/2025
 MP: Ria
-
 
 I ran a few tomographies for the hd_negpi_va state. Just for reference, counts at the start of the day were as follows.
 - Min counts 1: 46.9+/-1.2
@@ -1993,17 +1995,15 @@ I ran a few tomographies for the hd_negpi_va state. Just for reference, counts a
 - VD Counts: 13.9+/-0.7
 
 I also calibrated the hr_negpi_6_vl state in preparation for running a tomography on it tomorrow.
- FOR THE HR+e^-ipi/6VL state:
- Measurement settings:
- QP Angle: -12.11346435546875 UVHWP Angle: -111.29939852262797
+FOR THE HR+e^-ipi/6VL state: QP Angle: -12.11346435546875 UVHWP Angle: -111.29939852262797
 
  
- # 06/12/2025
- MP: Ria
+# 06/12/2025
+MP: Ria
 
- We attended the lab safety training in the morning, so I didn't quite have enough time to run the tomography. 
- In the afternoon, I ran a tomography on the hr_negpi_6_vl state so we could process this data. It looks like the calibration for the gamma isn't quite as good as for the other state, so I'll want to take more data for this in the future.
- For reference, counts were as follows for the hr_negpi_6_vl state:
+We attended the lab safety training in the morning, so I didn't quite have enough time to run the tomography. 
+In the afternoon, I ran a tomography on the hr_negpi_6_vl state so we could process this data. It looks like the calibration for the gamma isn't quite as good as for the other state, so I'll want to take more data for this in the future.
+For reference, counts were as follows for the hr_negpi_6_vl state:
 - Min counts 1: 35.9+/-1.1
 - Min counts 2: 37.7+/-0.5
 - HR Counts: 1555+/-6
@@ -2015,222 +2015,236 @@ I also calibrated the hr_negpi_6_vl state in preparation for running a tomograph
 # 06/13/2025
 MP: Ria
 
-Min counts 1: 49.4+/-0.9
- Min counts 2: 38.6+/-1.0
- HD Counts: 1488+/-4
- VA Counts: 1555+/-7
- HA Counts: 10.9+/-0.5
- VD Counts: 12.7+/-0.8
+- Min counts 1: 49.4+/-0.9
+- Min counts 2: 38.6+/-1.0
+- HD Counts: 1488+/-4
+- VA Counts: 1555+/-7
+- HA Counts: 10.9+/-0.5
+- VD Counts: 12.7+/-0.8
 
- I started running one last tomography before the chillers turn off. It looks like they turned the chillers off an hour early, so the quality of the data near the end (last 3 data chi values) is not as before. However, the front of the lba (with the thermostat) warmed up mcuh qwuicker than the back, where the experiment was being run.
+I started running one last tomography before the chillers turn off. It looks like they turned the chillers off an hour early, so the quality of the data near the end (last 3 data chi values) is not as before. This is the trial 6 data. However, the front of the lab (with the thermostat) warmed up much quicker than the back, where the experiment was being run.
 
 
 # 06/16/2025
 MP: Ria
 
- Min counts 1: 50.5+/-1.4
- Min counts 2: 38.6+/-0.5
- HD Counts: 1545+/-5
- VA Counts: 1606+/-8
- HA Counts: 11.0+/-0.4
- VD Counts: 14.5+/-0.4
+I ran a few tomographies today to collect more data. The counts (measured before the tomographies) are as follows.
 
- Min counts 1: 37.7+/-1.1
- Min counts 2: 36.8+/-0.7
- HR Counts: 1591+/-6
- VL Counts: 1617+/-8
- HL Counts: 16.13+/-0.30
- VR Counts: 16.6+/-0.8
+hd_negpi_3_va:
+- Min counts 1: 50.5+/-1.4
+- Min counts 2: 38.6+/-0.5
+- HD Counts: 1545+/-5
+- VA Counts: 1606+/-8
+- HA Counts: 11.0+/-0.4
+- VD Counts: 14.5+/-0.4
 
-
- # 06/17/2025
- MP: Ria
-
- I processed the tomography data that I recently collected. The hr_negpi_6_vl state shows great correlcaiton with theory/adjusted theory for the W_5; however, it is consistently lower than the W_3 values. I looked more into the data and noticed the W_3 minimized values for theory are NOT actually the minimized values. Iz will look more into this. This state is consistently witnessed by witness W_5_6.
-
- I also looked a bit more closesly at the hd_negpi_3_va data to try to understand why it looks as strange as it does. It looks like the W_5 triplet 3 shows inconsistency in both theoretical and experimental data as to which witness minimizes it (depending on the chi value, some chi have witness 7, some 8, and some 9). Interestingly as well, the triplet 3 values are essentially indentical to the triplet 2 values, and triplet 2 should NOT witness this state. I will look more into this.
-
- Looking back at the code used to find these states last summer, I reran it to find what the witness values should be according to the theory. 
- From this, I determined hd_negpi_6_va is witnessed by W_5_8 AND W_5_9, and that hr_negpi_3_vl is witnessed by W_5_4 AND W_5_6.
-
- 8 and 4 most commonly had the absolute minimum values
-
- After comparing theoretical witness values with both the old and new witness/minimization schemes, I noticed one major issue: W_5_6 is incorrect -- it gives different values in the new data set than in the old one (off by about 1/2). It looks like there was a typo in the new witness file that led to this issue.
+hr_negpi_6_vl:
+- Min counts 1: 37.7+/-1.1
+- Min counts 2: 36.8+/-0.7
+- HR Counts: 1591+/-6
+- VL Counts: 1617+/-8
+- HL Counts: 16.13+/-0.30
+- VR Counts: 16.6+/-0.8
 
 
- # 06/18/2025
- MP: Ria
+# 06/17/2025
+MP: Ria
 
- We worked at solving the few issues from earlier this week by checking the witnesses themselves and going through the code step by step. Ultimately, we found the print statement discrepencies (which made it look like the minimization wasn't happening) were due to small issues in the code that affected ONLY the print statements, not the actual plots. Most notably, the adjust_rhos function actually modified the theoretical density matrix into the adjusted theory one, so after adjust_rhos was called in the witness calculation, the theoretical density matrices were no longer correct. Iz fixed this such that the function no longer modifies its arguments. However, we are suspicious this function doesn't do what it is supposed to do, and want to cross check this with Prof Lynn.
- Additionally, I think I have identified the reason for the discrepancies between W5 theory and experimental witness values: it looks like something is going wrong in the UVHWP sweep/calibration in the tomography file that leads to the chi values not matching up with what they claim to be. I will investigate this further.
+I processed the tomography data that I recently collected. The hr_negpi_6_vl state shows great correlcaiton with theory/adjusted theory for the W_5; however, it is consistently lower than the W_3 values. I looked more into the data and noticed the W_3 minimized values for theory are NOT actually the minimized values. Iz will look more into this. This state is consistently witnessed by witness W_5_6.
+
+I also looked a bit more closesly at the hd_negpi_3_va data to try to understand why it looks as strange as it does. It looks like the W_5 triplet 3 shows inconsistency in both theoretical and experimental data as to which witness minimizes it (depending on the chi value, some chi have witness 7, some 8, and some 9). Interestingly as well, the triplet 3 values are essentially indentical to the triplet 2 values, and triplet 2 should NOT witness this state. I will look more into this.
+
+Looking back at the code used to find these states last summer, I reran it to find what the witness values should be according to the theory. 
+From this, I determined hd_negpi_6_va is witnessed by W_5_8 AND W_5_9, and that hr_negpi_3_vl is witnessed by W_5_4 AND W_5_6.
+
+Note W_5_8 and W_5_4 (respectively) most commonly had the absolute minimum values
+
+After comparing theoretical witness values with both the old and new witness/minimization schemes, I noticed one major issue: W_5_6 is incorrect -- it gives different values in the new data set than in the old one (off by about 1/2). It looks like there was a typo in the new witness file that led to this issue.
 
 
- # 06/20/2025
- MP: Ria
+# 06/18/2025
+MP: Ria
 
- In investigating the UVHWP sweep in the tomography file, I think I have identified what may be leading to the calibration issue. It looks like the function used to find the optimal UVHWP angle for a given chi value doesn't work very well when the angle it "wants" is outside of the range of data collection. Because of this, I will modify the hd_negpi_3_va file to have a slightly different range the the hr_negpi_6_vl file (as the latter has UVHWP values all within the range of data collection -90 to -135 and the former does not).
+We worked at solving the few issues from earlier this week by checking the witnesses themselves and going through the code step by step. Ultimately, we found the print statement discrepencies (which made it look like the minimization wasn't happening) were due to small issues in the code that affected ONLY the print statements, not the actual plots. Most notably, the adjust_rhos function actually modified the theoretical density matrix into the adjusted theory one, so after adjust_rhos was called in the witness calculation, the theoretical density matrices were no longer correct. Iz fixed this such that the function no longer modifies its arguments. However, we are suspicious this function doesn't do what it is supposed to do, and want to cross check this with Prof Lynn.
+
+Additionally, I think I have identified the reason for the discrepancies between W5 theory and experimental witness values: it looks like something is going wrong in the UVHWP sweep/calibration in the tomography file that leads to the chi values not matching up with what they claim to be. I will investigate this further.
+
+
+# 06/20/2025
+MP: Ria
+
+In investigating the UVHWP sweep in the tomography file, I think I have identified what may be leading to the calibration issue. It looks like the function used to find the optimal UVHWP angle for a given chi value doesn't work very well when the angle it "wants" is outside of the range of data collection. Because of this, I will modify the hd_negpi_3_va file to have a slightly different range the the hr_negpi_6_vl file (as the latter has UVHWP values all within the range of data collection -90 to -135 and the former does not).
 
 
 Counts are looking a little low, but seeing as my primary objective today is to find a soluation for the UVHWP sweep issues, I will first investigate that (with updated code) and then attempt to improve the counts.
- Min counts 1: 50.1+/-1.6
- Min counts 2: 41.1+/-0.8
- HD Counts: 1424.2+/-3.4
- VA Counts: 1498+/-8
- HA Counts: 11.4+/-0.6
- VD Counts: 13.4+/-0.4
 
- HH Counts: 1412+/-6
- VV Counts: 1427+/-6
- VH Counts: 11.0+/-1.0
- HV Counts: 13.03+/-0.32
-AD Counts: 28.5+/-1.1
- DA Counts: 25.4+/-0.8
- DD Counts: 1419+/-5
- AA Counts: 1402+/-7
+hd_negpi_3_va counts:
+- Min counts 1: 50.1+/-1.6
+- Min counts 2: 41.1+/-0.8
+- HD Counts: 1424.2+/-3.4
+- VA Counts: 1498+/-8
+- HA Counts: 11.4+/-0.6
+- VD Counts: 13.4+/-0.4
 
+phi_plus counts:
+- HH Counts: 1412+/-6
+- VV Counts: 1427+/-6
+- VH Counts: 11.0+/-1.0
+- HV Counts: 13.03+/-0.32
+- AD Counts: 28.5+/-1.1
+- DA Counts: 25.4+/-0.8
+- DD Counts: 1419+/-5
+- AA Counts: 1402+/-7
 
- HH Counts: 1436+/-10
- VV Counts: 1459+/-9
- VH Counts: 11.2+/-0.6
- HV Counts: 12.2+/-0.5
-AD Counts: 24.47+/-0.35
- DA Counts: 25.7+/-1.1
- DD Counts: 1442+/-9
- AA Counts: 1411.6+/-2.8
+- HH Counts: 1436+/-10
+- VV Counts: 1459+/-9
+- VH Counts: 11.2+/-0.6
+- HV Counts: 12.2+/-0.5
+- AD Counts: 24.47+/-0.35
+- DA Counts: 25.7+/-1.1
+- DD Counts: 1442+/-9
+- AA Counts: 1411.6+/-2.8
 
-recalibrating the qp
+I then recalibrated the quartz plate. The update counts are as follows.
 
-HH Counts: 1446+/-8
- VV Counts: 1447+/-7
- VH Counts: 10.8+/-0.8
- HV Counts: 11.33+/-0.30
-AD Counts: 27.1+/-1.1
- DA Counts: 25.9+/-0.5
- DD Counts: 1443+/-8
- AA Counts: 1419+/-5
+phi_plus:
+- HH Counts: 1446+/-8
+- VV Counts: 1447+/-7
+- VH Counts: 10.8+/-0.8
+- HV Counts: 11.33+/-0.30
+- AD Counts: 27.1+/-1.1
+- DA Counts: 25.9+/-0.5
+- DD Counts: 1443+/-8
+- AA Counts: 1419+/-5
 
+hd_negpi_3_va:
+- Min counts 1: 48.5+/-0.7
+- Min counts 2: 37.3+/-1.1
+- HD Counts: 1480+/-6
+- VA Counts: 1498+/-5
+- HA Counts: 11.4+/-0.6
+- VD Counts: 13.77+/-0.34
 
- Min counts 1: 48.5+/-0.7
- Min counts 2: 37.3+/-1.1
- HD Counts: 1480+/-6
- VA Counts: 1498+/-5
- HA Counts: 11.4+/-0.6
- VD Counts: 13.77+/-0.34
-
- -1.058+/-0.006
-
- messed with the counts a bit, tried to fix uvhwp sweep file, checked gamma (its greate rn), ran a tomo... will analyze soon :) aka sunday afternoon i hope
- look at phase impact on W_3 eitness values for hrvl state
- note phi theta param thing should get to 0 but is only getting to 0.1 leading to some of the data issues
-
-
-         [-135.91511309]
-        [-133.44428684]
-        [-128.4243649]
-        [-124.01571808]
-        [-119.61847333]
-        [-115.13290644]
-
-        In [12]: run plot_UVHWP_sweep.py
-        [-135.76368496]
-        [-138.22537183]
-        [-143.25992867]
-        [-123.84947705]
-        [-119.4585796]
-        [-114.98808438]"""
-unp.arctan(unp.sqrt((va_rates)/(hd_rates)))
-
-        THIS IS WITH hd_negpi_3_va state :)
-        -115.10003140098172
-        HD: 1396.5333333333333+/-13.33274998723902
-        VA: 1378.8666666666666+/-6.199103877891476
-        44.8 degrees
-
-        -128.4243649
-        HD: 2325.0666666666666+/-13.07049263714943
-        VA: 238.06666666666666+/-3.2513245164257474
-        17.7 degrees
-
-        -133.44428684
-        HD: 2458.866666666667+/-13.113436705235628
-        VA: 60.93333333333334+/-0.9510228411791398
-        8.9 degrees
-
-        -135.91511309
-        HD: 2496.6+/-8.787238221167973
-        VA: 48.4+/-2.13020604115606
-        7.8 degrees or ~.13 radians, exactly what we are seeing....
-        HA COUNTS: 12.4+/-0.7774602526460401
-        VD COUNTS: 7.866666666666665+/-0.5734883511361751
-
-        -137
-        HD: 2501.4+/-8.059087348384363
-        VA: 50.93333333333333+/-0.3858612300930081
-
-        hr_negpi_6_vl state
-        -111.29939852262797
-        HR: 1396.0666666666666+/-5.125535202406785
-        VL: 1394.0000000000002+/-6.403124237432837
-        45.0 degrees
-
-        -133.045283482142
-        HR: 2585.6+/-16.14565645064405
-        VL: 3.0000000000000004+/-0.36514837167011066
-        2 degrees or ~0.033 radians exactly what we see with this state
-        HL Counts: 16.133333333333333+/-1.485485330343813
-        VR Counts: 8.666666666666668+/-0.5962847939999439
+Gamma for hd_negpi_3_va: -1.058+/-0.006.
+After checking these values and adjusting the initial UVHWP sweep angle to better encompass the range our chi values have been falling in, I ran another full tomography of the hd_negpi_3_va state.
 
 
-        hd_negpi_6_va state with QP @ -26.77 & UVHWP @ -115.1000
-        41.46666666666666+/-1.0413666234542205 in basis 1 (bob v, ahwp -7.5 aqwp -60)
-        35.0+/-1.2337837015547826 in basis 2 (bob h, ahwp -52.5 aqwp 30)
+# 06/23-24/2025
+MP: Ria
 
-        hd_negpi_6_va state with QP @ -9 & UVHWP @ -65
-        basis 1 41.733333333333334+/-2.4435857077481673
-        basis 2 39.733333333333334+/-1.539841261660146
-        HD: 1369.0+/-4.808557187163574
-        VA: 1364.0666666666666+/-5.896703410475314
-        
-        uvhwp @ -87
-        HD: 2930.0+/-14.690510920696772
-        VA: 37.00000000000001+/-1.8196458751941578
-        HA:
-        VD:
+Note: this entry was compiled from a set of notes left on the lab computer a week after. It looks like I ran out of time these days to fully update the lab notebook, so I am doing my best to fill in the blanks about my thought process from memory.
 
-        uvhwp @ -43
-        HD:  2558.2+/-14.233606554754642
-        VA: 14.266666666666666+/-0.9683892697555967
+06/23/2025
+Looking at the plotted data for the hr_negpi_6_vl state, there is strong agreement between theory and experiment for W_5 but not for the W_3s. Prof Lynn suggested this may be because the W_5s have more parameters, and are therefore less sensitive to the overall density matrix in that these parameters are "absorbing" some of the imbalances in the density matrices.
 
-        LOOKS PROMISING LET's try fixing the issue by using a different quadrant of UVHWP and using diff part of the qp
+Because of this, I decided to look at the impact of a few different aspects of the density matrices on the W_3 and W_5 theory curves for the hr_negpi_6_vl state. I first looked at the impact of changing the phase in the theoretical state from pi/6 to values within the range pi/5.4 and pi/6.6. These graphs are stored in the hr_negpi_6_vl_trial3 data folder in the 2025 repository. As a quick note, all raw data and calibration up to this point has been conducted in the summer 2024 repository, but all processed data and analysis is stored in the 2025 repository as the lab computer hasn't had the new repository for the full summer. This organization structure is something I hope to improve when I have a chance. Interestingly, the phase changes seemed to affect the W_5 curves much more than the W_3s. In order to produce a graph with the W_3 theory and experiment having more agreement, I would have had to introduce a phase shift outside of my tested range -- which was pulled using the most extreme entries in the experimental density matrices. Because of this, I concluded that the phase was not causing the observed differences between theory and experiment.
+
+Additionally, I noticed (by plotting the UVHWP sweep data used in the tomography) that the hr_negpi_6_vl state has the minimum chi get down to ~0.03. However, the hd_negpi_3_va state's minimum chi only gets down to ~0.1. I wonder if this may be the cause of some of the issues with the hd_negpi_3_va state. This data is stored as UVHWP_plot in the hr_negpi_6_vl_trial3 and in the ria_hd_negpi_3_va_UVHWP_test folders located within the ria_hd_negpi_3_va_trials_with_UVHWP_angle_issues folder.
+
+I also realized the imbalance between the diagonal entries of the density matrix for hr_negpi_6_vl was greater than for hd_negpi_3_va. I ran a quick test before I left which changed the density matrix to simulate this imbalance for larger chi values by adding/subtracting. This is the "simulated imbalance" file. It looked like it did lead to greater agreement between theory/experiment for the W_3s and didn't really affect the W_5s, so I determined this would be worth exploring further.
+
+
+06/24/2025
+I decided to double check the ratios between the va/hd and vl/hr counts for their respective states.
+For a state of the form cos(chi/2)*|H>|alpha>+e^i*gamma*sin(chi/2)|V>|alpha_perp> I used the formula arctan(sqrt(alpha_perp_counts/alpha_counts)) to determine this value. Results are below.
+
+hd_negpi_3_va:
+ UVHWP @ -115.10003140098172
+ - HD: 1396.5333333333333+/-13.33274998723902
+ - VA: 1378.8666666666666+/-6.199103877891476
+ - Value: 44.8 degrees (should be 45 based on the UVHWP sweep data)
+
+ UVHWP @ -128.4243649
+ - HD: 2325.0666666666666+/-13.07049263714943
+ - VA: 238.06666666666666+/-3.2513245164257474
+ - Value: 17.7 degrees (should be 18 based on the UVHWP sweep data)
+
+ UVHWP @ -133.44428684
+ - HD: 2458.866666666667+/-13.113436705235628
+ - VA: 60.93333333333334+/-0.9510228411791398
+ - 8.9 degrees (should be 9 based on the UVHWP sweep data)
+
+ UVHWP @ -135.91511309
+ - HD: 2496.6+/-8.787238221167973
+ - VA: 48.4+/-2.13020604115606
+ - Value: 7.8 degrees or ~.13 radians: this should be zero but is very similar to the minimum value observed in   the UVHWP sweep plots I made
+ - HA COUNTS: 12.4+/-0.7774602526460401
+ - VD COUNTS: 7.866666666666665+/-0.5734883511361751
+
+ UVHWP @ -137
+ - HD: 2501.4+/-8.059087348384363
+ - VA: 50.93333333333333+/-0.3858612300930081
+ - Value: 8.11 degrees (so we have, as the plots showed, passed the minimum)
+
+hr_negpi_6_vl:
+ UVHWP @ -111.29939852262797
+ - HR: 1396.0666666666666+/-5.125535202406785
+ - VL: 1394.0000000000002+/-6.403124237432837
+ - Value: 45.0 degrees (exactly what the sweep file indicates)
+
+ UVHWP @ -133.045283482142
+ - HR: 2585.6+/-16.14565645064405
+ - VL: 3.0000000000000004+/-0.36514837167011066
+ - Value: 2 degrees or ~0.033 radians: this should be zero and is very similar to what we see with this state in the UVHWP plots
+ - HL Counts: 16.133333333333333+/-1.485485330343813
+ - VR Counts: 8.666666666666668+/-0.5962847939999439
+
+I then decided to try moving the hd_negpi_3_va state the a different quadrant of the UVHWP and QP angle to see if this improved the data. My thought was that we were at a fairly high QP angle, so maybe this was affecting the data somehow. The "new" calibration below was just done by hand as a manner of checking this idea quickly before the end of the day and is not the actual calibration I used in any data calibration.
+
+Original hd_negpi_6_va calibration: hd_negpi_6_va state with QP @ -26.77 & UVHWP @ -115.1000
+- minimized counts: 41.46666666666666+/-1.0413666234542205 in basis 1 (bob v, ahwp -7.5 aqwp -60)
+- minimized counts: 35.0+/-1.2337837015547826 in basis 2 (bob h, ahwp -52.5 aqwp 30)
+
+New hd_negpi_6_va rough calibration: hd_negpi_6_va state with QP @ -9 & UVHWP @ -65
+ - counts in basis 1: 41.733333333333334+/-2.4435857077481673
+ - counts in basis 2: 39.733333333333334+/-1.539841261660146
+ - HD: 1369.0+/-4.808557187163574
+ - VA: 1364.0666666666666+/-5.896703410475314
+Note the HD/VA counts are even lower than before. This is a point of interest and something I will investigate later. For now, I just want to quickly test my idea before I levae for the day/
+
+ uvhwp @ -87
+ - HD: 2930.0+/-14.690510920696772
+ - VA: 37.00000000000001+/-1.8196458751941578
+ - Value: 6.4 degrees -> note: based on future data I collected, I believe I misrecorded the HD values as VA values and vice versa (this point should have the VA counts high and HD counts low). IN this case, the value is 83.6 degrees.
+
+ uvhwp @ -43
+ - HD:  2558.2+/-14.233606554754642
+ - VA: 14.266666666666666+/-0.9683892697555967
+ - Value: 4.23 degrees or 0.07 radians which is already smaller than the value with the other calibration.
+
+Because the rough calibration with new QP and UVHWP angles led to a smaller minimum value, I decided recalibrating hd_negpi_3_va in this new quadrant would be a good course of action to see if it led to the data to have less issues (the very non-zero entries at chi~0 and such).
  
  
- # 06/25/2025
- MP: Ria
+# 06/25/2025
+MP: Ria
 
- Using the information from yesterday, I ran a ratio tuning in the new UVHWP quadrant and found the angle should be -65.18826575028268. I then recalibrated the QP using the gamma determination file to get a QP angle of -7.78401521381579. Note the measurement waveplates DC'd again. I then spent some time double checking the counts (listed below) and then ran a UVHWP sweep to see if the issue of the parameter never reaching zero has been fixed.
+Using the information from yesterday, I ran a ratio tuning in the new UVHWP quadrant and found the angle should be -65.18826575028268. I then recalibrated the QP using the gamma determination file to get a QP angle of -7.78401521381579. Note the measurement waveplates DC'd again. I then spent some time double checking the counts (listed below) and then ran a UVHWP sweep to see if the issue of the parameter never reaching zero has been fixed.
 
- Min counts 1: 40.5+/-1.2
- Min counts 2: 32.5+/-1.6
- HD Counts: 1374+/-6
- VA Counts: 1346+/-6
- HA Counts: 10.1+/-0.6
- VD Counts: 12.2+/-0.9
+hd_negpi_3_va counts:
+- Min counts 1: 40.5+/-1.2
+- Min counts 2: 32.5+/-1.6
+- HD Counts: 1374+/-6
+- VA Counts: 1346+/-6
+- HA Counts: 10.1+/-0.6
+- VD Counts: 12.2+/-0.9
 
- I'm not really certain why the HD and VA counts are so low right now
- Will double check phi_plus counts (below)
-HH Counts: 1350+/-7
- VV Counts: 1337+/-11
- VH Counts: 10.2+/-0.7
- HV Counts: 11.1+/-0.7
-AD Counts: 25.1+/-1.5
- DA Counts: 26.0+/-0.6
- DD Counts: 1333+/-5
- AA Counts: 1322.2+/-1.4
+I'm not really certain why the HD and VA counts are so low right now. I will double check phi_plus counts (below):
+- HH Counts: 1350+/-7
+- VV Counts: 1337+/-11
+- VH Counts: 10.2+/-0.7
+- HV Counts: 11.1+/-0.7
+- AD Counts: 25.1+/-1.5
+- DA Counts: 26.0+/-0.6
+- DD Counts: 1333+/-5
+- AA Counts: 1322.2+/-1.4
 
- note UVHWP is having movement errors similar to the qp today
+Note: the UVHWP is having movement errors similar to the qp today: 
+ - The error: "RuntimeError: Sent instruction "b'0maFFFF50D6'" to ElliptecMotor-C_UV_HWP expecting response length 11 but got response b'' (length=0)"
+ - Warning when shutting down/moving immediately following the error: "Warning: ElliptecMotor-C_UV_HWP found non-empty com queue. Flushing -> b'0POFFFF50CF\r\n'."
 
- RuntimeError: Sent instruction "b'0maFFFF50D6'" to ElliptecMotor-C_UV_HWP expecting response length 11 but got response b'' (length=0)
- Warning: ElliptecMotor-C_UV_HWP found non-empty com queue. Flushing -> b'0POFFFF50CF\r\n'.
+I also ran checkb to double check the measurement waveplate calibration as they dicsonnected multiple times today and I had to power cycle them upon each disconnect. It looks like the calibration is still fine.
+
+I then ran the UVHWP sweep (data stored in the ria_hd_negpi_3_va_test2 folder). I had many issues running the file due to the UVHWP erroring out sometimes, and I'm not really sure why as I'd never had those errors before. Below are the proposed UVHWP angles based on the sweep data, listed from chi~0.05 to chi=90.
 
 [-44.00413891]
 [-47.73038604]
@@ -2239,15 +2253,12 @@ AD Counts: 25.1+/-1.5
 [-60.9204664]
 [-65.39341473]
 
-I ran checkb to double check the waveplate calibration
-BQWP Update: 99.724 + 0.252 -> 99.976
-
 
 # 06/26/2025
 MP: Ria
-
-I checked the counts quickly in phi_plus, and they look like (as they were yesterday).
-I attempted to recalibrated the mirrors to fix the decreased counts. It was a bit difficult without a second set of hands, but I was able to get it back to where they were before the decrease.
+test3
+I checked the counts quickly in phi_plus, and they look low (as they were yesterday).
+I attempted to recalibrated the mirrors to fix the decreased counts. It was a bit difficult without a second set of hands, but I was able to get it back to where they were before the decrease (so ~1450 HH & VV for phi_plus).
 After adjusting mirrors and before ratio tuning, counts were as listed below -- so it looks like I managed to fix the mirror misalignment enough to get us back to where we were before.
 - Min counts 1: 41.6+/-0.8
 - Min counts 2: 32.0+/-1.1
@@ -2256,34 +2267,39 @@ After adjusting mirrors and before ratio tuning, counts were as listed below -- 
 - HA Counts: 11.5+/-0.8
 - VD Counts: 15.1+/-0.8
 
-UVHWP @ -65.72638622083161 -> -65.42683049252159
-QP @ -9.71449207491852
+I then recalibrated the UVHWP and QP for the hd_negpi_3_va state since I moved the mirrors around. I did not spend the time to recalibrate the QP for phi_plus as that file takes a good amount of time to run and I wanted to investigate the hd_negpi_3_va state first.
+- UVHWP @ -65.72638622083161 -> -65.42683049252159
+- QP @ -9.71449207491852
 
-the waveplates disconnected again ::sob::
+Note: the measurement waveplates disconnected again, but the UVHWP is no longer giving those errors.
 
-Min counts 1: 49.1+/-1.8
- Min counts 2: 32.4+/-0.8
- HD Counts: 1409+/-4
- VA Counts: 1497+/-10
- HA Counts: 11.0+/-0.6
- VD Counts: 13.9+/-0.4
- The ratio tuning says this is where they are even buttttttt clearlyt they are not???
+AFter recalibration, the counts were as follows for hd_negpi_3_va.
+- Min counts 1: 49.1+/-1.8
+- Min counts 2: 32.4+/-0.8
+- HD Counts: 1409+/-4
+- VA Counts: 1497+/-10
+- HA Counts: 11.0+/-0.6
+- VD Counts: 13.9+/-0.4
+The ratio tuning says this is where hd and va should be balanced, but they clearly weren't. I figured it was a ratio tuning issue, and decided to go ahead and run the tomography since I was running low on time and the file would recalcaluate a value anyways.
 
+I ran the tomography file to collect UVHWP sweep data. These results are ria_hd_negpi_3_va_test3.
+- [-43.76538381] chi~0
+- [-39.85422415] chi~18
+- [-52.11162297] chi~36
+- [-56.46572728] chi~54
+- [-60.84917988] chi~72
+- [-65.30470434] chi=90 (different from the hd/va balanced calibration I had found, I later confirmed this is the value that produced balanced counts)
 
-[-43.76538381]0
-[-39.85422415]18
-[-52.11162297]36
-[-56.46572728]54
-[-60.84917988]72
-[-65.30470434]90
-After this, I ran a tomography. This is hd_negpi_3_va_trial9. Unfortunately, the UVHWP sweep led to the second chi value being in the wrong quadrant (because it swept past the minimum), so I used the UVHWP sweep data (minus the angles that are in the incorrect quadrant) to recalculate the UVHWP angle for that chi value. I then collected data on that point immediately after the full tomography, and stored it in the same folder. This is noted in the folder as well (in file names).
+After this, I ran the tomography with a slightly adjusted range to hopefully avoid the second chi value being in the wrong quadrant -- which it was in the test3 data listed above. This is hd_negpi_3_va_trial9. Unfortunately, the UVHWP sweep still led to the second chi value being in the wrong quadrant (because it swept past the minimum), so I used the UVHWP sweep data (minus the angles that are in the incorrect quadrant) to recalculate the UVHWP angle for that chi value. I then collected data on that point immediately after the full tomography, and stored it in the same folder. This is noted in the folder as well (in file names).
 
-I also calculated what the actual state we are making for hr_negpi_6_vl is -- it appears to have an 88 degree difference between the H/V in R and L, rather than 90.
+Using the idea I had Monday for the hr_negpi_6_vl state, I calculated what the actual state we are making for hr_negpi_6_vl is -- it appears to have an ~42 degree difference between the H/V in R and L, rather than 45. I found this by assuming the state we were making was cos(chi/2)*|H>|R'>+(e^i*gamma)*sin(chi/2)|V>|L'> where R'=cos(theta)|H>+i*sin(theta)|V> and L'=sin(theta)|V>-i*cos(theta)|V>. I found that cos^2(theta) was the first (and last) entry in the density matrix, both of which were ~.275 and that sin^2(theta) were the middle entries on the main diagonal, both ~.225 (these values rounded so the diagonal sums to 1). Thus, theta=arctan(sqrt(.225/.275))
 
 
 # 06/27/2026
 MP: Ria
 
+
+test4,5
 Found phase drift in hd_negpi_3_va state
 Analyze w prof lynn
 found potential solution (swap sine and cosine so make pure H not pure V)
@@ -2301,3 +2317,6 @@ try it out (UVHWP angles below) -> data in test 4 these are UVHWP values & corre
 [-164.47610195]
 [-159.79179246]
 [-155.20270599]
+
+I remade all of the hr_negpi_6_vl plots with an adjusted theoretical state that more closely matched what we made, and the theory/experiment discrepancy from before no longer present in the W_3s with minimal affect on the W_5s.
+
