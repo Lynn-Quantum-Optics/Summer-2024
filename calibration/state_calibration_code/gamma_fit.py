@@ -5,12 +5,12 @@ import uncertainties.unumpy as unp
 import uncertainties as unc
 
 if __name__ == '__main__':
-    DATE = '06262025'
+    DATE = '07022025'
     TRIAL = 1
-    stateName = 'hd_negpi_3_va'
-    goalGamma = -1*np.pi/3
-    # fileName = f'plotted_gamma_data_{DATE}_{TRIAL}_for_{stateName}'
-    # df = Manager.load_data(f'all_gamma_data_{DATE}_{TRIAL}_for_{stateName}.csv')
+    stateName = 'havd'
+    goalGamma = 0
+    # fileName = f'plotted_gamma_data_{DATE}_{TRIAL}_for_{stateName}_{TRIAL}'
+    # df = Manager.load_data(f'all_gamma_data_{DATE}_for_{stateName}_{TRIAL}.csv')
     # angles, gammas = df['QP'], df['gamma'].apply(unc.ufloat_fromstr)
    
     # params = analysis.fit('line', angles, gammas)
@@ -24,8 +24,8 @@ if __name__ == '__main__':
 
     # x = analysis.find_value('line', params, goalGamma, angles)
     # print(f'{goalGamma} at {x}')
-    df = Manager.load_data('all_gamma_chi_data_06272025_trial3.csv')
-    fileName = f'plotted_gamma_chi_data_06272025_trial3'
+    df = Manager.load_data('all_gamma_chi_data_07022025_for_havd.csv')
+    fileName = f'plotted_gamma_chi_data_07022025_for_havd'
     chis, gammas = df['chi'], df['gamma'].apply(unc.ufloat_fromstr)
    
     params = analysis.fit('line', chis, gammas)

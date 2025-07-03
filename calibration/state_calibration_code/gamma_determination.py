@@ -9,31 +9,37 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    QP_angle = -9.71449207491852 #update as necessary -9.71449207491852 ...
-    DATE = "06272025" #please update
-    STATE = "hd_negpi_6_va"
+    QP_angle = -16.1584427682977 #update as necessary...
+    DATE = "07022025" #please update
+    STATE = "ha_vd"
     
-    fileName = f"gamma_determination_{DATE}_{QP_angle}_for_{STATE}_chi0_2"
+    fileName = f"gamma_determination_{DATE}_{QP_angle}_for_{STATE}_chi90"
     PARAMS = [QP_angle, QP_angle+1, 1, 5, 3]
 
     # initialize the manager
     m = Manager('../config.json')
 
-    # parameters used for HD + e^-ipi/3 VA sstate
+    # parameters used for the state
     m.log('Setting up state')
     m.make_state('phi_plus')
+    m.B_C_HWP.goto(22.5)
+    m.B_C_QWP.goto(45)
+    m.C_UV_HWP.goto(-111.11112706)
+    # m.C_UV_HWP.goto(-64.33913582249691)
+
     # m.B_C_HWP.goto(0)
     # m.B_C_QWP.goto(-45)
     # m.C_UV_HWP.goto(-111.29939852262797)
-    m.B_C_HWP.goto(67.5)
-    m.B_C_QWP.goto(45)
-    m.C_UV_HWP.goto(-178.43334997)
+
+    # m.B_C_HWP.goto(67.5)
+    # m.B_C_QWP.goto(45)
+    # m.C_UV_HWP.goto(-178.43334997)
     #m.C_UV_HWP.goto(-65.42683049252159) #-115.10003140098172
 
 
     datas = {'QP': np.linspace(QP_angle, PARAMS[1], 1, endpoint=False)}
 
-    #bases for hdva state: 'DR', 'AR', 'DL', 'AL', 'RR', 'LL', 'RL', 'LR'
+    #bases for hdva & havd state: 'DR', 'AR', 'DL', 'AL', 'RR', 'LL', 'RL', 'LR'
     #bases for hrvl state: 'DD', 'DA', 'AD', 'AA', 'RD', 'RA', 'LD', 'LA'
 
     for basis in ['DR', 'AR', 'DL', 'AL', 'RR', 'LL', 'RL', 'LR']:
@@ -50,8 +56,11 @@ if __name__ == '__main__':
     #pd.DataFrame(datas).to_csv(f'raw_gamma_data_{DATE}_{QP_angle}_for_{STATE}.csv')
 
     # for hdva state: 
-    datas['gamma'] = unp.arctan2(-(datas['DR']+datas['AL']-datas['DL']-datas['AR']), (datas['RR']+datas['LL']-datas['LR']-datas['RL']))
-    
+    # datas['gamma'] = unp.arctan2(-(datas['DR']+datas['AL']-datas['DL']-datas['AR']), (datas['RR']+datas['LL']-datas['LR']-datas['RL']))
+
+    # for havd
+    datas['gamma'] = unp.arctan2((datas['DR']+datas['AL']-datas['DL']-datas['AR']), -(datas['RR']+datas['LL']-datas['LR']-datas['RL']))
+
     # for hrvl state:
     # datas['gamma'] = unp.arctan2((datas['DD']+datas['AA']-datas['DA']-datas['AD']), -(datas['RD']+datas['LA']-datas['RA']-datas['LD']))
     pd.DataFrame(datas).to_csv(f'{fileName}.csv')

@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # initialize the manager
     m = Manager('../config.json')
 
-    state = 'hd_negpi_3_va'
+    state = 'ha_vd'
 
     m.make_state('phi_plus')
 
@@ -49,9 +49,41 @@ if __name__ == '__main__':
         # tell the user the counts
         print(f'Min counts 1: {min_counts1} \n Min counts 2: {min_counts2}')
         print(f' HD Counts: {hd_counts} \n VA Counts: {va_counts} \n HA Counts: {ha_counts} \n VD Counts: {vd_counts}')
-    
+
+    if state == "ha_vd":
+        m.log('Setting up state')
+        m.B_C_HWP.goto(22.5)
+        m.B_C_QWP.goto(45)
+        m.C_QP.goto(-16.1584427682977)
+        m.C_UV_HWP.goto(-64.33913582249691)
+
+        m.log('Setting up measurement basis')
+        m.meas_basis("AH")
+
+        m.log('Checking count rates...')
+        min_counts1 = m.take_data(6,5,'C4')
+
+        m.log('Setting up measurement basis')
+        m.meas_basis("DV")
+
+        m.log('Checking count rates...')
+        min_counts2 = m.take_data(6,5,'C4')
+
+        m.meas_basis("HA")
+        ha_counts = m.take_data(6, 5, 'C4')
+        m.meas_basis("VD")
+        vd_counts = m.take_data(6, 5, 'C4')
+        m.meas_basis("HD")
+        hd_counts = m.take_data(6, 5, 'C4')
+        m.meas_basis("VA")
+        va_counts = m.take_data(6, 5, 'C4')
+
+        # tell the user the counts
+        print(f'AH counts: {min_counts1} \n DV counts: {min_counts2}')
+        print(f' HA Counts: {ha_counts} \n VD Counts: {vd_counts} \n HD Counts: {hd_counts} \n VA Counts: {va_counts}')
+
     if state == 'hr_negpi_6_vl':
-        # parameters used for HD + e^-ipi/3 VA state
+        # parameters used for HR + e^-ipi/6 VL state
         m.log('Setting up state')
         m.B_C_HWP.goto(0)
         m.B_C_QWP.goto(-45)
