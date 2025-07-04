@@ -9,17 +9,24 @@ if __name__ == '__main__':
     # initialize the manager
     m = Manager('../config.json')
 
-    state = 'ha_vd'
+    state = 'ha_negpi_3_vd'
 
     m.make_state('phi_plus')
 
-    if state == 'hd_negpi_3_va':
-        # parameters used for HD + e^-ipi/3 VA state
+    if state == 'hd_negpi_3_va' or state == 'ha_negpi_3_vd':
         m.log('Setting up state')
-        m.B_C_HWP.goto(67.5)
-        m.B_C_QWP.goto(45)
-        m.C_QP.goto(-9.71449207491852) #-26.98906575253135 -26.773838565224096
-        m.C_UV_HWP.goto(-65.72638622083161) #-114.90445548609685 -115.10003140098172
+
+        if state == 'hd_negpi_3_va':
+            m.B_C_HWP.goto(67.5)
+            m.B_C_QWP.goto(45)
+            m.C_QP.goto(-9.71449207491852) #-26.98906575253135 -26.773838565224096
+            m.C_UV_HWP.goto(-65.72638622083161) #-114.90445548609685 -115.10003140098172
+
+        elif state == 'ha_negpi_3_vd':
+            m.B_C_HWP.goto(22.5)
+            m.B_C_QWP.goto(45)
+            m.C_QP.goto(-7.165756064967105)
+            m.C_UV_HWP.goto(-65.86116630152654)
 
         m.log('Setting up measurement basis')
         m.meas_basis("VV")

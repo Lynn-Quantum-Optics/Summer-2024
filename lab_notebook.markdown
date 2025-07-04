@@ -2320,3 +2320,66 @@ try it out (UVHWP angles below) -> data in test 4 these are UVHWP values & corre
 
 I remade all of the hr_negpi_6_vl plots with an adjusted theoretical state that more closely matched what we made, and the theory/experiment discrepancy from before no longer present in the W_3s with minimal affect on the W_5s.
 
+
+# 07/02/2025
+MP: Ria
+
+phi_plus
+HH Counts: 1472+/-7
+ VV Counts: 1451+/-6
+ VH Counts: 11.5+/-0.5
+ HV Counts: 12.5+/-0.6
+AD Counts: 30.7+/-0.9
+ DA Counts: 38.9+/-1.5
+ DD Counts: 1444+/-7
+ AA Counts: 1430+/-5
+
+ HA+VD
+ AH counts: 28.8+/-1.1
+ DV counts: 29.1+/-0.9
+ HA Counts: 1430+/-6
+ VD Counts: 1423+/-5
+ HD Counts: 10.90+/-0.32
+ VA Counts: 11.2+/-0.7
+
+ [-87.73224977]
+[-92.38054896]
+[-97.20772917]
+[-101.92845518]
+[-106.56321264]
+[-111.11112706]
+-16.1584427682977
+
+drift is a lot smaller with havd state so proceed with finding one? it is about 0.2 vs 0.5 with the the other state
+use lev's file to find havd witnessed by t3
+
+
+# 07/03/2025
+MP: Ria
+
+phi_plus counts at the start of the day:
+HH Counts: 1411+/-6
+ VV Counts: 1377+/-6
+ VH Counts: 10.1+/-0.4
+ HV Counts: 11.1+/-0.7
+AD Counts: 28.9+/-0.9
+ DA Counts: 34.5+/-0.8
+ DD Counts: 1383+/-9
+ AA Counts: 1368+/-9
+
+ took data bc running low on time bc had to leave for flight at 4pm, you really need to recalib the mirrors before doing a final data collectino on this state... took data in supbar conditions as proof-of-concept and not bc yeah lets go
+
+wavplates dc'd again 3 times today
+ sweep around -9 qp angle for gamma
+ didn't ratio tune or double check gamma bc i ran out of time, but this was jsut proof of concept
+
+ -65.86116630152654 UVHWP
+ -7.165756064967105 QP
+
+ha_negpi_3_vd
+ Min counts 1: 29.8+/-0.6
+ Min counts 2: 27.0+/-1.4
+ HD Counts: 10.8+/-0.5
+ VA Counts: 11.8+/-0.6
+ HA Counts: 1417+/-12
+ VD Counts: 1421+/-5

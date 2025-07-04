@@ -69,9 +69,9 @@ if __name__ == '__main__':
 
     #TODO: CHANGE THIS to correct state
     m.make_state("phi_plus")
-    m.B_C_HWP.goto(27.5)
+    m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-9.71449207491852) #-26.773838565224096
+    m.C_QP.goto(-7.165756064967105)
 
     UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        angles = [UVHWP_angle, -9.71449207491852, 22.5, 45] #TODO: change output data function to inlude B_C_QWP
+        angles = [UVHWP_angle, -7.165756064967105, 22.5, 45] #TODO: change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
         with open(f"{mpName}_{basisName}/rho_({basisName}-{chi_save}-{TRIAL}).npy", 'wb') as f:
