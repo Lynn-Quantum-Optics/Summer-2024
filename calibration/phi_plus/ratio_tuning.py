@@ -4,7 +4,7 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 27
+    TRIAL = 29
     #SWEEP_PARAMETERS = [-65.868-8,-65.868+8,20,5,3]
     #SWEEP_PARAMETERS = [-100,-120,15,5,1]
     SWEEP_PARAMETERS = [-60, -75, 15, 5, 3]
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     m.meas_basis('VV')
     _, vv_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
     m.output_data(f'vv_sweep_{TRIAL}.csv')
-    m.shutdown()
+    
     
     angles = np.linspace(*SWEEP_PARAMETERS[:3])
     thetas = unp.arctan(unp.sqrt((vh_rates + vv_rates)/(hh_rates + hv_rates)))
@@ -49,3 +49,4 @@ if __name__ == '__main__':
 
     x = analysis.find_value('line', params, np.pi/4, angles)
     print(f'Pi/4 at {x}')
+    m.shutdown()

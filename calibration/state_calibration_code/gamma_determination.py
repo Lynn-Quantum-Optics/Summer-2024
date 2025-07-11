@@ -9,8 +9,8 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    QP_angle = -7.165756064967105 #update as necessary...
-    DATE = "07032025" #please update
+    QP_angle = -3.8691303453947365 #update as necessary...
+    DATE = "07112025" #please update
     STATE = "ha_negpi_3_vd"
     
     fileName = f"gamma_determination_{DATE}_{QP_angle}_for_{STATE}"
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     m.make_state('phi_plus')
     m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_UV_HWP.goto(-65.86116630152654)
+    m.C_UV_HWP.goto(-65.937744140625)
 
     # m.B_C_HWP.goto(0)
     # m.B_C_QWP.goto(-45)

@@ -4,24 +4,25 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 1 #PLEASE UPDATE
-    DATE = "07032025" #PLEASE UPDATE
+    TRIAL = 2 #PLEASE UPDATE
+    DATE = "07112025" #PLEASE UPDATE
     STATE = "ha_negpi_3_vd"
     fileName = f"ratio_tuning_{DATE}_for_{STATE}" 
     
     SWEEP_PARAMETERS = [-60, -75, 15, 5, 3] #fine sweep
     #SWEEP_PARAMETERS = [-55, -85, 15, 3, 1] #coarse sweep
+    # SWEEP_PARAMETERS = [-40, -95, 40, 5, 3] #broad sweep
 
     # initialize manager
     m = Manager('../config.json')
 
     m.make_state('phi_plus')
 
-    # parameters used for setting up the state
+    # # parameters used for setting up the state
     m.log('Setting up state')
     m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-7.165756064967105)
+    m.C_QP.goto(-3.8691303453947365)
     
     # m.B_C_HWP.goto(67.5)
     # m.B_C_QWP.goto(45)
@@ -33,15 +34,15 @@ if __name__ == '__main__':
 
     # sweep UVHWP
     m.meas_basis('HA')
-    _, hd_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
-    m.output_data(f'hd_sweep_{TRIAL}.csv')
+    _, ha_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
+    m.output_data(f'ha_sweep_{TRIAL}.csv')
     m.meas_basis('VD')
-    _, va_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
-    m.output_data(f'va_sweep_{TRIAL}.csv')
+    _, vd_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
+    m.output_data(f'vd_sweep_{TRIAL}.csv')
     
     
     angles = np.linspace(*SWEEP_PARAMETERS[:3])
-    thetas = unp.arctan(unp.sqrt((va_rates)/(hd_rates)))
+    thetas = unp.arctan(unp.sqrt((vd_rates)/(ha_rates)))
     params = analysis.fit('line', angles, thetas)
     analysis.plot_func('line', params, angles, color='blue')
     analysis.plot_errorbar(angles, thetas, color='red', ms=0.1, fmt='o', label='Data')
@@ -55,3 +56,5 @@ if __name__ == '__main__':
     print(f'Pi/4 at {x}')
 
     m.shutdown()
+
+    # sweep around -87.5 and -42.5 smaller range for the min params :)))))

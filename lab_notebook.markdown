@@ -2383,3 +2383,88 @@ ha_negpi_3_vd
  VA Counts: 11.8+/-0.6
  HA Counts: 1417+/-12
  VD Counts: 1421+/-5
+
+
+# 7/9/2025
+MP: Ria
+
+ checking h_alpha versus v_alpha_perp counts and seeing which one minimizes more
+ let's just use the current phi_plus calibration -> note the qp angle produces some phase shift but it may not be exaclty zero
+
+ HH Counts: 1421+/-7
+ VV Counts: 1330+/-4
+ VH Counts: 11.2+/-1.1
+ HV Counts: 12.8+/-0.6
+AD Counts: 30.8+/-0.7
+ DA Counts: 38.4+/-1.2
+ DD Counts: 1368+/-7
+ AA Counts: 1339.5+/-2.9
+
+phi_plus
+2.500000416666725e-07
+[-42.90096457] -> [0.03210369387100021+/-0.0019799547380766115]
+3999999.333333252
+[-87.72854883] -> [1.5185091827060833+/-0.0017540315726145511]
+mf waveplates keep disconnecting
+
+we are better at making HH than at making VV
+-> note this is not pure phi_plus, I think there is some phase shift there I just didn't calculate it... sorry
+
+
+# 7/10/2025
+MP: Ria
+
+no UVHWP: [1.5289762635044757+/-0.0014746582518083504] & [1.5243398331404863+/-0.0013936876474972514]
+
+realgin uvhwp-> swap razor for paper folded once bc razer was poor aligned
+recheck phi plus
+recalib havd
+run tomo
+
+
+HH Counts: 1480+/-9
+ VV Counts: 1228+/-6
+ VH Counts: 15.6+/-0.8
+ HV Counts: 13.4+/-0.7
+AD Counts: 128.5+/-2.2
+ DA Counts: 113.5+/-1.7
+ DD Counts: 1254+/-5
+ AA Counts: 1227+/-4
+
+ recalib phi_plus
+
+ new UVHWP -64.14652091578432->-65.39653496993216
+ new QP ->
+ had to readjust mirrors/bbo due to low counts-> couldnt myself so asked for help in moring
+
+
+
+# 07/11/2025
+MP: Ria
+
+didnt' get mirrors much better w two people so we just called it good despite the lowered counts :(((
+phi_plust recalib
+readjust UVHWP -65.39653496993216->-64.5164626272101
+         QP -15.6788->-14.993
+HH Counts: 1325+/-5
+ VV Counts: 1320+/-8
+ VH Counts: 12.2+/-0.5
+ HV Counts: 12.3+/-0.6
+AD Counts: 23.8+/-0.8
+ DA Counts: 29.8+/-1.5
+ DD Counts: 1300+/-10
+ AA Counts: 1308+/-5
+
+ha_negpi_3_va recalib:
+UVHWP -65.86116630152654->-65.937744140625->-66.30258419639185
+QP: -3.8691303453947365
+gamma: -1.060+/-0.005
+counts:
+Min counts 1: 30.3+/-1.0
+ Min counts 2: 29.4+/-0.7
+ HD Counts: 13.8+/-0.4
+ VA Counts: 15.5+/-0.6
+ HA Counts: 1342+/-6
+ VD Counts: 1335+/-8
+tomo: done
+

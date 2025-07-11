@@ -25,8 +25,8 @@ if __name__ == '__main__':
         elif state == 'ha_negpi_3_vd':
             m.B_C_HWP.goto(22.5)
             m.B_C_QWP.goto(45)
-            m.C_QP.goto(-7.165756064967105)
-            m.C_UV_HWP.goto(-65.86116630152654)
+            m.C_QP.goto(-3.8691303453947365)
+            m.C_UV_HWP.goto(-66.30258419639185)
 
         m.log('Setting up measurement basis')
         m.meas_basis("VV")

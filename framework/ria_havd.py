@@ -28,8 +28,8 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'ha_negpi_3_vd'
     mpName = "ria"
-    date = "07032025"
-    TRIAL = 1
+    date = "07112025"
+    TRIAL = 2
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -71,17 +71,17 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-7.165756064967105)
+    m.C_QP.goto(-3.8691303453947365)
 
     UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
 
     #TODO: Change measurment bases to be correct for your state
     # configure measurement basis
-    print(m.time, f'Configuring measurement basis VD')
-    m.meas_basis('VD')
+    print(m.time, f'Configuring measurement basis HA')
+    m.meas_basis('HA')
 
     # do sweep
-    print(m.time, f'Beginning sweep of uvhwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: VD')
+    print(m.time, f'Beginning sweep of uvhwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: HA')
     m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     # obtain the first round of data and switch to a new output file
@@ -90,10 +90,10 @@ if __name__ == '__main__':
 
     #TODO: Change measurement basis to correct one for your state
     # sweep in the second basis
-    print(m.time, f'Configuring measurement basis HA')
-    m.meas_basis('HA')
+    print(m.time, f'Configuring measurement basis VD')
+    m.meas_basis('VD')
 
-    print(m.time, f'Beginning sweep of uv_hwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: HA')
+    print(m.time, f'Beginning sweep of uv_hwp from {GUESS-RANGE} to {GUESS+RANGE}, measurement basis: VD')
     m.sweep('C_UV_HWP', GUESS-RANGE, GUESS+RANGE, N, *SAMP)
 
     print(m.time, 'Data collected')
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         purity = get_purity(rho)
         print('purity', purity)
         
-        angles = [UVHWP_angle, -7.165756064967105, 22.5, 45] #TODO: change output data function to inlude B_C_QWP
+        angles = [UVHWP_angle, -3.8691303453947365, 22.5, 45] #TODO: change output data function to inlude B_C_QWP
         chi_save = np.rad2deg(chi) #naming convention (for it to work in process_expt) is in deg
         # save results
         with open(f"{mpName}_{basisName}/rho_({basisName}-{chi_save}-{TRIAL}).npy", 'wb') as f:
