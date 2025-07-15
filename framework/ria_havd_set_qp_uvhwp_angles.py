@@ -31,9 +31,9 @@ if __name__ == '__main__':
     date = "07142025"
     TRIAL = 3
 
-    CHI_PARAMS = [0.001, np.pi/2, 6]
-    UVHWP_angles = [0, 0, 0, 0, 0, 0]
-    QP_angles = [0, 0, 0, 0, 0, 0]
+    chi_vals = np.linspace(0.001, np.pi/2, 6)[1:]
+    UVHWP_angles = [-132.50543769, -127.38849844, -122.98117298, -118.51952741, -114.11387723]
+    QP_angles = [-24.251088513826073, -25.20815734863281, -25.603982222707646, -25.831407406455597, -26.00327309056332]
     SAMP = (5, 3)
 
     # initialize the manager
@@ -41,27 +41,28 @@ if __name__ == '__main__':
 
     # make phi plus 
     m.make_state('phi_plus')
-    # check count rates
-    m.log('Checking HH and VV count rates...')
-    m.meas_basis('HH')
-    hh_counts = m.take_data(5,3,'C4')
-    m.meas_basis('VV')
-    vv_counts = m.take_data(5,3,'C4')
+    m.B_C_HWP.goto(22.5)
+    m.B_C_QWP.goto(45)
+    
+    # # check count rates
+    # m.log('Checking HH and VV count rates...')
+    # m.meas_basis('HH')
+    # hh_counts = m.take_data(5,3,'C4')
+    # m.meas_basis('VV')
+    # vv_counts = m.take_data(5,3,'C4')
 
-    # tell the user what is up
-    print(f'HH count rates: {hh_counts}\nVV count rates: {vv_counts}')
+    # # tell the user what is up
+    # print(f'HH count rates: {hh_counts}\nVV count rates: {vv_counts}')
 
-    # check if the count rates are good
-    inp = input('Continue? [y/n] ')
-    if inp.lower() != 'y':
-        print('Exiting...')
-        m.shutdown()
-        quit()
+    # # check if the count rates are good
+    # inp = input('Continue? [y/n] ')
+    # if inp.lower() != 'y':
+    #     print('Exiting...')
+    #     m.shutdown()
+    #     quit()
 
-    m.reset_output()
+    # m.reset_output()
 
-    # manually perform sweep of UVHWP for various chi values (chi/2=eta)
-    chi_vals = np.linspace(*CHI_PARAMS)
     counter = 0
 
     for chi in chi_vals:

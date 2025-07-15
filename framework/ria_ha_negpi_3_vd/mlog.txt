@@ -1,0 +1,75 @@
+0:00:00	Manager started at 2025-07-14_20-14-57.
+0:00:01	Configuration file: "../config.json".
+0:00:01	Initializing CCU.
+0:00:01	Initializing motors.
+0:00:07	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -64.5164626272101, 'C_QP': -14.993, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
+0:00:10	Setting up state
+0:00:12	Beginning -132.50543769 measurement...
+0:00:12	Measuring HA
+0:00:12	Loading measurement basis "HA" from config file.
+0:00:30	Sweeping C_UV_HWP from -132.50543769 to -131.50543769 degrees in 1 steps.
+0:00:30	Taking data; sampling 6 x 5 s.
+0:01:01	Measuring VD
+0:01:01	Loading measurement basis "VD" from config file.
+0:01:12	Sweeping C_UV_HWP from -132.50543769 to -131.50543769 degrees in 1 steps.
+0:01:13	Taking data; sampling 6 x 5 s.
+0:01:44	Beginning -127.38849844 measurement...
+0:01:44	Measuring HA
+0:01:45	Loading measurement basis "HA" from config file.
+0:01:58	Sweeping C_UV_HWP from -127.38849844 to -126.38849844 degrees in 1 steps.
+0:01:58	Taking data; sampling 6 x 5 s.
+0:02:28	Measuring VD
+0:02:29	Loading measurement basis "VD" from config file.
+0:02:40	Sweeping C_UV_HWP from -127.38849844 to -126.38849844 degrees in 1 steps.
+0:02:41	Taking data; sampling 6 x 5 s.
+0:03:12	Beginning -122.98117298 measurement...
+0:03:12	Measuring HA
+0:03:12	Loading measurement basis "HA" from config file.
+0:03:26	Sweeping C_UV_HWP from -122.98117298 to -121.98117298 degrees in 1 steps.
+0:03:26	Taking data; sampling 6 x 5 s.
+0:03:57	Measuring VD
+0:03:57	Loading measurement basis "VD" from config file.
+0:04:09	Sweeping C_UV_HWP from -122.98117298 to -121.98117298 degrees in 1 steps.
+0:04:09	Taking data; sampling 6 x 5 s.
+0:04:40	Beginning -118.51952741 measurement...
+0:04:40	Measuring HA
+0:04:40	Loading measurement basis "HA" from config file.
+0:04:53	Sweeping C_UV_HWP from -118.51952741 to -117.51952741 degrees in 1 steps.
+0:04:54	Taking data; sampling 6 x 5 s.
+0:05:24	Measuring VD
+0:05:24	Loading measurement basis "VD" from config file.
+0:05:36	Sweeping C_UV_HWP from -118.51952741 to -117.51952741 degrees in 1 steps.
+0:05:36	Taking data; sampling 6 x 5 s.
+0:06:07	Beginning -114.11387723 measurement...
+0:06:07	Measuring HA
+0:06:08	Loading measurement basis "HA" from config file.
+0:06:21	Sweeping C_UV_HWP from -114.11387723 to -113.11387723 degrees in 1 steps.
+0:06:22	Taking data; sampling 6 x 5 s.
+0:06:52	Measuring VD
+0:06:52	Loading measurement basis "VD" from config file.
+0:07:04	Sweeping C_UV_HWP from -114.11387723 to -113.11387723 degrees in 1 steps.
+0:07:04	Taking data; sampling 6 x 5 s.
+0:07:35	Beginning shutdown procedure.
+0:07:35	Shutting down motor objects.
+0:07:36	C_UV_HWP returned to true position 359.97739955357144 degrees.
+0:07:37	Deleting C_UV_HWP object.
+0:07:38	C_QP returned to true position 359.9974888392857 degrees.
+0:07:38	Deleting C_QP object.
+0:07:39	C_PCC returned to true position 359.99246651785717 degrees.
+0:07:39	Deleting C_PCC object.
+0:07:40	B_C_HWP returned to true position 359.9974888392857 degrees.
+0:07:40	Deleting B_C_HWP object.
+0:07:41	B_C_QWP returned to true position 0.007533482142832781 degrees.
+0:07:42	Deleting B_C_QWP object.
+0:07:50	B_HWP returned to true position 359.9994812011719 degrees.
+0:07:50	Deleting B_HWP object.
+0:08:02	B_QWP returned to true position 0.0 degrees.
+0:08:02	Deleting B_QWP object.
+0:08:09	A_HWP returned to true position 0.0 degrees.
+0:08:09	Deleting A_HWP object.
+0:08:10	A_QWP returned to true position 359.99896240234375 degrees.
+0:08:10	Deleting A_QWP object.
+0:08:10	Closing COM ports.
+0:08:10	WARNING: Shutting down with 10 rows of (potentially) unsaved data.
+0:08:11	Closing CCU.
+0:08:11	Closing log file.

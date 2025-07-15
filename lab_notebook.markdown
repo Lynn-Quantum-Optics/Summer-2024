@@ -2468,3 +2468,44 @@ Min counts 1: 30.3+/-1.0
  VD Counts: 1335+/-8
 tomo: done
 
+
+# 07/14/2025
+MP: Ria
+
+COUNTS:
+Min counts 1: 39.9+/-1.2
+ Min counts 2: 26.1+/-0.6
+ HD Counts: 13.4+/-0.6
+ VA Counts: 14.7+/-1.1
+ HA Counts: 1364+/-4
+ VD Counts: 1333.4+/-3.2
+
+ Min counts 1: 28.3+/-1.0
+ Min counts 2: 29.8+/-1.0
+ HD Counts: 11.2+/-0.9
+ VA Counts: 13.5+/-0.4
+ HA Counts: 1331+/-4
+ VD Counts: 1339+/-4
+
+UVHWP prelim sweep in folder
+qp and uvhwp data stored in ____ folder
+[-44.55908126]
+[-48.60257788]
+[-53.14131287]
+[-57.58839513] -3.114393022938778
+[-62.04858616] -3.9992205521934907
+[-66.55361065] -4.827486214637755
+
+-> other chis not able to get needed gamma in this quadrant, moved to alternate quadrant w UVHWP at -112.5 not -67.5
+
+note: will work on updating docuimentation soon
+bruh robot file org, file info org, main document, readmes, data org, new repo org, etc etc :))... lab notebook uipdates
+
+[-132.55902792] UNUSED DATA POINT
+[-128.59918009] -24.251088513826073 -> [-132.50543769]
+[-124.24155098] -25.20815734863281 -> [-127.38849844]
+[-119.93580218] -25.603982222707646 -> [-122.98117298]
+[-115.58783425] -25.831407406455597 -> [-118.51952741]
+[-111.16360422] -26.00327309056332 -> [-114.11387723]
+
+[-132.50543769, -127.38849844, -122.98117298, -118.51952741, -114.11387723]

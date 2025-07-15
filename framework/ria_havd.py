@@ -28,8 +28,8 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'ha_negpi_3_vd'
     mpName = "ria"
-    date = "07112025"
-    TRIAL = 2
+    date = "07142025"
+    TRIAL = 3
 
     SWEEP_PARAMS = [-35, -1, 20, 5, 2]
     CHI_PARAMS = [0.001, np.pi/2, 6]
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     chi_vals = np.linspace(*CHI_PARAMS)
 
     # Sweep UVHWP
-    GUESS = -65 #TODO: Change if necessary for correct sign
+    GUESS = -112.5 #TODO: Change if necessary for correct sign
     RANGE = 22.5
     N = 35
     SAMP = (5, 3)
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     m.make_state("phi_plus")
     m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-3.8691303453947365)
+    # m.C_QP.goto(-3.8691303453947365)
 
     UVHWP_PARAMS = [GUESS - RANGE, GUESS + RANGE, N, *SAMP]
 
