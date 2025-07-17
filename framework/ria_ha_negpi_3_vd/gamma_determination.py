@@ -9,11 +9,12 @@ import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    QP_angle = -27 #update as necessary...
-    DATE = "07142025" #please update
+    QP_angle = -25 #update as necessary...
+    DATE = "07162025" #please update
     STATE = "ha_negpi_3_vd"
+    TRIAL = 4
     
-    fileName = f"QP_calibration/all_gamma_data_{DATE}_for_{STATE}_chi18"
+    fileName = f"QP_calibration/all_gamma_data_{DATE}_for_{STATE}_chi18_{TRIAL}"
     PARAMS = [QP_angle, QP_angle+5, 5, 5, 3]
 
     # initialize the manager
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     m.make_state('phi_plus')
     m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_UV_HWP.goto(-128.59918009)
+    m.C_UV_HWP.goto(-130.44066667)
 
     # m.B_C_HWP.goto(0)
     # m.B_C_QWP.goto(-45)

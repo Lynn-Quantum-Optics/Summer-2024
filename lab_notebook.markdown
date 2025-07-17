@@ -2509,3 +2509,45 @@ bruh robot file org, file info org, main document, readmes, data org, new repo o
 [-111.16360422] -26.00327309056332 -> [-114.11387723]
 
 [-132.50543769, -127.38849844, -122.98117298, -118.51952741, -114.11387723]
+
+# 07/15/2025
+MP: Ria
+
+go point by point... first check chi=90, then 72, then 54, then 36, then 18 (doing the tomography immediately after calibrating)
+
+Min counts 1: 28.6+/-0.5
+ Min counts 2: 36.1+/-1.3
+ HD Counts: 10.8+/-0.7
+ VA Counts: 12.0+/-1.0
+ HA Counts: 1293+/-5
+ VD Counts: 1289+/-8
+
+
+90: -25.69667326274671 & [-113.97057031] -> -25.713055098684208 & [-113.85453091] -> -25.593876246402132 & [-113.88752972]
+not really muhc change in the chi checks here so probably don't need to calibrate quite that much (didn't seem to be changing calibration that much and i had to go)
+
+# 07/16/2025
+MP: Ria
+
+HH Counts: 1308+/-8
+ VV Counts: 1308+/-6
+ VH Counts: 13.1+/-0.8
+ HV Counts: 14.3+/-0.7
+AD Counts: 27.2+/-1.1
+ DA Counts: 28.9+/-0.5
+ DD Counts: 1296+/-4
+ AA Counts: 1291+/-4
+
+for today, i am calling the 0.99X phase "close enough" to the target phase of 1.04 as there is some error & calibration isn't improving it *that* much 
+plus the actual phase in the density matrices is a bit different
+will calibrate to about this phase and if it is still bad in the plots, will rerun the calibration *another* time for even a tighter phase
+probably will need to rethink the gamma fitting tho bc a value spit out by the fitting doesn't always have the exact same phase when you run the gamma check which implies maybe the fitting could use some work?????
+
+ 72: -25.482613814504525 & [-118.23365587]
+ 54: -25.05831660220498 & [-122.62702233] -> -25.10857029965049 & [-122.54623276]
+ 36: -24.533135665090455 & [-126.90093284] -> -24.669723510742188 & [-126.9772774] -> -24.638519287109375 & [-126.96943523] -> -24.312966469212583 & -126.82651768
+ 18: -18.96165527343748 & -129.26352958 -> -23.4084573203639 & [-131.69597203] -> -21.374077405427627 & [-130.44066667] -> -22.757037032277957 & [-131.29599484]... ended up just going with [-130.44066667] & -22.757037032277957 bc it gave chi=0.3542291860031217~20 degreees and gamma=__ (at this ratio, the gamma is very sensitive to the chi, so ratio tuning AFTER gamma calculation significantly alters the produced chi.... we will place this poijnt correctly in the plots to correspond to the fact that it isn't exactly chi=0.314...~18 degrees)
+
+ to be fair, our previous data from this summer has the chis within 0.01 radians of the target for hr_negpi_6_vl, but the data from last summer has this chi value within 0.1 - so within ~0.04 should be fine esp since it is just one data point. atp doing more calibration on this point will take a significant amount of time and I want to go to dinner it is pretty late already -> if time before open house tomorrow morning, recalib this point... good enough for now
+
+ decided to take more data points for the gammas at smaller chis since the amount I was taking was producing too small gammas even after 3 iterations of gamma find->ratio tune->check gamma and repeat

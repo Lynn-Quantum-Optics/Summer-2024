@@ -4,13 +4,13 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 1 #PLEASE UPDATE
-    DATE = "07142025" #PLEASE UPDATE
+    TRIAL = 4 #PLEASE UPDATE
+    DATE = "07162025" #PLEASE UPDATE
     STATE = "ha_negpi_3_vd"
-    fileName = f"ratio_tuning_{DATE}_for_{STATE}_chi90" 
+    fileName = f"ratio_tuning_{DATE}_for_{STATE}_chi18_{TRIAL}" 
     chis = np.linspace(0.001, np.pi/2, 6)
-    chi = chis[5]
-    SWEEP_PARAMETERS = [-104, -119, 15, 5, 3] #fine sweep
+    chi = chis[1]
+    SWEEP_PARAMETERS = [-118, -133, 15, 5, 3] #fine sweep
 
     # initialize manager
     m = Manager('../config.json')
@@ -21,15 +21,15 @@ if __name__ == '__main__':
     m.log('Setting up state')
     m.B_C_HWP.goto(22.5)
     m.B_C_QWP.goto(45)
-    m.C_QP.goto(-26.00327309056332)
+    m.C_QP.goto(-22.757037032277957)
 
     # sweep UVHWP
     m.meas_basis('HA')
     _, ha_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
-    m.output_data(f'UVHWP_calibration/ha_sweep_{chi}.csv')
+    m.output_data(f'UVHWP_calibration/ha_sweep_{chi}_{TRIAL}.csv')
     m.meas_basis('VD')
     _, vd_rates = m.sweep('C_UV_HWP', *SWEEP_PARAMETERS)
-    m.output_data(f'UVHWP_calibration/vd_sweep_{chi}.csv')
+    m.output_data(f'UVHWP_calibration/vd_sweep_{chi}_{TRIAL}.csv')
     
     
     angles = np.linspace(*SWEEP_PARAMETERS[:3])

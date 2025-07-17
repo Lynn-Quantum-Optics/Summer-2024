@@ -19,12 +19,13 @@ from uncertainties import ufloat
 
 
 if __name__ == '__main__':
+    TRIAL = 4
     chi_vals = np.linspace(0.001, np.pi/2, 6)
-    chi = chi_vals[5]
+    chi = chi_vals[1]
 
     # obtain the first round of data and switch to a new output file
-    data1 = pd.read_csv(f"UVHWP_calibration/ha_sweep_{chi}.csv")
-    data2 = pd.read_csv(f'UVHWP_calibration/vd_sweep_{chi}.csv')
+    data1 = pd.read_csv(f"UVHWP_calibration/ha_sweep_{chi}_{TRIAL}.csv")
+    data2 = pd.read_csv(f'UVHWP_calibration/vd_sweep_{chi}_{TRIAL}.csv')
 
     args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
     args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)

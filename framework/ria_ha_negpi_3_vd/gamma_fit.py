@@ -5,12 +5,12 @@ import uncertainties.unumpy as unp
 import uncertainties as unc
 
 if __name__ == '__main__':
-    DATE = '07142025'
-    TRIAL = 1
+    DATE = '07162025'
+    TRIAL = 4
     stateName = 'ha_negpi_3_vd'
     goalGamma = -np.pi/3
-    fileName = f'QP_calibration/plotted_gamma_data_{DATE}_{TRIAL}_for_{stateName}_chi18'
-    df = Manager.load_data(f'QP_calibration/all_gamma_data_{DATE}_for_{stateName}_chi18.csv')
+    fileName = f'QP_calibration/plotted_gamma_data_{DATE}_for_{stateName}_chi18_{TRIAL}'
+    df = Manager.load_data(f'QP_calibration/all_gamma_data_{DATE}_for_{stateName}_chi18_{TRIAL}.csv')
     angles, gammas = df['QP'], df['gamma'].apply(unc.ufloat_fromstr)
    
     params = analysis.fit('line', angles, gammas)

@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # initialize the manager
     m = Manager('../config.json')
 
-    state = 'ha_negpi_3_vd'
+    state = 'phi_plus'
 
     m.make_state('phi_plus')
 

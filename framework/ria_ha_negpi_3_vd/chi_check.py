@@ -7,14 +7,14 @@ import pandas as pd
 # calculates chi for given UVHWP angle
 
 if __name__ == '__main__':
-    TRIAL = 2 #PLEASE UPDATE
-    DATE = "07142025" #PLEASE UPDATE
-    UVHWP_angles = [-132.50543769, -127.38849844, -122.98117298, -118.51952741, -114.11387723]
-    QP_angles = [-24.251088513826073, -25.20815734863281, -25.603982222707646, -25.831407406455597, -26.00327309056332]
-    chis_theo = np.linspace(0.001, np.pi/2, 6)[1:]
+    TRIAL = 1 #PLEASE UPDATE
+    DATE = "07162025" #PLEASE UPDATE
+    UVHWP_angles = [-130.44066667]
+    QP_angles = [-22.757037032277957]
+    chis_theo = np.linspace(0.001, np.pi/2, 6)[1:2]
 
     STATE = "ha_negpi_3_vd"
-    fileName = f"chi_check2_{DATE}_for_{STATE}" 
+    fileName = f"chi_check_{DATE}_for_{STATE}_1" 
 
     # initialize manager
     m = Manager('../config.json')
