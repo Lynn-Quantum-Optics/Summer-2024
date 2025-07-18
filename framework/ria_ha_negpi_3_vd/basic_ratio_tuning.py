@@ -4,8 +4,8 @@ import numpy as np
 import uncertainties.unumpy as unp
 
 if __name__ == '__main__':
-    TRIAL = 4 #PLEASE UPDATE
-    DATE = "07162025" #PLEASE UPDATE
+    TRIAL = 1 #PLEASE UPDATE
+    DATE = "07172025" #PLEASE UPDATE
     STATE = "ha_negpi_3_vd"
     fileName = f"ratio_tuning_{DATE}_for_{STATE}_chi18_{TRIAL}" 
     chis = np.linspace(0.001, np.pi/2, 6)

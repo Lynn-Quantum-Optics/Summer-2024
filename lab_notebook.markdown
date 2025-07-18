@@ -2551,3 +2551,18 @@ probably will need to rethink the gamma fitting tho bc a value spit out by the f
  to be fair, our previous data from this summer has the chis within 0.01 radians of the target for hr_negpi_6_vl, but the data from last summer has this chi value within 0.1 - so within ~0.04 should be fine esp since it is just one data point. atp doing more calibration on this point will take a significant amount of time and I want to go to dinner it is pretty late already -> if time before open house tomorrow morning, recalib this point... good enough for now
 
  decided to take more data points for the gammas at smaller chis since the amount I was taking was producing too small gammas even after 3 iterations of gamma find->ratio tune->check gamma and repeat
+
+ # 07/17/2025
+ MP: Ria
+
+ 
+ 18: -131.29599484 & -21.986341777600742 -> 
+
+ HH Counts: 1336.1+/-3.5
+ VV Counts: 1315+/-6
+ VH Counts: 12.3+/-0.7
+ HV Counts: 14.1+/-0.5
+AD Counts: 25.5+/-0.9
+ DA Counts: 28.2+/-0.8
+ DD Counts: 1305+/-10
+ AA Counts: 1299+/-5

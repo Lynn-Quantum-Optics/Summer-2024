@@ -19,7 +19,7 @@ from uncertainties import ufloat
 
 
 if __name__ == '__main__':
-    TRIAL = 4
+    TRIAL = 1
     chi_vals = np.linspace(0.001, np.pi/2, 6)
     chi = chi_vals[1]
 
