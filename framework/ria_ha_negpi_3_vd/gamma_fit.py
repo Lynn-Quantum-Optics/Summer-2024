@@ -5,8 +5,8 @@ import uncertainties.unumpy as unp
 import uncertainties as unc
 
 if __name__ == '__main__':
-    DATE = '07172025'
-    TRIAL = 1
+    DATE = '07182025'
+    TRIAL = 2
     stateName = 'ha_negpi_3_vd'
     goalGamma = -np.pi/3
     fileName = f'QP_calibration/plotted_gamma_data_{DATE}_for_{stateName}_chi18_{TRIAL}'

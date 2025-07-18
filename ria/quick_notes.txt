@@ -1,0 +1,20 @@
+quick notes about ha_negpi_3_vd chi18 calib that I will add into lab notebook but am writing in here to prevent merge conflicts as I know my laptop 
+has an unpushed version of the lab notebook right now :(
+HH Counts: 1351+/-7
+ VV Counts: 1326+/-7
+ VH Counts: 13.8+/-0.5
+ HV Counts: 13.4+/-0.5
+AD Counts: 34.2+/-1.8
+ DA Counts: 40.6+/-0.7
+ DD Counts: 1307+/-4
+ AA Counts: 1311+/-5
+
+-21.986341777600742 & [-130.96077268]-> -23.170274915193254 prev 2
+chi is ok its .34 not .31
+gamma is .986!!! yay
+time for tomo
+
+& -131.69055429 -> didn't use bc it is far enough to significantly impact the gamma and having a good gamma>>>then having the exact chi
+
+notes on what to do if something errors as it is shutting down (please zero the measurement waveplates since they have been dc between files so we want
+them to for sure be at zero when we close and then reopen the manager)

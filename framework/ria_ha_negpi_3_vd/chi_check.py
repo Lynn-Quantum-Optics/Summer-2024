@@ -8,9 +8,9 @@ import pandas as pd
 
 if __name__ == '__main__':
     TRIAL = 1 #PLEASE UPDATE
-    DATE = "07172025" #PLEASE UPDATE
-    UVHWP_angles = [-131.29599484]
-    QP_angles = [-21.986341777600742]
+    DATE = "07182025" #PLEASE UPDATE
+    UVHWP_angles = [-130.96077268]
+    QP_angles = [-23.170274915193254]
     chis_theo = np.linspace(0.001, np.pi/2, 6)[1:2]
 
     STATE = "ha_negpi_3_vd"

@@ -1,45 +1,27 @@
-0:00:00	Manager started at 2025-07-17_16-12-42.
+0:00:00	Manager started at 2025-07-18_16-53-10.
 0:00:01	Configuration file: "../config.json".
 0:00:01	Initializing CCU.
 0:00:01	Initializing motors.
-0:00:07	Loading state preset "phi_plus" from config file -> {'C_UV_HWP': -64.5164626272101, 'C_QP': -14.993, 'C_PCC': 1, 'B_C_HWP': 0.0, 'B_C_QWP': 0.0}.
-0:00:12	Loading measurement basis "HH" from config file.
-0:00:30	Taking data; sampling 6 x 5 s.
-0:01:00	Loading measurement basis "VV" from config file.
-0:01:12	Taking data; sampling 6 x 5 s.
-0:01:42	Loading measurement basis "HV" from config file.
-0:01:49	Taking data; sampling 6 x 5 s.
-0:02:20	Loading measurement basis "VH" from config file.
-0:02:32	Taking data; sampling 6 x 5 s.
-0:03:03	Loading measurement basis "DA" from config file.
-0:03:10	Taking data; sampling 6 x 5 s.
-0:03:41	Loading measurement basis "AD" from config file.
-0:03:53	Taking data; sampling 6 x 5 s.
-0:04:24	Loading measurement basis "DD" from config file.
-0:04:30	Taking data; sampling 6 x 5 s.
-0:05:00	Loading measurement basis "AA" from config file.
-0:05:14	Taking data; sampling 6 x 5 s.
-0:05:44	Beginning shutdown procedure.
-0:05:44	Shutting down motor objects.
-0:05:45	C_UV_HWP returned to true position 359.97488839285717 degrees.
-0:05:45	Deleting C_UV_HWP object.
-0:05:47	C_QP returned to true position 359.9974888392857 degrees.
-0:05:47	Deleting C_QP object.
-0:05:48	C_PCC returned to true position 359.9974888392857 degrees.
-0:05:48	Deleting C_PCC object.
-0:05:48	B_C_HWP returned to true position 359.99497767857144 degrees.
-0:05:49	Deleting B_C_HWP object.
-0:05:50	B_C_QWP returned to true position 0.005022321428555188 degrees.
-0:05:50	Deleting B_C_QWP object.
-0:05:54	B_HWP returned to true position 359.9994812011719 degrees.
-0:05:54	Deleting B_HWP object.
-0:06:06	B_QWP returned to true position 359.99993896484375 degrees.
-0:06:06	Deleting B_QWP object.
-0:06:10	A_HWP returned to true position 0.0 degrees.
-0:06:11	Deleting A_HWP object.
-0:06:11	A_QWP returned to true position 359.99896240234375 degrees.
-0:06:11	Deleting A_QWP object.
-0:06:12	Closing COM ports.
-0:06:13	WARNING: Shutting down with 8 rows of (potentially) unsaved data.
-0:06:13	Closing CCU.
-0:06:14	Closing log file.
+0:00:44	Beginning shutdown procedure.
+0:00:44	Shutting down motor objects.
+0:00:44	C_UV_HWP returned to true position 359.97237723214283 degrees.
+0:00:45	Deleting C_UV_HWP object.
+0:00:45	C_QP returned to true position 0.005022321428571428 degrees.
+0:00:45	Deleting C_QP object.
+0:00:46	C_PCC returned to true position 0.0 degrees.
+0:00:46	Deleting C_PCC object.
+0:00:47	B_C_HWP returned to true position 359.9974888392857 degrees.
+0:00:47	Deleting B_C_HWP object.
+0:00:47	B_C_QWP returned to true position 0.005022321428555188 degrees.
+0:00:47	Deleting B_C_QWP object.
+0:00:48	B_HWP returned to true position 0.0 degrees.
+0:00:48	Deleting B_HWP object.
+0:00:48	B_QWP returned to true position 359.9999694824219 degrees.
+0:00:48	Deleting B_QWP object.
+0:00:49	A_HWP returned to true position 0.0 degrees.
+0:00:49	Deleting A_HWP object.
+0:00:49	A_QWP returned to true position 0.0 degrees.
+0:00:50	Deleting A_QWP object.
+0:00:50	Closing COM ports.
+0:00:50	Closing CCU.
+0:00:51	Closing log file.

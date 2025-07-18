@@ -28,13 +28,13 @@ if __name__ == '__main__':
     #TODO: Change these
     basisName = 'ha_negpi_3_vd'
     mpName = "ria"
-    date = "07172025"
+    date = "07182025"
     TRIAL = 5
     #chi18
 
     chi_vals = np.linspace(0.001, np.pi/2, 6)[1:2]
-    UVHWP_angles = [-131.29599484]
-    QP_angles = [-21.986341777600742]
+    UVHWP_angles = [-130.96077268]
+    QP_angles = [-23.170274915193254]
     SAMP = (5, 3)
 
     # initialize the manager
