@@ -2298,271 +2298,360 @@ Using the idea I had Monday for the hr_negpi_6_vl state, I calculated what the a
 # 06/27/2026
 MP: Ria
 
+Today, I looked a bit more into the phase drift with the hd_negpi_3_va state by running the gamma_determination file with each of the UVHWP angles calibrated yesterday. This is all_gamma_chi_06272025_trial1 and shows ~1.5 radian drift over the full range of chi values. With Prof Lynn, we decided that since previous analyses in the lab determined we are better at making primarily vertically polarized states than horizontally polarized, we should swap the sine and cosine to change the state from cos(chi/2)*|HD> + sin(chi/2)*e^(-ipi/3)*|VA> to sin(chi/2)*|HD> + cos(chi/2)*e^(-ipi/3)*|VA> (so we can get closer to making the target chi=0 value). Additionally, she determined that this phase drift may be a product of the UVHWP not acting as well as it should, and that shifting the quadrant we are using should fix this issue.
 
-test4,5
-Found phase drift in hd_negpi_3_va state
-Analyze w prof lynn
-found potential solution (swap sine and cosine so make pure H not pure V)
-try it out (UVHWP angles below) -> data in test 4 these are UVHWP values & correspond to all_gamma_chi_06272025_trial2 (trial1 was earlier w uvhwp angles from yeserday)
-[-88.40268658]
-[-84.76152667]
-[-79.38040221]
-[-74.5211473]
-[-69.83436021]
-[-65.26673128]
+I ran a UVHWP calibration for this (angles are below, sweep is ria_hd_negpi_3_va_test4) and used these angles in the gamma_determination file to characterize the phase drift in this section. This data is all_gamma_chi_06272025_trial2. Note that the drift does not seem to improve.
+- [-88.40268658] ~chi0
+- [-84.76152667] ~chi18
+- [-79.38040221] ~chi36
+- [-74.5211473] ~chi54
+- [-69.83436021] ~chi72
+- [-65.26673128] ~chi09
 
-[-178.43334997]
-[-174.4035695]
-[-169.28190979]
-[-164.47610195]
-[-159.79179246]
-[-155.20270599]
+I then ran another trial in a different quadrant of the UVHWP (angles used are below, sweep is ria_hd_negpi_3_va_test5), and found much the same thing -- no improvement in the drift. This indicates the explanation we had settled upon for the drift is likely not what is causing it. (all_gamma_chi_06272025_trial3 stores this data)
+- [-178.43334997] ~chi0
+- [-174.4035695] ~chi18
+- [-169.28190979] ~chi36
+- [-164.47610195] ~chi54
+- [-159.79179246] ~chi72
+- [-155.20270599] ~chi90
 
-I remade all of the hr_negpi_6_vl plots with an adjusted theoretical state that more closely matched what we made, and the theory/experiment discrepancy from before no longer present in the W_3s with minimal affect on the W_5s.
+Using the math I did yesterday for the hr_negpi_6_vl state, I remade all of the hr_negpi_6_vl plots with an adjusted theoretical state that more closely matched what we made, and the theory/experiment discrepancy from before no longer present in the W_3s with minimal effect on the W_5s.
+
+
+# 06/30/2025
+MP: Ria
+
+I generated plots of phase diff in the hr_negpi_3_vl state using the same method as yeserday, and confirmed it is much smaller than in the hd_negpi_3_vd state.
+
+I also looked at last year's data. Using the tomography datas and analyze_phase, I determined there was not as large of a phase drift in the mixed data as we are seeing now. Unfortunately, it was unclear what unmixed data was used to generate these mixed data sets. I contacted Lev to ask where the unmixed data used in generating the paper state mixed sets was, but he didn't respond yet.
+
+I ended up analyzing one unmixed hdva data set, and did find it had drift similar to what we are seeing with hd_negpi_3_va.
+
+
+# 7/1/2025
+MP: Ria
+
+Since Lev still hasn't gotten back to me about the unmixed data corresponding to the mixed data used in the paper states, I decided to just analyze all data I found last year to find the phase drift. All of this drift data is located within the Summer2024 repository, directly in the raw data folders in framework and Lev's folder as phase_drift_data.
+
+It appears that all states of the form hdva/havd have more phase drift than hrvl/hrivl states do -- something that aligns with what we ahve observed. However, states of the form havd seem to have slightly less phase drift than states of the form hdva.
+
+They are fixing ac tomorrow morning so will likely need to recalbrate the set up.
 
 
 # 07/02/2025
 MP: Ria
 
-phi_plus
-HH Counts: 1472+/-7
- VV Counts: 1451+/-6
- VH Counts: 11.5+/-0.5
- HV Counts: 12.5+/-0.6
-AD Counts: 30.7+/-0.9
- DA Counts: 38.9+/-1.5
- DD Counts: 1444+/-7
- AA Counts: 1430+/-5
+They apparently fixed the AC in the lab this morning by removing the zip ties and replacing the mechanism that allows the air vent to open and close. However, it is not any warmer in the lab.
 
- HA+VD
- AH counts: 28.8+/-1.1
- DV counts: 29.1+/-0.9
- HA Counts: 1430+/-6
- VD Counts: 1423+/-5
- HD Counts: 10.90+/-0.32
- VA Counts: 11.2+/-0.7
+phi_plus counts:
+- HH Counts: 1472+/-7
+- VV Counts: 1451+/-6
+- VH Counts: 11.5+/-0.5
+- HV Counts: 12.5+/-0.6
+- AD Counts: 30.7+/-0.9
+- DA Counts: 38.9+/-1.5
+- DD Counts: 1444+/-7
+- AA Counts: 1430+/-5
 
- [-87.73224977]
-[-92.38054896]
-[-97.20772917]
-[-101.92845518]
-[-106.56321264]
-[-111.11112706]
--16.1584427682977
+I calibrated the state ha_vd with a zero phase (QP @ -16.1584427682977) so that I could test the phase drift in the state.
+ha_vd counts:
+- AH counts: 28.8+/-1.1
+- DV counts: 29.1+/-0.9
+- HA Counts: 1430+/-6
+- VD Counts: 1423+/-5
+- HD Counts: 10.90+/-0.32
+- VA Counts: 11.2+/-0.7
 
-drift is a lot smaller with havd state so proceed with finding one? it is about 0.2 vs 0.5 with the the other state
-use lev's file to find havd witnessed by t3
+I then ran a UVHWP sweep (ria_ha_vd_test1) and got the below angles for the UVHWP. I then ran the gamma determination file on each of these angles, and found the drift data stored in ha_vd_phase_drift_test. Drift seems smaller with the havd state, so I will proceed with finding if a variation of this state is witnessed by W5_t3. Drift is about 0.2 vs 0.5 with the the other state.
+- [-87.73224977] ~chi0
+- [-92.38054896] ~chi18
+- [-97.20772917] ~chi36
+- [-101.92845518] ~chi54
+- [-106.56321264] ~chi72
+- [-111.11112706] ~chi90
 
 
 # 07/03/2025
 MP: Ria
 
+I reinstalled the venv on my laptop bc it broke and scipy.optimize no longer works. I then created a version of Lev's state finding file called gen_pure_state_gamma that finds the witness values for a user defined state and tested it on knownt states (hd_negpi_3_va, hr_negpi_6_vl). I then found that the state ha_negpi3_vd is witnessed by t3 and decided to move on with this state. Note: all this data is in the summer 2025 repository under ria/w_5_triplet_3_state_finding.
+
 phi_plus counts at the start of the day:
-HH Counts: 1411+/-6
- VV Counts: 1377+/-6
- VH Counts: 10.1+/-0.4
- HV Counts: 11.1+/-0.7
-AD Counts: 28.9+/-0.9
- DA Counts: 34.5+/-0.8
- DD Counts: 1383+/-9
- AA Counts: 1368+/-9
+- HH Counts: 1411+/-6
+- VV Counts: 1377+/-6
+- VH Counts: 10.1+/-0.4
+- HV Counts: 11.1+/-0.7
+- AD Counts: 28.9+/-0.9
+- DA Counts: 34.5+/-0.8
+- DD Counts: 1383+/-9
+- AA Counts: 1368+/-9
 
- took data bc running low on time bc had to leave for flight at 4pm, you really need to recalib the mirrors before doing a final data collectino on this state... took data in supbar conditions as proof-of-concept and not bc yeah lets go
+Note: wavplates dc'd again 3 times today
+Note: measuring min counts for ha_negpi_3_vd is same waveplate settings as hd_negpi_3_va
 
-wavplates dc'd again 3 times today
- sweep around -9 qp angle for gamma
- didn't ratio tune or double check gamma bc i ran out of time, but this was jsut proof of concept
+I sweep around -9 qp angle for gamma and found QP: -7.165756064967105 for the desired phase.
+I found the UVHWP angle was -65.86116630152654 for the balanced state.
+ 
+ha_negpi_3_vd counts:
+- Min counts 1: 29.8+/-0.6
+- Min counts 2: 27.0+/-1.4
+- HD Counts: 10.8+/-0.5
+- VA Counts: 11.8+/-0.6
+- HA Counts: 1417+/-12
+- VD Counts: 1421+/-5
 
- -65.86116630152654 UVHWP
- -7.165756064967105 QP
+I then ran a tomogrpahy. Note that I modified the ria_hdva file to create ria_havd and unintentionally left the flipped sine and cosine in the data, so ria_ha_negpi_3_vd_trial1 was found on the state sin(chi/2)*|HA> + cos(chi/2)*e^(-ipi/3)*|VD> rather than the intended cos(chi/2)*|HA> + sin(chi/2)*e^(-ipi/3)*|VD>. I processed this data and realized there is now a phase drift. Will look more into that after the holiday. I also expanded use of gen_pure_state_gamma for multiple gamma/state tests.
 
-ha_negpi_3_vd
- Min counts 1: 29.8+/-0.6
- Min counts 2: 27.0+/-1.4
- HD Counts: 10.8+/-0.5
- VA Counts: 11.8+/-0.6
- HA Counts: 1417+/-12
- VD Counts: 1421+/-5
+# 07/08/2025
+MP: Ria
+
+I rewrote a file to read the tomography data and calculate gamma the same way as the gamma determination file (this is called gamma_calculation.py). We discussed how purely we can make something like |V>|alpha> and how we should check this with and without the UVHWP.
+-> we should be better at |V>|alpha> than at |H>|alpha> if we are correct in what we know about the set up
+-> no UVHWP should be ONLY |V>|alpha>
+
+We also discussed the issues Isabel noticed with the W_5 code and how to check that the new code written over the summer matched previous code.
+-> pull the alpha value and the theta value it is minimizing for W_5_8 on the basically no entangled state and calculate the new pure state that is rotating the first particle by -alpha about the y axis. calculate W_3_6 should have basically same values. If they are not the same, WE HAVE ISSUES WITH THE W_5 logically.
 
 
 # 7/9/2025
 MP: Ria
 
- checking h_alpha versus v_alpha_perp counts and seeing which one minimizes more
- let's just use the current phi_plus calibration -> note the qp angle produces some phase shift but it may not be exaclty zero
+Since I flipped the ratios from when I had found ha_vd as having less phase drift than hd_va, I checked
+|H>|alpha> versus |V>|alpha_perp> counts for a state of the form cos(chi/2)|H>|alpha>+sin(chi/2)|V>|alpha_perp> to see which one minimizes more as chi changes.
+I just used the current phi_plus calibration for simplicity -> note the qp angle produces some phase shift but it may not be exaclty zero as I have not recalibrated phi_plus recently (but it should be ~0 as that's where it was calibrated to)
 
- HH Counts: 1421+/-7
- VV Counts: 1330+/-4
- VH Counts: 11.2+/-1.1
- HV Counts: 12.8+/-0.6
-AD Counts: 30.8+/-0.7
- DA Counts: 38.4+/-1.2
- DD Counts: 1368+/-7
- AA Counts: 1339.5+/-2.9
+phi_plus counts:
+- HH Counts: 1421+/-7
+- VV Counts: 1330+/-4
+- VH Counts: 11.2+/-1.1
+- HV Counts: 12.8+/-0.6
+- AD Counts: 30.8+/-0.7
+- DA Counts: 38.4+/-1.2
+- DD Counts: 1368+/-7
+- AA Counts: 1339.5+/-2.9
 
-phi_plus
-2.500000416666725e-07
-[-42.90096457] -> [0.03210369387100021+/-0.0019799547380766115]
-3999999.333333252
-[-87.72854883] -> [1.5185091827060833+/-0.0017540315726145511]
-mf waveplates keep disconnecting
+phi_plus: 
+- 2.500000416666725e-07: [-42.90096457] -> [0.03210369387100021+/-0.0019799547380766115]
+- 3999999.333333252: [-87.72854883] -> [1.5185091827060833+/-0.0017540315726145511]
+
+Waveplates keep disconnecting
 
 we are better at making HH than at making VV
--> note this is not pure phi_plus, I think there is some phase shift there I just didn't calculate it... sorry
+-> note this is not pure phi_plus, I think there is some phase shift there I just didn't calculate it
+
+As a follow up from this discussion yesterday, I did some data collection to check how well we were making |H>|alpha> as compared to |V>|alpha_perp>.
+For simplicity, I used the phi_plus calibration to do so, but without verifying the QP angle still produces a zero phase as the phase shift is shouldn't affect this. So, the state I ended up creating was cos(chi/2)|HH>+(e^i*gamma)*sin(chi/2)*|VV> where gamma is presumably near zero, but not necessarily exactly zero.
+
+I then swept the UVHWP over a large range of data point (>45 degrees in total to ensure I enclosed both the maximum and minimum chi), and found where this data set placed chi=0 and chi=pi. I then used a different file to take data at both of those UVHWP angles (for a bit longer than the previous file) and to calculate chi/2 for both points.
+
+Ultimately, I found that where chi/2 should have been zero, it was 0.0321 and where chi/2 should have been pi/2, it was 1.518. To me, this makes it appear as if we are currently better at making |H>|alpha> than we are at |V>|alpha_perp>, which is not what we were expecting. As a quick note, cos(0.0321)~0.9995 whereas sin(1.518)~0.9986.
+
+I wasn't really sure why this is -- I know that we said the only two components that should affect this balance are the UVHWP and the BBO, but as the UVHWP is still in, it should offset any effect from the BBO. 
+
+I do wonder if this could partially explain why the ha_negpi_3_vd tomography data looks so much different from what we would expect -- since there appears to be more extraneous |H>|alpha> counts when making |V>|alpha_perp> than vice versa and I unintentionally ran the state with majority |V>|alpha_perp> rather than the |H>|alpha> I had intended (and also verified phase drift for). We had previously (with hd_negpi_3_va) discussed switching to making primarily VA rather than HD as we are supposed to be "better" at that, but it didn't actually improve anything. Perhaps now with this state, if we switch to making primarily HA rather than VD (which it currently appears we might be better at), maybe this would improve the quality of the experimental density matrices? I am just wondering if somehow the slight difference in the produced extremal chi values is playing a role in the phase drift we are observing. At the least, it would hopefully allow us to improve the chi=0 point? 
+
+Now that I have the process for generating this data down pretty well (it took a quite a bit longer than I expected as I ended up having to write some new files), I am trying to decide whether to repeating this data collection with alpha = D and alpha = R to see if the results are consistent with the phi_plus results as well as the chi values I observed when generating tomography data the past few weeks is worth my time. The data I have collected so far does make me curious to check whether going back and taking data for the ha_negpi_3_vd state with the ratios as we had initially intended (cos(chi/2)*|HA> rather than sin(chi/2)*|HA>) leads to different results as compared with Friday's data.
+
+Finally, I wanted to make a note that the connection error with the measurement waveplates has been occurring much more frequently in the past two weeks. Because of the way the manager throws these errors, it is unclear if one waveplate is repeatedly disconnecting, or if it is an error with multiple of them. Today, I ended up having to power cycle the measurement waveplates between every file or two because of this -- something that I think is worth noting.
+
+We ultimately decided the next step is to remove the UVHWP to see how well we can make VV without it.
+
 
 
 # 7/10/2025
 MP: Ria
 
-no UVHWP: [1.5289762635044757+/-0.0014746582518083504] & [1.5243398331404863+/-0.0013936876474972514]
+In line with what Prof Lynn recommended, I removed the UVHWP to check how well we are able to make VV without it in. I also reanalyzed the old data to find the produced chi values.
 
-realgin uvhwp-> swap razor for paper folded once bc razer was poor aligned
-recheck phi plus
-recalib havd
-run tomo
+no UVHWP: [1.5289762635044757+/-0.0014746582518083504] & [1.5243398331404863+/-0.0013936876474972514]: they are different BUT they both given (sin(chi))~0.9990 vs 0.9991 other: 0.0418, 0.0468
+- for cosine 0.0321-> 0.9995 other: 0.0321
+- for sine 1.518->0.9986 other: 0.0528
+
+I noticed that we have more excess HH counts "leaking" in than VV counts, but I'm not sure why that is.
+-> measurement bases not well lined up: nope would impact both
+-> pump beam is horizontal: we are picking up some pump beam light?
+-> we have filters and it is much different wavelength BUT it is also much brighter
+
+To realgin uvhwp when putting it back inL: swap razor for paper folded once bc razer was poor aligned
 
 
-HH Counts: 1480+/-9
- VV Counts: 1228+/-6
- VH Counts: 15.6+/-0.8
- HV Counts: 13.4+/-0.7
-AD Counts: 128.5+/-2.2
- DA Counts: 113.5+/-1.7
- DD Counts: 1254+/-5
- AA Counts: 1227+/-4
+phi plus count rates:
+- HH Counts: 1480+/-9
+- VV Counts: 1228+/-6
+- VH Counts: 15.6+/-0.8
+- HV Counts: 13.4+/-0.7
+- AD Counts: 128.5+/-2.2
+- DA Counts: 113.5+/-1.7
+- DD Counts: 1254+/-5
+- AA Counts: 1227+/-4
 
- recalib phi_plus
+ recalib phi_plus:
+- new UVHWP -64.14652091578432->-65.39653496993216
+- new QP ->
+- had to readjust mirrors/bbo due to low counts-> couldnt myself so asked for help in moring
 
- new UVHWP -64.14652091578432->-65.39653496993216
- new QP ->
- had to readjust mirrors/bbo due to low counts-> couldnt myself so asked for help in moring
+We decided that because we had more HH counts leaking than VV there was some source of noise that appeared to be muddling our low chi values. Thus, we decided to (at least for this state if not others) take only 5 data points (just removing the chi~0 points as it seemed to be dominated by noise).
 
 
 
 # 07/11/2025
 MP: Ria
 
-didnt' get mirrors much better w two people so we just called it good despite the lowered counts :(((
+Unfortunately, we didnt' get mirrors much better with two people so we just called it good despite the lowered counts :((. I then recalibrated phi plus and ha_negpi_3_va and ran a tomography.
+
 phi_plust recalib
-readjust UVHWP -65.39653496993216->-64.5164626272101
-         QP -15.6788->-14.993
-HH Counts: 1325+/-5
- VV Counts: 1320+/-8
- VH Counts: 12.2+/-0.5
- HV Counts: 12.3+/-0.6
-AD Counts: 23.8+/-0.8
- DA Counts: 29.8+/-1.5
- DD Counts: 1300+/-10
- AA Counts: 1308+/-5
+- readjust UVHWP -65.39653496993216->-64.5164626272101
+- QP -15.6788->-14.993
+
+phi_plus counts:
+- HH Counts: 1325+/-5
+- VV Counts: 1320+/-8
+- VH Counts: 12.2+/-0.5
+- HV Counts: 12.3+/-0.6
+- AD Counts: 23.8+/-0.8
+- DA Counts: 29.8+/-1.5
+- DD Counts: 1300+/-10
+- AA Counts: 1308+/-5
 
 ha_negpi_3_va recalib:
-UVHWP -65.86116630152654->-65.937744140625->-66.30258419639185
-QP: -3.8691303453947365
-gamma: -1.060+/-0.005
+- UVHWP -65.86116630152654->-65.937744140625->-66.30258419639185
+- QP: -3.8691303453947365
+- gamma: -1.060+/-0.005
+
 counts:
-Min counts 1: 30.3+/-1.0
- Min counts 2: 29.4+/-0.7
- HD Counts: 13.8+/-0.4
- VA Counts: 15.5+/-0.6
- HA Counts: 1342+/-6
- VD Counts: 1335+/-8
-tomo: done
+- Min counts 1: 30.3+/-1.0
+- Min counts 2: 29.4+/-0.7
+- HD Counts: 13.8+/-0.4
+- VA Counts: 15.5+/-0.6
+- HA Counts: 1342+/-6
+- VD Counts: 1335+/-8
+
+While the tomography was running, I made the following notes:
+- hr_negpi_6_vl: biggest drift using the same gamma calculation method as the file I use to calibrate it was 0.04 (from chi~18 to chi=90)
+- ha_negpi_3_vd & hd_negpi_3_va data (comparing today's data with the last collection of hd_negpi_3_va) has a drift of ~0.4-> 10x larger... the plots look very similar as well... with this in mind, I am inclined to believe there is something going on with the states in which bob is diagonal/antidiagonal that is SOMEHOW not occurring when bob is circularly polarized.... could it be some "contaminating" light from somewhere that is just not circularily polarized????????
+- note before I fixed the ratios for the ha_negpi_3_vd data this drift was about 0.7
+- these drifts are smaller than the ones I had plotted before, likely because this is essentially using 2 density matrix entries and the plots I had made earlier only used one... perhaps they "cancel" each other out a little bit... anyways, I would believe these drift calculations more directly correspond to the way phase impacts witness values as hr_negpi_6_vl has essentially no drift with this (0.04) and the witness values show phase agrees whereas the other method I used (using 1 density matrix entry) showed drift on the order of 0.2 for this (which we would maybe see on the graph)
+- in contrast, the ha_negpi_3_vd and hd_negpi_3_va show phase drift on the order of 0.4 with both methods and their graphs reflect this trend
+- I was hoping to look at old data to confirm that the mixed data showed essentially no phase drift as compared to the unmixed data using this method, but as it relies on the counts data, that is a bit more difficult to do as the csv i was using for generating this data are not created for the mixed data sets
+- additionally, though we decided not to go down to chi=0.001 radians due to the noise, the UVHWP sweep I conducted on the ha_negpi_3_vd state would suggest that the minimum chi is ~0.05, which would be on par with the hr_negpi_6_vl state AND what I would hope we are seeing :)... I did take this point, but I think the UVHWP minimized into the wrong quadrant as the phase data is competely off AND the "actual" chi I calculated is larger than this value the sweep would suggest (looking at the UVHWP sweep, it does look like this minimized past the minimum)
 
 
 # 07/14/2025
 MP: Ria
 
-COUNTS:
-Min counts 1: 39.9+/-1.2
- Min counts 2: 26.1+/-0.6
- HD Counts: 13.4+/-0.6
- VA Counts: 14.7+/-1.1
- HA Counts: 1364+/-4
- VD Counts: 1333.4+/-3.2
+I ran a UVHWP sweep using ria_havd to find each UVHWP. I then went through and for each angle found the proper gamma (using the gamma calibration file in state_calibration_code), and then input the gamma and UVHWP angle into the tomogrpahy file and ran a tomography using that data. Note that for some data points, it is necessary to do an iterative process if the gamma is far enough from the QP angle used to find UVHWP angles.
 
- Min counts 1: 28.3+/-1.0
- Min counts 2: 29.8+/-1.0
- HD Counts: 11.2+/-0.9
- VA Counts: 13.5+/-0.4
- HA Counts: 1331+/-4
- VD Counts: 1339+/-4
+COUNTS:
+- Min counts 1: 39.9+/-1.2
+- Min counts 2: 26.1+/-0.6
+- HD Counts: 13.4+/-0.6
+- VA Counts: 14.7+/-1.1
+- HA Counts: 1364+/-4
+- VD Counts: 1333.4+/-3.2
+
+- Min counts 1: 28.3+/-1.0
+- Min counts 2: 29.8+/-1.0
+- HD Counts: 11.2+/-0.9
+- VA Counts: 13.5+/-0.4
+- HA Counts: 1331+/-4
+- VD Counts: 1339+/-4
 
 UVHWP prelim sweep in folder
-qp and uvhwp data stored in ____ folder
-[-44.55908126]
-[-48.60257788]
-[-53.14131287]
-[-57.58839513] -3.114393022938778
-[-62.04858616] -3.9992205521934907
-[-66.55361065] -4.827486214637755
+qp and uvhwp data stored in folder
+- [-44.55908126]
+- [-48.60257788]
+- [-53.14131287]
+- [-57.58839513] -3.114393022938778
+- [-62.04858616] -3.9992205521934907
+- [-66.55361065] -4.827486214637755
 
 -> other chis not able to get needed gamma in this quadrant, moved to alternate quadrant w UVHWP at -112.5 not -67.5
 
-note: will work on updating docuimentation soon
-bruh robot file org, file info org, main document, readmes, data org, new repo org, etc etc :))... lab notebook uipdates
+- [-132.55902792] UNUSED DATA POINT
+- [-128.59918009] -24.251088513826073 -> [-132.50543769]
+- [-124.24155098] -25.20815734863281 -> [-127.38849844]
+- [-119.93580218] -25.603982222707646 -> [-122.98117298]
+- [-115.58783425] -25.831407406455597 -> [-118.51952741]
+- [-111.16360422] -26.00327309056332 -> [-114.11387723]
 
-[-132.55902792] UNUSED DATA POINT
-[-128.59918009] -24.251088513826073 -> [-132.50543769]
-[-124.24155098] -25.20815734863281 -> [-127.38849844]
-[-119.93580218] -25.603982222707646 -> [-122.98117298]
-[-115.58783425] -25.831407406455597 -> [-118.51952741]
-[-111.16360422] -26.00327309056332 -> [-114.11387723]
+ [-132.50543769, -127.38849844, -122.98117298, -118.51952741, -114.11387723]: set of UVHWP angles used
 
-[-132.50543769, -127.38849844, -122.98117298, -118.51952741, -114.11387723]
 
 # 07/15/2025
 MP: Ria
 
-go point by point... first check chi=90, then 72, then 54, then 36, then 18 (doing the tomography immediately after calibrating)
+I continued to go point by point... first check chi=90, then 72, then 54, then 36, then 18 (doing the tomography immediately after calibrating).
 
-Min counts 1: 28.6+/-0.5
- Min counts 2: 36.1+/-1.3
- HD Counts: 10.8+/-0.7
- VA Counts: 12.0+/-1.0
- HA Counts: 1293+/-5
- VD Counts: 1289+/-8
+- Min counts 1: 28.6+/-0.5
+- Min counts 2: 36.1+/-1.3
+- HD Counts: 10.8+/-0.7
+- VA Counts: 12.0+/-1.0
+- HA Counts: 1293+/-5
+- VD Counts: 1289+/-8
 
 
 90: -25.69667326274671 & [-113.97057031] -> -25.713055098684208 & [-113.85453091] -> -25.593876246402132 & [-113.88752972]
 not really muhc change in the chi checks here so probably don't need to calibrate quite that much (didn't seem to be changing calibration that much and i had to go)
 
+Note there was a lot of error in phase at smaller chis (maybe I should have double check the UVHWP & gamma both once more)/
+
+
 # 07/16/2025
 MP: Ria
 
-HH Counts: 1308+/-8
- VV Counts: 1308+/-6
- VH Counts: 13.1+/-0.8
- HV Counts: 14.3+/-0.7
-AD Counts: 27.2+/-1.1
- DA Counts: 28.9+/-0.5
- DD Counts: 1296+/-4
- AA Counts: 1291+/-4
+- HH Counts: 1308+/-8
+- VV Counts: 1308+/-6
+- VH Counts: 13.1+/-0.8
+- HV Counts: 14.3+/-0.7
+- AD Counts: 27.2+/-1.1
+- DA Counts: 28.9+/-0.5
+- DD Counts: 1296+/-4
+- AA Counts: 1291+/-4
 
-for today, i am calling the 0.99X phase "close enough" to the target phase of 1.04 as there is some error & calibration isn't improving it *that* much 
-plus the actual phase in the density matrices is a bit different
-will calibrate to about this phase and if it is still bad in the plots, will rerun the calibration *another* time for even a tighter phase
-probably will need to rethink the gamma fitting tho bc a value spit out by the fitting doesn't always have the exact same phase when you run the gamma check which implies maybe the fitting could use some work?????
+For today, i am calling the 0.99X phase "close enough" to the target phase of 1.04 as there is some error & calibration isn't improving it *that* much. Besides, the actual phase in the density matrices is a bit different from the value shown when calibrating. I will calibrate to about this phase and if it is still bad in the plots, will rerun the calibration *another* time for even a tighter phase. I probably will need to rethink the gamma fitting tho bc a value spit out by the fitting doesn't always have the exact same phase when you run the gamma check which implies maybe the fitting could use some work?????
 
- 72: -25.482613814504525 & [-118.23365587]
- 54: -25.05831660220498 & [-122.62702233] -> -25.10857029965049 & [-122.54623276]
- 36: -24.533135665090455 & [-126.90093284] -> -24.669723510742188 & [-126.9772774] -> -24.638519287109375 & [-126.96943523] -> -24.312966469212583 & -126.82651768
- 18: -18.96165527343748 & -129.26352958 -> -23.4084573203639 & [-131.69597203] -> -21.374077405427627 & [-130.44066667] -> -22.757037032277957 & [-131.29599484]... ended up just going with [-130.44066667] & -22.757037032277957 bc it gave chi=0.3542291860031217~20 degreees and gamma=__ (at this ratio, the gamma is very sensitive to the chi, so ratio tuning AFTER gamma calculation significantly alters the produced chi.... we will place this poijnt correctly in the plots to correspond to the fact that it isn't exactly chi=0.314...~18 degrees)
+- 72: -25.482613814504525 & [-118.23365587]
+- 54: -25.05831660220498 & [-122.62702233] -> -25.10857029965049 & [-122.54623276]
+- 36: -24.533135665090455 & [-126.90093284] -> -24.669723510742188 & [-126.9772774] -> -24.638519287109375 & [-126.96943523] -> -24.312966469212583 & -126.82651768
+- 18: -18.96165527343748 & -129.26352958 -> -23.4084573203639 & [-131.69597203] -> -21.374077405427627 & [-130.44066667] -> -22.757037032277957 & [-131.29599484]... ended up just going with [-130.44066667] & -22.757037032277957 bc it gave chi=0.3542291860031217~20 degreees and gamma (at this ratio, the gamma is very sensitive to the chi, so ratio tuning AFTER gamma calculation significantly alters the produced chi.... we will place this poijnt correctly in the plots to correspond to the fact that it isn't exactly chi=0.314...~18 degrees)
 
  to be fair, our previous data from this summer has the chis within 0.01 radians of the target for hr_negpi_6_vl, but the data from last summer has this chi value within 0.1 - so within ~0.04 should be fine esp since it is just one data point. atp doing more calibration on this point will take a significant amount of time and I want to go to dinner it is pretty late already -> if time before open house tomorrow morning, recalib this point... good enough for now
 
  decided to take more data points for the gammas at smaller chis since the amount I was taking was producing too small gammas even after 3 iterations of gamma find->ratio tune->check gamma and repeat
 
- # 07/17/2025
- MP: Ria
 
- 
- 18: -131.29599484 & -21.986341777600742 -> 
+ The reason the other plots agree more with theory than adj theory is bc the slight phase variation is bringing the resulting W_5 witness value down very very slightly... if you correct to match the actual produced gamma value (using gamma calculation method), I can almost guarantee this would NOT occur....
 
- HH Counts: 1336.1+/-3.5
- VV Counts: 1315+/-6
- VH Counts: 12.3+/-0.7
- HV Counts: 14.1+/-0.5
-AD Counts: 25.5+/-0.9
- DA Counts: 28.2+/-0.8
- DD Counts: 1305+/-10
- AA Counts: 1299+/-5
+CHI->gamma_check value->tomo file's gamma (from processing data)
+- 18->-931->-.75
+- 36->.998->-.89
+- 54->.983->-.94
+- 72->.991->-1.13
+- 90->.985->-1.04
+->NOTE: maybe try retaking the chi 18 data point to see if you can improve it, but other than that I think it's aboutdone
+
+
+# 07/17/2025
+MP: Ria
+
+I confirmed no pure states are witnessed by the W5 t1s... just to get more intuition for how they work, I generated a bunch of data using only the T1 witness values and looked at it.
+
+Ultimately, I found that:
+- all states with just H&V or just D&A or just R&L are witnessed by W3
+- all states with HV & DA are witnessed by W5_t3
+- all states with HV & RL are witnessed by W5_t2
+- all states with DA & RL are witnessed by W5_t1
+So, there are pure states witnessed by triplet one, they just don't have H/V on alice's side and are thus not states we can make.
+
+Other info for chi18 data point to retake it:
+ 18: -131.29599484 & -21.986341777600742
+
+- HH Counts: 1336.1+/-3.5
+- VV Counts: 1315+/-6
+- VH Counts: 12.3+/-0.7
+- HV Counts: 14.1+/-0.5
+- AD Counts: 25.5+/-0.9
+- DA Counts: 28.2+/-0.8
+- DD Counts: 1305+/-10
+- AA Counts: 1299+/-5
